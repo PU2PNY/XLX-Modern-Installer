@@ -2,21 +2,20 @@
 
 Instalador moderno, bilíngue e auditável para refletores XLX.
 
-Esta é uma versão modificada e ampliada baseada no trabalho de **Daniel K. — PP5PK**, autor e mantenedor do projeto `PP5PK/XLX_Installer`.
+## Português
 
-Também reconhecemos o trabalho de **LX3JL**, **N5AMD**, **Narspt** e dos autores dos componentes efetivamente utilizados.
+O projeto é uma versão modificada e ampliada baseada no trabalho de **Daniel K. — PP5PK**, autor e mantenedor do **PP5PK/XLX_Installer**.
 
-Mantenedor desta versão modificada: **Dario — PU2PNY**.
+Também reconhecemos **LX3JL**, **N5AMD**, **Narspt** e os autores dos componentes utilizados.
 
-## Estado atual
+Esta versão acrescenta suporte em Português e Inglês, preflight, backup e rollback planejados, validações, arquitetura modular, permissões seguras, documentação e testes automatizados.
 
-Build de desenvolvimento para revisão e testes.
+> Em desenvolvimento. Não utilizar em produção nesta etapa.
 
-- módulos estruturais implementados;
-- interface em Português e Inglês;
-- testes automatizados;
-- validações de segurança;
-- pacote de teste incluído no diretório `releases/`;
-- instalação real e alterações em produção continuam bloqueadas.
+Mantenedor da versão modificada: **Dario — PU2PNY**
 
-> Não utilizar em produção nesta etapa.
+## English
+
+This project is a modified and expanded version based on **Daniel K. — PP5PK** and the **PP5PK/XLX_Installer** project.
+
+> Under development. Do not use in production at this stage.

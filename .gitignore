@@ -1,0 +1,14 @@
+config/xlx-installer.conf
+*.log
+*.key
+*.pem
+*.crt
+*.db
+*.sqlite
+*.sqlite3
+*.xml
+.env
+.env.*
+secrets/
+backups/
+releases/
