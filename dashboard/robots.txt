@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://{{REFLECTOR_NAME}}.net/sitemap.xml

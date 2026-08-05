@@ -3,6 +3,8 @@ set -Eeuo pipefail
 IFS=$'\n\t'
 umask 077
 
+readonly ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+
 # XLX Modern Installer
 # Mantenedor da versão modificada: Dario — PU2PNY
 # Base técnica: Daniel K. — PP5PK / PP5PK/XLX_Installer
@@ -201,6 +203,9 @@ execute_installer() {
     installer_rc=${PIPESTATUS[0]}
     set -e
     [ "$installer_rc" -eq 0 ] || fatal "O instalador terminou com código $installer_rc. Consulte: $logfile"
+
+    section "INSTALANDO XLX MODERN DASHBOARD"
+    bash "$ROOT_DIR/modules/60-dashboard-modern.sh"
 
     section "VALIDAÇÃO PÓS-INSTALAÇÃO"
     failures=0
