@@ -1,6 +1,6 @@
 # XLX Modern Installer
 
-Instalador profissional para refletores XLX em servidores Debian 12.
+Instalador para refletores XLX em servidores Debian 12.
 
 ## Instalação
 
@@ -21,7 +21,8 @@ O comando `--check` executa somente a pré-validação. A instalação real exig
 - `tests/` — testes automatizados;
 - `config/` — configurações de exemplo;
 - `docs/` — documentação em Português e Inglês;
-- `dashboard/` — reservado para o XLX Modern Dashboard.
+- `dashboard/` — XLX Modern Dashboard integrado ao instalador;
+- `references/PP5PK-XLX-Installer/` — referência técnica do instalador original utilizado como base.
 
 ## Diretórios utilizados no servidor
 
