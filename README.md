@@ -1,21 +1,44 @@
 # XLX Modern Installer
 
-Instalador moderno, bilíngue e auditável para refletores XLX.
+Instalador profissional para refletores XLX em servidores Debian 12.
 
-## Português
+## Instalação
 
-O projeto é uma versão modificada e ampliada baseada no trabalho de **Daniel K. — PP5PK**, autor e mantenedor do **PP5PK/XLX_Installer**.
+```bash
+git clone https://github.com/PU2PNY/XLX-Modern-Installer.git
+cd XLX-Modern-Installer
+sudo bash install.sh --check
+sudo bash install.sh
+```
 
-Também reconhecemos **LX3JL**, **N5AMD**, **Narspt** e os autores dos componentes utilizados.
+O comando `--check` executa somente a pré-validação. A instalação real exige confirmação explícita e não sobrescreve uma instalação XLX existente.
 
-Esta versão acrescenta suporte em Português e Inglês, preflight, backup e rollback planejados, validações, arquitetura modular, permissões seguras, documentação e testes automatizados.
+## Estrutura principal
 
-> Em desenvolvimento. Não utilizar em produção nesta etapa.
+- `install.sh` — instalador principal;
+- `scripts/development-preview.sh` — interface antiga de prévia e testes;
+- `modules/` — módulos de diagnóstico, planejamento e validação;
+- `tests/` — testes automatizados;
+- `config/` — configurações de exemplo;
+- `docs/` — documentação em Português e Inglês;
+- `dashboard/` — reservado para o XLX Modern Dashboard.
 
-Mantenedor da versão modificada: **Dario — PU2PNY**
+## Diretórios utilizados no servidor
 
-## English
+- `/opt/xlx-modern-installer` — fontes controladas do instalador;
+- `/var/backups/xlx-reflector` — backups preventivos;
+- `/var/log/xlx-reflector/installer` — logs de instalação.
 
-This project is a modified and expanded version based on **Daniel K. — PP5PK** and the **PP5PK/XLX_Installer** project.
+## Créditos
 
-> Under development. Do not use in production at this stage.
+Projeto original e base técnica: **Daniel K. — PP5PK**, mantenedor do projeto `PP5PK/XLX_Installer`.
+
+Também reconhecemos **LX3JL**, **N5AMD**, **Narspt** e os autores dos componentes efetivamente utilizados.
+
+Versão modificada e modernizada mantida por **Dario — PU2PNY**.
+
+## Estado do novo painel
+
+A estrutura e os nomes profissionais já foram aplicados. A integração automática do **XLX Modern Dashboard** depende da inclusão do pacote sanitizado do painel no diretório `dashboard/`.
+
+Até essa integração ser concluída, o instalador principal utiliza o dashboard fornecido pelo projeto técnico original.
