@@ -36,9 +36,3 @@ Projeto original e base técnica: **Daniel K. — PP5PK**, mantenedor do projeto
 Também reconhecemos **LX3JL**, **N5AMD**, **Narspt** e os autores dos componentes efetivamente utilizados.
 
 Versão modificada e modernizada mantida por **Dario — PU2PNY**.
-
-## Estado do novo painel
-
-A estrutura e os nomes profissionais já foram aplicados. A integração automática do **XLX Modern Dashboard** depende da inclusão do pacote sanitizado do painel no diretório `dashboard/`.
-
-Até essa integração ser concluída, o instalador principal utiliza o dashboard fornecido pelo projeto técnico original.
