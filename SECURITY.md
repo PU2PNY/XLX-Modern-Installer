@@ -16,6 +16,7 @@ Do not commit or post in issues/pull requests:
 - user databases or database dumps;
 - operational logs containing private data;
 - production backups;
+- raw XLXD connection-IP caches;
 - private Calling Home credentials;
 - any secret required to administer a reflector.
 
@@ -30,7 +31,7 @@ Production-changing steps should, where applicable:
 3. create and verify a backup before replacement;
 4. validate syntax and service state after publication;
 5. preserve the running XLXD service whenever possible;
-6. provide a rollback path for persistent changes;
+6. provide a rollback path for persistent changes, including previous systemd timer state;
 7. use least privilege for runtime components;
 8. avoid exposing internal server data through public APIs.
 
@@ -41,6 +42,14 @@ The global dashboard deliberately excludes reflector-specific private Support co
 The developer attribution for **PU2PNY · Página Certa Digital** is intentional public metadata and is isolated in `dashboard/config/developer.php`.
 
 The Ranking V2 SQLite database remains under `/var/lib/xlx-ranking`; only the generated JSON snapshot is read by the public dashboard API.
+
+### Connection and MTR privacy
+
+XLXD connection records can include endpoint IP addresses. The dashboard keeps those values only in a private cache under `/var/cache/xlx-dashboard`, outside the web root. Public status/history/live payloads remove IP fields. The MTR endpoint resolves the target server-side and returns metrics only; it never returns the measured IP address. Gateway labels that are themselves IP addresses are also rejected from public responses.
+
+### External reflector links
+
+Dashboard URLs received from external reflector-directory data are accepted only when the parsed URL uses the `http` or `https` scheme and contains a host. Other URI schemes are discarded before the browser receives them.
 
 ## Upstream dependency
 
