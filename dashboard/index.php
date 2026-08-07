@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 $config = require __DIR__ . '/config.php';
+$developer = require __DIR__ . '/config/developer.php';
 $page = $_GET['page'] ?? 'ao-vivo';
 $allowed = ['ao-vivo','conectados','modulos','ranking','refletores'];
 if (!in_array($page, $allowed, true)) $page = 'ao-vivo';
@@ -33,6 +34,10 @@ $locale = trim((string)($config['locale'] ?? 'pt-BR')) ?: 'pt-BR';
 $ysfId = trim((string)($config['ysf_id'] ?? ''));
 $dmrTg = trim((string)($config['dmr_tg'] ?? ''));
 $dmrRadioTg = trim((string)($config['dmr_radio_tg'] ?? ''));
+$developerCallsign = trim((string)($developer['callsign'] ?? ''));
+$developerName = trim((string)($developer['name'] ?? ''));
+$developerEmail = trim((string)($developer['email'] ?? ''));
+$developerUrl = trim((string)($developer['url'] ?? ''));
 
 $seo = [
     'ao-vivo'=>['title'=>$serverName.' — Painel ao vivo D-STAR, DMR e C4FM','description'=>'Acompanhe ao vivo transmissões, estações conectadas e módulos do refletor multiprotocolo '.$serverName.'.'],
@@ -50,15 +55,17 @@ $clientConfig = ['serverName'=>$serverName,'locale'=>$locale];
 <!doctype html>
 <html lang="<?=h($locale)?>"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#06131d"><meta name="description" content="<?=h($meta['description'])?>">
+<meta name="author" content="<?=h(trim($developerCallsign.' · '.$developerName, ' ·'))?>">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
 <?php if ($canonical !== ''): ?><link rel="canonical" href="<?=h($canonical)?>"><?php endif; ?>
+<?php if ($developerUrl !== ''): ?><link rel="author" href="<?=h($developerUrl)?>"><?php endif; ?>
 <meta property="og:type" content="website"><meta property="og:locale" content="<?=h($ogLocale)?>"><meta property="og:site_name" content="<?=h($serverName)?>">
 <meta property="og:title" content="<?=h($meta['title'])?>"><meta property="og:description" content="<?=h($meta['description'])?>">
 <?php if ($canonical !== ''): ?><meta property="og:url" content="<?=h($canonical)?>"><?php endif; ?>
 <meta name="twitter:card" content="summary"><meta name="twitter:title" content="<?=h($meta['title'])?>"><meta name="twitter:description" content="<?=h($meta['description'])?>">
 <link rel="icon" type="image/svg+xml" href="assets/logo-reflector.svg"><link rel="manifest" href="site.webmanifest">
 <title><?=h($meta['title'])?></title>
-<link rel="stylesheet" href="assets/app.css?v=20260807"><link rel="stylesheet" href="assets/mtr.css?v=4"><link rel="stylesheet" href="assets/install-app.css?v=33"><link rel="stylesheet" href="assets/ham-weather-widget.css?v=3">
+<link rel="stylesheet" href="assets/app.css?v=20260807"><link rel="stylesheet" href="assets/mtr.css?v=4"><link rel="stylesheet" href="assets/install-app.css?v=33"><link rel="stylesheet" href="assets/ham-weather-widget.css?v=3"><link rel="stylesheet" href="assets/developer-credit.css?v=1">
 <script type="application/ld+json"><?=json_encode(['@context'=>'https://schema.org','@type'=>'WebSite','name'=>$serverName,'url'=>$baseUrl,'description'=>'Painel para radioamadores com D-STAR, DMR e C4FM/YSF.','inLanguage'=>$locale], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)?></script>
 <script>window.XLX_CONFIG=<?=json_encode($clientConfig, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)?>;</script>
 </head>
@@ -123,7 +130,7 @@ $clientConfig = ['serverName'=>$serverName,'locale'=>$locale];
 <?php endif; ?>
 
 </main>
-<footer><div><a class="brand footer-brand" href="<?=page_url('ao-vivo')?>"><img class="brand-logo" src="assets/logo-reflector.svg" alt="Logotipo <?=h($serverName)?>"><span><b><?=h($serverName)?></b><small><?=h($country)?></small></span></a><p>Painel para a comunidade radioamadora.</p></div><div class="footer-links"><a href="<?=page_url('ao-vivo')?>">Ao vivo</a><a href="<?=page_url('conectados')?>">Conectados</a><a href="<?=page_url('modulos')?>">Módulos</a><a href="<?=page_url('ranking')?>">Ranking</a><a href="<?=page_url('refletores')?>">Refletores</a></div><small><?=h($serverName)?><?php if ($dmrTg !== ''): ?> • DMR TG <?=h($dmrTg)?><?php endif; ?><?php if ($ysfId !== ''): ?> • C4FM/YSF <?=h($ysfId)?><?php endif; ?></small></footer>
+<footer><div><a class="brand footer-brand" href="<?=page_url('ao-vivo')?>"><img class="brand-logo" src="assets/logo-reflector.svg" alt="Logotipo <?=h($serverName)?>"><span><b><?=h($serverName)?></b><small><?=h($country)?></small></span></a><p>Painel para a comunidade radioamadora.</p><?php if ($developerCallsign !== '' || $developerName !== ''): ?><p class="footer-developer"><span>Developed by</span><?php if ($developerCallsign !== ''): ?><strong><?=h($developerCallsign)?></strong><?php endif; ?><?php if ($developerName !== '' && $developerUrl !== ''): ?><span class="footer-dev-sep">•</span><a href="<?=h($developerUrl)?>" target="_blank" rel="noopener noreferrer external"><?=h($developerName)?></a><?php elseif ($developerName !== ''): ?><span class="footer-dev-sep">•</span><strong><?=h($developerName)?></strong><?php endif; ?><?php if ($developerEmail !== ''): ?><span class="footer-dev-sep">•</span><a href="mailto:<?=h($developerEmail)?>"><?=h($developerEmail)?></a><?php endif; ?></p><?php endif; ?></div><div class="footer-links"><a href="<?=page_url('ao-vivo')?>">Ao vivo</a><a href="<?=page_url('conectados')?>">Conectados</a><a href="<?=page_url('modulos')?>">Módulos</a><a href="<?=page_url('ranking')?>">Ranking</a><a href="<?=page_url('refletores')?>">Refletores</a></div><small><?=h($serverName)?><?php if ($dmrTg !== ''): ?> • DMR TG <?=h($dmrTg)?><?php endif; ?><?php if ($ysfId !== ''): ?> • C4FM/YSF <?=h($ysfId)?><?php endif; ?></small></footer>
 <div id="toastStack" class="toast-stack"></div><script src="assets/mtr.js?v=4"></script><script src="assets/app-main-1.js?v=55"></script><script src="assets/app-main-2.js?v=55"></script><script src="assets/app-main-3.js?v=55"></script>
 
 <!-- XLX MODERN DASHBOARD INSTALL APP V33 -->
