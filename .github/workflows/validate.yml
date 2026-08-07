@@ -19,7 +19,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install validators
         run: |
@@ -85,13 +85,15 @@ jobs:
           grep -Fq "ranking-collector.py" dashboard/install/install-dashboard.sh
           grep -Fq "xlx-ranking.timer" dashboard/install/install-dashboard.sh
           grep -Fq "dashboard/install/install-dashboard.sh" modules/60-dashboard-modern.sh
+          grep -Fq '/var/www/xlxd' install.sh
+          grep -Fq 'xlx-ranking.timer' install.sh
+          grep -Fq '/var/lib/xlx-ranking/ranking.json' install.sh
 
       - name: Distribution audit
         shell: bash
         run: |
           set -euo pipefail
 
-          # Private/local modules must not exist in the distributed runtime.
           if find dashboard -path 'dashboard/install' -prune -o -type f \( \
               -iname '*support-native*' -o \
               -iname '*ham-news*' -o \
@@ -122,7 +124,6 @@ jobs:
             exit 1
           fi
 
-          # PU2PNY is allowed only as the controlled developer attribution.
           if grep -Rni --binary-files=without-match \
               --exclude-dir=install \
               --exclude='developer.php' \
@@ -145,10 +146,8 @@ jobs:
             exit 1
           fi
 
-          # The public navigation is intentionally global-only.
           ! grep -E "['\"](suporte|noticias)['\"]" dashboard/index.php
 
-          # Developer attribution is explicit and intentional.
           php -l dashboard/config/developer.php >/dev/null
           grep -Fq "'callsign' => 'PU2PNY'" dashboard/config/developer.php
           grep -Fq "'email' => 'contato@paginacertadigital.com.br'" dashboard/config/developer.php
