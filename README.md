@@ -135,11 +135,20 @@ Do not publish production credentials, SSH keys, certificates, database files, A
 
 See `SECURITY.md` for reporting guidance.
 
+## Developer
+
+**PU2PNY · Página Certa Digital**
+
+- Website: https://paginacertadigital.com.br/
+- Email: contato@paginacertadigital.com.br
+
+The international dashboard displays this developer attribution in the footer and links the developer website and contact email.
+
 ## Credits
 
 - XLX ecosystem and upstream contributors
 - Daniel K. — PP5PK, author/maintainer of the upstream installer base used by this project
-- Dario — PU2PNY, modifications, safety wrapper, dashboard integration, validation and international release work
+- PU2PNY / Página Certa Digital — modifications, safety wrapper, dashboard integration, validation and international release work
 
 ## License
 
