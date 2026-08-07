@@ -1,7 +1,8 @@
 (() => {
     'use strict';
 
-    const STORAGE_KEY = '{{REFLECTOR_NAME}}_pwa_install_decision_v1';
+    const serverName = String(window.XLX_CONFIG?.serverName || 'XLX').trim() || 'XLX';
+    const STORAGE_KEY = `xlx_pwa_install_decision_v1:${window.location.host}`;
     const INSTALL_ACCEPTED = 'installed';
     const INSTALL_DECLINED = 'declined';
 
@@ -35,7 +36,7 @@
         try {
             localStorage.setItem(STORAGE_KEY, value);
         } catch (_) {
-            // O navegador pode bloquear armazenamento local.
+            // Local storage can be blocked by browser privacy settings.
         }
     };
 
@@ -73,7 +74,7 @@
 
     const configureIOS = () => {
         description.textContent =
-            'Adicione o {{REFLECTOR_NAME}} à Tela de Início para abrir o painel como um aplicativo.';
+            `Adicione o ${serverName} à Tela de Início para abrir o painel como um aplicativo.`;
 
         installButton.textContent = 'Ver como instalar';
     };
@@ -133,10 +134,6 @@
             return;
         }
 
-        /*
-         * Navegador sem beforeinstallprompt:
-         * mostra instrução genérica apenas nesta primeira visita.
-         */
         description.textContent =
             'Abra o menu do navegador e escolha “Instalar aplicativo” ou “Adicionar à tela inicial”.';
 
@@ -170,7 +167,7 @@
             navigator.serviceWorker.register('/sw.js', {
                 scope: '/'
             }).catch(() => {
-                // O painel continua funcionando normalmente.
+                // The dashboard continues to work even without PWA registration.
             });
         });
     }
@@ -190,11 +187,6 @@
         return;
     }
 
-    /*
-     * Em navegadores compatíveis, esperamos o evento nativo.
-     * Após alguns segundos, exibimos orientação genérica somente
-     * quando o navegador não fornecer o evento.
-     */
     window.setTimeout(() => {
         if (!deferredPrompt && !getDecision()) {
             showInvitation();
