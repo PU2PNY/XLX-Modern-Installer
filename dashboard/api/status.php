@@ -40,6 +40,8 @@ function status_public_connection(array $connection): array {
 function status_public_tx(?array $tx): ?array {
     if ($tx === null) return null;
     unset($tx['ip'], $tx['endpoint_ip'], $tx['via'], $tx['peer']);
+    $gateway=trim((string)($tx['gateway']??''));
+    if($gateway!==''&&filter_var($gateway,FILTER_VALIDATE_IP)!==false)$tx['gateway']=trim((string)($tx['callsign']??''))?:'Não identificado';
     return $tx;
 }
 
