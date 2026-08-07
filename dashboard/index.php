@@ -58,8 +58,7 @@ $clientConfig = ['serverName'=>$serverName,'locale'=>$locale];
 <meta name="twitter:card" content="summary"><meta name="twitter:title" content="<?=h($meta['title'])?>"><meta name="twitter:description" content="<?=h($meta['description'])?>">
 <link rel="icon" type="image/svg+xml" href="assets/logo-reflector.svg"><link rel="manifest" href="site.webmanifest">
 <title><?=h($meta['title'])?></title>
-<link rel="stylesheet" href="assets/app.css?v=20260807"><link rel="stylesheet" href="assets/header-hotfix.css?v=1"><link rel="stylesheet" href="assets/mtr.css?v=4"><link rel="stylesheet" href="assets/install-app.css?v=33"><link rel="stylesheet" href="assets/offline-neon.css?v=20260806"><link rel="stylesheet" href="assets/ham-weather-widget.css?v=3">
-<link rel="stylesheet" href="assets/mobile-menu-v4.css?v=20260807"><link rel="stylesheet" href="assets/ao-vivo-clean-v1.css?v=20260807"><link rel="stylesheet" href="assets/history-sound-menu-v1.css?v=20260807"><link rel="stylesheet" href="assets/history-mobile-fit-v2.css?v=20260807"><link rel="stylesheet" href="assets/table-row-hover-v1.css?v=20260807"><link rel="stylesheet" href="assets/header-unificado-v1.css?v=20260807">
+<link rel="stylesheet" href="assets/app.css?v=20260807"><link rel="stylesheet" href="assets/mtr.css?v=4"><link rel="stylesheet" href="assets/install-app.css?v=33"><link rel="stylesheet" href="assets/ham-weather-widget.css?v=3">
 <script type="application/ld+json"><?=json_encode(['@context'=>'https://schema.org','@type'=>'WebSite','name'=>$serverName,'url'=>$baseUrl,'description'=>'Painel para radioamadores com D-STAR, DMR e C4FM/YSF.','inLanguage'=>$locale], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)?></script>
 <script>window.XLX_CONFIG=<?=json_encode($clientConfig, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)?>;</script>
 </head>
@@ -123,12 +122,9 @@ $clientConfig = ['serverName'=>$serverName,'locale'=>$locale];
  <section class="panel embedded-panel"><div class="embedded-toolbar"><div><b>Refletores registrados</b><span>Nome, país, status e descrição.</span></div></div><div class="table-wrap"><table class="reflectors-table"><thead><tr><th>#</th><th>Refletor</th><th>País</th><th>Status</th><th>Descrição</th></tr></thead><tbody id="reflectorRows"><tr><td colspan="5">Carregando lista de refletores...</td></tr></tbody></table></div></section>
 <?php endif; ?>
 
-
-
 </main>
 <footer><div><a class="brand footer-brand" href="<?=page_url('ao-vivo')?>"><img class="brand-logo" src="assets/logo-reflector.svg" alt="Logotipo <?=h($serverName)?>"><span><b><?=h($serverName)?></b><small><?=h($country)?></small></span></a><p>Painel para a comunidade radioamadora.</p></div><div class="footer-links"><a href="<?=page_url('ao-vivo')?>">Ao vivo</a><a href="<?=page_url('conectados')?>">Conectados</a><a href="<?=page_url('modulos')?>">Módulos</a><a href="<?=page_url('ranking')?>">Ranking</a><a href="<?=page_url('refletores')?>">Refletores</a></div><small><?=h($serverName)?><?php if ($dmrTg !== ''): ?> • DMR TG <?=h($dmrTg)?><?php endif; ?><?php if ($ysfId !== ''): ?> • C4FM/YSF <?=h($ysfId)?><?php endif; ?></small></footer>
-<div id="toastStack" class="toast-stack"></div><script src="assets/mtr.js?v=4"></script><script src="assets/app.js?v=55"></script>
-
+<div id="toastStack" class="toast-stack"></div><script src="assets/mtr.js?v=4"></script><script src="assets/app-main-1.js?v=55"></script><script src="assets/app-main-2.js?v=55"></script><script src="assets/app-main-3.js?v=55"></script>
 
 <!-- XLX MODERN DASHBOARD INSTALL APP V33 -->
 <div
@@ -197,13 +193,4 @@ $clientConfig = ['serverName'=>$serverName,'locale'=>$locale];
 <!-- /XLX MODERN DASHBOARD INSTALL APP V33 -->
 <script src="assets/install-app.js?v=33"></script><script src="assets/ham-weather-widget.js?v=3" defer></script>
 
-
-<!-- XLXGLOBAL_MOBILE_MENU_V4_JS -->
-<script src="assets/mobile-menu-v4.js?v=20260807_022733"></script>
-
-<!-- XLXGLOBAL_HISTORY_SOUND_MENU_V1 JS -->
-<script src="assets/history-sound-menu-v1.js?v=20260807_025428"></script>
-
-<!-- XLXGLOBAL_HEADER_UNIFICADO_V1 JS -->
-<script src="assets/header-unificado-v1.js?v=20260807_032449"></script>
 </body></html>
