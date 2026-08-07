@@ -22,7 +22,7 @@ A safety-focused installer for XLX multiprotocol amateur-radio reflectors on Deb
 
 `install.sh` performs preflight validation, verifies the reviewed upstream installer by pinned commit and SHA-256, creates a preventive backup when necessary, requires explicit confirmation before production changes, runs the XLX installation, deploys the XLX Modern Dashboard, and validates essential services at the end.
 
-The dashboard installer builds and validates a staging copy before touching the active web directory. It then creates a verified backup and rollback path, publishes the dashboard, installs the persistent Ranking V2 collector and systemd timer, prepares runtime/cache directories, and validates Apache, XLXD, PHP and the generated ranking JSON.
+The dashboard installer builds and validates a staging copy before touching the active web directory. It then creates a verified backup and rollback path, publishes the dashboard, installs the persistent Ranking V2 collector and systemd timer, prepares private runtime/cache directories, and validates Apache, XLXD, PHP and the generated ranking JSON. If validation fails after publication, the automatic rollback restores the previous dashboard and Ranking files/data/timer state.
 
 ## Dashboard included in this release
 
@@ -33,7 +33,8 @@ The international dashboard includes:
 - Modules A–E
 - Persistent ranking: today, rolling 7 days, and current civil month
 - XLX reflector directory
-- Weather and amateur-radio propagation information based on the server location
+- Weather and amateur-radio propagation information using optional browser location, Cloudflare location data when available, or an approximate visitor-IP fallback
+- MTR latency/loss/jitter monitoring for active routes without returning the measured IP address to the browser
 - Responsive/mobile interface
 - PWA manifest and install prompt
 - Persistent ranking collector using the XLXD systemd journal and SQLite
@@ -70,20 +71,20 @@ If all checks pass, start the real installation:
 sudo bash install.sh
 ```
 
-The installer clearly requests confirmation before production-changing actions.
+The installer will clearly request confirmation before production-changing actions.
 
 ## Dashboard-only installer
 
-For a server where XLXD and Apache are already correctly installed and you only intend to deploy the modern dashboard from this repository:
+For a server where XLXD is already correctly installed and you only intend to deploy the modern dashboard from this repository:
 
 ```bash
 sudo bash dashboard/install/install-dashboard.sh --check
 sudo bash dashboard/install/install-dashboard.sh
 ```
 
-The dashboard installer tries to detect the active XLX web directory from common XLX paths and enabled Apache `DocumentRoot` entries. The fallback destination is `/var/www/html/xlxd`, and `INSTALL_DIR` can be used to override it explicitly.
+The real dashboard installation installs missing runtime packages when necessary, including the required PHP extensions and `mtr-tiny`. Default destination: `/var/www/html/xlxd`.
 
-It can also auto-detect the current XLX identifier and Apache `ServerName` when available, then asks for deployment-specific values such as sysop, location, country, locale, YSF ID and DMR TGs. Runtime configuration is written to `config/site.json` on the installed server; that file is intentionally excluded from Git.
+The dashboard installer can auto-detect the current XLX identifier and Apache `ServerName` when available, then asks for the remaining deployment-specific values. Runtime configuration is written to `dashboard/config/site.json` on the installed server; that file is intentionally not committed.
 
 ## Dashboard configuration
 
@@ -93,7 +94,7 @@ An example is provided at:
 dashboard/config/site.example.json
 ```
 
-Important deployment fields include reflector ID/code, domain, sysop callsign, location, country, locale, YSF ID, DMR TGs, default DMR module, module descriptions, XLXD XML status path, log path and user database path.
+Important deployment fields include reflector ID/code, domain, sysop callsign, location, country, locale, YSF ID, DMR TGs, default DMR module, and module descriptions.
 
 ## Ranking architecture
 
@@ -110,49 +111,33 @@ xlx-ranking.service
 xlx-ranking.timer
 ```
 
-The timer runs every two minutes and is persistent across reboot. Statistics are stored under `/var/lib/xlx-ranking`. The public dashboard API reads only the generated JSON snapshot; the SQLite database is not exposed by the web server.
+Statistics are stored under `/var/lib/xlx-ranking`. The public dashboard API reads the generated JSON only; the SQLite database is not exposed by the web server.
 
-The ranking periods are:
+## MTR privacy architecture
 
-- today, beginning at local midnight;
-- trailing seven days;
-- current civil month, beginning on day 1.
+Raw connection IPs parsed from the local XLXD status are kept only in a server-side cache outside the web root. The public status and live APIs remove IP fields. `api/mtr.php` validates that the requested callsign/module is currently transmitting, resolves the target from the private server cache, performs the MTR measurement locally and returns only a non-IP gateway label, latency, packet loss, jitter, route-partial state and recent metric history.
 
 ## Safety model
 
 The release follows these principles:
 
 - no overwrite of an already active XLX installation by the top-level installer;
-- detection of common XLX dashboard paths, including `/var/www/html/xlxd`, `/var/www/xlxd` and `/var/www/html/xlx-dashboard`;
 - preventive backup before production installation;
 - reviewed upstream commit + SHA-256 verification;
 - staging validation before dashboard replacement;
-- PHP/JavaScript/JSON validation;
-- deterministic Ranking V2 collector self-test;
-- systemd service/timer validation;
+- PHP/JavaScript/config validation;
+- systemd service validation;
 - Apache configuration test;
-- verified dashboard backup and rollback script;
+- verified dashboard/Ranking rollback, including previous timer enabled/active state;
 - no secrets or production databases in the repository.
 
 ## Validation in GitHub Actions
 
-The repository CI checks:
-
-- shell syntax;
-- PHP syntax;
-- JavaScript syntax;
-- JSON validity;
-- Ranking V2 collector self-test;
-- installer/runtime contract;
-- distribution scope and secret patterns;
-- exclusion of private Support and country-specific News components;
-- exclusion of XLX026 production identity;
-- developer attribution integrity;
-- documentation contract.
+The repository CI checks shell syntax, PHP syntax, JavaScript syntax, JSON validity, runtime asset references, the Ranking collector self-test, installer/rollback contracts, MTR/status privacy contracts, external URL scheme validation, documentation contracts, and verifies that the distributed dashboard does not contain excluded Support/News implementation or XLX026 production identity.
 
 ## Security
 
-Do not publish production credentials, SSH keys, certificates, database files, API tokens, private logs, backups, or `dashboard/config/site.json`.
+Do not publish production credentials, SSH keys, certificates, database files, API tokens, private logs, raw connection IP caches, or `dashboard/config/site.json`.
 
 See `SECURITY.md` for reporting guidance.
 
