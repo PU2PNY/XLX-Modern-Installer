@@ -20,7 +20,7 @@ if (is_readable($privateStatusCache)) {
 
 function live_timestamp(string $line): int {
     if (preg_match('/^(\d{1,2})\s+([A-Za-z]{3}),\s+(\d{2}):(\d{2}):(\d{2}):/', $line, $m)) {
-        $months=['Jan'=>1,'Feb'=>2,'Mar'=>3,'Apr'=>4,'May'=>5,'Jun'=>6,'Jul'=>7,'Aug'=>8,'Sep'=>9,'Oct'=>10,'Nov'=>11,'Dec'=>12'];
+        $months=['Jan'=>1,'Feb'=>2,'Mar'=>3,'Apr'=>4,'May'=>5,'Jun'=>6,'Jul'=>7,'Aug'=>8,'Sep'=>9,'Oct'=>10,'Nov'=>11,'Dec'=>12];
         $month=$months[$m[2]]??0;
         if($month){$year=(int)date('Y');$ts=mktime((int)$m[3],(int)$m[4],(int)$m[5],$month,(int)$m[1],$year);if($ts>time()+86400)$ts=mktime((int)$m[3],(int)$m[4],(int)$m[5],$month,(int)$m[1],$year-1);return $ts;}
     }
