@@ -1,17 +1,10 @@
-# {{REFLECTOR_NAME}} Brasil
+# XLX Modern Dashboard
 
-{{REFLECTOR_NAME}} Brasil é um refletor digital multiprotocolo voltado à comunidade radioamadora brasileira.
+Painel web para refletores XLX com monitor ao vivo, estações conectadas, módulos, ranking estatístico, lista de refletores e clima/propagação.
 
-## Conteúdo principal
-- Painel ao vivo: https://{{REFLECTOR_NAME}}.net/
-- Módulos e acessos: https://{{REFLECTOR_NAME}}.net/?page=modulos
-- Estações conectadas: https://{{REFLECTOR_NAME}}.net/?page=conectados
-- Ranking de atividade recente: https://{{REFLECTOR_NAME}}.net/?page=ranking
-- Lista de refletores XLX: https://{{REFLECTOR_NAME}}.net/?page=refletores
-- Suporte e tutoriais: https://{{REFLECTOR_NAME}}.net/?page=suporte
-
-## Protocolos
-D-STAR, DMR e C4FM/YSF.
-
-## Observação sobre o ranking
-Os rankings são calculados com o histórico disponível nos logs e com as conexões ativas; não representam necessariamente todo o histórico do servidor.
+Páginas públicas:
+- Painel ao vivo: /
+- Módulos e acessos: /?page=modulos
+- Estações conectadas: /?page=conectados
+- Ranking: /?page=ranking
+- Lista de refletores XLX: /?page=refletores
