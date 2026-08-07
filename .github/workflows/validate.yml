@@ -1,0 +1,62 @@
+name: Validate XLX Modern Installer
+
+on:
+  push:
+    branches: [main, release/**, development/**]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install validators
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y php-cli python3 nodejs
+
+      - name: Shell syntax
+        run: |
+          bash -n install.sh
+          find modules dashboard/install scripts -type f -name '*.sh' -print0 \
+            | xargs -0 -r -n1 bash -n
+
+      - name: PHP syntax
+        run: |
+          find dashboard -type f -name '*.php' -print0 \
+            | xargs -0 -r -n1 php -l
+
+      - name: JavaScript syntax
+        run: |
+          find dashboard/assets -type f -name '*.js' -print0 \
+            | xargs -0 -r -n1 node --check
+
+      - name: JSON validation
+        run: |
+          python3 -m json.tool dashboard/config/site.example.json >/dev/null
+          python3 -m json.tool dashboard/site.webmanifest >/dev/null
+
+      - name: Ranking collector self-test
+        run: |
+          python3 -m py_compile dashboard/install/ranking-collector.py
+          python3 dashboard/install/ranking-collector.py --self-test
+
+      - name: Distribution audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          ! find dashboard -type f | grep -Ei '(support-native|ham-news)'
+          ! grep -RniE --binary-files=without-match \
+            '(page=.?(suporte|noticias)|support-native|ham-news|ANATEL|LABRE)' \
+            dashboard \
+            --exclude='install-dashboard.sh'
+          ! grep -RniE --binary-files=without-match \
+            '(XLX026|xlx026|XRF026|REF026|DCS026|PU2PNY|xlx026\.net|Santa[[:space:]]+Isabel|YSF[[:space:]]+72426|TG[[:space:]]+4003)' \
+            dashboard \
+            --exclude='install-dashboard.sh'
+          ! grep -RniE '\{\{[A-Z0-9_]+\}\}' dashboard
