@@ -173,8 +173,9 @@ if [ -s "$REPORT" ]; then
 fi
 
 # Suporte e noticias devem estar totalmente ausentes do pacote global.
+FORBIDDEN_LOCAL_REGEX="support-native|ham-news|page.?=.?(suporte|noticias)|[\"'](suporte|noticias)[\"'][[:space:]]*=>"
 if grep -RniE --binary-files=without-match \
-  '(support-native|ham-news|page.?=.?(suporte|noticias)|["'"'](suporte|noticias)["'"'][[:space:]]*=>)' \
+  "$FORBIDDEN_LOCAL_REGEX" \
   "$STAGE/dashboard" >/tmp/xlx-global-forbidden-${STAMP}.txt 2>/dev/null; then
   cat /tmp/xlx-global-forbidden-${STAMP}.txt
   rm -f /tmp/xlx-global-forbidden-${STAMP}.txt
@@ -204,7 +205,7 @@ git -C "$REPO_DIR" checkout "origin/$TARGET_BRANCH" -- dashboard/install dashboa
 
 # Confirma novamente que o staging Git nao contem as paginas excluidas.
 if grep -RniE --binary-files=without-match \
-  '(support-native|ham-news|page.?=.?(suporte|noticias)|["'"'](suporte|noticias)["'"'][[:space:]]*=>)' \
+  "$FORBIDDEN_LOCAL_REGEX" \
   "$DASHBOARD_DIR" >/dev/null 2>&1; then
   fatal "Copia Git ainda contem referencias locais proibidas."
 fi
