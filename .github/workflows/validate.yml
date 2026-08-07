@@ -56,7 +56,16 @@ jobs:
             dashboard \
             --exclude='install-dashboard.sh'
           ! grep -RniE --binary-files=without-match \
-            '(XLX026|xlx026|XRF026|REF026|DCS026|PU2PNY|xlx026\.net|Santa[[:space:]]+Isabel|YSF[[:space:]]+72426|TG[[:space:]]+4003)' \
+            '(XLX026|xlx026|XRF026|REF026|DCS026|xlx026\.net|Santa[[:space:]]+Isabel|YSF[[:space:]]+72426|TG[[:space:]]+4003)' \
             dashboard \
             --exclude='install-dashboard.sh'
+          ! grep -RniE --binary-files=without-match \
+            'PU2PNY' \
+            dashboard \
+            --exclude='install-dashboard.sh' \
+            --exclude='developer.php'
           ! grep -RniE '\{\{[A-Z0-9_]+\}\}' dashboard
+          php -l dashboard/config/developer.php >/dev/null
+          grep -Fq "'callsign' => 'PU2PNY'" dashboard/config/developer.php
+          grep -Fq "'email' => 'contato@paginacertadigital.com.br'" dashboard/config/developer.php
+          grep -Fq "'url' => 'https://paginacertadigital.com.br/'" dashboard/config/developer.php
