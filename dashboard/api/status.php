@@ -14,6 +14,16 @@ $privateCacheFile = '/var/cache/xlx-dashboard/status-private.json';
 $lockFile = '/var/cache/xlx-dashboard/status.lock';
 $cacheTtl = 1;
 
+function status_cache_is_public_safe(mixed $value): bool {
+    if (!is_array($value)) return true;
+    $forbidden = ['ip'=>true,'endpoint_ip'=>true,'via'=>true,'peer'=>true];
+    foreach ($value as $key => $child) {
+        if (is_string($key) && isset($forbidden[strtolower($key)])) return false;
+        if (is_array($child) && !status_cache_is_public_safe($child)) return false;
+    }
+    return true;
+}
+
 function status_read_cached(string $cacheFile, int $cacheTtl, bool $allowExpired = false): ?string {
     if (!is_readable($cacheFile)) return null;
     clearstatcache(true, $cacheFile);
@@ -22,7 +32,7 @@ function status_read_cached(string $cacheFile, int $cacheTtl, bool $allowExpired
     $json = file_get_contents($cacheFile);
     if ($json === false || $json === '') return null;
     $decoded = json_decode($json, true);
-    return is_array($decoded) && !empty($decoded['ok']) ? $json : null;
+    return is_array($decoded) && !empty($decoded['ok']) && status_cache_is_public_safe($decoded) ? $json : null;
 }
 
 function status_atomic_write(string $path, string $json, int $mode = 0640): void {
