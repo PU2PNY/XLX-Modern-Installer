@@ -1,0 +1,197 @@
+name: Validate XLX Modern Installer
+
+on:
+  push:
+    branches: [main, release/**, development/**]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install validators
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            php-cli php-curl php-sqlite3 php-mbstring \
+            python3 nodejs mtr-tiny
+
+      - name: Shell syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            echo "bash -n $file"
+            bash -n "$file"
+          done < <(find . -type f -name '*.sh' -not -path './.git/*' -print0)
+
+      - name: PHP syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            echo "php -l $file"
+            php -l "$file" >/dev/null
+          done < <(find dashboard -type f -name '*.php' -print0)
+
+      - name: JavaScript syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            echo "node --check $file"
+            node --check "$file"
+          done < <(find dashboard/assets -type f -name '*.js' -print0)
+
+      - name: JSON validation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m json.tool dashboard/config/site.example.json >/dev/null
+          python3 -m json.tool dashboard/site.webmanifest >/dev/null
+          php -r '$c=require "dashboard/config.php"; if(!is_array($c)||($c["server_name"]??"")!=="XLX000") exit(1);'
+
+      - name: Runtime asset contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in \
+            dashboard/assets/mtr.css \
+            dashboard/assets/mtr.js \
+            dashboard/api/mtr.php \
+            dashboard/assets/ham-weather-widget.css \
+            dashboard/assets/ham-weather-widget.js \
+            dashboard/api/ham-weather.php \
+            dashboard/assets/install-app.css \
+            dashboard/assets/install-app.js \
+            dashboard/assets/talking-radio.gif \
+            dashboard/assets/logo-reflector.svg; do
+            test -f "$file"
+          done
+          grep -Fq 'assets/mtr.css' dashboard/index.php
+          grep -Fq 'assets/mtr.js' dashboard/index.php
+          grep -Fq 'assets/ham-weather-widget.css' dashboard/index.php
+          grep -Fq 'assets/ham-weather-widget.js' dashboard/index.php
+          grep -Fq 'api/mtr.php' dashboard/assets/mtr.js
+          grep -Fq 'window.XLXGLOBALMTR' dashboard/assets/mtr.js
+
+      - name: Ranking collector self-test
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile dashboard/install/ranking-collector.py
+          python3 dashboard/install/ranking-collector.py --self-test
+          grep -Fq '/usr/local/sbin/xlx-ranking-collector.py' dashboard/install/xlx-ranking.service
+          grep -Fq 'OnUnitActiveSec=2min' dashboard/install/xlx-ranking.timer
+          grep -Fq 'esc(x.label)' dashboard/ranking-v2-view.php
+
+      - name: Installer contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f dashboard/install/install-dashboard.sh
+          test -f dashboard/install/ranking-collector.py
+          test -f dashboard/install/xlx-ranking.service
+          test -f dashboard/install/xlx-ranking.timer
+          test ! -e dashboard/config/site.example.php
+          grep -Fq 'config/site.json' dashboard/config.php
+          grep -Fq 'ranking-collector.py' dashboard/install/install-dashboard.sh
+          grep -Fq 'xlx-ranking.timer' dashboard/install/install-dashboard.sh
+          grep -Fq 'mtr-tiny' dashboard/install/install-dashboard.sh
+          grep -Fq '/var/cache/xlx-dashboard' dashboard/install/install-dashboard.sh
+          grep -Fq '/var/cache/xlx-ham-weather' dashboard/install/install-dashboard.sh
+          grep -Fq 'timer-enabled' dashboard/install/install-dashboard.sh
+          grep -Fq 'timer-active' dashboard/install/install-dashboard.sh
+          grep -Fq 'bash "$ROLLBACK_SCRIPT"' dashboard/install/install-dashboard.sh
+          grep -Fq 'dashboard/install/install-dashboard.sh' modules/60-dashboard-modern.sh
+          grep -Fq '/var/www/xlxd' install.sh
+          grep -Fq 'xlx-ranking.timer' install.sh
+          grep -Fq '/var/lib/xlx-ranking/ranking.json' install.sh
+
+      - name: Privacy and URL safety contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq '/var/cache/xlx-dashboard/status-private.json' dashboard/api/status.php
+          grep -Fq '/var/cache/xlx-dashboard/status-private.json' dashboard/api/live.php
+          grep -Fq '/var/cache/xlx-dashboard/status-private.json' dashboard/api/mtr.php
+          grep -Fq 'status_public_connection' dashboard/api/status.php
+          grep -Fq "unset(\$connection['ip']" dashboard/api/status.php
+          ! grep -Eq "['\"]ip['\"][[:space:]]*=>" dashboard/api/live.php
+          ! grep -Fq "'endpoint_ip'=>" dashboard/api/live.php
+          grep -Fq "in_array(\$scheme,['http','https'],true)" dashboard/api/reflectors.php
+          grep -Fq 'safe_dashboard_url' dashboard/api/reflectors.php
+
+      - name: Distribution audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          if find dashboard -path 'dashboard/install' -prune -o -type f \( \
+              -iname '*support-native*' -o \
+              -iname '*ham-news*' -o \
+              -iname '*.bak*' -o \
+              -iname '*.sqlite*' -o \
+              -iname '*.db' -o \
+              -iname '*.log' -o \
+              -iname '*.pem' -o \
+              -iname '*.key' \
+            \) -print | grep -q .; then
+            echo 'Non-distributable runtime file found.' >&2
+            exit 1
+          fi
+
+          forbidden_local='page=.?(suporte|noticias)|support-native|ham-news|ANATEL|LABRE'
+          if grep -RniE --binary-files=without-match --exclude-dir=install "$forbidden_local" dashboard; then
+            echo 'Excluded Support/News content found in runtime.' >&2
+            exit 1
+          fi
+
+          forbidden_identity='XLX026|xlx026|XRF026|REF026|DCS026|xlx026\.net|Santa[[:space:]]+Isabel|YSF[[:space:]]+72426|TG[[:space:]]+4003'
+          if grep -RniE --binary-files=without-match --exclude-dir=install "$forbidden_identity" dashboard; then
+            echo 'Reflector-specific production identity found in runtime.' >&2
+            exit 1
+          fi
+
+          if grep -Rni --binary-files=without-match --exclude-dir=install --exclude='developer.php' 'PU2PNY' dashboard; then
+            echo 'PU2PNY found outside the developer attribution file.' >&2
+            exit 1
+          fi
+
+          if grep -RniE --binary-files=without-match --exclude-dir=install '\{\{[A-Z0-9_]+\}\}' dashboard; then
+            echo 'Unresolved export placeholder found in runtime.' >&2
+            exit 1
+          fi
+
+          if grep -RniE --binary-files=without-match --exclude-dir=install 'BEGIN[[:space:]]+(RSA|OPENSSH|EC)[[:space:]]+PRIVATE[[:space:]]+KEY|Authorization:[[:space:]]*Bearer' dashboard; then
+            echo 'Potential secret material found in runtime.' >&2
+            exit 1
+          fi
+
+          ! grep -E "['\"](suporte|noticias)['\"]" dashboard/index.php
+          php -l dashboard/config/developer.php >/dev/null
+          grep -Fq "'callsign' => 'PU2PNY'" dashboard/config/developer.php
+          grep -Fq "'email' => 'contato@paginacertadigital.com.br'" dashboard/config/developer.php
+          grep -Fq "'url' => 'https://paginacertadigital.com.br/'" dashboard/config/developer.php
+          grep -Fq 'developer-credit.css' dashboard/index.php
+
+      - name: Documentation contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fqi 'Support' README.md
+          grep -Fqi 'News' README.md
+          grep -Fqi 'MTR' README.md
+          grep -Fq 'contato@paginacertadigital.com.br' README.md
+          grep -Fq 'https://paginacertadigital.com.br/' README.md

@@ -1,0 +1,12 @@
+[Unit]
+Description=Update XLX Modern Dashboard Ranking V2 every two minutes
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=2min
+AccuracySec=15s
+Persistent=true
+Unit=xlx-ranking.service
+
+[Install]
+WantedBy=timers.target

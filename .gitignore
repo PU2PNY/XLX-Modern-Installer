@@ -1,14 +1,62 @@
+# Runtime configuration
 config/xlx-installer.conf
-*.log
+dashboard/config/site.json
+
+# Secrets / credentials
+.env
+.env.*
+!.env.example
 *.key
 *.pem
 *.crt
+*.csr
+*.p12
+*.pfx
+*.token
+*.secret
+secrets/
+
+# Databases / state
 *.db
 *.sqlite
 *.sqlite3
-*.xml
-.env
-.env.*
-secrets/
+*.sqlite3-wal
+*.sqlite3-shm
+*.pid
+*.sock
+
+# Logs
+*.log
+logs/
+
+# Backups / archives
+*.bak
+*.backup
+*.old
+*.orig
+*.save
+*.tar
+*.tar.gz
+*.tgz
+*.zip
 backups/
 releases/
+
+# Cache / temporary files
+cache/
+tmp/
+temp/
+sessions/
+*.tmp
+*~
+
+# Generated tooling
+__pycache__/
+*.pyc
+node_modules/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

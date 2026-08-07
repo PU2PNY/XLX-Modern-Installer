@@ -1,63 +1,103 @@
 <?php
+declare(strict_types=1);
+
+$config = require __DIR__ . '/config.php';
+$developer = require __DIR__ . '/config/developer.php';
 $page = $_GET['page'] ?? 'ao-vivo';
-$allowed = ['ao-vivo','modulos','conectados','ranking','refletores','suporte'];
+$allowed = ['ao-vivo','conectados','modulos','ranking','refletores'];
 if (!in_array($page, $allowed, true)) $page = 'ao-vivo';
-function nav_class(string $p, string $current): string { return $p === $current ? ' class="active"' : ''; }
+
+function h(mixed $value): string {
+    return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
+}
 function page_url(string $p): string { return '?page=' . rawurlencode($p); }
 function render_nav(string $page): string {
-  $items = [
-    'ao-vivo' => 'Ao vivo',
-    'modulos' => 'Módulos A–E',
-    'conectados' => 'Conectados',
-    'ranking' => 'Ranking',
-    'refletores' => 'Lista de refletores XLX',
-    'suporte' => 'Suporte',
-  ];
-  $html = '';
-  foreach ($items as $slug => $label) {
-    $cls = $slug === $page ? ' class="active"' : '';
-    $html .= '<a' . $cls . ' href="' . htmlspecialchars(page_url($slug), ENT_QUOTES, 'UTF-8') . '">' . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . '</a>';
-  }
-  return $html;
+    $items = [
+        'ao-vivo' => 'Ao vivo',
+        'conectados' => 'Conectados',
+        'modulos' => 'Módulos A–E',
+        'ranking' => 'Ranking',
+        'refletores' => 'Lista de refletores XLX',
+    ];
+    $html = '';
+    foreach ($items as $slug => $label) {
+        $cls = $slug === $page ? ' class="active"' : '';
+        $html .= '<a' . $cls . ' href="' . h(page_url($slug)) . '">' . h($label) . '</a>';
+    }
+    return $html;
 }
+
+$serverName = trim((string)($config['server_name'] ?? 'XLX')) ?: 'XLX';
+$domain = trim((string)($config['domain'] ?? ''));
+$country = trim((string)($config['country'] ?? ''));
+$locale = trim((string)($config['locale'] ?? 'pt-BR')) ?: 'pt-BR';
+$ysfId = trim((string)($config['ysf_id'] ?? ''));
+$dmrTg = trim((string)($config['dmr_tg'] ?? ''));
+$dmrRadioTg = trim((string)($config['dmr_radio_tg'] ?? ''));
+$developerCallsign = trim((string)($developer['callsign'] ?? ''));
+$developerName = trim((string)($developer['name'] ?? ''));
+$developerEmail = trim((string)($developer['email'] ?? ''));
+$developerUrl = trim((string)($developer['url'] ?? ''));
+
 $seo = [
- 'ao-vivo'=>['title'=>'{{REFLECTOR_NAME}} Brasil — Painel ao vivo D-STAR, DMR e C4FM','description'=>'Acompanhe ao vivo transmissões, estações conectadas e módulos do refletor multiprotocolo {{REFLECTOR_NAME}} Brasil.'],
- 'modulos'=>['title'=>'Módulos A–E — {{REFLECTOR_NAME}} Brasil','description'=>'Consulte funções, protocolos e identificações de acesso dos módulos A a E do refletor {{REFLECTOR_NAME}} Brasil.'],
- 'conectados'=>['title'=>'Estações conectadas — {{REFLECTOR_NAME}} Brasil','description'=>'Veja em tempo real as estações conectadas ao {{REFLECTOR_NAME}} Brasil, com indicativo, protocolo, módulo e tempo de conexão.'],
- 'ranking'=>['title'=>'Ranking de atividade — {{REFLECTOR_NAME}} Brasil','description'=>'Ranking recente do {{REFLECTOR_NAME}} Brasil por transmissões, tempo no ar, permanência, horários, protocolos e módulos.'],
- 'refletores'=>['title'=>'Lista de refletores XLX — {{REFLECTOR_NAME}} Brasil','description'=>'Lista atualizada de refletores XLX registrados, com país, status e descrição.'],
- 'suporte'=>['title'=>'Suporte e tutoriais — {{REFLECTOR_NAME}} Brasil','description'=>'Tutoriais e orientações para conexão ao {{REFLECTOR_NAME}} Brasil por D-STAR, DMR e C4FM/YSF.']
+    'ao-vivo'=>['title'=>$serverName.' — Painel ao vivo D-STAR, DMR e C4FM','description'=>'Acompanhe ao vivo transmissões, estações conectadas e módulos do refletor multiprotocolo '.$serverName.'.'],
+    'modulos'=>['title'=>'Módulos A–E — '.$serverName,'description'=>'Consulte funções, protocolos e identificações de acesso dos módulos do refletor '.$serverName.'.'],
+    'conectados'=>['title'=>'Estações conectadas — '.$serverName,'description'=>'Veja em tempo real as estações conectadas ao '.$serverName.', com indicativo, protocolo, módulo e tempo de conexão.'],
+    'ranking'=>['title'=>'Ranking de atividade — '.$serverName,'description'=>'Ranking do '.$serverName.' por transmissões, tempo no ar, permanência, horários e módulos.'],
+    'refletores'=>['title'=>'Lista de refletores XLX — '.$serverName,'description'=>'Lista atualizada de refletores XLX registrados, com país, status e descrição.'],
 ];
 $meta = $seo[$page];
-$canonical = 'https://{{REFLECTOR_NAME}}.net/' . ($page === 'ao-vivo' ? '' : '?page=' . rawurlencode($page));
+$baseUrl = $domain !== '' && $domain !== 'example.invalid' ? 'https://' . $domain . '/' : '';
+$canonical = $baseUrl !== '' ? $baseUrl . ($page === 'ao-vivo' ? '' : '?page=' . rawurlencode($page)) : '';
+$ogLocale = str_replace('-', '_', $locale);
+$clientConfig = ['serverName'=>$serverName,'locale'=>$locale];
 ?>
 <!doctype html>
-<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#06131d"><meta name="description" content="<?=htmlspecialchars($meta['description'], ENT_QUOTES, 'UTF-8')?>">
+<html lang="<?=h($locale)?>"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#06131d"><meta name="description" content="<?=h($meta['description'])?>">
+<meta name="author" content="<?=h(trim($developerCallsign.' · '.$developerName, ' ·'))?>">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
-<link rel="canonical" href="<?=htmlspecialchars($canonical, ENT_QUOTES, 'UTF-8')?>">
-<meta property="og:type" content="website"><meta property="og:locale" content="pt_BR"><meta property="og:site_name" content="{{REFLECTOR_NAME}} Brasil">
-<meta property="og:title" content="<?=htmlspecialchars($meta['title'], ENT_QUOTES, 'UTF-8')?>"><meta property="og:description" content="<?=htmlspecialchars($meta['description'], ENT_QUOTES, 'UTF-8')?>">
-<meta property="og:url" content="<?=htmlspecialchars($canonical, ENT_QUOTES, 'UTF-8')?>"><meta property="og:image" content="https://{{REFLECTOR_NAME}}.net/assets/logo-{{REFLECTOR_NAME}}.jpeg">
-<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="<?=htmlspecialchars($meta['title'], ENT_QUOTES, 'UTF-8')?>"><meta name="twitter:description" content="<?=htmlspecialchars($meta['description'], ENT_QUOTES, 'UTF-8')?>"><meta name="twitter:image" content="https://{{REFLECTOR_NAME}}.net/assets/logo-{{REFLECTOR_NAME}}.jpeg">
-<link rel="icon" href="favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png"><link rel="manifest" href="site.webmanifest">
-<title><?=htmlspecialchars($meta['title'], ENT_QUOTES, 'UTF-8')?></title><link rel="stylesheet" href="assets/app.css?v=41">
+<?php if ($canonical !== ''): ?><link rel="canonical" href="<?=h($canonical)?>"><?php endif; ?>
+<?php if ($developerUrl !== ''): ?><link rel="author" href="<?=h($developerUrl)?>"><?php endif; ?>
+<meta property="og:type" content="website"><meta property="og:locale" content="<?=h($ogLocale)?>"><meta property="og:site_name" content="<?=h($serverName)?>">
+<meta property="og:title" content="<?=h($meta['title'])?>"><meta property="og:description" content="<?=h($meta['description'])?>">
+<?php if ($canonical !== ''): ?><meta property="og:url" content="<?=h($canonical)?>"><?php endif; ?>
+<meta name="twitter:card" content="summary"><meta name="twitter:title" content="<?=h($meta['title'])?>"><meta name="twitter:description" content="<?=h($meta['description'])?>">
+<link rel="icon" type="image/svg+xml" href="assets/logo-reflector.svg"><link rel="manifest" href="site.webmanifest">
+<title><?=h($meta['title'])?></title>
+<link rel="stylesheet" href="assets/app.css?v=20260807"><link rel="stylesheet" href="assets/mtr.css?v=4"><link rel="stylesheet" href="assets/install-app.css?v=33"><link rel="stylesheet" href="assets/ham-weather-widget.css?v=3"><link rel="stylesheet" href="assets/developer-credit.css?v=1">
+<script type="application/ld+json"><?=json_encode(['@context'=>'https://schema.org','@type'=>'WebSite','name'=>$serverName,'url'=>$baseUrl,'description'=>'Painel para radioamadores com D-STAR, DMR e C4FM/YSF.','inLanguage'=>$locale], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)?></script>
+<script>window.XLX_CONFIG=<?=json_encode($clientConfig, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)?>;</script>
+</head>
 <body data-page="<?=htmlspecialchars($page, ENT_QUOTES, 'UTF-8')?>">
 <main>
-<section class="hero hero-compact universal-header" aria-label="Servidor {{REFLECTOR_NAME}} Brasil">
+<section class="hero hero-compact universal-header" aria-label="<?=h($serverName)?>">
  <div class="universal-header-row">
-  <a class="universal-brand" href="<?=page_url('ao-vivo')?>" aria-label="{{REFLECTOR_NAME}} Brasil">
-   <img class="hero-logo" src="assets/logo-{{REFLECTOR_NAME}}.jpeg" alt="{{REFLECTOR_NAME}} Brasil — D-STAR, DMR e C4FM" width="112" height="112">
+  <a class="universal-brand" href="<?=page_url('ao-vivo')?>" aria-label="<?=h($serverName)?>">
+   <img class="hero-logo" src="assets/logo-reflector.svg" alt="<?=h($serverName)?> — D-STAR, DMR e C4FM" width="112" height="112">
   </a>
+
   <div class="universal-copy">
-   <p class="eyebrow">REFLETOR DIGITAL MULTIPROTOCOLO</p>
-   <h1>Servidor <span>{{REFLECTOR_NAME}} Brasil</span></h1>
-   <div class="access-strip"><span><b>D-STAR</b> {{REFLECTOR_NAME}}-D</span><span><b>DMR</b> {{REFLECTOR_NAME}}-C • TG 6 no rádio • TG 4003 nos apps</span><span><b>C4FM/YSF</b> BR-{{REFLECTOR_NAME}} • YSF72426</span></div>
+   <h1><span><?=h($serverName)?></span></h1>
+
+   <div class="access-strip access-strip-compact" aria-label="Acessos do servidor">
+    <span><b>D-STAR</b> <?=h($serverName)?></span>
+    <?php if ($dmrTg !== '' || $dmrRadioTg !== ''): ?><span><b>DMR</b><?php if ($dmrRadioTg !== ''): ?> TG <?=h($dmrRadioTg)?><?php endif; ?><?php if ($dmrTg !== '' && $dmrTg !== $dmrRadioTg): ?> • TG <?=h($dmrTg)?><?php endif; ?></span><?php endif; ?>
+    <?php if ($ysfId !== ''): ?><span><b>C4FM/YSF</b> YSF <?=h($ysfId)?></span><?php endif; ?>
+   </div>
   </div>
-  <button class="menu-toggle" type="button" aria-label="Abrir menu" aria-expanded="false">☰</button>
-  <nav class="universal-nav" aria-label="Menu principal"><?=render_nav($page)?></nav>
-  <div class="live-pill universal-live-pill"><i></i><span id="syncState">Conectando</span></div>
+
+  <div class="live-pill universal-live-pill" aria-live="polite">
+   <i></i>
+   <span id="syncState">Conectando</span>
+  </div>
  </div>
+
+ <nav class="universal-nav" aria-label="Menu principal">
+  <?=render_nav($page)?>
+ </nav>
+
+ <button class="menu-toggle" type="button" aria-label="Abrir menu" aria-expanded="false">☰</button>
 </section>
 <?php if ($page === 'ao-vivo'): ?>
  <section class="dashboard-layout">
@@ -67,6 +107,11 @@ $canonical = 'https://{{REFLECTOR_NAME}}.net/' . ($page === 'ao-vivo' ? '' : '?p
   </div>
   <aside class="live-widget"><div class="widget-heading"><div><p class="eyebrow">MONITOR AO VIVO</p><h2>Transmissões</h2></div><span id="widgetCount">Standby</span></div><div id="moduleGrid" class="module-grid widget-grid"></div><div id="opsWidget" class="ops-widget"><span class="status-dot"></span><div><b>Servidor operacional</b><small id="serverLine">Lendo estado...</small></div><div class="ops-numbers"><span><b id="headerConnected">0</b> conectados</span><span><b id="headerActive">0</b> TX ativa</span></div></div></aside>
  </section>
+<!-- XLX HAM WEATHER WIDGET V1 -->
+ <section class="hamwx-panel panel" id="hamWeatherWidget" aria-label="Clima e condições de propagação para radioamadores">
+  <div class="hamwx-skeleton">Carregando clima e propagação...</div>
+ </section>
+<!-- /XLX HAM WEATHER WIDGET V1 -->
 <?php elseif ($page === 'modulos'): ?>
  <section class="page-heading"><p class="eyebrow">ESTRUTURA DO REFLETOR</p><h1>Módulos A–E</h1><p>Identificação, função, protocolo, acesso e quantidade de estações conectadas em cada módulo.</p></section>
  <section id="moduleOverview" class="module-overview-grid module-page-grid"></section>
@@ -76,28 +121,19 @@ $canonical = 'https://{{REFLECTOR_NAME}}.net/' . ($page === 'ao-vivo' ? '' : '?p
  <section id="connectedCards" class="connected-cards"></section>
  <section class="panel"><div class="table-wrap"><table class="connected-table"><thead><tr><th>#</th><th>País</th><th>Indicativo</th><th>Nome</th><th>Localização</th><th>Protocolo</th><th>Módulo</th><th>Conectado às</th><th>Tempo conectado</th><th>Última atividade</th></tr></thead><tbody id="connectedRows"></tbody></table></div></section>
 <?php elseif ($page === 'ranking'): ?>
- <section class="page-heading"><p class="eyebrow">ATIVIDADE E PARTICIPAÇÃO</p><h1>Ranking {{REFLECTOR_NAME}}</h1><p>Indicadores calculados com o histórico disponível no painel e com as conexões atualmente ativas.</p></section>
- <section id="rankingHighlights" class="ranking-highlights"></section>
- <section class="ranking-grid">
-  <article class="panel ranking-card"><div class="section-title"><div><p class="eyebrow">TRANSMISSÕES</p><h2>Quem mais transmitiu</h2></div></div><p class="ranking-help">Conta quantas transmissões encerradas cada indicativo realizou no histórico recente disponível.</p><div id="rankTx" class="rank-list"></div></article>
-  <article class="panel ranking-card"><div class="section-title"><div><p class="eyebrow">TEMPO NO AR</p><h2>Maior tempo transmitindo</h2></div></div><p class="ranking-help">Soma a duração de todas as transmissões registradas para cada indicativo.</p><div id="rankAirtime" class="rank-list"></div></article>
-  <article class="panel ranking-card"><div class="section-title"><div><p class="eyebrow">CONEXÕES ATUAIS</p><h2>Maior permanência conectada</h2></div></div><p class="ranking-help">Mostra as estações que permanecem conectadas há mais tempo neste momento.</p><div id="rankConnected" class="rank-list"></div></article>
-  <article class="panel ranking-card"><div class="section-title"><div><p class="eyebrow">HORÁRIOS</p><h2>Momentos de maior uso</h2></div></div><p class="ranking-help">Agrupa as transmissões pela hora em que começaram para indicar os períodos mais movimentados.</p><div id="rankHours" class="rank-list"></div></article>
-  <article class="panel ranking-card"><div class="section-title"><div><p class="eyebrow">PROTOCOLOS</p><h2>Protocolos mais usados</h2></div></div><p class="ranking-help">Compara quantas transmissões foram identificadas em D-STAR, DMR e C4FM/YSF.</p><div id="rankProtocols" class="rank-list"></div></article>
-  <article class="panel ranking-card"><div class="section-title"><div><p class="eyebrow">MÓDULOS</p><h2>Módulos mais ativos</h2></div></div><p class="ranking-help">Conta em quais módulos do {{REFLECTOR_NAME}} ocorreram mais transmissões no histórico recente.</p><div id="rankModules" class="rank-list"></div></article>
- </section>
- <aside class="ranking-note"><strong>Como interpretar:</strong> os resultados usam o histórico ainda disponível nos logs do servidor e as conexões ativas. Não representam necessariamente todo o período de funcionamento do {{REFLECTOR_NAME}}.</aside>
+<!-- XLXGLOBAL_RANKING_V2 -->
+<?php require __DIR__.'/ranking-v2-view.php'; ?>
+
 <?php elseif ($page === 'refletores'): ?>
  <section class="page-heading"><p class="eyebrow">REDE MUNDIAL</p><h1>Lista de refletores XLX</h1></section>
  <section class="panel embedded-panel"><div class="embedded-toolbar"><div><b>Refletores registrados</b><span>Nome, país, status e descrição.</span></div></div><div class="table-wrap"><table class="reflectors-table"><thead><tr><th>#</th><th>Refletor</th><th>País</th><th>Status</th><th>Descrição</th></tr></thead><tbody id="reflectorRows"><tr><td colspan="5">Carregando lista de refletores...</td></tr></tbody></table></div></section>
-<?php else: ?>
- <?php include __DIR__ . '/support-native.php'; ?>
 <?php endif; ?>
+
 </main>
-<div id="toastStack" class="toast-stack"></div><?php if ($page === 'suporte'): ?><script src="assets/support-native.js?v=21"></script><?php endif; ?><script src="assets/app.js?v=42"></script>
+<footer><div><a class="brand footer-brand" href="<?=page_url('ao-vivo')?>"><img class="brand-logo" src="assets/logo-reflector.svg" alt="Logotipo <?=h($serverName)?>"><span><b><?=h($serverName)?></b><small><?=h($country)?></small></span></a><p>Painel para a comunidade radioamadora.</p><?php if ($developerCallsign !== '' || $developerName !== ''): ?><p class="footer-developer"><span>Developed by</span><?php if ($developerCallsign !== ''): ?><strong><?=h($developerCallsign)?></strong><?php endif; ?><?php if ($developerName !== '' && $developerUrl !== ''): ?><span class="footer-dev-sep">•</span><a href="<?=h($developerUrl)?>" target="_blank" rel="noopener noreferrer external"><?=h($developerName)?></a><?php elseif ($developerName !== ''): ?><span class="footer-dev-sep">•</span><strong><?=h($developerName)?></strong><?php endif; ?><?php if ($developerEmail !== ''): ?><span class="footer-dev-sep">•</span><a href="mailto:<?=h($developerEmail)?>"><?=h($developerEmail)?></a><?php endif; ?></p><?php endif; ?></div><div class="footer-links"><a href="<?=page_url('ao-vivo')?>">Ao vivo</a><a href="<?=page_url('conectados')?>">Conectados</a><a href="<?=page_url('modulos')?>">Módulos</a><a href="<?=page_url('ranking')?>">Ranking</a><a href="<?=page_url('refletores')?>">Refletores</a></div><small><?=h($serverName)?><?php if ($dmrTg !== ''): ?> • DMR TG <?=h($dmrTg)?><?php endif; ?><?php if ($ysfId !== ''): ?> • C4FM/YSF <?=h($ysfId)?><?php endif; ?></small></footer>
+<div id="toastStack" class="toast-stack"></div><script src="assets/mtr.js?v=4"></script><script src="assets/app-main-1.js?v=55"></script><script src="assets/app-main-2.js?v=55"></script><script src="assets/app-main-3.js?v=55"></script>
 
-
-<!-- {{REFLECTOR_NAME}} INSTALL APP V33 -->
+<!-- XLX MODERN DASHBOARD INSTALL APP V33 -->
 <div
     id="xlxInstallOverlay"
     class="xlx-install-overlay"
@@ -110,7 +146,7 @@ $canonical = 'https://{{REFLECTOR_NAME}}.net/' . ($page === 'ao-vivo' ? '' : '?p
         <div class="xlx-install-head">
             <img
                 class="xlx-install-icon"
-                src="/android-chrome-192x192.png"
+                src="/assets/logo-reflector.svg"
                 alt=""
                 width="66"
                 height="66"
@@ -120,7 +156,7 @@ $canonical = 'https://{{REFLECTOR_NAME}}.net/' . ($page === 'ao-vivo' ? '' : '?p
                     Acesso rápido
                 </span>
                 <h2 id="xlxInstallTitle">
-                    Instalar {{REFLECTOR_NAME}} Brasil
+                    Instalar <?=h($serverName)?>
                 </h2>
             </div>
         </div>
@@ -161,5 +197,7 @@ $canonical = 'https://{{REFLECTOR_NAME}}.net/' . ($page === 'ao-vivo' ? '' : '?p
         </div>
     </div>
 </div>
-<!-- /{{REFLECTOR_NAME}} INSTALL APP V33 -->
-<script src="assets/install-app.js?v=33"></script></body></html>
+<!-- /XLX MODERN DASHBOARD INSTALL APP V33 -->
+<script src="assets/install-app.js?v=33"></script><script src="assets/ham-weather-widget.js?v=3" defer></script>
+
+</body></html>

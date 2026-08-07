@@ -1,39 +1,161 @@
 # XLX Modern Installer
 
-Instalador para refletores XLX em servidores Debian 12.
+A safety-focused installer for XLX multiprotocol amateur-radio reflectors on Debian 12, with a modern dashboard designed for reusable international deployments.
 
-## Instalação
+> This project builds on the XLX ecosystem and uses a reviewed, pinned revision of the PP5PK/XLX_Installer project as the installation base. Review the configuration and test on a clean or disposable VPS before production use.
+
+## Project status
+
+- `main` — stable published line.
+- `release/global-dashboard-v1` — release candidate for the current international dashboard.
+- `development/v2-native-installer` — future native modular installer; not the production path yet.
+
+## Supported platform
+
+- Debian 12
+- x86_64
+- root/sudo access
+- public FQDN pointing to the VPS
+- outbound HTTPS access
+
+## What the installer does
+
+`install.sh` performs preflight validation, verifies the reviewed upstream installer by pinned commit and SHA-256, creates a preventive backup when necessary, requires explicit confirmation before production changes, runs the XLX installation, deploys the XLX Modern Dashboard, and validates essential services at the end.
+
+The dashboard installer builds and validates a staging copy before touching the active web directory. It then creates a verified backup and rollback path, publishes the dashboard, installs the persistent Ranking V2 collector and systemd timer, prepares private runtime/cache directories, and validates Apache, XLXD, PHP and the generated ranking JSON. If validation fails after publication, the automatic rollback restores the previous dashboard and Ranking files/data/timer state.
+
+## Dashboard included in this release
+
+The international dashboard includes:
+
+- Live / last transmissions
+- Connected stations
+- Modules A–E
+- Persistent ranking: today, rolling 7 days, and current civil month
+- XLX reflector directory
+- Weather and amateur-radio propagation information using optional browser location, Cloudflare location data when available, or an approximate visitor-IP fallback
+- MTR latency/loss/jitter monitoring for active routes without returning the measured IP address to the browser
+- Responsive/mobile interface
+- PWA manifest and install prompt
+- Persistent ranking collector using the XLXD systemd journal and SQLite
+
+The distributed dashboard intentionally **does not include**:
+
+- the private XLX026 Support implementation;
+- Brazilian ANATEL/LABRE News integration;
+- production logs, databases, credentials, backups, private keys, or certificates.
+
+## Reflector identifiers
+
+The dashboard supports the XLX identifier model used by the installer: `XLX` plus exactly three alphanumeric characters, for example:
+
+- `XLX123`
+- `XLXUS1`
+- `XLXBRA`
+
+Protocol labels derived from the reflector code are generated at runtime. DTMF forms that require a numeric reflector code are shown only when the three-character code is fully numeric.
+
+## Installation
+
+Clone the repository and run the read-only validation first:
 
 ```bash
 git clone https://github.com/PU2PNY/XLX-Modern-Installer.git
 cd XLX-Modern-Installer
 sudo bash install.sh --check
+```
+
+If all checks pass, start the real installation:
+
+```bash
 sudo bash install.sh
 ```
 
-O comando `--check` executa somente a pré-validação. A instalação real exige confirmação explícita e não sobrescreve uma instalação XLX existente.
+The installer will clearly request confirmation before production-changing actions.
 
-## Estrutura principal
+## Dashboard-only installer
 
-- `install.sh` — instalador principal;
-- `scripts/development-preview.sh` — interface antiga de prévia e testes;
-- `modules/` — módulos de diagnóstico, planejamento e validação;
-- `tests/` — testes automatizados;
-- `config/` — configurações de exemplo;
-- `docs/` — documentação em Português e Inglês;
-- `dashboard/` — XLX Modern Dashboard integrado ao instalador;
-- `references/PP5PK-XLX-Installer/` — referência técnica do instalador original utilizado como base.
+For a server where XLXD is already correctly installed and you only intend to deploy the modern dashboard from this repository:
 
-## Diretórios utilizados no servidor
+```bash
+sudo bash dashboard/install/install-dashboard.sh --check
+sudo bash dashboard/install/install-dashboard.sh
+```
 
-- `/opt/xlx-modern-installer` — fontes controladas do instalador;
-- `/var/backups/xlx-reflector` — backups preventivos;
-- `/var/log/xlx-reflector/installer` — logs de instalação.
+The real dashboard installation installs missing runtime packages when necessary, including the required PHP extensions and `mtr-tiny`. Default destination: `/var/www/html/xlxd`.
 
-## Créditos
+The dashboard installer can auto-detect the current XLX identifier and Apache `ServerName` when available, then asks for the remaining deployment-specific values. Runtime configuration is written to `dashboard/config/site.json` on the installed server; that file is intentionally not committed.
 
-Projeto original e base técnica: **Daniel K. — PP5PK**, mantenedor do projeto `PP5PK/XLX_Installer`.
+## Dashboard configuration
 
-Também reconhecemos **LX3JL**, **N5AMD**, **Narspt** e os autores dos componentes efetivamente utilizados.
+An example is provided at:
 
-Versão modificada e modernizada mantida por **Dario — PU2PNY**.
+```text
+dashboard/config/site.example.json
+```
+
+Important deployment fields include reflector ID/code, domain, sysop callsign, location, country, locale, YSF ID, DMR TGs, default DMR module, and module descriptions.
+
+## Ranking architecture
+
+The ranking collector is installed as:
+
+```text
+/usr/local/sbin/xlx-ranking-collector.py
+```
+
+with:
+
+```text
+xlx-ranking.service
+xlx-ranking.timer
+```
+
+Statistics are stored under `/var/lib/xlx-ranking`. The public dashboard API reads the generated JSON only; the SQLite database is not exposed by the web server.
+
+## MTR privacy architecture
+
+Raw connection IPs parsed from the local XLXD status are kept only in a server-side cache outside the web root. The public status and live APIs remove IP fields. `api/mtr.php` validates that the requested callsign/module is currently transmitting, resolves the target from the private server cache, performs the MTR measurement locally and returns only a non-IP gateway label, latency, packet loss, jitter, route-partial state and recent metric history.
+
+## Safety model
+
+The release follows these principles:
+
+- no overwrite of an already active XLX installation by the top-level installer;
+- preventive backup before production installation;
+- reviewed upstream commit + SHA-256 verification;
+- staging validation before dashboard replacement;
+- PHP/JavaScript/config validation;
+- systemd service validation;
+- Apache configuration test;
+- verified dashboard/Ranking rollback, including previous timer enabled/active state;
+- no secrets or production databases in the repository.
+
+## Validation in GitHub Actions
+
+The repository CI checks shell syntax, PHP syntax, JavaScript syntax, JSON validity, runtime asset references, the Ranking collector self-test, installer/rollback contracts, MTR/status privacy contracts, external URL scheme validation, documentation contracts, and verifies that the distributed dashboard does not contain excluded Support/News implementation or XLX026 production identity.
+
+## Security
+
+Do not publish production credentials, SSH keys, certificates, database files, API tokens, private logs, raw connection IP caches, or `dashboard/config/site.json`.
+
+See `SECURITY.md` for reporting guidance.
+
+## Developer
+
+**PU2PNY · Página Certa Digital**
+
+- Website: https://paginacertadigital.com.br/
+- Email: contato@paginacertadigital.com.br
+
+The international dashboard displays this developer attribution in the footer and links the developer website and contact email.
+
+## Credits
+
+- XLX ecosystem and upstream contributors
+- Daniel K. — PP5PK, author/maintainer of the upstream installer base used by this project
+- PU2PNY / Página Certa Digital — modifications, safety wrapper, dashboard integration, validation and international release work
+
+## License
+
+No additional license is asserted here beyond the licenses and terms of the upstream components. Review upstream licensing before redistribution or public release.

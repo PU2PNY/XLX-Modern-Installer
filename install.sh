@@ -93,7 +93,7 @@ detect_existing_installation() {
     local detected=0
     if [ -x /xlxd/xlxd ]; then warn "Binário XLXD existente: /xlxd/xlxd"; detected=1; fi
     if systemctl is-active --quiet xlxd 2>/dev/null; then warn "Serviço xlxd está ativo."; detected=1; fi
-    if [ -e /var/www/html/xlxd ] || [ -e /var/www/html/xlx-dashboard ]; then
+    if [ -e /var/www/html/xlxd ] || [ -e /var/www/xlxd ] || [ -e /var/www/html/xlx-dashboard ]; then
         warn "Dashboard XLX existente detectado."; detected=1
     fi
     [ "$detected" -eq 0 ] || fatal "Instalação XLX existente detectada. O instalador não sobrescreve produção."
@@ -112,7 +112,7 @@ create_inventory_and_backup() {
     manifest="${backup}/manifest.txt"
     mkdir -p "$backup"; chmod 700 "$backup"; : > "$manifest"
 
-    for path in /etc/apache2 /etc/systemd/system /etc/ufw /etc/nftables.conf /var/www/html /xlxd /usr/src/xlxd /usr/src/XLXEcho /usr/src/XLX_Dark_Dashboard; do
+    for path in /etc/apache2 /etc/systemd/system /etc/ufw /etc/nftables.conf /var/www/html /var/www/xlxd /xlxd /usr/src/xlxd /usr/src/XLXEcho /usr/src/XLX_Dark_Dashboard; do
         [ ! -e "$path" ] || printf '%s\n' "$path" >> "$manifest"
     done
 
@@ -159,14 +159,15 @@ PLANO DA INSTALAÇÃO REAL
 3. Compilar e instalar o núcleo XLXD.
 4. Instalar serviços systemd.
 5. Instalar XLX Echo, quando selecionado.
-6. Instalar e configurar o dashboard.
-7. Configurar Apache e HTTPS, quando selecionado.
-8. Preparar as bases utilizadas pelo XLX.
-9. Iniciar e validar os serviços.
+6. Instalar e configurar o dashboard global.
+7. Instalar o coletor persistente do Ranking V2.
+8. Configurar Apache e HTTPS, quando selecionado.
+9. Preparar as bases utilizadas pelo XLX.
+10. Iniciar e validar os serviços.
 
 Base técnica: PP5PK/XLX_Installer
 Autor original: Daniel K. — PP5PK
-Versão modificada: Dario — PU2PNY
+Versão modificada: Dario — PU2PNY / Página Certa Digital
 PLAN
 }
 
@@ -215,11 +216,23 @@ execute_installer() {
     if systemctl list-unit-files xlxecho.service --no-legend 2>/dev/null | grep -q .; then
         if systemctl is-active --quiet xlxecho; then ok "xlxecho ativo."; else warn "xlxecho instalado, mas inativo."; failures=$((failures + 1)); fi
     fi
+    if systemctl is-active --quiet xlx-ranking.timer; then
+        ok "xlx-ranking.timer ativo."
+    else
+        warn "xlx-ranking.timer não está ativo."
+        failures=$((failures + 1))
+    fi
     apache2ctl configtest || failures=$((failures + 1))
     [ -x /xlxd/xlxd ] || { warn "Binário /xlxd/xlxd ausente."; failures=$((failures + 1)); }
+    if [ -s /var/lib/xlx-ranking/ranking.json ] && python3 -m json.tool /var/lib/xlx-ranking/ranking.json >/dev/null 2>&1; then
+        ok "Ranking V2 gerou JSON válido."
+    else
+        warn "Ranking V2 não gerou JSON válido."
+        failures=$((failures + 1))
+    fi
     [ "$failures" -eq 0 ] || fatal "Instalação concluída com $failures falha(s). Consulte $logfile"
     section "INSTALAÇÃO CONCLUÍDA"
-    ok "XLX instalado e validações essenciais aprovadas."
+    ok "XLX, dashboard e Ranking V2 instalados e validados."
     info "Log: $logfile"
 }
 

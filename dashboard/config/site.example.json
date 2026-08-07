@@ -1,0 +1,20 @@
+{
+  "server_name": "XLX000",
+  "reflector_code": "000",
+  "domain": "xlx.example.org",
+  "sysop_callsign": "N0CALL",
+  "location": "City / Region",
+  "country": "Country",
+  "locale": "pt-BR",
+  "ysf_id": "",
+  "dmr_tg": "",
+  "dmr_radio_tg": "",
+  "dmr_default_module": "",
+  "modules": {
+    "A": {"name":"Module A","protocol":"D-STAR","access":"XLX000-A","dmr_tg":"","ysf_dgid":""},
+    "B": {"name":"Module B","protocol":"D-STAR","access":"XLX000-B","dmr_tg":"","ysf_dgid":""},
+    "C": {"name":"Module C","protocol":"D-STAR","access":"XLX000-C","dmr_tg":"","ysf_dgid":""},
+    "D": {"name":"Module D","protocol":"D-STAR","access":"XLX000-D","dmr_tg":"","ysf_dgid":""},
+    "E": {"name":"Module E","protocol":"D-STAR","access":"XLX000-E","dmr_tg":"","ysf_dgid":""}
+  }
+}
