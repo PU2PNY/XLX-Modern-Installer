@@ -8,64 +8,158 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: validate-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Install validators
         run: |
-          sudo apt-get update
-          sudo apt-get install -y php-cli python3 nodejs
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            php-cli php-curl php-sqlite3 php-mbstring \
+            python3 nodejs
 
       - name: Shell syntax
+        shell: bash
         run: |
-          bash -n install.sh
-          find modules dashboard/install scripts -type f -name '*.sh' -print0 \
-            | xargs -0 -r -n1 bash -n
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            echo "bash -n $file"
+            bash -n "$file"
+          done < <(find . -type f -name '*.sh' -not -path './.git/*' -print0)
 
       - name: PHP syntax
+        shell: bash
         run: |
-          find dashboard -type f -name '*.php' -print0 \
-            | xargs -0 -r -n1 php -l
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            echo "php -l $file"
+            php -l "$file" >/dev/null
+          done < <(find dashboard -type f -name '*.php' -print0)
 
       - name: JavaScript syntax
+        shell: bash
         run: |
-          find dashboard/assets -type f -name '*.js' -print0 \
-            | xargs -0 -r -n1 node --check
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            echo "node --check $file"
+            node --check "$file"
+          done < <(find dashboard/assets -type f -name '*.js' -print0)
 
       - name: JSON validation
+        shell: bash
         run: |
+          set -euo pipefail
           python3 -m json.tool dashboard/config/site.example.json >/dev/null
           python3 -m json.tool dashboard/site.webmanifest >/dev/null
+          php -r '$c=require "dashboard/config.php"; if(!is_array($c)||($c["server_name"]??"")!=="XLX000") exit(1);'
 
       - name: Ranking collector self-test
+        shell: bash
         run: |
+          set -euo pipefail
           python3 -m py_compile dashboard/install/ranking-collector.py
           python3 dashboard/install/ranking-collector.py --self-test
+          grep -Fq '/usr/local/sbin/xlx-ranking-collector.py' dashboard/install/xlx-ranking.service
+          grep -Fq 'OnUnitActiveSec=2min' dashboard/install/xlx-ranking.timer
+
+      - name: Installer contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f dashboard/install/install-dashboard.sh
+          test -f dashboard/install/ranking-collector.py
+          test -f dashboard/install/xlx-ranking.service
+          test -f dashboard/install/xlx-ranking.timer
+          test ! -e dashboard/config/site.example.php
+          grep -Fq "config/site.json" dashboard/config.php
+          grep -Fq "ranking-collector.py" dashboard/install/install-dashboard.sh
+          grep -Fq "xlx-ranking.timer" dashboard/install/install-dashboard.sh
+          grep -Fq "dashboard/install/install-dashboard.sh" modules/60-dashboard-modern.sh
 
       - name: Distribution audit
         shell: bash
         run: |
           set -euo pipefail
-          ! find dashboard -type f | grep -Ei '(support-native|ham-news)'
-          ! grep -RniE --binary-files=without-match \
-            '(page=.?(suporte|noticias)|support-native|ham-news|ANATEL|LABRE)' \
-            dashboard \
-            --exclude='install-dashboard.sh'
-          ! grep -RniE --binary-files=without-match \
-            '(XLX026|xlx026|XRF026|REF026|DCS026|xlx026\.net|Santa[[:space:]]+Isabel|YSF[[:space:]]+72426|TG[[:space:]]+4003)' \
-            dashboard \
-            --exclude='install-dashboard.sh'
-          ! grep -RniE --binary-files=without-match \
-            'PU2PNY' \
-            dashboard \
-            --exclude='install-dashboard.sh' \
-            --exclude='developer.php'
-          ! grep -RniE '\{\{[A-Z0-9_]+\}\}' dashboard
+
+          # Private/local modules must not exist in the distributed runtime.
+          if find dashboard -path 'dashboard/install' -prune -o -type f \( \
+              -iname '*support-native*' -o \
+              -iname '*ham-news*' -o \
+              -iname '*.bak*' -o \
+              -iname '*.sqlite*' -o \
+              -iname '*.db' -o \
+              -iname '*.log' -o \
+              -iname '*.pem' -o \
+              -iname '*.key' \
+            \) -print | grep -q .; then
+            echo 'Non-distributable runtime file found.' >&2
+            exit 1
+          fi
+
+          forbidden_local='page=.?(suporte|noticias)|support-native|ham-news|ANATEL|LABRE'
+          if grep -RniE --binary-files=without-match \
+              --exclude-dir=install \
+              "$forbidden_local" dashboard; then
+            echo 'Excluded Support/News content found in runtime.' >&2
+            exit 1
+          fi
+
+          forbidden_identity='XLX026|xlx026|XRF026|REF026|DCS026|xlx026\.net|Santa[[:space:]]+Isabel|YSF[[:space:]]+72426|TG[[:space:]]+4003'
+          if grep -RniE --binary-files=without-match \
+              --exclude-dir=install \
+              "$forbidden_identity" dashboard; then
+            echo 'Reflector-specific production identity found in runtime.' >&2
+            exit 1
+          fi
+
+          # PU2PNY is allowed only as the controlled developer attribution.
+          if grep -Rni --binary-files=without-match \
+              --exclude-dir=install \
+              --exclude='developer.php' \
+              'PU2PNY' dashboard; then
+            echo 'PU2PNY found outside the developer attribution file.' >&2
+            exit 1
+          fi
+
+          if grep -RniE --binary-files=without-match \
+              --exclude-dir=install \
+              '\{\{[A-Z0-9_]+\}\}' dashboard; then
+            echo 'Unresolved export placeholder found in runtime.' >&2
+            exit 1
+          fi
+
+          if grep -RniE --binary-files=without-match \
+              --exclude-dir=install \
+              'BEGIN[[:space:]]+(RSA|OPENSSH|EC)[[:space:]]+PRIVATE[[:space:]]+KEY|Authorization:[[:space:]]*Bearer' dashboard; then
+            echo 'Potential secret material found in runtime.' >&2
+            exit 1
+          fi
+
+          # The public navigation is intentionally global-only.
+          ! grep -E "['\"](suporte|noticias)['\"]" dashboard/index.php
+
+          # Developer attribution is explicit and intentional.
           php -l dashboard/config/developer.php >/dev/null
           grep -Fq "'callsign' => 'PU2PNY'" dashboard/config/developer.php
           grep -Fq "'email' => 'contato@paginacertadigital.com.br'" dashboard/config/developer.php
           grep -Fq "'url' => 'https://paginacertadigital.com.br/'" dashboard/config/developer.php
+          grep -Fq 'developer-credit.css' dashboard/index.php
+
+      - name: Documentation contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fqi 'Support' README.md
+          grep -Fqi 'News' README.md
+          grep -Fq 'contato@paginacertadigital.com.br' README.md
+          grep -Fq 'https://paginacertadigital.com.br/' README.md
