@@ -343,6 +343,8 @@ def self_test() -> None:
             init_db(conn)
             now = local_now()
             today = local_midnight(now)
+            test_now = today + dt.timedelta(hours=12)
+            coverage_start = int(today.replace(day=1).timestamp()) - 86400
             base = int(today.timestamp()) + 60
             events = [
                 (base, "Opening stream on module C for client N0CALL with sid 10"),
@@ -357,8 +359,8 @@ def self_test() -> None:
             conn.commit()
             snapshot = build_snapshot(
                 conn,
-                int(today.timestamp()) - 86400,
-                now=today + dt.timedelta(hours=12),
+                coverage_start,
+                now=test_now,
             )
 
             assert inserted == 2, inserted
