@@ -14,10 +14,8 @@ fail(){ printf '[FAIL] %s\n' "$*" >&2; failures=$((failures+1)); }
 
 printf '\n=== XLX Modern Installer — Public Release Audit ===\n\n'
 
-# Only files tracked by Git are relevant to publication.
 mapfile -t tracked < <(git ls-files)
 [ "${#tracked[@]}" -gt 0 ] || { echo 'No tracked files found.' >&2; exit 2; }
-
 printf 'Tracked files: %d\n\n' "${#tracked[@]}"
 
 printf '%s\n' '--- Forbidden or high-risk tracked file types ---'
@@ -31,35 +29,59 @@ for file in "${tracked[@]}"; do
 done
 [ "$failures" -eq 0 ] && ok 'No prohibited archive, database, key or environment files are tracked.'
 
-printf '\n%s\n' '--- Private-key and token signatures ---'
+printf '\n%s\n' '--- Private-key and token signatures in current tree ---'
 secret_regex='BEGIN (RSA|OPENSSH|EC|DSA) PRIVATE KEY|ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|AKIA[0-9A-Z]{16}|xox[baprs]-[A-Za-z0-9-]{10,}|AIza[0-9A-Za-z_-]{20,}'
 if git grep -nEI "$secret_regex" -- ':!*.md' ':!LICENSE' >/tmp/xlx-public-audit-secrets.$$ 2>/dev/null; then
     cat /tmp/xlx-public-audit-secrets.$$
     fail 'Potential secret/token signature found.'
 else
-    ok 'No common private-key or token signatures found.'
+    ok 'No common private-key or token signatures found in current tree.'
 fi
 rm -f /tmp/xlx-public-audit-secrets.$$ || true
 
-printf '\n%s\n' '--- Suspicious credential assignments ---'
+printf '\n%s\n' '--- Suspicious credential assignments in current tree ---'
 credential_regex='(password|passwd|secret|api[_-]?key|access[_-]?token|auth[_-]?token)[[:space:]]*[:=][[:space:]]*["'"''][^"'"'']{6,}["'"'']'
 if git grep -nEI "$credential_regex" -- ':!*.md' ':!LICENSE' >/tmp/xlx-public-audit-creds.$$ 2>/dev/null; then
     cat /tmp/xlx-public-audit-creds.$$
     fail 'Possible hard-coded credential assignment found.'
 else
-    ok 'No obvious hard-coded credential assignments found.'
+    ok 'No obvious hard-coded credential assignments found in current tree.'
 fi
 rm -f /tmp/xlx-public-audit-creds.$$ || true
 
+printf '\n%s\n' '--- High-risk filenames anywhere in Git history ---'
+if git rev-list --objects --all | grep -Ei '\.(key|pem|p12|pfx|jks|keystore|sqlite|sqlite3|db|bak|dump|sql|tar|tgz|tar\.gz|zip|7z|rar|env)([[:space:]]|$)' >/tmp/xlx-public-audit-history-files.$$; then
+    cat /tmp/xlx-public-audit-history-files.$$
+    fail 'High-risk filename exists in Git history. History must be reviewed/re-written before publication.'
+else
+    ok 'No obvious high-risk filenames found in Git history.'
+fi
+rm -f /tmp/xlx-public-audit-history-files.$$ || true
+
+printf '\n%s\n' '--- Secret signatures anywhere in Git history ---'
+# git log -G examines historical patches as well as the current tree. Keep the
+# output limited to commit/path metadata so secrets are never echoed by CI.
+if git log --all --format='%H %ad %s' --date=short -G "$secret_regex" -- . >/tmp/xlx-public-audit-history-secrets.$$ 2>/dev/null && [ -s /tmp/xlx-public-audit-history-secrets.$$ ]; then
+    head -n 50 /tmp/xlx-public-audit-history-secrets.$$
+    fail 'Potential secret signature appears in Git history. Review before publication.'
+else
+    ok 'No common token/private-key signature detected in historical patches.'
+fi
+rm -f /tmp/xlx-public-audit-history-secrets.$$ || true
+
 printf '\n%s\n' '--- Production-only identifiers ---'
-# Public callsigns and example reflector IDs can be legitimate. These checks are
-# intentionally warnings so the maintainer must consciously review them.
 for pattern in '141\.11\.128\.63' 'xlx026\.net' '/root/backups-xlx026' 'Telegram Bot Token' 'BOT_TOKEN'; do
-    if git grep -nEI "$pattern" -- ':!docs/PUBLIC-RELEASE-CHECKLIST.md' >/tmp/xlx-public-audit-prod.$$ 2>/dev/null; then
+    if git grep -nEI "$pattern" -- ':!docs/PUBLIC-RELEASE-CHECKLIST.md' ':!docs/GITHUB-ABOUT.md' >/tmp/xlx-public-audit-prod.$$ 2>/dev/null; then
         warn "Review production-specific reference matching: $pattern"
         cat /tmp/xlx-public-audit-prod.$$
     fi
     rm -f /tmp/xlx-public-audit-prod.$$ || true
+
+    if git log --all --format='%H %ad %s' --date=short -G "$pattern" -- . >/tmp/xlx-public-audit-prod-history.$$ 2>/dev/null && [ -s /tmp/xlx-public-audit-prod-history.$$ ]; then
+        warn "Production-specific reference appears in Git history: $pattern"
+        head -n 20 /tmp/xlx-public-audit-prod-history.$$
+    fi
+    rm -f /tmp/xlx-public-audit-prod-history.$$ || true
 done
 
 printf '\n%s\n' '--- Required public-project files ---'
