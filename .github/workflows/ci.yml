@@ -98,13 +98,19 @@ jobs:
             ! grep -REn '\{\{[A-Z0-9_]+\}\}' "$target/index.php" "$target/assets/app.js"
             grep -F 'xlx999.example.invalid' "$target/index.php"
             grep -F 'XLX999-D / XRF999-D' "$target/config.php"
+            if [ "$locale" = en ]; then
+              grep -F 'Latest 20 transmissions' "$target/index.php"
+              grep -F '20 recent operators' "$target/index.php"
+              ! grep -F 'Últimas 20 transmissões' "$target/index.php"
+              ! grep -F '20 operadores recentes' "$target/index.php"
+            fi
             while IFS= read -r -d '' file; do
               php -l "$file" >/dev/null
             done < <(find "$target" -type f -name '*.php' -print0)
             rm -rf "$target"
           done
 
-      - name: Validate dashboard language and post-install wiring
+      - name: Validate fresh-install wiring and runtime fallbacks
         shell: bash
         run: |
           set -Eeuo pipefail
@@ -112,10 +118,15 @@ jobs:
           grep -F 'post-install.sh' modules/60-dashboard-modern.sh
           grep -F -- '--lang=*)' dashboard/install/install-dashboard.sh
           grep -F '"--lang=$DASHBOARD_LANG"' install.sh
-          grep -F 'render-placeholders.php' dashboard/install/install-dashboard.sh
+          grep -F '$ROOT/install/render-placeholders.php' dashboard/install/install-dashboard.sh
+          grep -F '/var/cache/xlx-dashboard' dashboard/install/install-dashboard.sh
+          grep -F '/var/cache/xlx-ham-weather' dashboard/install/install-dashboard.sh
+          grep -F 'php-mbstring' modules/30-packages.sh
+          grep -F "'source'=>'log_fallback'" dashboard/api/ranking-v2.php
           bash -n dashboard/install/post-install.sh
           php -l dashboard/install/render-template.php >/dev/null
           php -l dashboard/install/render-placeholders.php >/dev/null
+          php -l dashboard/api/ranking-v2.php >/dev/null
           grep -F 'XLX_PROJECT_LINK_BUNDLE_V1' dashboard/install/post-install.sh
 
       - name: Public-release audit
