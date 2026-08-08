@@ -1,41 +1,65 @@
 # Internationalization / Internacionalização do XLX Modern Dashboard
 
-O objetivo é transformar o dashboard em um painel universal, sem manter cópias separadas por idioma.
+O XLX Modern Dashboard agora possui uma camada de internacionalização voltada para instalações públicas e uso internacional.
 
-## Idiomas planejados
+## Idiomas disponíveis
 
-| Código | Idioma | Prioridade |
+| Código | Idioma | Situação |
 |---|---|---:|
-| `pt-BR` | Português (Brasil) | 1 |
-| `en` | English | 1 |
-| `es` | Español | 1 |
-| `fr` | Français | 2 |
-| `de` | Deutsch | 2 |
-| `it` | Italiano | 2 |
+| `pt-BR` | Português (Brasil) | ✅ |
+| `en` | English | ✅ |
+| `es` | Español | ✅ |
+| `fr` | Français | ✅ |
+| `de` | Deutsch | ✅ |
+| `it` | Italiano | ✅ |
 
-## Comportamento pretendido
+## Seleção durante a instalação
 
-Durante a instalação do dashboard, o instalador deverá oferecer:
+Ao instalar somente o dashboard:
+
+```bash
+sudo bash modules/60-dashboard-modern.sh
+```
+
+o instalador apresenta:
 
 ```text
-Choose dashboard language / Escolha o idioma do painel
+Dashboard Language / Idioma do Painel
 1) Português (Brasil)
 2) English
 3) Español
 4) Français
 5) Deutsch
 6) Italiano
-7) Automatic / Automático
 ```
 
-O idioma selecionado será salvo como idioma padrão do painel. A opção `Automatic` poderá utilizar a preferência do navegador quando existir tradução compatível.
+Também é possível definir diretamente:
 
-## Estrutura proposta
+```bash
+sudo bash modules/60-dashboard-modern.sh --lang=en
+```
+
+Na instalação completa:
+
+```bash
+sudo bash install.sh --lang=en
+```
+
+Idiomas aceitos:
+
+```text
+pt-BR  en  es  fr  de  it
+```
+
+## Como funciona
+
+A arquitetura evita manter seis cópias independentes do dashboard.
 
 ```text
 dashboard/
 ├── i18n/
 │   ├── bootstrap.php
+│   ├── build.php
 │   └── locales/
 │       ├── pt-BR.php
 │       ├── en.php
@@ -44,82 +68,109 @@ dashboard/
 │       ├── de.php
 │       └── it.php
 ├── config/
-│   └── site.php
 └── assets/
 ```
 
-Exemplo de chave:
+O fluxo da instalação é:
 
-```php
-'nav.live' => 'Ao vivo',
-'nav.connected' => 'Conectados',
-'live.standby' => 'Servidor em espera',
-'history.title' => 'Últimas transmissões',
+```text
+1. Copiar uma versão limpa do dashboard
+2. Criar config/site.php
+3. Executar i18n/build.php
+4. Aplicar o idioma escolhido aos textos visíveis
+5. Ajustar lang do HTML e locale do Open Graph
+6. Registrar o idioma em config/site.php
+7. Criar config/i18n-build-report.json
+8. Validar todos os arquivos PHP
 ```
 
-English:
+Isso mantém o código-base centralizado e permite gerar o painel final no idioma selecionado.
+
+## Configuração gravada
+
+Depois da instalação, `config/site.php` recebe informações de locale semelhantes a:
 
 ```php
-'nav.live' => 'Live',
-'nav.connected' => 'Connected',
-'live.standby' => 'Server on standby',
-'history.title' => 'Latest transmissions',
+'locale' => [
+    'default' => 'en',
+    'html' => 'en',
+    'og' => 'en_US',
+    'name' => 'English',
+],
 ```
 
-## Escopo da tradução
+O relatório da tradução fica em:
 
-A internacionalização deve cobrir todo texto apresentado ao visitante:
+```text
+/var/www/html/xlx-dashboard/config/i18n-build-report.json
+```
+
+## Escopo de tradução
+
+O catálogo já contempla as principais áreas do dashboard:
 
 - navegação;
-- títulos e subtítulos;
 - monitor ao vivo;
 - standby;
-- informações de TX;
-- tabela de transmissões;
-- conectados;
+- transmissões;
+- histórico recente;
+- cabeçalhos de tabela;
 - módulos;
+- estações conectadas;
 - ranking;
 - lista de refletores;
 - suporte;
-- notícias;
 - clima e propagação;
-- status Online/Offline;
-- mensagens de carregamento e erro;
-- tooltips;
-- instalação PWA;
-- textos gerados por JavaScript;
-- metadados SEO (`title`, `description`, Open Graph e idioma HTML).
-
-## Preferência por visitante
-
-Além do idioma padrão escolhido na instalação, o dashboard poderá disponibilizar um seletor discreto de idioma. A preferência individual deverá ser salva no navegador (cookie ou `localStorage`) sem alterar a configuração global do servidor.
+- estados Online/Offline;
+- textos de carregamento;
+- PWA / instalação do painel no dispositivo;
+- títulos e descrições SEO;
+- idioma HTML e Open Graph locale.
 
 ## SEO multilíngue
 
-Quando o dashboard estiver totalmente internacionalizado, cada idioma deve expor metadados coerentes e, quando possível, URLs previsíveis ou parâmetros de idioma acompanhados de `hreflang`.
+O instalador altera o idioma estrutural da página e o locale de Open Graph para combinar com o idioma escolhido.
 
-Exemplo:
+Exemplos:
 
 ```html
-<link rel="alternate" hreflang="pt-BR" href="https://example.net/?lang=pt-BR">
-<link rel="alternate" hreflang="en" href="https://example.net/?lang=en">
-<link rel="alternate" hreflang="es" href="https://example.net/?lang=es">
-<link rel="alternate" hreflang="x-default" href="https://example.net/">
+<html lang="en">
+<meta property="og:locale" content="en_US">
 ```
 
-## Regra de implantação
+```html
+<html lang="es">
+<meta property="og:locale" content="es_ES">
+```
 
-A internacionalização deve ser implementada em etapas e validada antes de substituir o dashboard estável:
+A fase seguinte do projeto poderá adicionar troca de idioma por visitante e URLs dedicadas com `hreflang`, sem exigir reinstalação.
 
-1. inventariar todas as strings PHP e JavaScript;
-2. criar o motor de tradução;
-3. migrar o Português para chaves sem alterar o visual;
-4. adicionar English e Español;
-5. validar todas as páginas e o monitor ao vivo;
-6. adicionar seletor de idioma;
-7. integrar a escolha ao instalador;
-8. adicionar Français, Deutsch e Italiano;
-9. validar SEO multilíngue;
-10. somente então promover para a versão estável.
+## Auditoria de textos ainda não traduzidos
 
-Essa estratégia evita misturar mudança visual, funcional e linguística na mesma etapa.
+O projeto mantém:
+
+```bash
+scripts/audit-dashboard-i18n.sh
+```
+
+Esse script ajuda a localizar strings em Português que possam ter sido adicionadas posteriormente ao PHP ou JavaScript sem entrar nos catálogos.
+
+## Regra de manutenção
+
+Qualquer novo texto visível deve ser incluído primeiro em `pt-BR.php` e depois receber equivalentes em todos os demais catálogos.
+
+Ao adicionar uma página ou recurso novo:
+
+```text
+1. adicionar as novas strings ao catálogo base;
+2. traduzir para en/es/fr/de/it;
+3. executar auditoria;
+4. testar uma instalação em Português;
+5. testar pelo menos uma instalação em Inglês;
+6. validar PHP e JavaScript;
+7. conferir title/description quando houver impacto em SEO.
+```
+
+## Objetivo
+
+Permitir que um administrador instale o mesmo projeto em diferentes países sem editar manualmente o código-fonte, mantendo uma única base de código, documentação bilíngue e possibilidade de expansão para outros idiomas no futuro.
