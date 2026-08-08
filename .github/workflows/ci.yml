@@ -83,13 +83,16 @@ jobs:
             rm -rf "$target"
           done
 
-      - name: Validate dashboard-only language argument passthrough
+      - name: Validate dashboard language and post-install wiring
         shell: bash
         run: |
           set -Eeuo pipefail
           grep -F 'install-dashboard.sh" "$@"' modules/60-dashboard-modern.sh
+          grep -F 'post-install.sh' modules/60-dashboard-modern.sh
           grep -F -- '--lang=*)' dashboard/install/install-dashboard.sh
           grep -F '"--lang=$DASHBOARD_LANG"' install.sh
+          bash -n dashboard/install/post-install.sh
+          grep -F 'XLX_PROJECT_LINK_BUNDLE_V1' dashboard/install/post-install.sh
 
       - name: Public-release audit
         shell: bash
