@@ -1,0 +1,95 @@
+name: XLX Modern Installer CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate Bash syntax
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          while IFS= read -r -d '' file; do
+            echo "bash -n $file"
+            bash -n "$file"
+          done < <(find . -type f -name '*.sh' -print0)
+
+      - name: Validate PHP syntax
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          while IFS= read -r -d '' file; do
+            echo "php -l $file"
+            php -l "$file" >/dev/null
+          done < <(find dashboard -type f -name '*.php' -print0)
+
+      - name: Validate translation catalogs
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          php -r '
+            $base = require "dashboard/i18n/locales/pt-BR.php";
+            foreach (["en","es","fr","de","it"] as $locale) {
+                $messages = require "dashboard/i18n/locales/{$locale}.php";
+                $missing = array_diff_key($base, $messages);
+                if ($missing) {
+                    fwrite(STDERR, $locale . " missing: " . implode(", ", array_keys($missing)) . PHP_EOL);
+                    exit(1);
+                }
+                echo $locale . ": " . count($messages) . " keys OK" . PHP_EOL;
+            }
+          '
+
+      - name: Test dashboard language builds
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          for locale in pt-BR en es fr de it; do
+            target="$(mktemp -d)"
+            cp -a dashboard/. "$target/"
+            mkdir -p "$target/config"
+            cat > "$target/config/site.php" <<'PHP'
+          <?php
+          declare(strict_types=1);
+          return [
+            'reflector' => [
+              'name' => 'XLX999',
+              'title' => 'XLX999 Test',
+              'description' => 'Test reflector',
+              'sysop_callsign' => 'N0CALL',
+              'location' => 'Test City',
+              'country' => 'Test Country',
+              'domain' => 'example.invalid',
+              'contact_email' => 'noreply@example.invalid',
+            ],
+          ];
+          PHP
+            php "$target/i18n/build.php" "$target" "$locale"
+            test -s "$target/config/i18n-build-report.json"
+            while IFS= read -r -d '' file; do
+              php -l "$file" >/dev/null
+            done < <(find "$target" -type f -name '*.php' -print0)
+            rm -rf "$target"
+          done
+
+      - name: Basic sensitive-data guard
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          patterns='BEGIN (RSA|OPENSSH|EC) PRIVATE KEY|ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|AKIA[0-9A-Z]{16}'
+          if grep -RInE --exclude-dir=.git --exclude='*.md' "$patterns" .; then
+            echo 'Potential secret material found.' >&2
+            exit 1
+          fi
+          echo 'No obvious private keys or common token formats found.'
