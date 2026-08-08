@@ -83,13 +83,16 @@ jobs:
             rm -rf "$target"
           done
 
-      - name: Basic sensitive-data guard
+      - name: Validate dashboard-only language argument passthrough
         shell: bash
         run: |
           set -Eeuo pipefail
-          patterns='BEGIN (RSA|OPENSSH|EC) PRIVATE KEY|ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|AKIA[0-9A-Z]{16}'
-          if grep -RInE --exclude-dir=.git --exclude='*.md' "$patterns" .; then
-            echo 'Potential secret material found.' >&2
-            exit 1
-          fi
-          echo 'No obvious private keys or common token formats found.'
+          grep -F 'install-dashboard.sh" "$@"' modules/60-dashboard-modern.sh
+          grep -F -- '--lang=*)' dashboard/install/install-dashboard.sh
+          grep -F '"--lang=$DASHBOARD_LANG"' install.sh
+
+      - name: Public-release audit
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          bash scripts/public-release-audit.sh
