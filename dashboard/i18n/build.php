@@ -1,0 +1,162 @@
+<?php
+declare(strict_types=1);
+
+/**
+ * Build-time translator for XLX Modern Dashboard.
+ *
+ * Usage:
+ *   php i18n/build.php /var/www/html/xlx-dashboard en
+ *
+ * The installer copies a clean dashboard first and then runs this builder.
+ * It translates visible source strings without touching user databases,
+ * XLXD configuration, service files or runtime data.
+ */
+
+require_once __DIR__ . '/bootstrap.php';
+
+$target = $argv[1] ?? '';
+$requestedLocale = $argv[2] ?? 'pt-BR';
+$locale = xlx_normalize_locale($requestedLocale);
+
+if ($target === '' || !is_dir($target)) {
+    fwrite(STDERR, "ERROR: dashboard directory not found: {$target}\n");
+    exit(2);
+}
+
+$sourceMessages = xlx_load_messages('pt-BR');
+$targetMessages = xlx_load_messages($locale);
+$catalog = xlx_locale_catalog();
+
+$allowedExtensions = ['php', 'js', 'html', 'htm', 'json', 'webmanifest'];
+$excludedParts = [
+    DIRECTORY_SEPARATOR . 'i18n' . DIRECTORY_SEPARATOR . 'locales' . DIRECTORY_SEPARATOR,
+    DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'site.php',
+];
+
+$filesChanged = 0;
+$replacementCount = 0;
+$fileReport = [];
+
+$iterator = new RecursiveIteratorIterator(
+    new RecursiveDirectoryIterator($target, FilesystemIterator::SKIP_DOTS)
+);
+
+foreach ($iterator as $fileInfo) {
+    if (!$fileInfo->isFile()) {
+        continue;
+    }
+
+    $path = $fileInfo->getPathname();
+    $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+    if (!in_array($extension, $allowedExtensions, true)) {
+        continue;
+    }
+
+    $skip = false;
+    foreach ($excludedParts as $part) {
+        if (str_contains($path, $part)) {
+            $skip = true;
+            break;
+        }
+    }
+    if ($skip) {
+        continue;
+    }
+
+    $contents = file_get_contents($path);
+    if ($contents === false) {
+        fwrite(STDERR, "ERROR: cannot read {$path}\n");
+        exit(3);
+    }
+
+    $before = $contents;
+    $countForFile = 0;
+
+    if ($locale !== 'pt-BR') {
+        foreach ($sourceMessages as $key => $sourceText) {
+            if (!array_key_exists($key, $targetMessages)) {
+                continue;
+            }
+
+            $sourceText = (string)$sourceText;
+            $translatedText = (string)$targetMessages[$key];
+
+            if ($sourceText === '' || $sourceText === $translatedText) {
+                continue;
+            }
+
+            // Avoid replacing extremely short/generic tokens in source code.
+            if (mb_strlen($sourceText, 'UTF-8') < 4) {
+                continue;
+            }
+
+            $localCount = 0;
+            $contents = str_replace($sourceText, $translatedText, $contents, $localCount);
+            $countForFile += $localCount;
+        }
+    }
+
+    // Locale metadata is structural and should be updated even when the
+    // human-readable string happens to be the same.
+    $htmlLocale = (string)($catalog[$locale]['html'] ?? $locale);
+    $ogLocale = (string)($catalog[$locale]['og'] ?? 'pt_BR');
+    $contents = str_replace('lang="pt-BR"', 'lang="' . $htmlLocale . '"', $contents, $langCount);
+    $countForFile += $langCount;
+    $contents = str_replace('content="pt_BR"', 'content="' . $ogLocale . '"', $contents, $ogCount);
+    $countForFile += $ogCount;
+
+    if ($contents !== $before) {
+        if (file_put_contents($path, $contents) === false) {
+            fwrite(STDERR, "ERROR: cannot write {$path}\n");
+            exit(4);
+        }
+        $filesChanged++;
+        $replacementCount += $countForFile;
+        $fileReport[str_replace($target . DIRECTORY_SEPARATOR, '', $path)] = $countForFile;
+    }
+}
+
+$configFile = rtrim($target, DIRECTORY_SEPARATOR) . '/config/site.php';
+if (is_file($configFile)) {
+    $config = require $configFile;
+    if (!is_array($config)) {
+        fwrite(STDERR, "ERROR: invalid dashboard config: {$configFile}\n");
+        exit(5);
+    }
+
+    $config['locale'] = [
+        'default' => $locale,
+        'html' => (string)($catalog[$locale]['html'] ?? $locale),
+        'og' => (string)($catalog[$locale]['og'] ?? 'pt_BR'),
+        'name' => (string)($catalog[$locale]['name'] ?? $locale),
+    ];
+
+    $export = "<?php\ndeclare(strict_types=1);\nreturn " . var_export($config, true) . ";\n";
+    if (file_put_contents($configFile, $export) === false) {
+        fwrite(STDERR, "ERROR: cannot update {$configFile}\n");
+        exit(6);
+    }
+}
+
+$report = [
+    'locale' => $locale,
+    'language' => xlx_locale_name($locale),
+    'files_changed' => $filesChanged,
+    'replacements' => $replacementCount,
+    'files' => $fileReport,
+    'generated_at_utc' => gmdate('c'),
+];
+
+$reportPath = rtrim($target, DIRECTORY_SEPARATOR) . '/config/i18n-build-report.json';
+file_put_contents(
+    $reportPath,
+    json_encode($report, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n"
+);
+
+printf(
+    "Dashboard language: %s (%s) | files changed: %d | replacements: %d\n",
+    xlx_locale_name($locale),
+    $locale,
+    $filesChanged,
+    $replacementCount
+);
