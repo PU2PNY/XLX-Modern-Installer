@@ -51,7 +51,7 @@ jobs:
             }
           '
 
-      - name: Test dashboard language builds
+      - name: Test multilingual generic dashboard builds
         shell: bash
         run: |
           set -Eeuo pipefail
@@ -65,18 +65,21 @@ jobs:
           return [
             'reflector' => [
               'name' => 'XLX999',
-              'title' => 'XLX999 Test',
+              'title' => 'XLX999 Community',
               'description' => 'Test reflector',
               'sysop_callsign' => 'N0CALL',
               'location' => 'Test City',
               'country' => 'Test Country',
-              'domain' => 'example.invalid',
+              'domain' => 'xlx999.example.invalid',
               'contact_email' => 'noreply@example.invalid',
             ],
           ];
           PHP
             php "$target/i18n/build.php" "$target" "$locale"
+            php dashboard/install/render-template.php "$target"
             test -s "$target/config/i18n-build-report.json"
+            ! grep -REn '\{\{[A-Z0-9_]+\}\}' "$target/index.php" "$target/assets/app.js"
+            grep -F 'xlx999.example.invalid' "$target/index.php"
             while IFS= read -r -d '' file; do
               php -l "$file" >/dev/null
             done < <(find "$target" -type f -name '*.php' -print0)
@@ -92,6 +95,7 @@ jobs:
           grep -F -- '--lang=*)' dashboard/install/install-dashboard.sh
           grep -F '"--lang=$DASHBOARD_LANG"' install.sh
           bash -n dashboard/install/post-install.sh
+          php -l dashboard/install/render-template.php >/dev/null
           grep -F 'XLX_PROJECT_LINK_BUNDLE_V1' dashboard/install/post-install.sh
 
       - name: Public-release audit
