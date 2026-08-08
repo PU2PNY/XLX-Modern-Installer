@@ -221,7 +221,7 @@ function history_log_lines(string $currentLog,int $bytes=4194304): array {
     return $lines;
 }
 
-function active_and_history(array $connections): array {
+function active_and_history(array $connections, ?int $historyLimit = null): array {
     $lines=history_log_lines(cfg()['log_path']);
     $active=[];
     $history=[];
@@ -298,9 +298,12 @@ function active_and_history(array $connections): array {
     $history=array_values($unique);
     usort($history,fn($a,$b)=>$b['started_at']<=>$a['started_at']);
 
+    $limit = $historyLimit ?? (int)cfg()['history_limit'];
+    $limit = max(1, min(500, $limit));
+
     return [
         'active'=>$active,
-        'history'=>array_slice($history,0,(int)cfg()['history_limit'])
+        'history'=>array_slice($history,0,$limit)
     ];
 }
 function online_index(array $connections): array { $idx=[]; foreach($connections as $c){ $idx[$c['callsign']] = true; } return $idx; }
@@ -355,8 +358,8 @@ function write_reflectors_cache(string $cacheFile,array $items): void {
 }
 
 function fetch_reflectors(): array {
-    $cacheFile=sys_get_temp_dir().'/{{REFLECTOR_NAME}}_reflectors_cache_v1.json';
-    $lockFile=sys_get_temp_dir().'/{{REFLECTOR_NAME}}_reflectors_cache_v1.lock';
+    $cacheFile=sys_get_temp_dir().'/xlx_reflectors_cache_v1.json';
+    $lockFile=sys_get_temp_dir().'/xlx_reflectors_cache_v1.lock';
     $cacheTtl=60;
 
     $cached=read_reflectors_cache($cacheFile,$cacheTtl);
@@ -376,7 +379,7 @@ function fetch_reflectors(): array {
         $ctx=stream_context_create([
             'http'=>[
                 'timeout'=>8,
-                'user_agent'=>'{{REFLECTOR_NAME}}-Painel/6.1',
+                'user_agent'=>'{{REFLECTOR_NAME}}-Dashboard/6.1',
                 'ignore_errors'=>true
             ],
             'ssl'=>[

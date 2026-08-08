@@ -1,0 +1,20 @@
+/* XLX026 HAM WEATHER WIDGET V2 */
+.hamwx-panel,.hamwx-panel *{box-sizing:border-box}
+body[data-page='ao-vivo'] .hamwx-panel{margin-top:15px;padding:16px;position:relative;overflow:hidden;max-width:100%;min-width:0;container-type:inline-size}
+body[data-page='ao-vivo'] .hamwx-panel:before{content:"";position:absolute;inset:-120px -160px auto auto;width:320px;height:320px;border-radius:50%;background:radial-gradient(circle,rgba(0,216,255,.13),transparent 68%);pointer-events:none}
+.hamwx-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding-bottom:12px;border-bottom:1px solid var(--line);position:relative;z-index:1;min-width:0}
+.hamwx-head h2{margin:0;font-size:20px;line-height:1.2}.hamwx-sub{font-size:10px;color:var(--muted);margin-top:4px;overflow-wrap:anywhere}.hamwx-updated{font-size:10px;color:var(--muted);text-align:right;white-space:nowrap}
+.hamwx-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:12px;margin-top:14px;position:relative;z-index:1;width:100%;min-width:0}
+.hamwx-card{border:1px solid #183b4d;border-radius:14px;background:linear-gradient(145deg,rgba(10,31,43,.97),rgba(6,20,29,.99));padding:13px;min-width:0;width:100%;max-width:100%;overflow:hidden}
+.hamwx-card-title{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:11px;min-width:0}.hamwx-card-title b{font-size:12px;letter-spacing:.07em}.hamwx-status{font-size:9px;font-weight:800;padding:4px 7px;border-radius:999px;border:1px solid currentColor;text-transform:uppercase;white-space:nowrap}
+.hamwx-primary{display:flex;align-items:center;gap:12px;margin-bottom:10px}.hamwx-icon{font-size:32px}.hamwx-temp{font-size:30px;font-weight:900;line-height:1}.hamwx-condition{font-size:11px;color:#b9d4df;margin-top:4px;overflow-wrap:anywhere}
+.hamwx-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;min-width:0}.hamwx-item{padding:8px;border-radius:9px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.055);min-width:0}.hamwx-item span{display:block;font-size:9px;color:var(--muted)}.hamwx-item strong{display:block;font-size:12px;margin-top:2px;color:#fff;overflow-wrap:anywhere}
+.hamwx-meter{height:7px;border-radius:999px;background:#102a38;overflow:hidden;margin:8px 0 10px}.hamwx-meter i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--green),#ffd166,#ff5d73);transition:width .5s ease}
+.hamwx-big{font-size:26px;font-weight:900}.hamwx-note{font-size:9px;color:var(--muted);line-height:1.45;margin-top:10px}.hamwx-location-btn{border:1px solid var(--cyan);background:rgba(0,216,255,.08);color:#d9f9ff;border-radius:9px;padding:8px 10px;font-size:10px;font-weight:800;cursor:pointer;max-width:100%}.hamwx-location-btn:hover{background:rgba(0,216,255,.16)}
+.hamwx-good{color:var(--green)}.hamwx-warn{color:#ffd166}.hamwx-bad{color:#ff5d73}.hamwx-neutral{color:var(--cyan)}
+.hamwx-skeleton{min-height:210px;display:grid;place-items:center;color:var(--muted);font-size:11px;text-align:center;padding:16px}
+@container (max-width:700px){.hamwx-head{display:block}.hamwx-updated{text-align:left;margin-top:8px;white-space:normal}.hamwx-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@container (max-width:390px){.hamwx-list{grid-template-columns:1fr}.hamwx-card-title{align-items:flex-start;flex-direction:column}.hamwx-temp{font-size:27px}}
+
+/* HAM WEATHER V3 EXTRA */
+.hamwx-item small{display:block;margin-top:3px;font-size:8px;line-height:1.25;color:var(--muted);overflow-wrap:anywhere}

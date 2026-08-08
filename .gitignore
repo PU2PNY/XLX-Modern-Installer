@@ -12,3 +12,5 @@ config/xlx-installer.conf
 secrets/
 backups/
 releases/
+dashboard/*.zip
+dashboard/**/*.zip

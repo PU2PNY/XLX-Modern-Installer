@@ -14,7 +14,7 @@ return [
   'footer_text'=>'',
  ],
  'features'=>[
-  'show_support_menu'=>false,
+
   'show_contact_email'=>true,
   'show_location'=>true,
   'show_sysop_callsign'=>true,

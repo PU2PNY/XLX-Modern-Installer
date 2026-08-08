@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "{{REFLECTOR_TITLE}}",
+  "name": "{{REFLECTOR_NAME}}",
   "short_name": "{{REFLECTOR_NAME}}",
-  "description": "{{REFLECTOR_DESCRIPTION}}",
+  "description": "Painel ao vivo do refletor digital multiprotocolo {{REFLECTOR_NAME}}.",
   "lang": "pt-BR",
   "dir": "ltr",
   "start_url": "/?source=pwa",

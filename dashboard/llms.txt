@@ -1,14 +1,13 @@
-# {{REFLECTOR_NAME}} Brasil
+# {{REFLECTOR_NAME}}
 
-{{REFLECTOR_NAME}} Brasil é um refletor digital multiprotocolo voltado à comunidade radioamadora brasileira.
+{{REFLECTOR_NAME}} é um refletor digital multiprotocolo voltado à comunidade radioamadora brasileira.
 
 ## Conteúdo principal
-- Painel ao vivo: https://{{REFLECTOR_NAME}}.net/
-- Módulos e acessos: https://{{REFLECTOR_NAME}}.net/?page=modulos
-- Estações conectadas: https://{{REFLECTOR_NAME}}.net/?page=conectados
-- Ranking de atividade recente: https://{{REFLECTOR_NAME}}.net/?page=ranking
-- Lista de refletores XLX: https://{{REFLECTOR_NAME}}.net/?page=refletores
-- Suporte e tutoriais: https://{{REFLECTOR_NAME}}.net/?page=suporte
+- Painel ao vivo: https://{{REFLECTOR_DOMAIN}}/
+- Módulos e acessos: https://{{REFLECTOR_DOMAIN}}/?page=modulos
+- Estações conectadas: https://{{REFLECTOR_DOMAIN}}/?page=conectados
+- Ranking de atividade recente: https://{{REFLECTOR_DOMAIN}}/?page=ranking
+- Lista de refletores XLX: https://{{REFLECTOR_DOMAIN}}/?page=refletores
 
 ## Protocolos
 D-STAR, DMR e C4FM/YSF.

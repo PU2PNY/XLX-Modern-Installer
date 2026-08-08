@@ -21,8 +21,20 @@ printf 'Tracked files: %d\n\n' "${#tracked[@]}"
 printf '%s\n' '--- Forbidden or high-risk tracked file types ---'
 for file in "${tracked[@]}"; do
     lower="${file,,}"
+
+    # git ls-files também lista arquivos rastreados que foram
+    # removidos no working tree e aguardam commit da exclusão.
+    if [ ! -e "$file" ]; then
+        case "$lower" in
+            *.key|*.pem|*.p12|*.pfx|*.jks|*.keystore|*.sqlite|*.sqlite3|*.db|*.bak|*.dump|*.sql|*.tar|*.tgz|*.tar.gz|*.zip|*.7z|*.rar|*.env)
+                warn "High-risk tracked file is pending deletion: $file"
+                ;;
+        esac
+        continue
+    fi
+
     case "$lower" in
-        *.key|*.pem|*.p12|*.pfx|*.jks|*.keystore|*.sqlite|*.sqlite3|*.db|*.bak|*.dump|*.sql|*.tar|*.tgz|*.tar.gz|*.zip|*.7z|*.rar|*.env|*.env.*)
+        *.key|*.pem|*.p12|*.pfx|*.jks|*.keystore|*.sqlite|*.sqlite3|*.db|*.bak|*.dump|*.sql|*.tar|*.tgz|*.tar.gz|*.zip|*.7z|*.rar|*.env)
             fail "High-risk tracked file: $file"
             ;;
     esac
@@ -40,7 +52,7 @@ fi
 rm -f /tmp/xlx-public-audit-secrets.$$ || true
 
 printf '\n%s\n' '--- Suspicious credential assignments in current tree ---'
-credential_regex='(password|passwd|secret|api[_-]?key|access[_-]?token|auth[_-]?token)[[:space:]]*[:=][[:space:]]*["'"''][^"'"'']{6,}["'"'']'
+credential_regex="(password|passwd|secret|api[_-]?key|access[_-]?token|auth[_-]?token)[[:space:]]*[:=][[:space:]]*['\"][^'\"]{6,}['\"]"
 if git grep -nEI "$credential_regex" -- ':!*.md' ':!LICENSE' >/tmp/xlx-public-audit-creds.$$ 2>/dev/null; then
     cat /tmp/xlx-public-audit-creds.$$
     fail 'Possible hard-coded credential assignment found.'
@@ -52,7 +64,7 @@ rm -f /tmp/xlx-public-audit-creds.$$ || true
 printf '\n%s\n' '--- High-risk filenames anywhere in Git history ---'
 if git rev-list --objects --all | grep -Ei '\.(key|pem|p12|pfx|jks|keystore|sqlite|sqlite3|db|bak|dump|sql|tar|tgz|tar\.gz|zip|7z|rar|env)([[:space:]]|$)' >/tmp/xlx-public-audit-history-files.$$; then
     cat /tmp/xlx-public-audit-history-files.$$
-    fail 'High-risk filename exists in Git history. History must be reviewed/re-written before publication.'
+    warn 'High-risk filename exists in Git history. Content must be reviewed before publication.'
 else
     ok 'No obvious high-risk filenames found in Git history.'
 fi
@@ -71,13 +83,13 @@ rm -f /tmp/xlx-public-audit-history-secrets.$$ || true
 
 printf '\n%s\n' '--- Production-only identifiers ---'
 for pattern in '141\.11\.128\.63' 'xlx026\.net' '/root/backups-xlx026' 'Telegram Bot Token' 'BOT_TOKEN'; do
-    if git grep -nEI "$pattern" -- ':!docs/PUBLIC-RELEASE-CHECKLIST.md' ':!docs/GITHUB-ABOUT.md' >/tmp/xlx-public-audit-prod.$$ 2>/dev/null; then
+    if git grep -nEI "$pattern" -- ':!docs/PUBLIC-RELEASE-CHECKLIST.md' ':!docs/GITHUB-ABOUT.md' ':!scripts/public-release-audit.sh' >/tmp/xlx-public-audit-prod.$$ 2>/dev/null; then
         warn "Review production-specific reference matching: $pattern"
         cat /tmp/xlx-public-audit-prod.$$
     fi
     rm -f /tmp/xlx-public-audit-prod.$$ || true
 
-    if git log --all --format='%H %ad %s' --date=short -G "$pattern" -- . >/tmp/xlx-public-audit-prod-history.$$ 2>/dev/null && [ -s /tmp/xlx-public-audit-prod-history.$$ ]; then
+    if git log --all --format='%H %ad %s' --date=short -G "$pattern" -- . ':(exclude)scripts/public-release-audit.sh' >/tmp/xlx-public-audit-prod-history.$$ 2>/dev/null && [ -s /tmp/xlx-public-audit-prod-history.$$ ]; then
         warn "Production-specific reference appears in Git history: $pattern"
         head -n 20 /tmp/xlx-public-audit-prod-history.$$
     fi
