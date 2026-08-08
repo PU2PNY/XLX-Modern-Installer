@@ -6,38 +6,40 @@
 ![Architecture](https://img.shields.io/badge/Architecture-x86__64-blue)
 ![XLX](https://img.shields.io/badge/XLX-D--STAR%20%7C%20DMR%20%7C%20C4FM%2FYSF-00c8ff)
 ![Dashboard](https://img.shields.io/badge/Dashboard-Modern-success)
+![License](https://img.shields.io/badge/License-MIT-yellow)
 ![Maintenance](https://img.shields.io/badge/Maintenance-Backup%20%7C%20Diagnostics%20%7C%20Rollback-brightgreen)
 
-**Controlled installer and maintenance toolkit for XLX reflectors on Debian 12, with a modern dashboard, preventive backups, diagnostics and recovery guidance.**
+**Controlled installer and maintenance toolkit for XLX reflectors on Debian 12, with a modern dashboard, preventive backups, diagnostics, recovery guidance and bilingual documentation.**
 
 D-STAR • DMR • C4FM/YSF • XLX Echo • Modern Dashboard • Debian 12
 
 🇺🇸 **English** | 🇧🇷 [Documentação em Português](README.md)
 
-[Quick install](#-how-to-install-an-xlx-reflector-on-debian-12) • [Installation modes](#-installation-and-maintenance-modes) • [Update](#-how-to-update-xlx-modern-installer) • [Dashboard](#-install-or-reinstall-only-the-xlx-dashboard) • [Backups](#-backup-and-rollback) • [Troubleshooting](#-diagnostics-and-troubleshooting) • [FAQ](#-frequently-asked-questions)
+[Install](#-quick-install) • [Usage modes](#-installation-and-maintenance-modes) • [Firewall](#-firewall-and-required-ports) • [File locations](#-file-locations) • [Update](#-update) • [Recovery](#-backup-diagnostics-and-recovery) • [Languages](#-universal-dashboard-and-languages) • [Credits](#-credits-and-related-projects) • [License](#-license)
 
 </div>
 
 ---
 
-## 📖 What is XLX Modern Installer?
+## 📖 About the project
 
-**XLX Modern Installer** is designed to make installation, updating, maintenance and recovery of an **XLX multi-protocol reflector** on Debian 12 safer and easier to audit.
+**XLX Modern Installer** is designed to make installation, updating, maintenance and recovery of a **multi-protocol XLX reflector** on Debian 12 safer and easier to audit.
 
-The project uses the installer maintained by **Daniel K. — PP5PK** as its technical base and adds a controlled operational layer with pre-flight validation, preventive backup, logs, separation between the XLXD core and the modern dashboard, and documented maintenance procedures.
+The project uses the installer maintained by **Daniel K. — PP5PK** as a reviewed technical base and adds its own operational safety layer, documentation, modern dashboard integration and maintenance workflows.
 
-This repository is intended for users searching for topics such as:
+This repository is organized to answer searches such as:
 
-- how to install an XLX reflector on Debian 12;
+- how to install XLX on Debian 12;
 - how to install XLXD on a VPS;
 - how to deploy a D-STAR, DMR and C4FM/YSF reflector;
-- how to install or reinstall only an XLX dashboard;
-- how to update an XLX reflector installation;
-- how to troubleshoot an XLX reflector that does not start;
-- how to back up and roll back an XLXD installation;
-- how to recover an existing XLX server without accidentally overwriting production data.
+- how to install only the XLX dashboard;
+- how to update an XLX server;
+- how to recover an XLXD server that does not start;
+- which firewall ports XLX requires;
+- where XLX configuration files and logs are stored;
+- how to back up and roll back an XLX reflector.
 
-> **Core principle:** diagnose first, back up before changes, validate afterwards, and keep rollback available.
+> **Goal:** help an amateur radio operator install, maintain and recover an XLX reflector with clear, reproducible and documented procedures.
 
 ---
 
@@ -45,16 +47,18 @@ This repository is intended for users searching for topics such as:
 
 | Feature | Status | Description |
 |---|---:|---|
-| 🆕 Full new installation | ✅ | Installs the XLX core and then the modern dashboard |
+| 🆕 Full new installation | ✅ | Installs the XLX core and modern dashboard |
 | 🔎 Pre-flight validation / dry-run | ✅ | Checks Debian, architecture, resources, network and existing installations |
-| 🖥️ Dashboard-only installation | ✅ | Installs or reinstalls only the XLX Modern Dashboard |
-| 💾 Preventive backup | ✅ | Creates a backup before real installation changes |
+| 🖥️ Dashboard-only installation | ✅ | Installs or reinstalls only the dashboard |
+| 💾 Preventive backup | ✅ | Creates a backup before real changes |
 | 🧾 Installation logs | ✅ | Stores execution logs for later diagnostics |
 | 🛡️ Overwrite protection | ✅ | Stops if an active XLXD installation is detected |
-| 🔄 Repository update | ✅ | Controlled update through Git |
+| 🔄 Git-based updates | ✅ | Controlled repository updates |
 | 📡 D-STAR / DMR / C4FM-YSF | ✅ | Multi-protocol XLX base |
-| 🔊 XLX Echo | ✅ | Optional service when installed |
-| 🧰 Core-only reinstall | 🚧 | Requires a dedicated recovery workflow instead of `install.sh` |
+| 🔊 XLX Echo | ✅ | Optional echo/parrot test service |
+| 🌍 PT/EN documentation | ✅ | Main documentation in two languages |
+| 🌐 Multilingual dashboard | 🚧 | Internationalization architecture in development |
+| 🧰 Core-only reinstall | 🚧 | Requires a dedicated recovery workflow |
 
 ---
 
@@ -65,28 +69,25 @@ Recommended environment:
 - Debian 12;
 - x86_64 architecture;
 - root or sudo access;
-- fixed public IP for production use;
-- DNS/FQDN for the dashboard;
+- fixed public IP for production;
+- DNS/FQDN pointing to the server;
 - HTTPS access to GitHub;
 - at least 768 MB RAM;
-- at least 4 GB free disk space.
-
-The installer performs automatic validation before a real installation starts.
+- at least 4 GB free disk space;
+- ability to manage firewall/NAT when required.
 
 ---
 
-# 🚀 How to install an XLX reflector on Debian 12
+# 🚀 Quick install
 
-Use this procedure for a **new XLX installation on a clean VPS or server**.
-
-### 1. Update the system and install Git
+## 1. Update the system and install Git
 
 ```bash
 sudo apt update
 sudo apt install -y git
 ```
 
-### 2. Clone XLX Modern Installer
+## 2. Clone the repository
 
 ```bash
 cd /usr/src
@@ -94,29 +95,29 @@ sudo git clone https://github.com/PU2PNY/XLX-Modern-Installer.git
 cd XLX-Modern-Installer
 ```
 
-### 3. Run pre-flight validation first
+## 3. Run pre-flight validation first
 
 ```bash
 sudo bash install.sh --check
 ```
 
-The `--check` mode does not install XLX. It validates the environment before any real change.
+`--check` validates the environment **without performing the real installation**.
 
-### 4. Run the full new installation
+## 4. Run the full installation
 
 ```bash
 sudo bash install.sh
 ```
 
-Before the real installation, the wrapper creates a preventive backup and requires explicit confirmation.
+Before real changes, the installer creates a preventive backup and requires explicit confirmation.
 
 ---
 
 # 🧭 Installation and maintenance modes
 
-## A. New installation — XLX server + dashboard
+## 🆕 New installation — XLXD + dashboard
 
-Use this on a server that does not already have an active XLXD installation.
+Use on a clean VPS/server:
 
 ```bash
 cd /usr/src/XLX-Modern-Installer
@@ -124,59 +125,145 @@ sudo bash install.sh --check
 sudo bash install.sh
 ```
 
-Main workflow:
+Expected workflow:
 
-1. validate Debian 12 and architecture;
-2. validate memory, disk, DNS and HTTPS;
-3. confirm that no active XLX production installation exists;
-4. validate the reviewed technical base;
-5. create a preventive backup;
-6. install the XLX core;
-7. install XLX Modern Dashboard;
-8. validate essential services.
+```text
+VALIDATION → INVENTORY → BACKUP → XLXD → SYSTEMD → DASHBOARD → APACHE/HTTPS → TESTS
+```
 
----
+## 🖥️ Install or reinstall only the dashboard
 
-# 🖥️ Install or reinstall only the XLX dashboard
-
-If XLXD is already running and you only need to install, update or reinstall the modern dashboard:
+If XLXD is already operational and only the dashboard needs work:
 
 ```bash
 cd /usr/src/XLX-Modern-Installer
 sudo bash modules/60-dashboard-modern.sh
 ```
 
-The dashboard installer is separate from the XLXD core. If a dashboard already exists at the destination, it creates a backup before copying the new version.
+The dashboard module is separated from the core and backs up an existing dashboard before replacement.
 
-The installer asks for information such as:
+## 📡 Reinstall only the XLXD core
 
-- reflector identifier;
-- displayed name;
-- short description;
-- sysop callsign;
-- location;
-- country;
-- domain;
-- contact email.
-
----
-
-# 📡 Reinstall only the XLXD server core
-
-The new-installation `install.sh` **must not be used to overwrite a running XLXD server**.
-
-The wrapper intentionally stops when it detects an existing installation in order to protect:
+The new-installation `install.sh` **must not overwrite a production XLXD server**. This protection exists to preserve:
 
 - reflector identity;
 - whitelist and blacklist;
 - interlinks;
-- local configuration;
 - user databases;
-- systemd configuration;
-- dashboard files;
-- production data.
+- Calling Home;
+- systemd services;
+- Apache;
+- dashboard;
+- local configuration.
 
-Before rebuilding only the core, preserve at least:
+A safe core rebuild should follow:
+
+```text
+DIAGNOSE → VERIFIED BACKUP → REBUILD CORE → VALIDATE → KEEP ROLLBACK AVAILABLE
+```
+
+---
+
+# 🔥 Firewall and required ports
+
+The ports actually required depend on enabled protocols and services. **Do not expose ports you do not use.** With NAT, router/provider forwarding may also be required.
+
+| Port | Transport | Typical use |
+|---:|:---:|---|
+| 22 | TCP | Administrative SSH |
+| 80 | TCP | HTTP / certificate issuance or renewal |
+| 443 | TCP | HTTPS dashboard |
+| 8080 | TCP | RepNet when used |
+| 20001-20005 | TCP/UDP | DPlus depending on configuration |
+| 40001 | TCP | Icom G3 when applicable |
+| 8880 | UDP | DMR+ DMO |
+| 10001 | UDP | XLX Core JSON interface |
+| 10002 | UDP | XLX interlink |
+| 10100 | UDP | AMBE controller |
+| 10101-10199 | UDP | AMBE transcoding |
+| 12345-12346 | UDP | Icom Terminal presence/request |
+| 21110 | UDP | Yaesu IMRS |
+| 30001 | UDP | DExtra |
+| 30051 | UDP | DCS |
+| 40000 | UDP | Icom Terminal DV |
+| 42000 | UDP | YSF, common/configurable value |
+| 62030 | UDP | MMDVM/DMR |
+
+### Show listening ports
+
+```bash
+sudo ss -lntup
+```
+
+### UFW inspection
+
+```bash
+sudo ufw status verbose
+```
+
+> The project follows a **least exposure necessary** approach: open only the services your reflector actually provides.
+
+Upstream protocol/port reference: [LX3JL/xlxd](https://github.com/LX3JL/xlxd).
+
+---
+
+# 📂 File locations
+
+These paths are useful for maintenance, backup and recovery. Optional components may not exist unless installed.
+
+| Purpose | Path |
+|---|---|
+| XLXD core | `/xlxd/` |
+| User database/files | `/xlxd/users_db/` |
+| Calling Home | `/xlxd/callinghome.php` |
+| Whitelist | `/xlxd/xlxd.whitelist` |
+| Blacklist | `/xlxd/xlxd.blacklist` |
+| Interlinks | `/xlxd/xlxd.interlink` |
+| Terminals | `/xlxd/xlxd.terminal` |
+| Local project repository | `/usr/src/XLX-Modern-Installer/` |
+| Controlled wrapper area | `/opt/xlx-modern-installer/` |
+| Modern dashboard | `/var/www/html/xlx-dashboard/` |
+| General web content | `/var/www/html/` |
+| XLXD service | `/etc/systemd/system/xlxd.service` |
+| XLXEcho service | `/etc/systemd/system/xlxecho.service` |
+| Apache configuration | `/etc/apache2/` |
+| Preventive backups | `/var/backups/xlx-reflector/` |
+| Installer logs | `/var/log/xlx-reflector/installer/` |
+| XLX logs | `/var/log/xlx*` and environment-specific files |
+
+### Quickly locate XLX-related files
+
+```bash
+sudo find /xlxd /usr/src /var/www/html /etc/systemd/system -maxdepth 3 \
+  \( -iname '*xlx*' -o -iname '*dstar*' \) -print 2>/dev/null
+```
+
+---
+
+# 🔄 Update
+
+## Update only project files
+
+```bash
+cd /usr/src/XLX-Modern-Installer
+git status
+git pull --ff-only
+sudo bash install.sh --check
+```
+
+> Updating Git **does not mean** running a full new installation over a production XLXD instance.
+
+## Update/reinstall only the dashboard
+
+```bash
+sudo bash modules/60-dashboard-modern.sh
+```
+
+---
+
+# 💾 Backup, diagnostics and recovery
+
+## Minimum paths worth preserving
 
 ```text
 /xlxd/
@@ -188,156 +275,102 @@ Before rebuilding only the core, preserve at least:
 /xlxd/xlxd.terminal
 /etc/systemd/system/xlxd.service
 /etc/systemd/system/xlxecho.service
+/etc/apache2/
 /var/www/html/
 ```
 
-A safe core rebuild should follow:
+## Recommended sequence
 
 ```text
-DIAGNOSE → BACKUP → VALIDATE → REBUILD → TEST → KEEP ROLLBACK AVAILABLE
+1. DIAGNOSE
+2. INVENTORY
+3. CREATE AND VERIFY BACKUP
+4. IDENTIFY ROOT CAUSE
+5. MAKE THE SMALLEST POSSIBLE CHANGE
+6. VALIDATE SERVICES
+7. VALIDATE DASHBOARD
+8. KEEP ROLLBACK AVAILABLE
 ```
 
----
-
-# 🔄 How to update XLX Modern Installer
-
-To update only the local repository files:
-
-```bash
-cd /usr/src/XLX-Modern-Installer
-git status
-git pull --ff-only
-```
-
-Then run:
-
-```bash
-sudo bash install.sh --check
-```
-
-> On an already-installed XLXD server, do not run `sudo bash install.sh` again just because the Git repository was updated. Use the dashboard-specific module when only the dashboard needs updating.
-
----
-
-# 💾 Backup and rollback
-
-Default preventive backup directory:
-
-```text
-/var/backups/xlx-reflector
-```
-
-Before real installation, the wrapper can create:
-
-```text
-pre-installation.tar.gz
-pre-installation.tar.gz.sha256
-manifest.txt
-```
-
-Important paths to preserve include:
-
-```text
-/etc/apache2
-/etc/systemd/system
-/etc/ufw
-/etc/nftables.conf
-/var/www/html
-/xlxd
-/usr/src/xlxd
-/usr/src/XLXEcho
-/usr/src/XLX_Dark_Dashboard
-```
-
-Recommended maintenance rule:
-
-```text
-DIAGNOSE → BACKUP → CHANGE → VALIDATE → ROLLBACK
-```
-
----
-
-# 🔍 Diagnostics and troubleshooting
-
-## Check main services
+## Useful commands
 
 ```bash
 sudo systemctl status xlxd.service --no-pager
-sudo systemctl status apache2.service --no-pager
-sudo systemctl status xlxecho.service --no-pager
-```
-
-## Check if services are active
-
-```bash
-systemctl is-active xlxd
-systemctl is-active apache2
-systemctl is-active xlxecho
-```
-
-## Recent XLXD logs
-
-```bash
 sudo journalctl -u xlxd.service -n 100 --no-pager
-```
-
-## Follow XLXD logs in real time
-
-```bash
 sudo journalctl -u xlxd.service -f
-```
-
-## Validate Apache configuration
-
-```bash
-sudo apache2ctl configtest
-```
-
-## Inspect XLXD service definition
-
-```bash
 sudo systemctl cat xlxd.service
-```
-
-## Show listening TCP/UDP ports
-
-```bash
+sudo apache2ctl configtest
 sudo ss -lntup
-```
-
-## Show the XLXD process
-
-```bash
 ps aux | grep '[x]lxd'
 ```
 
 ---
 
-# 🚨 XLX reflector not starting: quick checklist
+# 🎯 Optional post-install steps
 
-1. check `systemctl status xlxd`;
-2. check `journalctl -u xlxd -n 100`;
-3. inspect `ExecStart` in `xlxd.service`;
-4. confirm `/xlxd/xlxd` exists;
-5. verify the IP configured for the service;
-6. verify firewall and required ports;
-7. verify configuration files;
-8. verify permissions;
-9. validate Apache independently;
-10. create a backup before the first corrective change.
+These steps are not required for every reflector. Use them only when appropriate for your architecture.
+
+## 📡 YSF publication/registration
+
+If you want to publish a compatible YSF service according to your reflector architecture, see:
+
+- [DVRef — reflector directory and registration](https://dvref.com/)
+
+> XLX can also operate as a YSF Master with its own room architecture. Confirm that external registration is appropriate before publishing.
+
+## 🔒 Manual HTTPS setup
+
+If HTTPS was not configured automatically:
+
+1. confirm DNS points to the server;
+2. confirm TCP 80 and 443 through firewall/NAT;
+3. validate Apache;
+4. use the official [Certbot](https://certbot.eff.org/) instructions.
+
+Before requesting a certificate:
+
+```bash
+sudo apache2ctl configtest
+sudo ss -lntp | grep -E ':(80|443)\b'
+```
+
+## 🔊 XLX Echo / Parrot
+
+For deployments using audio loopback testing, see:
+
+- [narspt/XLXEcho](https://github.com/narspt/XLXEcho)
 
 ---
 
-# 📂 Important locations
+# 🌐 Universal dashboard and languages
 
-| Purpose | Path |
-|---|---|
-| Controlled installer | `/opt/xlx-modern-installer` |
-| XLXD core | `/xlxd/` |
-| Local project source | `/usr/src/XLX-Modern-Installer` |
-| Preventive backups | `/var/backups/xlx-reflector` |
-| Installer logs | `/var/log/xlx-reflector/installer` |
-| Modern dashboard | `/var/www/html/xlx-dashboard` |
+The project is preparing an internationalization architecture so the dashboard can have an installation-time default language and later allow each visitor to select a preferred language.
+
+Priority languages:
+
+- 🇧🇷 Português (Brasil)
+- 🇺🇸 English
+- 🇪🇸 Español
+- 🇫🇷 Français
+- 🇩🇪 Deutsch
+- 🇮🇹 Italiano
+
+Proposed installer selection:
+
+```text
+Choose dashboard language / Escolha o idioma do painel
+1) Português (Brasil)
+2) English
+3) Español
+4) Français
+5) Deutsch
+6) Italiano
+7) Automatic / Automático
+```
+
+The implementation will use **translation keys**, not six separate copies of the dashboard.
+
+Full architecture: **[docs/INTERNATIONALIZATION.md](docs/INTERNATIONALIZATION.md)**.
 
 ---
 
@@ -346,6 +379,8 @@ ps aux | grep '[x]lxd'
 ```text
 XLX-Modern-Installer/
 ├── install.sh
+├── LICENSE
+├── THIRD_PARTY_NOTICES.md
 ├── README.md
 ├── README.en.md
 ├── config/
@@ -362,61 +397,79 @@ XLX-Modern-Installer/
 
 ---
 
+# 🔗 Credits and related projects
+
+This project does not hide its technical origins. Each upstream component keeps its own credit and license.
+
+| Project / service | Author / organization | Relationship |
+|---|---|---|
+| [XLX / XLXD](https://github.com/LX3JL/xlxd) | LX3JL / LX1IQ and contributors | Upstream multi-protocol core |
+| [PP5PK/XLX_Installer](https://github.com/PP5PK/XLX_Installer) | Daniel K. — PP5PK | Reviewed installer technical base |
+| [XLXEcho](https://github.com/narspt/XLXEcho) | narspt | Optional echo/parrot service |
+| [Certbot](https://certbot.eff.org/) | EFF / Certbot community | HTTPS/SSL |
+| [DVRef](https://dvref.com/) | digital radio community | YSF registration/directory reference |
+| [XLX Modern Installer](https://github.com/PU2PNY/XLX-Modern-Installer) | Dario — PU2PNY | Integration, operational safety, documentation and modern dashboard |
+
+Detailed notices: **[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)**.
+
+---
+
+# 📄 License
+
+**Original components authored for this repository** are provided under the **MIT License**, allowing use, study, modification and redistribution under the license terms.
+
+Read: **[LICENSE](LICENSE)**.
+
+⚠️ **Important:** third-party components retain their original licenses. XLXD upstream, for example, is distributed under GPL licensing. This project's MIT license does not replace upstream licenses.
+
+Also see **[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)**.
+
+---
+
 # ❓ Frequently asked questions
 
 ## How do I install XLX on Debian 12?
 
-Clone this repository, run `sudo bash install.sh --check`, and if validation succeeds, run `sudo bash install.sh`.
-
-## How do I install a D-STAR, DMR and C4FM/YSF reflector?
-
-XLX is multi-protocol. The installer uses the XLXD base and prepares the reflector deployment for the protocols supported by the reviewed project base.
-
-## How do I reinstall only the XLX dashboard?
-
 ```bash
-sudo bash modules/60-dashboard-modern.sh
+sudo apt update && sudo apt install -y git
+cd /usr/src
+sudo git clone https://github.com/PU2PNY/XLX-Modern-Installer.git
+cd XLX-Modern-Installer
+sudo bash install.sh --check
+sudo bash install.sh
 ```
 
-## How do I update XLX Modern Installer?
+## How do I install only the dashboard?
 
 ```bash
 cd /usr/src/XLX-Modern-Installer
-git pull --ff-only
-sudo bash install.sh --check
+sudo bash modules/60-dashboard-modern.sh
 ```
 
 ## Can I run `install.sh` over a working XLXD server?
 
-No. The installer intentionally blocks that situation to protect the existing production installation.
+No. The overwrite protection is intentional.
 
-## How do I troubleshoot an XLX server that stopped working?
+## Where can I find required firewall ports?
 
-Start with systemd status, journal logs, service configuration, ports, IP, firewall and the XLXD binary before attempting a reinstall.
+See **Firewall and required ports** in this README and the upstream XLXD documentation.
 
-## Where are backups stored?
+## Where are the important files located?
 
-By default, under `/var/backups/xlx-reflector`.
+See **File locations** in this page.
+
+## Will the dashboard support multiple languages?
+
+Yes. The multilingual architecture is documented and will use translation keys, with a default language selected during installation and a visitor language selector planned later.
 
 ---
 
 # 🔎 Related search terms
 
-XLX reflector installer, install XLX reflector Debian 12, install XLXD VPS, D-STAR reflector server, DMR reflector server, C4FM YSF reflector, XLX dashboard, update XLX reflector, reinstall XLX dashboard, recover XLXD server, amateur radio digital reflector.
-
----
-
-# 🤝 Credits
-
-- **XLX / XLXD:** original XLX community / LX3JL project;
-- **installer technical base:** Daniel K. — **PP5PK**;
-- **related concepts and components:** N5AMD, Narspt and the authors of components actually used by the project;
-- **modified version and maintenance:** **Dario — PU2PNY**.
-
-This project preserves credit for its technical base while adding its own controlled installation, documentation, dashboard and maintenance layer.
+XLX reflector installer, install XLX Debian 12, install XLXD VPS, D-STAR reflector server, DMR reflector server, C4FM YSF reflector, XLX dashboard, XLX firewall ports, XLXD ports, update XLX reflector, recover XLXD, reinstall XLX dashboard, amateur radio reflector, ham radio digital voice server.
 
 ---
 
 ## 🇧🇷 Português
 
-For the complete Portuguese version, open **[README.md](README.md)**.
+Complete Portuguese version: **[README.md](README.md)**.
