@@ -86,7 +86,8 @@ foreach ($iterator as $fileInfo) {
             }
 
             // Avoid replacing extremely short/generic tokens in source code.
-            if (mb_strlen($sourceText, 'UTF-8') < 4) {
+            // strlen() is intentionally used to keep the builder dependency-free.
+            if (strlen($sourceText) < 4) {
                 continue;
             }
 
@@ -100,6 +101,8 @@ foreach ($iterator as $fileInfo) {
     // human-readable string happens to be the same.
     $htmlLocale = (string)($catalog[$locale]['html'] ?? $locale);
     $ogLocale = (string)($catalog[$locale]['og'] ?? 'pt_BR');
+    $langCount = 0;
+    $ogCount = 0;
     $contents = str_replace('lang="pt-BR"', 'lang="' . $htmlLocale . '"', $contents, $langCount);
     $countForFile += $langCount;
     $contents = str_replace('content="pt_BR"', 'content="' . $ogLocale . '"', $contents, $ogCount);
