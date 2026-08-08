@@ -1,0 +1,43 @@
+name: Feature request / Sugestão
+description: Suggest a new feature or improvement / Sugira um novo recurso ou melhoria
+title: "[FEATURE] "
+labels: []
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area / Área
+      options:
+        - Installer / Instalador
+        - Dashboard
+        - Languages / Idiomas
+        - Protocol support / Protocolos
+        - Backup / recovery
+        - Documentation / SEO
+        - Security
+        - Other / Outro
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or need / Problema ou necessidade
+      description: Explain the real use case / Explique o caso de uso real
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution / Solução proposta
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Compatibility and safety impact / Impacto em compatibilidade e segurança
+      description: Mention Debian, XLXD, dashboard, firewall or production risks when relevant.
+    validations:
+      required: false
