@@ -2,22 +2,34 @@
 declare(strict_types=1);
 
 /**
- * XLX Modern Dashboard i18n bootstrap.
- * This file is intentionally not wired into the production dashboard yet.
- * It provides the translation engine that will be enabled after all visible
- * PHP and JavaScript strings have been inventoried and migrated.
+ * XLX Modern Dashboard internationalization helpers.
+ *
+ * The dashboard can be built in one default language during installation.
+ * Runtime language selection may also use these helpers in future releases.
  */
+
+function xlx_locale_catalog(): array
+{
+    return [
+        'pt-BR' => ['name' => 'Português (Brasil)', 'html' => 'pt-BR', 'og' => 'pt_BR'],
+        'en'    => ['name' => 'English',            'html' => 'en',    'og' => 'en_US'],
+        'es'    => ['name' => 'Español',            'html' => 'es',    'og' => 'es_ES'],
+        'fr'    => ['name' => 'Français',           'html' => 'fr',    'og' => 'fr_FR'],
+        'de'    => ['name' => 'Deutsch',            'html' => 'de',    'og' => 'de_DE'],
+        'it'    => ['name' => 'Italiano',           'html' => 'it',    'og' => 'it_IT'],
+    ];
+}
 
 function xlx_supported_locales(): array
 {
-    return ['pt-BR', 'en', 'es', 'fr', 'de', 'it'];
+    return array_keys(xlx_locale_catalog());
 }
 
-function xlx_normalize_locale(string $locale): string
+function xlx_normalize_locale(string $locale, string $fallback = 'pt-BR'): string
 {
     $locale = trim(str_replace('_', '-', $locale));
     if ($locale === '') {
-        return 'pt-BR';
+        return $fallback;
     }
 
     foreach (xlx_supported_locales() as $supported) {
@@ -33,7 +45,7 @@ function xlx_normalize_locale(string $locale): string
         }
     }
 
-    return 'pt-BR';
+    return $fallback;
 }
 
 function xlx_load_messages(string $locale): array
@@ -56,4 +68,25 @@ function xlx_t(array $messages, string $key, array $replace = []): string
         $text = str_replace('{' . $name . '}', (string)$value, $text);
     }
     return $text;
+}
+
+function xlx_locale_html(string $locale): string
+{
+    $catalog = xlx_locale_catalog();
+    $locale = xlx_normalize_locale($locale);
+    return (string)($catalog[$locale]['html'] ?? 'pt-BR');
+}
+
+function xlx_locale_og(string $locale): string
+{
+    $catalog = xlx_locale_catalog();
+    $locale = xlx_normalize_locale($locale);
+    return (string)($catalog[$locale]['og'] ?? 'pt_BR');
+}
+
+function xlx_locale_name(string $locale): string
+{
+    $catalog = xlx_locale_catalog();
+    $locale = xlx_normalize_locale($locale);
+    return (string)($catalog[$locale]['name'] ?? $locale);
 }
