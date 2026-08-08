@@ -20,27 +20,36 @@ readonly CONFIRMATION="CONFIRMO_INSTALACAO_REAL_XLX"
 
 MODE="install"
 FORCE_CLEAN="no"
+DASHBOARD_LANG=""
 
 for arg in "$@"; do
     case "$arg" in
         --check|--dry-run) MODE="check" ;;
         --force-clean) FORCE_CLEAN="yes" ;;
+        --lang=*) DASHBOARD_LANG="${arg#*=}" ;;
         -h|--help)
             cat <<'HELP'
 XLX Modern Installer
 
-Uso:
+Uso / Usage:
   sudo bash install.sh --check
   sudo bash install.sh
+  sudo bash install.sh --lang=en
 
-Opções:
+Opções / Options:
   --check       Executa somente diagnóstico e validações.
+                Runs diagnostics and validation only.
   --force-clean Permite continuar quando há vestígios não funcionais.
+                Allows validation to continue with non-functional remnants.
                 Nenhum arquivo é removido automaticamente.
+                No file is removed automatically.
+  --lang=CODE   Define o idioma do dashboard moderno.
+                Sets the modern dashboard language.
+                pt-BR | en | es | fr | de | it
 HELP
             exit 0
             ;;
-        *) echo "ERRO: opção desconhecida: $arg" >&2; exit 2 ;;
+        *) echo "ERRO / ERROR: opção desconhecida / unknown option: $arg" >&2; exit 2 ;;
     esac
 done
 
@@ -168,6 +177,10 @@ Base técnica: PP5PK/XLX_Installer
 Autor original: Daniel K. — PP5PK
 Versão modificada: Dario — PU2PNY
 PLAN
+
+    if [ -n "$DASHBOARD_LANG" ]; then
+        info "Idioma solicitado para o dashboard / requested dashboard language: $DASHBOARD_LANG"
+    fi
 }
 
 run_check() {
@@ -205,7 +218,11 @@ execute_installer() {
     [ "$installer_rc" -eq 0 ] || fatal "O instalador terminou com código $installer_rc. Consulte: $logfile"
 
     section "INSTALANDO XLX MODERN DASHBOARD"
-    bash "$ROOT_DIR/modules/60-dashboard-modern.sh"
+    if [ -n "$DASHBOARD_LANG" ]; then
+        bash "$ROOT_DIR/modules/60-dashboard-modern.sh" "--lang=$DASHBOARD_LANG"
+    else
+        bash "$ROOT_DIR/modules/60-dashboard-modern.sh"
+    fi
 
     section "VALIDAÇÃO PÓS-INSTALAÇÃO"
     failures=0
