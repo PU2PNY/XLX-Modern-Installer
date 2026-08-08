@@ -1,0 +1,52 @@
+name: Materialize dashboard screenshots
+
+on:
+  push:
+    branches:
+      - docs/dashboard-screenshots-20260808
+    paths:
+      - 'docs/screenshots/*.b64'
+      - '.github/workflows/materialize-screenshots.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  decode:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: docs/dashboard-screenshots-20260808
+
+      - name: Decode WebP screenshots
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          shopt -s nullglob
+          files=(docs/screenshots/*.webp.b64)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo 'No screenshot payloads to decode.'
+            exit 0
+          fi
+          for source in "${files[@]}"; do
+            target="${source%.b64}"
+            base64 --decode "$source" > "$target"
+            file "$target"
+            rm -f "$source"
+          done
+
+      - name: Commit materialized screenshots
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          if git diff --quiet && [ -z "$(git status --porcelain)" ]; then
+            echo 'Nothing to commit.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/screenshots
+          git commit -m 'Materialize dashboard screenshots'
+          git push origin HEAD:docs/dashboard-screenshots-20260808
