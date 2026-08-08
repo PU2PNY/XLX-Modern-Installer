@@ -1,0 +1,124 @@
+
+/* ==========================================================
+   XLX026_AO_VIVO_CLEAN_V1
+
+   SOMENTE pagina AO VIVO.
+
+   Nao remove IDs utilizados pelo JavaScript.
+   Apenas elimina redundancias visuais.
+   ========================================================== */
+
+
+/* ----------------------------------------------------------
+   1. REMOVE "ULTIMAS ATIVIDADES"
+
+   Mantem:
+   Ultimas transmissoes
+   Ate 30 registros
+   ---------------------------------------------------------- */
+
+body[data-page='ao-vivo']
+.dashboard-main
+.section-title
+.eyebrow{
+
+    display:none !important;
+}
+
+
+/* Ajuste mínimo do titulo que permanece */
+
+body[data-page='ao-vivo']
+.dashboard-main
+.section-title{
+
+    margin-top:0 !important;
+}
+
+
+/* ----------------------------------------------------------
+   2. REMOVE:
+   MONITOR AO VIVO
+   TRANSMISSOES
+
+   Mantemos o container porque pode conter
+   controles adicionais, como audio.
+   ---------------------------------------------------------- */
+
+body[data-page='ao-vivo']
+.live-widget
+.widget-heading > div{
+
+    display:none !important;
+}
+
+
+/* ----------------------------------------------------------
+   3. REMOVE O STANDBY / "X NO AR"
+   QUE APARECE FORA DO BOX.
+
+   O elemento continua no DOM para o JS funcionar.
+   ---------------------------------------------------------- */
+
+body[data-page='ao-vivo']
+.live-widget
+#widgetCount{
+
+    display:none !important;
+}
+
+
+/* ----------------------------------------------------------
+   4. COMPACTAR A LINHA SUPERIOR DO MONITOR
+
+   Se houver botao de audio, ele continua aparecendo.
+   ---------------------------------------------------------- */
+
+body[data-page='ao-vivo']
+.live-widget
+.widget-heading{
+
+    min-height:0 !important;
+
+    margin:0 0 6px !important;
+
+    padding:0 !important;
+
+    justify-content:flex-end !important;
+
+    align-items:center !important;
+}
+
+
+/* Se a linha ficar completamente vazia, nao ocupa espaco */
+
+body[data-page='ao-vivo']
+.live-widget
+.widget-heading:empty{
+
+    display:none !important;
+}
+
+
+/* ----------------------------------------------------------
+   5. REMOVE O "AO VIVO" DO HEADER
+
+   O elemento continua existindo para que #syncState
+   continue sendo atualizado pelo JavaScript.
+   ---------------------------------------------------------- */
+
+body[data-page='ao-vivo']
+.universal-live-pill{
+
+    display:none !important;
+}
+
+
+/* ==========================================================
+   Nenhuma outra pagina e afetada.
+   Nenhum menu e afetado.
+   Nenhum box e afetado.
+   ========================================================== */
+
+
+/* FIM XLX026_AO_VIVO_CLEAN_V1 */

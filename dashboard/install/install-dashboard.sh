@@ -187,6 +187,38 @@ ask COUNTRY country
 ask DOMAIN domain
 ask CONTACT_EMAIL email
 
+REFLECTOR_NAME="$(printf '%s' "$REFLECTOR_NAME" | tr '[:lower:]' '[:upper:]')"
+
+if [[ ! "$REFLECTOR_NAME" =~ ^XLX([0-9]{3})$ ]]; then
+    echo "ERROR / ERRO: reflector identifier must use XLX + 3 digits, example XLX026." >&2
+    exit 2
+fi
+
+REFLECTOR_NUMBER="${BASH_REMATCH[1]}"
+REFLECTOR_SHORT_NUMBER="$((10#$REFLECTOR_NUMBER))"
+
+DOMAIN="$(printf '%s' "$DOMAIN" | sed -E 's#^https?://##; s#/*$##')"
+
+while :; do
+    read -r -p "YSF reflector ID / ID do refletor YSF: " YSF_ID
+
+    if [[ "$YSF_ID" =~ ^[0-9]{1,8}$ ]]; then
+        break
+    fi
+
+    echo "Invalid YSF ID / ID YSF inválido."
+done
+
+while :; do
+    read -r -p "DMR TalkGroup / TG DMR: " DMR_TG
+
+    if [[ "$DMR_TG" =~ ^[0-9]{1,8}$ ]]; then
+        break
+    fi
+
+    echo "Invalid DMR TG / TG DMR inválido."
+done
+
 if [ -e "$DEST" ]; then
     stamp="$(date +%Y%m%d_%H%M%S)"
     mkdir -p "$BACKUPS"
@@ -214,8 +246,14 @@ return [
   'header_subtitle'=>'$(escape "$REFLECTOR_DESCRIPTION")','footer_text'=>'',
  ],
  'features'=>[
-  'show_support_menu'=>false,'show_contact_email'=>true,
+  'show_contact_email'=>true,
   'show_location'=>true,'show_sysop_callsign'=>true,
+ ],
+ 'radio'=>[
+  'reflector_number'=>'$(escape "$REFLECTOR_NUMBER")',
+  'reflector_short_number'=>'$(escape "$REFLECTOR_SHORT_NUMBER")',
+  'ysf_id'=>'$(escape "$YSF_ID")',
+  'dmr_tg'=>'$(escape "$DMR_TG")',
  ],
  'locale'=>[
   'default'=>'$(escape "$DASHBOARD_LANG")',
@@ -229,6 +267,13 @@ if [ ! -f "$DEST/i18n/build.php" ]; then
 fi
 
 php "$DEST/i18n/build.php" "$DEST" "$DASHBOARD_LANG"
+
+if [ ! -f "$DEST/install/render-placeholders.php" ]; then
+    echo "ERROR / ERRO: placeholder renderer not found: $DEST/install/render-placeholders.php" >&2
+    exit 1
+fi
+
+php "$DEST/install/render-placeholders.php" "$DEST"
 
 find "$DEST" -type d -exec chmod 755 {} \;
 find "$DEST" -type f -exec chmod 644 {} \;

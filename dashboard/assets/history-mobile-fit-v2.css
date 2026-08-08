@@ -1,0 +1,275 @@
+
+/* ==========================================================
+   XLX026_HISTORY_MOBILE_FIT_V2
+
+   SOMENTE <= 820px
+
+   Corrige apenas:
+   - largura do painel Últimas transmissões
+   - largura dos cards
+   - alinhamento do título
+   ========================================================== */
+
+
+@media (max-width:820px){
+
+    /* -------------------------------------------------------
+       O container precisa esticar os filhos horizontalmente.
+
+       Algumas regras anteriores usam align-items:start,
+       fazendo o histórico assumir apenas a largura mínima
+       necessária para o conteúdo.
+       ------------------------------------------------------- */
+
+    html body[data-page='ao-vivo']
+    .dashboard-layout{
+
+        width:100% !important;
+        max-width:100% !important;
+        min-width:0 !important;
+
+        align-items:stretch !important;
+
+        box-sizing:border-box !important;
+    }
+
+
+    /* -------------------------------------------------------
+       PAINEL "ÚLTIMAS TRANSMISSÕES"
+       ------------------------------------------------------- */
+
+    html body[data-page='ao-vivo']
+    .dashboard-layout
+    > .dashboard-main.panel.compact-panel{
+
+        display:block !important;
+
+        width:100% !important;
+        max-width:100% !important;
+        min-width:0 !important;
+
+        align-self:stretch !important;
+
+        box-sizing:border-box !important;
+
+        margin-left:0 !important;
+        margin-right:0 !important;
+    }
+
+
+    /* -------------------------------------------------------
+       CABEÇALHO
+
+       Últimas transmissões          Até 30 registros
+       ------------------------------------------------------- */
+
+    html body[data-page='ao-vivo']
+    .dashboard-main
+    .section-title.panel-title{
+
+        display:flex !important;
+
+        flex-direction:row !important;
+
+        align-items:center !important;
+        justify-content:space-between !important;
+
+        width:100% !important;
+        max-width:100% !important;
+        min-width:0 !important;
+
+        gap:10px !important;
+
+        box-sizing:border-box !important;
+    }
+
+
+    html body[data-page='ao-vivo']
+    .dashboard-main
+    .section-title.panel-title > div{
+
+        min-width:0 !important;
+        flex:1 1 auto !important;
+    }
+
+
+    html body[data-page='ao-vivo']
+    .dashboard-main
+    .section-title.panel-title h2{
+
+        margin:0 !important;
+
+        font-size:18px !important;
+        line-height:1.15 !important;
+
+        white-space:nowrap !important;
+    }
+
+
+    html body[data-page='ao-vivo']
+    .dashboard-main
+    .section-title.panel-title
+    .table-note{
+
+        flex:0 0 auto !important;
+
+        margin:0 !important;
+
+        font-size:9px !important;
+
+        white-space:nowrap !important;
+    }
+
+
+    /* -------------------------------------------------------
+       CONTAINER DA TABELA
+       ------------------------------------------------------- */
+
+    html body[data-page='ao-vivo']
+    .dashboard-main
+    .table-wrap{
+
+        display:block !important;
+
+        width:100% !important;
+        max-width:100% !important;
+        min-width:0 !important;
+
+        margin:0 !important;
+
+        overflow-x:hidden !important;
+
+        box-sizing:border-box !important;
+    }
+
+
+    /* -------------------------------------------------------
+       TABELA
+       ------------------------------------------------------- */
+
+    html body[data-page='ao-vivo']
+    table.home-history{
+
+        display:block !important;
+
+        width:100% !important;
+        max-width:100% !important;
+        min-width:0 !important;
+
+        margin:0 !important;
+
+        box-sizing:border-box !important;
+    }
+
+
+    html body[data-page='ao-vivo']
+    table.home-history tbody{
+
+        display:block !important;
+
+        width:100% !important;
+        max-width:100% !important;
+        min-width:0 !important;
+
+        box-sizing:border-box !important;
+    }
+
+
+    /* -------------------------------------------------------
+       CADA TRANSMISSÃO
+
+       Agora o card obrigatoriamente preenche toda a largura.
+       ------------------------------------------------------- */
+
+    html body[data-page='ao-vivo']
+    table.home-history
+    tbody tr{
+
+        display:grid !important;
+
+        grid-template-columns:
+            repeat(2,minmax(0,1fr)) !important;
+
+        width:100% !important;
+        max-width:100% !important;
+        min-width:0 !important;
+
+        margin-left:0 !important;
+        margin-right:0 !important;
+
+        box-sizing:border-box !important;
+    }
+
+
+    /* -------------------------------------------------------
+       CÉLULAS
+
+       Impede qualquer campo de alargar ou encolher o card.
+       ------------------------------------------------------- */
+
+    html body[data-page='ao-vivo']
+    table.home-history
+    tbody tr td{
+
+        min-width:0 !important;
+        max-width:100% !important;
+
+        box-sizing:border-box !important;
+
+        overflow-wrap:anywhere !important;
+    }
+
+
+    /*
+     * Nome do operador usa as duas colunas,
+     * como já estava funcionando.
+     */
+
+    html body[data-page='ao-vivo']
+    table.home-history
+    tbody tr td:nth-child(4){
+
+        grid-column:1 / -1 !important;
+    }
+
+
+    /*
+     * Status também usa a largura disponível.
+     */
+
+    html body[data-page='ao-vivo']
+    table.home-history
+    tbody tr td:nth-child(8){
+
+        grid-column:1 / -1 !important;
+    }
+
+}
+
+
+/* ----------------------------------------------------------
+   CELULAR BEM ESTREITO
+   ---------------------------------------------------------- */
+
+@media (max-width:400px){
+
+    html body[data-page='ao-vivo']
+    .dashboard-main
+    .section-title.panel-title h2{
+
+        font-size:16px !important;
+    }
+
+
+    html body[data-page='ao-vivo']
+    .dashboard-main
+    .section-title.panel-title
+    .table-note{
+
+        font-size:8px !important;
+    }
+
+}
+
+
+/* FIM XLX026_HISTORY_MOBILE_FIT_V2 */
