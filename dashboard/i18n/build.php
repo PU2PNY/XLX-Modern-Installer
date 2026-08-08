@@ -8,8 +8,8 @@ declare(strict_types=1);
  *   php i18n/build.php /var/www/html/xlx-dashboard en
  *
  * The installer copies a clean dashboard first and then runs this builder.
- * It translates visible source strings without touching user databases,
- * XLXD configuration, service files or runtime data.
+ * Translation is restricted to deployable dashboard source files. The i18n
+ * engine itself, runtime configuration, databases and XLXD data are excluded.
  */
 
 require_once __DIR__ . '/bootstrap.php';
@@ -29,13 +29,15 @@ $catalog = xlx_locale_catalog();
 
 $allowedExtensions = ['php', 'js', 'html', 'htm', 'json', 'webmanifest'];
 $excludedParts = [
-    DIRECTORY_SEPARATOR . 'i18n' . DIRECTORY_SEPARATOR . 'locales' . DIRECTORY_SEPARATOR,
+    DIRECTORY_SEPARATOR . 'i18n' . DIRECTORY_SEPARATOR,
     DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'site.php',
 ];
 
 $filesChanged = 0;
 $replacementCount = 0;
 $fileReport = [];
+$htmlLocale = (string)($catalog[$locale]['html'] ?? $locale);
+$ogLocale = (string)($catalog[$locale]['og'] ?? 'pt_BR');
 
 $iterator = new RecursiveIteratorIterator(
     new RecursiveDirectoryIterator($target, FilesystemIterator::SKIP_DOTS)
@@ -52,15 +54,10 @@ foreach ($iterator as $fileInfo) {
         continue;
     }
 
-    $skip = false;
     foreach ($excludedParts as $part) {
         if (str_contains($path, $part)) {
-            $skip = true;
-            break;
+            continue 2;
         }
-    }
-    if ($skip) {
-        continue;
     }
 
     $contents = file_get_contents($path);
@@ -80,14 +77,7 @@ foreach ($iterator as $fileInfo) {
 
             $sourceText = (string)$sourceText;
             $translatedText = (string)$targetMessages[$key];
-
-            if ($sourceText === '' || $sourceText === $translatedText) {
-                continue;
-            }
-
-            // Avoid replacing extremely short/generic tokens in source code.
-            // strlen() is intentionally used to keep the builder dependency-free.
-            if (strlen($sourceText) < 4) {
+            if ($sourceText === '' || $sourceText === $translatedText || strlen($sourceText) < 4) {
                 continue;
             }
 
@@ -97,16 +87,21 @@ foreach ($iterator as $fileInfo) {
         }
     }
 
-    // Locale metadata is structural and should be updated even when the
-    // human-readable string happens to be the same.
-    $htmlLocale = (string)($catalog[$locale]['html'] ?? $locale);
-    $ogLocale = (string)($catalog[$locale]['og'] ?? 'pt_BR');
     $langCount = 0;
     $ogCount = 0;
+    $dateLocaleCount = 0;
     $contents = str_replace('lang="pt-BR"', 'lang="' . $htmlLocale . '"', $contents, $langCount);
-    $countForFile += $langCount;
     $contents = str_replace('content="pt_BR"', 'content="' . $ogLocale . '"', $contents, $ogCount);
-    $countForFile += $ogCount;
+
+    // app.js formats timestamps with toLocaleTimeString('pt-BR', ...).
+    // Keep dates consistent with the selected dashboard language.
+    if ($locale !== 'pt-BR' && $extension === 'js') {
+        $contents = str_replace("toLocaleTimeString('pt-BR'", "toLocaleTimeString('{$htmlLocale}'", $contents, $dateLocaleCount);
+        $contents = str_replace('toLocaleTimeString("pt-BR"', 'toLocaleTimeString("' . $htmlLocale . '"', $contents, $dateLocaleCount2);
+        $dateLocaleCount += $dateLocaleCount2;
+    }
+
+    $countForFile += $langCount + $ogCount + $dateLocaleCount;
 
     if ($contents !== $before) {
         if (file_put_contents($path, $contents) === false) {
@@ -115,7 +110,7 @@ foreach ($iterator as $fileInfo) {
         }
         $filesChanged++;
         $replacementCount += $countForFile;
-        $fileReport[str_replace($target . DIRECTORY_SEPARATOR, '', $path)] = $countForFile;
+        $fileReport[str_replace(rtrim($target, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR, '', $path)] = $countForFile;
     }
 }
 
@@ -129,8 +124,8 @@ if (is_file($configFile)) {
 
     $config['locale'] = [
         'default' => $locale,
-        'html' => (string)($catalog[$locale]['html'] ?? $locale),
-        'og' => (string)($catalog[$locale]['og'] ?? 'pt_BR'),
+        'html' => $htmlLocale,
+        'og' => $ogLocale,
         'name' => (string)($catalog[$locale]['name'] ?? $locale),
     ];
 
