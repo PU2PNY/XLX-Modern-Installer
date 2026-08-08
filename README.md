@@ -21,15 +21,23 @@ D-STAR • DMR • C4FM/YSF • XLX Echo • Dashboard moderno • Debian 12
 
 ---
 
-## 🖥️ Dashboard real
+## 🖥️ Dashboard real — screenshots
 
-A imagem abaixo é uma captura real do **XLX Modern Dashboard** em funcionamento. Ela mostra o cabeçalho multiprotocolo, histórico de transmissões, monitor ao vivo/standby, estado operacional do servidor, estações conectadas e o bloco de clima e condições de propagação para radioamadores.
+As imagens abaixo são capturas reais do **XLX026 Brasil** usando o XLX Modern Dashboard. Entre os quatro arquivos enviados para a documentação, três eram cópias idênticas da mesma captura; por isso o README apresenta as **duas telas únicas**, sem duplicação visual.
+
+### Ao vivo, transmissões, MTR, clima e propagação
 
 <p align="center">
-  <img src="docs/images/xlx-modern-dashboard.webp" alt="XLX Modern Dashboard real mostrando D-STAR, DMR, C4FM/YSF, últimas transmissões, monitor ao vivo, estações conectadas, clima e condições de propagação" width="900">
+  <img src="docs/screenshots/ao-vivo-xlx026.webp" alt="XLX Modern Dashboard em produção mostrando histórico de transmissões, monitor ao vivo, MTR, estado do servidor, clima e propagação" width="900">
 </p>
 
-> A aparência e os dados exibidos dependem da configuração do refletor. A imagem demonstra uma instalação real do painel, não um mockup.
+### Módulos A–E e identificações de acesso
+
+<p align="center">
+  <img src="docs/screenshots/modulos-xlx026.webp" alt="XLX Modern Dashboard mostrando módulos A a E e identificações de acesso D-STAR, DMR e C4FM/YSF" width="900">
+</p>
+
+> As capturas mostram uma instalação real e podem conter elementos específicos do site XLX026. Recursos locais exclusivos não fazem parte automaticamente da distribuição universal deste repositório. Aparência, módulos, protocolos, números e dados exibidos variam conforme a configuração de cada refletor.
 
 ---
 
@@ -344,7 +352,7 @@ XLX-Modern-Installer/
 │   │   └── locales/
 │   └── install/
 ├── docs/
-│   └── images/
+│   └── screenshots/
 ├── modules/
 ├── scripts/
 ├── references/
