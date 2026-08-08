@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security / Segurança
+    url: https://github.com/PU2PNY/XLX-Modern-Installer/security
+    about: Do not disclose credentials or exploitable security details in a public issue / Não divulgue credenciais ou detalhes exploráveis em uma issue pública
+  - name: Documentation / Documentação
+    url: https://github.com/PU2PNY/XLX-Modern-Installer/blob/main/docs/README.md
+    about: Installation, firewall, files, recovery and post-installation guides / Guias de instalação, firewall, arquivos, recuperação e pós-instalação
