@@ -230,6 +230,11 @@ mkdir -p "$DEST"
 rsync -a --delete --exclude='install/' --exclude='config/site.php' "$ROOT/" "$DEST/"
 mkdir -p "$DEST/config"
 
+# Runtime cache directories used by status.php and ham-weather.php.
+# Fresh installations must provision them before Apache serves the dashboard.
+install -d -m 0750 -o www-data -g www-data /var/cache/xlx-dashboard
+install -d -m 0750 -o www-data -g www-data /var/cache/xlx-ham-weather
+
 cat > "$DEST/config/site.php" <<PHP
 <?php
 declare(strict_types=1);
@@ -268,12 +273,14 @@ fi
 
 php "$DEST/i18n/build.php" "$DEST" "$DASHBOARD_LANG"
 
-if [ ! -f "$DEST/install/render-placeholders.php" ]; then
-    echo "ERROR / ERRO: placeholder renderer not found: $DEST/install/render-placeholders.php" >&2
+# install/ is intentionally excluded from the deployed web root. Execute the
+# renderer from the source tree against the copied destination.
+if [ ! -f "$ROOT/install/render-placeholders.php" ]; then
+    echo "ERROR / ERRO: placeholder renderer not found: $ROOT/install/render-placeholders.php" >&2
     exit 1
 fi
 
-php "$DEST/install/render-placeholders.php" "$DEST"
+php "$ROOT/install/render-placeholders.php" "$DEST"
 
 find "$DEST" -type d -exec chmod 755 {} \;
 find "$DEST" -type f -exec chmod 644 {} \;
