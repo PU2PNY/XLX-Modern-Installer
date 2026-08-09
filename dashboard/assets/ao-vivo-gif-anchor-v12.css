@@ -1,0 +1,402 @@
+/* ==========================================================
+   XLX026 — GIF ANCHOR V12
+
+   CORREÇÃO:
+
+   O GIF pertence à área:
+       .tx-v30-person
+
+   Portanto:
+   - .tx-v30-person é o ponto de referência;
+   - .operator-visual fica absoluto DENTRO dessa área;
+   - nunca usa o card inteiro como referência;
+   - nunca entra na área técnica.
+
+   ADAPTAÇÃO AUTOMÁTICA:
+
+   box largo:
+       64px
+
+   box médio:
+       56px
+
+   box estreito:
+       44px
+
+   Nenhuma alteração em:
+   - altura do card
+   - MTR
+   - Gateway
+   - Protocolo
+   - Tempo TX
+   - spectrum
+   ========================================================== */
+
+
+/* ==========================================================
+   O STACK É O CONTAINER RESPONSIVO
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlx026-tx-stack-v5{
+
+    container-type:inline-size !important;
+
+    min-width:0 !important;
+}
+
+
+/* ==========================================================
+   ÁREA DO OPERADOR
+
+   ESTE É O NOVO PONTO DE REFERÊNCIA DO GIF.
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-tx-stack-v5
+.tx-v30-person{
+
+    /*
+     * Fundamental:
+     *
+     * Agora o GIF absoluto usa ESTA área
+     * como referência.
+     */
+    position:relative !important;
+
+    /*
+     * Remove as colunas antigas reservadas ao GIF.
+     *
+     * O GIF não ocupa mais coluna da grade.
+     */
+    display:block !important;
+
+    width:100% !important;
+
+    min-width:0 !important;
+
+    margin:0 !important;
+
+    padding:0 !important;
+
+    overflow:visible !important;
+
+    box-sizing:border-box !important;
+}
+
+
+/* ==========================================================
+   DADOS DO OPERADOR
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-tx-stack-v5
+.tx-v30-person-data{
+
+    position:relative !important;
+
+    display:block !important;
+
+    width:100% !important;
+
+    min-width:0 !important;
+
+    /*
+     * Reserva a área do GIF.
+     *
+     * Assim um nome muito grande também
+     * não entra debaixo do círculo.
+     */
+    padding-right:96px !important;
+
+    margin:0 !important;
+
+    z-index:2 !important;
+
+    box-sizing:border-box !important;
+
+    grid-column:auto !important;
+    grid-row:auto !important;
+}
+
+
+/* ==========================================================
+   GIF — BOX LARGO / 1 TRANSMISSÃO
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-tx-stack-v5
+.tx-v30-person
+.operator-visual{
+
+    position:absolute !important;
+
+    /*
+     * Centralizado verticalmente SOMENTE
+     * dentro do bloco do operador.
+     */
+    top:50% !important;
+
+    right:18px !important;
+
+    bottom:auto !important;
+    left:auto !important;
+
+    transform:
+        translateY(-50%) !important;
+
+    width:64px !important;
+    height:64px !important;
+
+    min-width:64px !important;
+    min-height:64px !important;
+
+    max-width:64px !important;
+    max-height:64px !important;
+
+    margin:0 !important;
+
+    display:grid !important;
+
+    place-items:center !important;
+
+    z-index:4 !important;
+
+    pointer-events:none !important;
+
+    box-sizing:border-box !important;
+
+    grid-column:auto !important;
+    grid-row:auto !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-tx-stack-v5
+.tx-v30-person
+.operator-visual img{
+
+    display:block !important;
+
+    width:46px !important;
+    height:46px !important;
+
+    max-width:46px !important;
+    max-height:46px !important;
+
+    object-fit:contain !important;
+}
+
+
+/* ==========================================================
+   PROTEÇÃO DO TEXTO
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-tx-stack-v5
+.tx-v30-callsign,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-tx-stack-v5
+.tx-v30-name,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-tx-stack-v5
+.tx-v30-location,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-tx-stack-v5
+.tx-v30-country{
+
+    position:relative !important;
+
+    z-index:2 !important;
+
+    max-width:100% !important;
+}
+
+
+/* ==========================================================
+   BOX MÉDIO
+
+   É o tamanho típico quando existem 2 transmissões.
+
+   A regra depende da largura REAL do box,
+   não da quantidade de filhos no DOM.
+   ========================================================== */
+
+@container (max-width:650px){
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlx026-tx-stack-v5
+    .tx-v30-person-data{
+
+        padding-right:80px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlx026-tx-stack-v5
+    .tx-v30-person
+    .operator-visual{
+
+        top:50% !important;
+
+        right:14px !important;
+
+        width:56px !important;
+        height:56px !important;
+
+        min-width:56px !important;
+        min-height:56px !important;
+
+        max-width:56px !important;
+        max-height:56px !important;
+
+        transform:
+            translateY(-50%) !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlx026-tx-stack-v5
+    .tx-v30-person
+    .operator-visual img{
+
+        width:40px !important;
+        height:40px !important;
+
+        max-width:40px !important;
+        max-height:40px !important;
+    }
+}
+
+
+/* ==========================================================
+   BOX ESTREITO
+
+   É o tamanho típico quando existem 3 transmissões.
+   ========================================================== */
+
+@container (max-width:430px){
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlx026-tx-stack-v5
+    .tx-v30-person-data{
+
+        padding-right:62px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlx026-tx-stack-v5
+    .tx-v30-person
+    .operator-visual{
+
+        top:50% !important;
+
+        right:8px !important;
+
+        width:44px !important;
+        height:44px !important;
+
+        min-width:44px !important;
+        min-height:44px !important;
+
+        max-width:44px !important;
+        max-height:44px !important;
+
+        transform:
+            translateY(-50%) !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlx026-tx-stack-v5
+    .tx-v30-person
+    .operator-visual img{
+
+        width:31px !important;
+        height:31px !important;
+
+        max-width:31px !important;
+        max-height:31px !important;
+    }
+}
+
+
+/* ==========================================================
+   SEGURANÇA CONTRA COLISÕES
+
+   O GIF está restrito ao bloco do operador.
+
+   MTR e detalhes permanecem em seus próprios níveis.
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-tx-stack-v5
+.xlx026-tech-v5{
+
+    position:relative !important;
+
+    z-index:5 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-tx-stack-v5
+.tx-v30-details{
+
+    position:relative !important;
+
+    z-index:5 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-tx-stack-v5
+.spectrum{
+
+    position:relative !important;
+
+    z-index:5 !important;
+}
+
+
+/* ==========================================================
+   CELULAR
+
+   Continua usando a largura real do card.
+   Não cria outra posição paralela.
+   ========================================================== */
+
+@media (max-width:720px){
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlx026-tx-stack-v5
+    .tx-v30-person{
+
+        position:relative !important;
+
+        display:block !important;
+    }
+}
