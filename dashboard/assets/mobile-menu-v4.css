@@ -315,7 +315,7 @@
 
    SOMENTE POSICAO DO BOTAO MENU NO MOBILE
 
-   [ LOGO ] [ {{REFLECTOR_NAME}} ] [ MENU ]
+   [ LOGO ] [ XLX026 Brasil ] [ MENU ]
 
    Nenhum outro componente e alterado.
    ========================================================== */
@@ -333,7 +333,7 @@
 
         /*
          * Alinha no lado direito da mesma linha
-         * onde aparece {{REFLECTOR_NAME}}.
+         * onde aparece XLX026 Brasil.
          */
         justify-self:end !important;
         align-self:center !important;
@@ -375,3 +375,4 @@
 
 
 /* FIM XLX026_MENU_POSITION_V41 */
+

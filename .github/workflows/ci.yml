@@ -32,7 +32,7 @@ jobs:
           while IFS= read -r -d '' file; do
             echo "php -l $file"
             php -l "$file" >/dev/null
-          done < <(find dashboard -type f -name '*.php' -print0)
+          done < <(find dashboard extras -type f -name '*.php' -print0)
 
       - name: Validate JavaScript syntax
         shell: bash
@@ -42,7 +42,7 @@ jobs:
           while IFS= read -r -d '' file; do
             echo "node --check $file"
             node --check "$file"
-          done < <(find dashboard/assets -type f -name '*.js' -print0)
+          done < <(find dashboard/assets extras -type f -name '*.js' -print0)
 
       - name: Validate translation catalogs
         shell: bash
@@ -95,14 +95,20 @@ jobs:
             php "$target/install/render-placeholders.php" "$target"
             php "$target/install/render-template.php" "$target"
             test -s "$target/config/i18n-build-report.json"
-            ! grep -REn '\{\{[A-Z0-9_]+\}\}' "$target/index.php" "$target/assets/app.js"
+            ! grep -REn '\{\{[A-Z0-9_]+\}\}' "$target/index.php" "$target/assets/app.js" "$target/config.php"
             grep -F 'xlx999.example.invalid' "$target/index.php"
             grep -F 'XLX999-D / XRF999-D' "$target/config.php"
+            grep -F "'server_name' => 'XLX999 Community'" "$target/config.php"
+            ! grep -F 'BR-XLX999' "$target/index.php"
+            ! grep -F 'XLX999 Brasil' "$target/index.php" "$target/config.php" "$target/assets/app.js"
             if [ "$locale" = en ]; then
-              grep -F 'Latest 20 transmissions' "$target/index.php"
-              grep -F '20 recent operators' "$target/index.php"
-              ! grep -F 'Últimas 20 transmissões' "$target/index.php"
-              ! grep -F '20 operadores recentes' "$target/index.php"
+              grep -F 'Activity from the last 24 hours' "$target/index.php"
+              grep -F 'Up to 40 callsigns' "$target/index.php"
+              grep -F 'Install XLX999' "$target/index.php"
+              grep -F 'XLX999 — Live D-STAR, DMR and C4FM dashboard' "$target/index.php"
+              ! grep -F 'Atividade das últimas 24 horas' "$target/index.php"
+              ! grep -F 'Até 40 indicativos' "$target/index.php"
+              ! grep -F 'Instalar XLX999' "$target/index.php"
             fi
             while IFS= read -r -d '' file; do
               php -l "$file" >/dev/null
@@ -110,12 +116,67 @@ jobs:
             rm -rf "$target"
           done
 
+      - name: Test persistent callsign directory
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          work="$(mktemp -d)"
+          main_db="$work/users.db"
+          override_db="$work/state/overrides.db"
+          sqlite3 "$main_db" <<'SQL'
+          CREATE TABLE users(callsign TEXT PRIMARY KEY,name TEXT,city_state TEXT);
+          INSERT INTO users VALUES('PU2OLD','Old Name','Old City');
+          INSERT INTO users VALUES('PU2NEW','Base New Name','Base City');
+          SQL
+          sudo env XLX_USERS_DB="$main_db" XLX_OVERRIDE_DB="$override_db" XLX_BACKUP_ROOT="$work/backups" bash tools/xlx-user-directory.sh init
+          sudo env XLX_USERS_DB="$main_db" XLX_OVERRIDE_DB="$override_db" XLX_BACKUP_ROOT="$work/backups" bash tools/xlx-user-directory.sh set PU2NEW 'Updated Name' 'Updated City'
+          sudo env XLX_USERS_DB="$main_db" XLX_OVERRIDE_DB="$override_db" XLX_BACKUP_ROOT="$work/backups" bash tools/xlx-user-directory.sh alias PU2OLD PU2NEW
+          output="$(sudo env XLX_USERS_DB="$main_db" XLX_OVERRIDE_DB="$override_db" XLX_BACKUP_ROOT="$work/backups" bash tools/xlx-user-directory.sh lookup PU2OLD)"
+          grep -F 'override|PU2NEW|Updated Name|Updated City' <<<"$output"
+          sudo env XLX_USERS_DB="$main_db" XLX_OVERRIDE_DB="$override_db" XLX_BACKUP_ROOT="$work/backups" bash tools/xlx-user-directory.sh check
+          test "$(sudo sqlite3 "$override_db" 'PRAGMA integrity_check;')" = ok
+
+      - name: Test generic certificate install
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          work="$(mktemp -d)"
+          target="$work/dashboard"
+          data="$work/cert-data"
+          conf="$work/cert-conf"
+          cp -a dashboard "$target"
+          mkdir -p "$target/config"
+          cat > "$target/config/site.php" <<'PHP'
+          <?php
+          declare(strict_types=1);
+          return [
+            'reflector'=>[
+              'name'=>'XLX999','title'=>'XLX999 Community','description'=>'Test reflector',
+              'sysop_callsign'=>'N0CALL','location'=>'Lisbon','country'=>'Portugal',
+              'domain'=>'xlx999.example.invalid','contact_email'=>'noreply@example.invalid',
+            ],
+            'radio'=>['reflector_number'=>'999','reflector_short_number'=>'999','ysf_id'=>'99999','dmr_tg'=>'4999'],
+            'locale'=>['default'=>'en'],
+          ];
+          PHP
+          sudo env XLX_DASHBOARD_DIR="$target" XLX_CERT_DATA_DIR="$data" XLX_CERT_CONF_DIR="$conf" XLX_CERT_KEY_FILE="$conf/hmac.key" XLX_CERT_SKIP_PACKAGES=1 XLX_TIMEZONE=Europe/Lisbon XLX_REFLECTOR_ANNIVERSARY=07-22 bash extras/certificados/install.sh
+          sudo test -s "$target/certificado.php"
+          sudo test -s "$target/certificado-validar.php"
+          sudo test -s "$target/api/certificado.php"
+          sudo test -s "$conf/hmac.key"
+          sudo test -e "$data/emissoes.jsonl"
+          sudo grep -F 'XLX_CERTIFICATE_MENU_V1' "$target/assets/app.js"
+          sudo php -r '$c=require $argv[1]; if(($c["timezone"]??"")!=="Europe/Lisbon") exit(1); if(($c["certificates"]["anniversary"]??"")!=="07-22") exit(2);' "$target/config/site.php"
+          sudo env XLX_CERT_DATA_DIR="$data" XLX_CERT_KEY_FILE="$conf/hmac.key" php -r 'require $argv[1]; $c=cert_current_campaign(new DateTimeImmutable("2026-08-09 12:00:00", new DateTimeZone("Europe/Lisbon"))); if(str_contains($c["title"],"Dia dos Pais")) exit(1); if(cert_reflector()["title"]!=="XLX999 Community") exit(2);' "$target/certificado-config.php"
+
       - name: Validate fresh-install wiring and runtime fallbacks
         shell: bash
         run: |
           set -Eeuo pipefail
           grep -F 'install-dashboard.sh" "$@"' modules/60-dashboard-modern.sh
           grep -F 'post-install.sh' modules/60-dashboard-modern.sh
+          grep -F '65-callsign-directory.sh' modules/60-dashboard-modern.sh
+          grep -F '66-certificates.sh' modules/60-dashboard-modern.sh
           grep -F -- '--lang=*)' dashboard/install/install-dashboard.sh
           grep -F '"--lang=$DASHBOARD_LANG"' install.sh
           grep -F '$ROOT/install/render-placeholders.php' dashboard/install/install-dashboard.sh
@@ -123,10 +184,16 @@ jobs:
           grep -F '/var/cache/xlx-ham-weather' dashboard/install/install-dashboard.sh
           grep -F 'php-mbstring' modules/30-packages.sh
           grep -F "'source'=>'log_fallback'" dashboard/api/ranking-v2.php
+          grep -F "'users_override_db'" dashboard/config.php
+          grep -F 'user-directory.php' dashboard/api/status.php
           bash -n dashboard/install/post-install.sh
+          bash -n tools/xlx-user-directory.sh
+          bash -n extras/certificados/install.sh
           php -l dashboard/install/render-template.php >/dev/null
           php -l dashboard/install/render-placeholders.php >/dev/null
           php -l dashboard/api/ranking-v2.php >/dev/null
+          php -l dashboard/api/user-directory.php >/dev/null
+          php -l extras/certificados/api/certificado.php >/dev/null
           grep -F 'XLX_PROJECT_LINK_BUNDLE_V1' dashboard/install/post-install.sh
 
       - name: Public-release audit

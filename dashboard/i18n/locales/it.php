@@ -41,8 +41,8 @@ return [
     'live.reading_state' => 'Lettura stato...',
 
     'history.eyebrow' => 'ATTIVITÀ RECENTE',
-    'history.title' => 'Ultime 20 trasmissioni',
-    'history.limit' => '20 operatori recenti',
+    'history.title' => 'Attività delle ultime 24 ore',
+    'history.limit' => 'Fino a 40 nominativi',
 
     'table.country' => 'Paese',
     'table.time' => 'Ora',

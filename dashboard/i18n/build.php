@@ -27,6 +27,16 @@ $sourceMessages = xlx_load_messages('pt-BR');
 $targetMessages = xlx_load_messages($locale);
 $catalog = xlx_locale_catalog();
 
+/*
+ * Older catalogs used "{{REFLECTOR_NAME}} Brasil" as one branding token.
+ * The public installer is now country-neutral. Normalize that legacy token
+ * while translating so existing catalogs remain compatible and no new
+ * installation inherits a fixed country name.
+ */
+$genericMessage = static function (string $text): string {
+    return str_replace('{{REFLECTOR_NAME}} Brasil', '{{REFLECTOR_NAME}}', $text);
+};
+
 $allowedExtensions = ['php', 'js', 'html', 'htm', 'json', 'webmanifest'];
 $excludedParts = [
     DIRECTORY_SEPARATOR . 'i18n' . DIRECTORY_SEPARATOR,
@@ -75,8 +85,8 @@ foreach ($iterator as $fileInfo) {
                 continue;
             }
 
-            $sourceText = (string)$sourceText;
-            $translatedText = (string)$targetMessages[$key];
+            $sourceText = $genericMessage((string)$sourceText);
+            $translatedText = $genericMessage((string)$targetMessages[$key]);
             if ($sourceText === '' || $sourceText === $translatedText || strlen($sourceText) < 4) {
                 continue;
             }
@@ -93,8 +103,6 @@ foreach ($iterator as $fileInfo) {
     $contents = str_replace('lang="pt-BR"', 'lang="' . $htmlLocale . '"', $contents, $langCount);
     $contents = str_replace('content="pt_BR"', 'content="' . $ogLocale . '"', $contents, $ogCount);
 
-    // app.js formats timestamps with toLocaleTimeString('pt-BR', ...).
-    // Keep dates consistent with the selected dashboard language.
     if ($locale !== 'pt-BR' && $extension === 'js') {
         $contents = str_replace("toLocaleTimeString('pt-BR'", "toLocaleTimeString('{$htmlLocale}'", $contents, $dateLocaleCount);
         $contents = str_replace('toLocaleTimeString("pt-BR"', 'toLocaleTimeString("' . $htmlLocale . '"', $contents, $dateLocaleCount2);
