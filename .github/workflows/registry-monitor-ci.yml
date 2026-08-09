@@ -1,0 +1,69 @@
+name: XLX Registry Monitor CI
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature/registry-monitor-*'
+    paths:
+      - 'extras/registry-monitor/**'
+      - 'modules/67-registry-monitor.sh'
+      - '.github/workflows/registry-monitor-ci.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'extras/registry-monitor/**'
+      - 'modules/67-registry-monitor.sh'
+      - '.github/workflows/registry-monitor-ci.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate Bash
+        run: |
+          set -Eeuo pipefail
+          bash -n extras/registry-monitor/install.sh
+          bash -n modules/67-registry-monitor.sh
+
+      - name: Compile Python
+        run: |
+          set -Eeuo pipefail
+          python3 -m py_compile extras/registry-monitor/xlx_registry_monitor.py
+
+      - name: Validate configuration template
+        run: |
+          set -Eeuo pipefail
+          python3 - <<'PY'
+          import configparser
+          p = configparser.ConfigParser()
+          assert p.read('extras/registry-monitor/config.example.ini')
+          assert p['reflector']['ysf_port'] == '42000'
+          assert p['dvref']['base_url'] == 'https://dvref.com'
+          PY
+
+      - name: Validate systemd units
+        run: |
+          set -Eeuo pipefail
+          systemd-analyze verify extras/registry-monitor/systemd/xlx-registry-monitor.service
+          systemd-analyze verify extras/registry-monitor/systemd/xlx-registry-monitor.timer
+
+      - name: Validate safety invariants
+        run: |
+          set -Eeuo pipefail
+          ! grep -REn 'method="(POST|PUT|PATCH|DELETE)"' extras/registry-monitor/xlx_registry_monitor.py
+          ! grep -REn 'ufw|iptables|nft .*add|sysctl -w|systemctl restart xlxd' extras/registry-monitor/xlx_registry_monitor.py
+          grep -F 'User=xlxmonitor' extras/registry-monitor/systemd/xlx-registry-monitor.service
+          grep -F 'ProtectSystem=strict' extras/registry-monitor/systemd/xlx-registry-monitor.service
+          grep -F 'OnUnitActiveSec=15min' extras/registry-monitor/systemd/xlx-registry-monitor.timer
+
+      - name: Installer dry-run
+        run: |
+          set -Eeuo pipefail
+          sudo bash extras/registry-monitor/install.sh --check --lang=en
