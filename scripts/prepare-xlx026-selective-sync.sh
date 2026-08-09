@@ -3,7 +3,7 @@ set -Eeuo pipefail
 IFS=$'\n\t'
 
 PROD="/var/www/html/xlxd-novo"
-REMOTE="git@github.com:PU2PNY/XLX-Modern-Installer.git"
+REMOTE="https://github.com/PU2PNY/XLX-Modern-Installer.git"
 BRANCH="sync-xlx026-20260809"
 STAMP="$(date +%Y%m%d_%H%M%S)"
 BASE="/root/xlx026-github-sync-${STAMP}"
