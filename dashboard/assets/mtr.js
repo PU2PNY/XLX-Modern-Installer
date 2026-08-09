@@ -950,7 +950,7 @@
         }
     );
 
-    window.XLXMTR =
+    window.XLX026MTR =
         Object.freeze({
             sync,
         });
