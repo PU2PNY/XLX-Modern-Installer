@@ -90,7 +90,7 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}/' . ($page === 'ao-vivo' ? '' : '?pag
    <div class="access-strip access-strip-compact" aria-label="Acessos do servidor">
     <span><b>D-STAR</b> {{REFLECTOR_NAME}}-D</span>
     <span><b>DMR</b> {{REFLECTOR_NAME}}-C • TG 6 no rádio • TG {{DMR_TG}} nos apps</span>
-    <span><b>C4FM/YSF</b> BR-{{REFLECTOR_NAME}} • YSF{{YSF_ID}}</span>
+    <span><b>C4FM/YSF</b> {{REFLECTOR_NAME}} • YSF{{YSF_ID}}</span>
    </div>
   </div>
 
@@ -135,8 +135,6 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}/' . ($page === 'ao-vivo' ? '' : '?pag
  <section class="page-heading"><p class="eyebrow">REDE MUNDIAL</p><h1>Lista de refletores XLX</h1></section>
  <section class="panel embedded-panel"><div class="embedded-toolbar"><div><b>Refletores registrados</b><span>Nome, país, status e descrição.</span></div></div><div class="table-wrap"><table class="reflectors-table"><thead><tr><th>#</th><th>Refletor</th><th>País</th><th>Status</th><th>Descrição</th></tr></thead><tbody id="reflectorRows"><tr><td colspan="5">Carregando lista de refletores...</td></tr></tbody></table></div></section>
 <?php endif; ?>
-
-
 
 </main>
 <?php if ($authorizedPage): ?>
