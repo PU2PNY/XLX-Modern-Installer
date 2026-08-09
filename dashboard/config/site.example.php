@@ -14,9 +14,23 @@ return [
   'footer_text'=>'',
  ],
  'features'=>[
-
   'show_contact_email'=>true,
   'show_location'=>true,
   'show_sysop_callsign'=>true,
+ ],
+ 'radio'=>[
+  'reflector_number'=>'000',
+  'reflector_short_number'=>'0',
+  'ysf_id'=>'00000',
+  'dmr_tg'=>'4000',
+ ],
+ 'locale'=>[
+  'default'=>'en',
+ ],
+ 'timezone'=>'UTC',
+ 'certificates'=>[
+  'enabled'=>true,
+  // Optional reflector anniversary in MM-DD format, for example 07-22.
+  'anniversary'=>'',
  ],
 ];
