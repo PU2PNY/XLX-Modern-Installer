@@ -76,9 +76,9 @@ fi
 chown root:www-data "$KEY"; chmod 0640 "$KEY"
 
 if [ ! -e "$DATA/emissoes.jsonl" ]; then
-  install -m 0640 -o root -g www-data /dev/null "$DATA/emissoes.jsonl"
+  install -m 0660 -o root -g www-data /dev/null "$DATA/emissoes.jsonl"
 fi
-chown root:www-data "$DATA/emissoes.jsonl"; chmod 0640 "$DATA/emissoes.jsonl"
+chown root:www-data "$DATA/emissoes.jsonl"; chmod 0660 "$DATA/emissoes.jsonl"
 
 install -D -m 0640 -o root -g www-data "$SRC/certificado.php" "$DEST/certificado.php"
 install -D -m 0640 -o root -g www-data "$SRC/certificado-validar.php" "$DEST/certificado-validar.php"
