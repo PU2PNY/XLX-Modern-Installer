@@ -1,18 +1,22 @@
 # GitHub About, Website and Topics / Metadados do repositório
 
-Use these values when the repository is ready to become public.
+Use these values for the public repository metadata.
 
 ## About description
 
 ```text
-XLX reflector installer for Debian 12 with a modern multilingual dashboard — D-STAR, DMR and C4FM/YSF. Install, update, back up, troubleshoot and recover XLXD safely.
+Universal XLX reflector installer for Debian 12 with a modern multilingual dashboard, persistent callsign corrections and verifiable participation certificates — D-STAR, DMR and C4FM/YSF.
 ```
 
 ## Website
 
+The project itself is generic and should not be represented as belonging to a single production reflector. Prefer the repository URL or a dedicated future project website.
+
 ```text
-https://xlx026.net
+https://github.com/PU2PNY/XLX-Modern-Installer
 ```
+
+The real XLX026 deployment may still be cited in screenshots/documentation as a production example, but it should not be the universal project's identity.
 
 ## Recommended topics
 
@@ -34,16 +38,34 @@ xlx-dashboard
 xlx-installer
 dstar-reflector
 dmr-reflector
+callsign-database
+sqlite
+certificate
+qr-code
+hmac
 ```
 
 ## Why these fields matter
 
-The GitHub **About** block is one of the first pieces of context visitors see. A clear description, website and focused topics help people understand the repository and improve discovery inside GitHub. The public README and dedicated documentation pages provide the detailed search-oriented content.
+The GitHub **About** block is one of the first pieces of context visitors see. The description should make clear that this is a universal installer rather than the configuration repository of one specific reflector.
 
-## Suggested first public release title
+The README and documentation now cover:
+
+- clean Debian 12 installation;
+- generic reflector identity/configuration;
+- dashboard-only installation;
+- Ao Vivo, Conectados, Módulos A–E and Ranking;
+- six dashboard languages;
+- persistent callsign corrections and aliases;
+- safe main user-database refresh with backup/integrity check/rollback;
+- activity-based participation certificates;
+- local QR generation and HMAC validation;
+- backup and recovery of the new persistent data.
+
+## Suggested release title
 
 ```text
-XLX Modern Installer v1.0.0 — Debian 12 XLXD + Multilingual Dashboard
+XLX Modern Installer v1.0.0 — Debian 12 XLXD + Universal Dashboard + Callsigns + Certificates
 ```
 
-Do not publish `v1.0.0` until the clean Debian 12 installation, dashboard-only installation, multilingual builds, firewall documentation and public-release security audit have passed.
+Do not publish a release tag until a clean Debian 12 installation has been tested end-to-end in a disposable/homologation VPS, including dashboard, callsign directory, certificate issuance/validation, firewall, HTTPS and recovery backup.
