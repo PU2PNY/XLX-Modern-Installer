@@ -1,9 +1,10 @@
 <?php
 return [
-  'server_name' => '{{REFLECTOR_NAME}} Brasil',
+  'server_name' => '{{REFLECTOR_TITLE}}',
   'xml_path' => '/var/log/xlxd.xml',
   'log_path' => '/var/log/xlx.log',
   'users_db' => '/xlxd/users_db/users.db',
+  'users_override_db' => '/var/lib/xlx-user-directory/overrides.db',
   'history_limit' => 30,
   'modules' => [
     'A' => ['name'=>'DMR','protocol'=>'DMR','access'=>'TG 4001'],
