@@ -13,16 +13,34 @@ $requestedHistoryLimit = isset($_GET['history'])
     ? (int)$_GET['history']
     : $defaultHistoryLimit;
 
-$historyLimit = in_array($requestedHistoryLimit, [30, 150], true)
-    ? $requestedHistoryLimit
-    : $defaultHistoryLimit;
+$requestedHistoryHours = isset($_GET['history_hours'])
+    ? (int)$_GET['history_hours']
+    : 0;
 
-$cacheVariant = $historyLimit === $defaultHistoryLimit
-    ? ''
-    : '-' . $historyLimit;
+$is24HourHistory = $requestedHistoryHours === 24;
 
-$cacheFile = '/var/cache/xlx-dashboard/status' . $cacheVariant . '.json';
-$lockFile  = '/var/cache/xlx-dashboard/status' . $cacheVariant . '.lock';
+$historyLimit = $is24HourHistory
+    ? 5000
+    : (
+        in_array($requestedHistoryLimit, [30, 150], true)
+            ? $requestedHistoryLimit
+            : $defaultHistoryLimit
+    );
+
+$historySince = $is24HourHistory
+    ? time() - 86400
+    : null;
+
+$cacheVariant = $is24HourHistory
+    ? '-24h'
+    : (
+        $historyLimit === $defaultHistoryLimit
+            ? ''
+            : '-' . $historyLimit
+    );
+
+$cacheFile = '/var/cache/xlx026-dashboard/status' . $cacheVariant . '.json';
+$lockFile  = '/var/cache/xlx026-dashboard/status' . $cacheVariant . '.lock';
 $cacheTtl  = 1;
 
 function send_cached_status(
@@ -57,7 +75,7 @@ function send_cached_status(
     }
 
     header(
-        'X-{{REFLECTOR_NAME}}-Cache: ' .
+        'X-XLX026-Cache: ' .
         ($allowExpired ? 'stale-while-refresh' : 'fresh')
     );
 
@@ -120,7 +138,7 @@ try {
     }
 
     $connections = parse_xml_connections();
-    $tx = active_and_history($connections, $historyLimit);
+    $tx = active_and_history($connections, $historyLimit, $historySince);
     $online = online_index($connections);
     $modules = [];
 
