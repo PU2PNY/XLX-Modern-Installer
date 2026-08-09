@@ -227,7 +227,9 @@ def run(args: argparse.Namespace) -> int:
     if not args.no_write:
         atomic_write_json(status_path, payload)
 
-    return 0 if payload["overall"] == "ok" else 1
+    # A warning/critical reflector state is data, not a monitor execution failure.
+    # Non-zero exits are reserved for exceptions that prevent producing status JSON.
+    return 0
 
 
 def main() -> int:
