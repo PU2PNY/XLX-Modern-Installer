@@ -104,8 +104,11 @@ jobs:
             if [ "$locale" = en ]; then
               grep -F 'Activity from the last 24 hours' "$target/index.php"
               grep -F 'Up to 40 callsigns' "$target/index.php"
+              grep -F 'Install XLX999' "$target/index.php"
+              grep -F 'XLX999 — Live D-STAR, DMR and C4FM dashboard' "$target/index.php"
               ! grep -F 'Atividade das últimas 24 horas' "$target/index.php"
               ! grep -F 'Até 40 indicativos' "$target/index.php"
+              ! grep -F 'Instalar XLX999' "$target/index.php"
             fi
             while IFS= read -r -d '' file; do
               php -l "$file" >/dev/null
