@@ -49,7 +49,7 @@ init_db(){
   require_sqlite
   install -d -m 0750 -o root -g www-data "$(dirname "$OVERRIDE_DB")"
   sqlite3 "$OVERRIDE_DB" <<'SQL'
-PRAGMA journal_mode=WAL;
+PRAGMA journal_mode=DELETE;
 CREATE TABLE IF NOT EXISTS user_overrides (
   callsign TEXT PRIMARY KEY,
   name TEXT NOT NULL DEFAULT '',
