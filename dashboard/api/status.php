@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require __DIR__ . '/common.php';
+require __DIR__ . '/authorized-sync-v1.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
@@ -39,8 +40,8 @@ $cacheVariant = $is24HourHistory
             : '-' . $historyLimit
     );
 
-$cacheFile = '/var/cache/xlx026-dashboard/status' . $cacheVariant . '.json';
-$lockFile  = '/var/cache/xlx026-dashboard/status' . $cacheVariant . '.lock';
+$cacheFile = '/var/cache/xlx-dashboard/status' . $cacheVariant . '.json';
+$lockFile  = '/var/cache/xlx-dashboard/status' . $cacheVariant . '.lock';
 $cacheTtl  = 1;
 
 function send_cached_status(
@@ -75,7 +76,7 @@ function send_cached_status(
     }
 
     header(
-        'X-XLX026-Cache: ' .
+        'X-{{REFLECTOR_NAME}}-Cache: ' .
         ($allowExpired ? 'stale-while-refresh' : 'fresh')
     );
 
@@ -137,8 +138,8 @@ try {
         exit;
     }
 
-    $connections = parse_xml_connections();
-    $tx = active_and_history($connections, $historyLimit, $historySince);
+    $connections = parse_xml_connections_sync();
+    $tx = active_and_history_sync($connections, $historyLimit, $historySince);
     $online = online_index($connections);
     $modules = [];
 
