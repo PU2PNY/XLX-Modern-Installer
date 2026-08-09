@@ -40,10 +40,9 @@ else
   ok 'Chave HMAC existente preservada.'
 fi
 chown root:www-data "$KEY"; chmod 0640 "$KEY"
-install -m 0640 -o root -g www-data /dev/null "$DATA/emissoes.jsonl" 2>/dev/null || true
-# install /dev/null trunca; portanto só cria se ainda não existir.
+
 if [ ! -e "$DATA/emissoes.jsonl" ]; then
-  : > "$DATA/emissoes.jsonl"
+  install -m 0640 -o root -g www-data /dev/null "$DATA/emissoes.jsonl"
 fi
 chown root:www-data "$DATA/emissoes.jsonl"; chmod 0640 "$DATA/emissoes.jsonl"
 
