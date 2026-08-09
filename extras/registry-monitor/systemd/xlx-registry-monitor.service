@@ -1,0 +1,24 @@
+[Unit]
+Description=XLX Registry Monitor
+Documentation=https://github.com/PU2PNY/XLX-Modern-Installer
+After=network-online.target xlxd.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=xlxmonitor
+Group=xlxmonitor
+ExecStart=/usr/bin/python3 /usr/local/lib/xlx-registry-monitor/xlx_registry_monitor.py
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/xlx-registry-monitor
+ReadOnlyPaths=/etc/xlx-registry-monitor
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+LockPersonality=true
+MemoryDenyWriteExecute=true
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target
