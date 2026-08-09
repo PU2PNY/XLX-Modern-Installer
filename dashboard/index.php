@@ -2,6 +2,7 @@
 $page = $_GET['page'] ?? 'ao-vivo';
 $allowed = ['ao-vivo','modulos','conectados','ranking','refletores'];
 if (!in_array($page, $allowed, true)) $page = 'ao-vivo';
+$authorizedPage = in_array($page, ['ao-vivo','modulos','conectados','ranking'], true);
 function nav_class(string $p, string $current): string { return $p === $current ? ' class="active"' : ''; }
 function page_url(string $p): string { return '?page=' . rawurlencode($p); }
 function render_nav(string $page): string {
@@ -58,6 +59,22 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}/' . ($page === 'ao-vivo' ? '' : '?pag
 
 <!-- XLX026_HEADER_UNIFICADO_V1 CSS -->
 <link rel="stylesheet" href="assets/header-unificado-v1.css?v=20260807_032449">
+
+<?php if ($authorizedPage): ?>
+<link rel="stylesheet" href="assets/authorized-pages-v1.css?v=1">
+<link rel="stylesheet" href="assets/header-neon-finetune-v1.css?v=1">
+<?php endif; ?>
+
+<?php if ($page === 'ao-vivo'): ?>
+<link rel="stylesheet" href="assets/ao-vivo-top-layout-v2.css?v=1">
+<link rel="stylesheet" href="assets/ao-vivo-compact-v3.css?v=1">
+<link rel="stylesheet" href="assets/ao-vivo-tx-embed-v5.css?v=1">
+<link rel="stylesheet" href="assets/ao-vivo-tx-finetune-v6.css?v=1">
+<link rel="stylesheet" href="assets/ao-vivo-visual-fix-v7.css?v=1">
+<link rel="stylesheet" href="assets/ao-vivo-gif-scale-v8.css?v=1">
+<link rel="stylesheet" href="assets/ao-vivo-gif-position-v9.css?v=1">
+<link rel="stylesheet" href="assets/ao-vivo-gif-anchor-v12.css?v=1">
+<?php endif; ?>
 </head>
 <body data-page="<?=htmlspecialchars($page, ENT_QUOTES, 'UTF-8')?>">
 <main>
@@ -91,11 +108,11 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}/' . ($page === 'ao-vivo' ? '' : '?pag
 </section>
 <?php if ($page === 'ao-vivo'): ?>
  <section class="dashboard-layout">
+  <aside class="live-widget"><div class="widget-heading"><div><p class="eyebrow">MONITOR AO VIVO</p><h2>Transmissões</h2></div><span id="widgetCount">Standby</span></div><div id="moduleGrid" class="module-grid widget-grid"></div><div id="opsWidget" class="ops-widget"><span class="status-dot"></span><div><b>Servidor operacional</b><small id="serverLine">Lendo estado...</small></div><div class="ops-numbers"><span><b id="headerConnected">0</b> conectados</span><span><b id="headerActive">0</b> TX ativa</span></div></div></aside>
   <div class="dashboard-main panel compact-panel">
-   <div class="section-title panel-title"><div><p class="eyebrow">ÚLTIMAS ATIVIDADES</p><h2>Últimas 20 transmissões</h2></div><span class="table-note">20 operadores recentes</span></div>
+   <div class="section-title panel-title"><div><p class="eyebrow">ÚLTIMAS ATIVIDADES</p><h2>Atividade das últimas 24 horas</h2></div><span class="table-note">Até 40 indicativos</span></div>
    <div class="table-wrap"><table class="home-history"><thead><tr><th>País</th><th>Horário</th><th>Indicativo</th><th>Operador</th><th>Protocolo</th><th>Módulo</th><th>Duração</th><th>Status</th></tr></thead><tbody id="historyRows"></tbody></table></div>
   </div>
-  <aside class="live-widget"><div class="widget-heading"><div><p class="eyebrow">MONITOR AO VIVO</p><h2>Transmissões</h2></div><span id="widgetCount">Standby</span></div><div id="moduleGrid" class="module-grid widget-grid"></div><div id="opsWidget" class="ops-widget"><span class="status-dot"></span><div><b>Servidor operacional</b><small id="serverLine">Lendo estado...</small></div><div class="ops-numbers"><span><b id="headerConnected">0</b> conectados</span><span><b id="headerActive">0</b> TX ativa</span></div></div></aside>
  </section>
 <!-- XLX026 HAM WEATHER WIDGET V1 -->
  <section class="hamwx-panel panel" id="hamWeatherWidget" aria-label="Clima e condições de propagação para radioamadores">
@@ -122,8 +139,20 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}/' . ($page === 'ao-vivo' ? '' : '?pag
 
 
 </main>
+<?php if ($authorizedPage): ?>
+<footer>
+ <div><a class="brand footer-brand" href="<?=page_url('ao-vivo')?>"><img class="brand-logo" src="assets/logo-{{REFLECTOR_NAME}}.jpeg" alt="Logotipo {{REFLECTOR_NAME}}"><span><b>{{REFLECTOR_NAME}}</b></span></a></div>
+ <div class="footer-links"><a href="<?=page_url('ao-vivo')?>">Ao vivo</a><a href="<?=page_url('modulos')?>">Módulos</a><a href="<?=page_url('conectados')?>">Conectados</a><a href="<?=page_url('ranking')?>">Ranking</a></div>
+ <small class="footer-final-line"><strong>Painel XLX-Modern — v1.0</strong><span class="footer-separator">•</span><span>Desenvolvido por <a href="https://paginacertadigital.com.br/" target="_blank" rel="noopener noreferrer">paginacertadigital.com.br</a></span></small>
+</footer>
+<?php else: ?>
 <footer><div><a class="brand footer-brand" href="<?=page_url('ao-vivo')?>"><img class="brand-logo" src="assets/logo-{{REFLECTOR_NAME}}.jpeg" alt="Logotipo {{REFLECTOR_NAME}}"><span><b>{{REFLECTOR_NAME}}</b></span></a><p> para a comunidade radioamadora.</p></div><div class="footer-links"><a href="<?=page_url('ao-vivo')?>">Ao vivo</a><a href="<?=page_url('modulos')?>">Módulos</a><a href="<?=page_url('conectados')?>">Conectados</a><a href="<?=page_url('ranking')?>">Ranking</a></div><small>{{REFLECTOR_NAME}} • D-STAR {{REFLECTOR_NAME}}-D • DMR {{REFLECTOR_NAME}}-C TG {{DMR_TG}} • C4FM/YSF {{YSF_ID}}</small></footer>
+<?php endif; ?>
 <div id="toastStack" class="toast-stack"></div><script src="assets/mtr.js?v=4"></script><script src="assets/app.js?v=56"></script>
+<?php if ($page === 'ao-vivo'): ?>
+<script src="assets/ao-vivo-authorized-sync-v1.js?v=1"></script>
+<script src="assets/ao-vivo-tx-embed-v5.js?v=1" defer></script>
+<?php endif; ?>
 
 
 <!-- XLX026 INSTALL APP V33 -->
