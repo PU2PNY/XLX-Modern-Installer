@@ -48,15 +48,15 @@ jobs:
           grep -Fq 'XLX_CERTIFICATES_OPTIONAL_HOOK_V1' "$target/index.php"
 
           data="$work/cert-data"
-          secret="$work/cert-conf/secret"
+          hmac_path="$work/cert-conf/hmac.key"
           sudo env XLX_DASHBOARD_DIR="$target" \
             XLX_CERT_DATA_DIR="$data" \
-            XLX_CERT_SECRET_FILE="$secret" \
+            XLX_CERT_SECRET_FILE="$hmac_path" \
             XLX_CERT_CAMPAIGN_PACK=portable \
             bash modules/66-certificates.sh \
               "--dashboard-dir=$target" \
               "--data-dir=$data" \
-              "--secret-file=$secret" \
+              "--secret-file=$hmac_path" \
               --campaign-pack=portable
 
           sudo test -s "$target/certificado-view.php"
@@ -65,7 +65,7 @@ jobs:
           sudo test -s "$target/assets/certificado.css"
           sudo test -s "$target/assets/certificado.js"
           sudo test -s "$target/assets/vendor/qrcode.min.js"
-          sudo test -s "$secret"
+          sudo test -s "$hmac_path"
           sudo test -s "$data/rate.json"
           sudo test -e "$data/emissoes.jsonl"
           grep -Fq "\$allowed[] = 'certificado';" "$target/index.php"
