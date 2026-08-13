@@ -135,7 +135,7 @@ extract_index_routes(){
       $allowed="\$allowed";
       if(!preg_match("/\\$allowed\\s*=\\s*\\[(.*?)\\]\\s*;/s",$s,$m)) exit(3);
       preg_match_all("/[\\x27\\x22]([a-z0-9][a-z0-9-]*)[\\x27\\x22]/i",$m[1],$x);
-      foreach(array_values(array_unique($x[1])) as $r) echo $r,"\\n";
+      foreach(array_values(array_unique($x[1])) as $r) echo $r,"\n";
     ' "$file"
 }
 
