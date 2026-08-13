@@ -32,7 +32,7 @@ jobs:
           while IFS= read -r -d '' file; do
             echo "php -l $file"
             php -l "$file" >/dev/null
-          done < <(find dashboard extras -type f -name '*.php' -print0)
+          done < <(find dashboard -type f -name '*.php' -print0)
 
       - name: Validate JavaScript syntax
         shell: bash
@@ -42,7 +42,7 @@ jobs:
           while IFS= read -r -d '' file; do
             echo "node --check $file"
             node --check "$file"
-          done < <(find dashboard/assets extras -type f -name '*.js' -print0)
+          done < <(find dashboard/assets -type f -name '*.js' -print0)
 
       - name: Validate translation catalogs
         shell: bash
@@ -136,39 +136,6 @@ jobs:
           sudo env XLX_USERS_DB="$main_db" XLX_OVERRIDE_DB="$override_db" XLX_BACKUP_ROOT="$work/backups" bash tools/xlx-user-directory.sh check
           test "$(sudo sqlite3 "$override_db" 'PRAGMA integrity_check;')" = ok
 
-      - name: Test generic certificate install
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          work="$(mktemp -d)"
-          target="$work/dashboard"
-          data="$work/cert-data"
-          conf="$work/cert-conf"
-          cp -a dashboard "$target"
-          mkdir -p "$target/config"
-          cat > "$target/config/site.php" <<'PHP'
-          <?php
-          declare(strict_types=1);
-          return [
-            'reflector'=>[
-              'name'=>'XLX999','title'=>'XLX999 Community','description'=>'Test reflector',
-              'sysop_callsign'=>'N0CALL','location'=>'Lisbon','country'=>'Portugal',
-              'domain'=>'xlx999.example.invalid','contact_email'=>'noreply@example.invalid',
-            ],
-            'radio'=>['reflector_number'=>'999','reflector_short_number'=>'999','ysf_id'=>'99999','dmr_tg'=>'4999'],
-            'locale'=>['default'=>'en'],
-          ];
-          PHP
-          sudo env XLX_DASHBOARD_DIR="$target" XLX_CERT_DATA_DIR="$data" XLX_CERT_CONF_DIR="$conf" XLX_CERT_KEY_FILE="$conf/hmac.key" XLX_CERT_SKIP_PACKAGES=1 XLX_TIMEZONE=Europe/Lisbon XLX_REFLECTOR_ANNIVERSARY=07-22 bash extras/certificados/install.sh
-          sudo test -s "$target/certificado.php"
-          sudo test -s "$target/certificado-validar.php"
-          sudo test -s "$target/api/certificado.php"
-          sudo test -s "$conf/hmac.key"
-          sudo test -e "$data/emissoes.jsonl"
-          sudo grep -F 'XLX_CERTIFICATE_MENU_V1' "$target/assets/app.js"
-          sudo php -r '$c=require $argv[1]; if(($c["timezone"]??"")!=="Europe/Lisbon") exit(1); if(($c["certificates"]["anniversary"]??"")!=="07-22") exit(2);' "$target/config/site.php"
-          sudo env XLX_CERT_DATA_DIR="$data" XLX_CERT_KEY_FILE="$conf/hmac.key" php -r 'require $argv[1]; $c=cert_current_campaign(new DateTimeImmutable("2026-08-09 12:00:00", new DateTimeZone("Europe/Lisbon"))); if(str_contains($c["title"],"Dia dos Pais")) exit(1); if(cert_reflector()["title"]!=="XLX999 Community") exit(2);' "$target/certificado-config.php"
-
       - name: Validate fresh-install wiring and runtime fallbacks
         shell: bash
         run: |
@@ -177,6 +144,7 @@ jobs:
           grep -F 'post-install.sh' modules/60-dashboard-modern.sh
           grep -F '65-callsign-directory.sh' modules/60-dashboard-modern.sh
           grep -F '66-certificates.sh' modules/60-dashboard-modern.sh
+          grep -F 'XLX_CERTIFICATES_MODE' modules/60-dashboard-modern.sh
           grep -F -- '--lang=*)' dashboard/install/install-dashboard.sh
           grep -F '"--lang=$DASHBOARD_LANG"' install.sh
           grep -F '$ROOT/install/render-placeholders.php' dashboard/install/install-dashboard.sh
@@ -188,13 +156,23 @@ jobs:
           grep -F 'user-directory.php' dashboard/api/status.php
           bash -n dashboard/install/post-install.sh
           bash -n tools/xlx-user-directory.sh
-          bash -n extras/certificados/install.sh
           php -l dashboard/install/render-template.php >/dev/null
           php -l dashboard/install/render-placeholders.php >/dev/null
           php -l dashboard/api/ranking-v2.php >/dev/null
           php -l dashboard/api/user-directory.php >/dev/null
-          php -l extras/certificados/api/certificado.php >/dev/null
           grep -F 'XLX_PROJECT_LINK_BUNDLE_V1' dashboard/install/post-install.sh
+          grep -F 'XLX_CERTIFICATES_OPTIONAL_HOOK_V1' dashboard/install/render-template.php
+
+      - name: Validate optional Certificate Generator pin and source
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          test ! -d extras/certificados
+          grep -F 'PU2PNY/XLX-Certificate-Generator' modules/66-certificates.sh
+          grep -F '30722407eb2bd98adab7a67a7bb74ae83859e0e9' modules/66-certificates.sh
+          grep -F '7a1e3d6420a590ce24be5774e92cb115dbdf150fb6d0bc53690379360c9363a8' modules/66-certificates.sh
+          grep -F '705224e997a7cabecaf7e9e8bcb2683484ea4db43364b17bbacf176df204e44c' modules/66-certificates.sh
+          sudo bash modules/66-certificates.sh --check
 
       - name: Validate optional APRS/D-PRS pin and source
         shell: bash
