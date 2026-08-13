@@ -1,6 +1,6 @@
-# {{REFLECTOR_NAME}}
+# {{REFLECTOR_TITLE}}
 
-{{REFLECTOR_NAME}} é um refletor digital multiprotocolo voltado à comunidade radioamadora brasileira.
+{{REFLECTOR_TITLE}} é um refletor digital multiprotocolo para a comunidade radioamadora.
 
 ## Conteúdo principal
 - Painel ao vivo: https://{{REFLECTOR_DOMAIN}}/

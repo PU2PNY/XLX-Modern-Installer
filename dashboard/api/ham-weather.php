@@ -53,7 +53,7 @@ function httpJson(string $url): ?array {
         CURLOPT_TIMEOUT=>12,
         CURLOPT_SSL_VERIFYPEER=>true,
         CURLOPT_SSL_VERIFYHOST=>2,
-        CURLOPT_USERAGENT=>'{{REFLECTOR_NAME}}-HamWeather/3 (+https://{{REFLECTOR_DOMAIN}}/)',
+        CURLOPT_USERAGENT=>'XLX-Modern-HamWeather/3',
         CURLOPT_HTTPHEADER=>['Accept: application/json'],
         CURLOPT_WRITEFUNCTION=>static function($ch,string $chunk) use (&$body): int {
             if (strlen($body)+strlen($chunk)>MAX_BODY) return 0;

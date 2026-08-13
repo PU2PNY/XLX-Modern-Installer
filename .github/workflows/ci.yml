@@ -196,6 +196,47 @@ jobs:
           php -l extras/certificados/api/certificado.php >/dev/null
           grep -F 'XLX_PROJECT_LINK_BUNDLE_V1' dashboard/install/post-install.sh
 
+      - name: Validate optional APRS/D-PRS pin and source
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          grep -F -- '--with-aprs-dprs' install.sh
+          grep -F -- '--without-aprs-dprs' install.sh
+          grep -F 'modules/67-aprs-dprs.sh' install.sh
+          grep -F '771abaa0c1ea662f33f3fa0c4a59ec712b1e4fcb' modules/67-aprs-dprs.sh
+          grep -F '0c5c26adbf9b54fe803e3cbaf2ddc17e4ba737f7c9f3b5606231b67c9a9403f9' modules/67-aprs-dprs.sh
+          grep -F 'b4a0e8f1e1fec7e894cff4c61b18c5891122278ecf5f2f666e5398b361c808d4' modules/67-aprs-dprs.sh
+          sudo bash modules/67-aprs-dprs.sh --check
+
+      - name: Test safe dashboard updater dry-run
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          work="$(mktemp -d)"
+          target="$work/dashboard"
+          mkdir -p "$target/config"
+          cp dashboard/index.php "$target/index.php"
+          cat > "$target/config/site.php" <<'PHP'
+          <?php
+          declare(strict_types=1);
+          return [
+            'reflector'=>[
+              'name'=>'XLX999','title'=>'XLX999 Community','description'=>'Test reflector',
+              'sysop_callsign'=>'N0CALL','location'=>'Test City','country'=>'Test Country',
+              'domain'=>'xlx999.example.invalid','contact_email'=>'noreply@example.invalid',
+            ],
+            'radio'=>['reflector_number'=>'999','reflector_short_number'=>'999','ysf_id'=>'99999','dmr_tg'=>'4999'],
+            'locale'=>['default'=>'en'],
+            'timezone'=>'UTC',
+            'certificates'=>['enabled'=>true,'anniversary'=>''],
+          ];
+          PHP
+          before="$(sha256sum "$target/index.php" | awk '{print $1}')"
+          sudo bash update.sh --check --dashboard-dir="$target"
+          after="$(sha256sum "$target/index.php" | awk '{print $1}')"
+          test "$before" = "$after"
+          test ! -e "$target/aprs-dprs/config.json"
+
       - name: Public-release audit
         shell: bash
         run: |

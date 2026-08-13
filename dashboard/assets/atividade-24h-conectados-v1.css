@@ -1,0 +1,113 @@
+/*
+ * XLX026 — ATIVIDADE 24H V1
+ * Igualação visual com página Conectados.
+ * Escopo exclusivo: página Ao vivo / histórico.
+ */
+
+
+/* ==========================================================
+   TITULO
+   Conectados usa page-heading h1 = 34px.
+   ========================================================== */
+
+body[data-page="ao-vivo"]
+.history-title-connected-size{
+    font-size:34px !important;
+}
+
+
+/* ==========================================================
+   TABELA
+   Mesmo padrão-base da tabela Conectados.
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+table.home-history th{
+    font-size:11px !important;
+}
+
+html body[data-page="ao-vivo"]
+table.home-history td{
+    font-size:13px !important;
+}
+
+
+/* Links e protocolo acompanham o tamanho da célula. */
+
+html body[data-page="ao-vivo"]
+table.home-history td > a,
+
+html body[data-page="ao-vivo"]
+table.home-history td > .protocol{
+    font-size:inherit !important;
+}
+
+
+/* ==========================================================
+   NUMERACAO + BANDEIRA
+   Reserva espaço suficiente até para 40.10 etc.
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+table.home-history
+.history-row-country{
+    display:inline-flex !important;
+    align-items:center !important;
+    gap:5px !important;
+    white-space:nowrap !important;
+}
+
+html body[data-page="ao-vivo"]
+table.home-history
+.history-row-number{
+    display:inline-block !important;
+
+    min-width:34px !important;
+
+    text-align:right !important;
+
+    font-size:inherit !important;
+    font-weight:800 !important;
+
+    line-height:1 !important;
+
+    color:#9edff0 !important;
+
+    font-variant-numeric:
+        tabular-nums !important;
+}
+
+
+/* Subatividades ficam visualmente relacionadas ao principal. */
+
+html body[data-page="ao-vivo"]
+table.home-history
+.history-previous-row
+.history-row-number{
+    color:#72cfe7 !important;
+}
+
+
+/* ==========================================================
+   CELULAR
+   Mesmo comportamento responsivo do título Conectados.
+   ========================================================== */
+
+@media(max-width:720px){
+
+    body[data-page="ao-vivo"]
+    .history-title-connected-size{
+        font-size:28px !important;
+    }
+
+    html body[data-page="ao-vivo"]
+    table.home-history td{
+        font-size:12px !important;
+    }
+
+    html body[data-page="ao-vivo"]
+    table.home-history
+    .history-row-number{
+        min-width:31px !important;
+    }
+}

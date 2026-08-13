@@ -1,7 +1,7 @@
 (() => {
     'use strict';
 
-    const STORAGE_KEY = 'xlx_pwa_install_decision_v1';
+    const STORAGE_KEY = 'xlx026_pwa_install_decision_v1';
     const INSTALL_ACCEPTED = 'installed';
     const INSTALL_DECLINED = 'declined';
 

@@ -70,5 +70,63 @@
       {enableHighAccuracy:false,timeout:10000,maximumAge:600000}
     );
   }
-  load();
+/*
+   * XLX026_HAMWX_LAZY_V1
+   *
+   * Clima e propagação deixam de disputar recursos
+   * com o monitor durante o carregamento inicial.
+   */
+
+  let initialLoadStarted = false;
+
+  function startInitialWeatherLoad() {
+
+    if (initialLoadStarted) return;
+
+    initialLoadStarted = true;
+    load();
+  }
+
+  if ('IntersectionObserver' in window) {
+
+    const weatherObserver =
+      new IntersectionObserver(
+        function (entries) {
+
+          const visible =
+            entries.some(
+              function (entry) {
+                return entry.isIntersecting;
+              }
+            );
+
+          if (!visible) return;
+
+          weatherObserver.disconnect();
+          startInitialWeatherLoad();
+        },
+        {
+          rootMargin: '500px 0px'
+        }
+      );
+
+    weatherObserver.observe(root);
+
+    /*
+     * Fallback:
+     * mesmo sem rolar a página, carrega depois.
+     */
+    window.setTimeout(
+      startInitialWeatherLoad,
+      4000
+    );
+
+  } else {
+
+    window.setTimeout(
+      startInitialWeatherLoad,
+      1000
+    );
+  }
+
 })();

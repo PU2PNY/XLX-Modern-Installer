@@ -6,7 +6,98 @@ function norm_call(string $v): string { $v=strtoupper(trim($v)); $v=preg_replace
 function split_call_suffix(string $v): array { $v=trim(preg_replace('/\s+/',' ',$v)??$v); $p=explode(' ',$v); return [norm_call($p[0]??''),strtoupper(trim($p[1]??''))]; }
 function qrz_url(string $c): string { return 'https://www.qrz.com/db/'.rawurlencode(norm_call($c)); }
 function protocol_label(string $p): string { $k=strtoupper(preg_replace('/[^A-Z0-9+]/','',trim($p))??''); $m=['DMR'=>'DMR','DMRM'=>'DMR','DMRMMDVM'=>'DMR','DMRPLUS'=>'DMR','YSF'=>'C4FM/YSF','C4FMYSF'=>'C4FM/YSF','DCS'=>'D-STAR/DCS','DE'=>'D-STAR/DExtra','DEXTRA'=>'D-STAR/DExtra','DPLUS'=>'D-STAR/DPlus','XLX'=>'XLX Interlink','G3'=>'Icom G3','IMRS'=>'IMRS']; return $m[$k]??($k?:'Não identificado'); }
-function country_for_call(string $call): array { $c=norm_call($call); $br=['PP','PQ','PR','PS','PT','PU','PV','PW','PX','PY','ZV','ZW','ZX','ZY','ZZ']; $p=substr($c,0,2); if(in_array($p,$br,true))return ['code'=>'BR','name'=>'Brasil','flag'=>'🇧🇷']; if(str_starts_with($c,'K')||str_starts_with($c,'N')||str_starts_with($c,'W')||preg_match('/^A[A-L]/',$c))return ['code'=>'US','name'=>'Estados Unidos','flag'=>'🇺🇸']; if(str_starts_with($c,'VE')||str_starts_with($c,'VA'))return ['code'=>'CA','name'=>'Canadá','flag'=>'🇨🇦']; if(str_starts_with($c,'LU'))return ['code'=>'AR','name'=>'Argentina','flag'=>'🇦🇷']; if(str_starts_with($c,'CX'))return ['code'=>'UY','name'=>'Uruguai','flag'=>'🇺🇾']; if(str_starts_with($c,'CE'))return ['code'=>'CL','name'=>'Chile','flag'=>'🇨🇱']; if(str_starts_with($c,'CT'))return ['code'=>'PT','name'=>'Portugal','flag'=>'🇵🇹']; if(str_starts_with($c,'EA'))return ['code'=>'ES','name'=>'Espanha','flag'=>'🇪🇸']; if(preg_match('/^(G|M|2E)/',$c))return ['code'=>'GB','name'=>'Reino Unido','flag'=>'🇬🇧']; if(str_starts_with($c,'F'))return ['code'=>'FR','name'=>'França','flag'=>'🇫🇷']; if(str_starts_with($c,'DL'))return ['code'=>'DE','name'=>'Alemanha','flag'=>'🇩🇪']; if(str_starts_with($c,'I'))return ['code'=>'IT','name'=>'Itália','flag'=>'🇮🇹']; if(str_starts_with($c,'JA'))return ['code'=>'JP','name'=>'Japão','flag'=>'🇯🇵']; return ['code'=>'','name'=>'País não identificado','flag'=>'🌐']; }
+function flag_for_country_code(string $code): string {
+    $code=strtoupper(trim($code));
+    if(!preg_match('/^[A-Z]{2}$/',$code)) return '🌐';
+    return html_entity_decode(
+        '&#'.(127397+ord($code[0])).';&#'.(127397+ord($code[1])).';',
+        ENT_NOQUOTES,
+        'UTF-8'
+    );
+}
+function country_from_xlxd_csv(string $call): ?array {
+    static $prefixes=null;
+
+    if($prefixes===null){
+        $prefixes=[];
+        $file=dirname(__DIR__,2).'/xlxd/pgs/country.csv';
+
+        if(is_readable($file)){
+            $handle=@fopen($file,'rb');
+
+            if($handle){
+                while(($row=fgets($handle,4096))!==false){
+                    $tmp=explode(';',$row);
+                    $name=trim((string)($tmp[0]??''));
+                    $code=strtoupper(trim((string)($tmp[1]??'')));
+                    $rawPrefixes=trim((string)($tmp[2]??''));
+
+                    if(
+                        $name===''
+                        || !preg_match('/^[A-Z]{2}$/',$code)
+                        || $rawPrefixes===''
+                    ){
+                        continue;
+                    }
+
+                    foreach(explode('-',$rawPrefixes) as $prefix){
+                        $prefix=strtoupper(trim($prefix));
+                        if($prefix!==''){
+                            $prefixes[$prefix]=[
+                                'code'=>$code,
+                                'name'=>$name
+                            ];
+                        }
+                    }
+                }
+
+                fclose($handle);
+            }
+        }
+    }
+
+    $c=norm_call($call);
+
+    for($letters=min(4,strlen($c));$letters>=2;$letters--){
+        $prefix=substr($c,0,$letters);
+
+        if(isset($prefixes[$prefix])){
+            $code=$prefixes[$prefix]['code'];
+
+            return [
+                'code'=>$code,
+                'name'=>$prefixes[$prefix]['name'],
+                'flag'=>flag_for_country_code($code)
+            ];
+        }
+    }
+
+    return null;
+}
+function country_for_call(string $call): array {
+    $c=norm_call($call);
+    $br=['PP','PQ','PR','PS','PT','PU','PV','PW','PX','PY','ZV','ZW','ZX','ZY','ZZ'];
+    $p=substr($c,0,2);
+
+    if(in_array($p,$br,true)) return ['code'=>'BR','name'=>'Brasil','flag'=>'🇧🇷'];
+    if(str_starts_with($c,'K')||str_starts_with($c,'N')||str_starts_with($c,'W')||preg_match('/^A[A-L]/',$c)) return ['code'=>'US','name'=>'Estados Unidos','flag'=>'🇺🇸'];
+    if(str_starts_with($c,'VE')||str_starts_with($c,'VA')) return ['code'=>'CA','name'=>'Canadá','flag'=>'🇨🇦'];
+    if(str_starts_with($c,'LU')) return ['code'=>'AR','name'=>'Argentina','flag'=>'🇦🇷'];
+    if(str_starts_with($c,'CX')) return ['code'=>'UY','name'=>'Uruguai','flag'=>'🇺🇾'];
+    if(str_starts_with($c,'CE')) return ['code'=>'CL','name'=>'Chile','flag'=>'🇨🇱'];
+    if(str_starts_with($c,'CT')) return ['code'=>'PT','name'=>'Portugal','flag'=>'🇵🇹'];
+    if(str_starts_with($c,'EA')) return ['code'=>'ES','name'=>'Espanha','flag'=>'🇪🇸'];
+    if(preg_match('/^(G|M|2E)/',$c)) return ['code'=>'GB','name'=>'Reino Unido','flag'=>'🇬🇧'];
+    if(str_starts_with($c,'F')) return ['code'=>'FR','name'=>'França','flag'=>'🇫🇷'];
+    if(str_starts_with($c,'DL')) return ['code'=>'DE','name'=>'Alemanha','flag'=>'🇩🇪'];
+    if(str_starts_with($c,'I')) return ['code'=>'IT','name'=>'Itália','flag'=>'🇮🇹'];
+    if(str_starts_with($c,'JA')) return ['code'=>'JP','name'=>'Japão','flag'=>'🇯🇵'];
+
+    $fallback=country_from_xlxd_csv($c);
+    if($fallback!==null) return $fallback;
+
+    return ['code'=>'','name'=>'País não identificado','flag'=>'🌐'];
+}
 function user_lookup(string $call): array { static $db=null,$cache=[]; $call=norm_call($call); if(isset($cache[$call]))return $cache[$call]; $r=['name'=>'Não informado','location'=>'Não informada']; $p=cfg()['users_db']; if(class_exists('SQLite3')&&is_readable($p)){try{$db??=new SQLite3($p,SQLITE3_OPEN_READONLY);$s=$db->prepare('SELECT name, city_state FROM users WHERE callsign=:c LIMIT 1');$s->bindValue(':c',$call,SQLITE3_TEXT);$x=$s->execute();if($row=$x->fetchArray(SQLITE3_ASSOC)){$r['name']=trim((string)($row['name']??''))?:'Não informado';$r['location']=trim((string)($row['city_state']??''))?:'Não informada';}}catch(Throwable $e){}}return $cache[$call]=$r; }
 function tail_file(string $p,int $bytes=4194304): string { if(!is_readable($p))return ''; $f=@fopen($p,'rb'); if(!$f)return ''; fseek($f,0,SEEK_END);$n=ftell($f);$s=max(0,$n-$bytes);fseek($f,$s);$d=stream_get_contents($f)?:'';fclose($f);if($s>0&&($q=strpos($d,"\n"))!==false)$d=substr($d,$q+1);return $d; }
 function parse_any_time(string $line): int { if(preg_match('/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})([+\-]\d{4})?/',$line,$m)){ $t=strtotime($m[1].($m[2]??''));if($t!==false)return $t;} if(preg_match('/^(\d{1,2})\s+(\w+),\s+(\d{2}:\d{2}:\d{2})/',$line,$m)){ $d=DateTime::createFromFormat('j M Y H:i:s',$m[1].' '.$m[2].' '.date('Y').' '.$m[3]);if($d){$t=$d->getTimestamp();if($t>time()+86400){$d->modify('-1 year');$t=$d->getTimestamp();}return $t;}}return time(); }
@@ -177,6 +268,209 @@ function match_tx_connection(array $connections,string $call,string $suffix,stri
     ];
 }
 
+
+/*
+ * XLX026 — operador real de uma transmissão D-STAR.
+ *
+ * Log:
+ *   client = gateway/nó
+ *
+ * XML:
+ *   STATION  = operador
+ *   Via node = gateway/nó
+ */
+function xlx026_dstar_station_index(): array {
+    $path=cfg()['xml_path'];
+
+    if(!is_readable($path)) return [];
+
+    $raw=@file_get_contents($path);
+
+    if($raw===false || $raw==='') return [];
+
+    preg_match_all(
+        '/<STATION>(.*?)<\/STATION>/si',
+        $raw,
+        $matches
+    );
+
+    $out=[];
+
+    foreach($matches[1]??[] as $block){
+        $stationRaw=trim(tag_value($block,'Callsign'));
+        $viaRaw=trim(tag_value($block,'Via node'));
+        $moduleRaw=trim(tag_value($block,'On module'));
+        $heardRaw=trim(tag_value($block,'LastHeardTime'));
+
+        if(
+            $stationRaw===''
+            || $viaRaw===''
+            || $moduleRaw===''
+            || $heardRaw===''
+        ){
+            continue;
+        }
+
+        $stationParts=preg_split(
+            '/\s*\/\s*/',
+            $stationRaw,
+            2
+        ) ?: [];
+
+        $stationCall=norm_call(
+            (string)($stationParts[0]??'')
+        );
+
+        [$gatewayCall,$gatewaySuffix]=split_call_suffix(
+            $viaRaw
+        );
+
+        $module=strtoupper(
+            substr($moduleRaw,0,1)
+        );
+
+        $heard=strtotime($heardRaw);
+
+        if(
+            $heard===false
+            && preg_match(
+                '/^[A-Za-z]+\s+(.+)$/',
+                $heardRaw,
+                $tm
+            )
+        ){
+            $heard=strtotime($tm[1]);
+        }
+
+        if(
+            $stationCall===''
+            || $gatewayCall===''
+            || $module===''
+            || $heard===false
+        ){
+            continue;
+        }
+
+        $key=$gatewayCall.'|'.$module;
+
+        $out[$key][]=[
+            'callsign'=>$stationCall,
+            'gateway'=>$gatewayCall,
+            'gateway_suffix'=>strtoupper(
+                trim($gatewaySuffix)
+            ),
+            'module'=>$module,
+            'heard_at'=>(int)$heard
+        ];
+    }
+
+    return $out;
+}
+
+function xlx026_find_dstar_station(
+    array $index,
+    string $gateway,
+    string $gatewaySuffix,
+    string $module,
+    int $startedAt,
+    int $endedAt
+): ?array {
+    $gateway=norm_call($gateway);
+    $gatewaySuffix=strtoupper(trim($gatewaySuffix));
+    $module=strtoupper(trim($module));
+
+    if(
+        $gateway===''
+        || $module===''
+        || $startedAt<=0
+    ){
+        return null;
+    }
+
+    $items=$index[$gateway.'|'.$module]??[];
+
+    if($items===[]) return null;
+
+    $best=null;
+    $bestScore=PHP_INT_MAX;
+
+    foreach($items as $station){
+        $xmlSuffix=strtoupper(
+            trim((string)(
+                $station['gateway_suffix']??''
+            ))
+        );
+
+        if(
+            $gatewaySuffix!==''
+            && $xmlSuffix!==''
+            && $gatewaySuffix!==$xmlSuffix
+        ){
+            continue;
+        }
+
+        $heard=(int)($station['heard_at']??0);
+
+        if($heard<=0) continue;
+
+        if($heard<$startedAt){
+            $outside=$startedAt-$heard;
+        }elseif($heard>$endedAt){
+            $outside=$heard-$endedAt;
+        }else{
+            $outside=0;
+        }
+
+        /*
+         * Margem para diferença entre LastHeardTime do XML
+         * e Opening/Closing stream do log.
+         */
+        if($outside>30) continue;
+
+        $score=
+            ($outside*100000)
+            +abs($heard-$endedAt);
+
+        if($score<$bestScore){
+            $bestScore=$score;
+            $best=$station;
+        }
+    }
+
+    return $best;
+}
+
+function xlx026_apply_dstar_station(
+    array $tx,
+    array $station
+): array {
+    $call=norm_call(
+        (string)($station['callsign']??'')
+    );
+
+    if($call==='') return $tx;
+
+    $user=user_lookup($call);
+
+    $tx['callsign']=$call;
+    $tx['suffix']='';
+    $tx['name']=$user['name'];
+    $tx['location']=$user['location'];
+    $tx['country']=country_for_call($call);
+    $tx['qrz']=qrz_url($call);
+
+    $gateway=norm_call(
+        (string)($station['gateway']??'')
+    );
+
+    if($gateway!==''){
+        $tx['gateway']=$gateway;
+    }
+
+    return $tx;
+}
+
+
 function history_log_lines(string $currentLog,int $bytes=4194304): array {
     $sources=[];
     $rotated=$currentLog.'.1.gz';
@@ -221,8 +515,9 @@ function history_log_lines(string $currentLog,int $bytes=4194304): array {
     return $lines;
 }
 
-function active_and_history(array $connections, ?int $historyLimit = null): array {
+function active_and_history(array $connections, ?int $historyLimit = null, ?int $historySince = null): array {
     $lines=history_log_lines(cfg()['log_path']);
+    $dstarStations=xlx026_dstar_station_index();
     $active=[];
     $history=[];
     $recent=[];
@@ -273,6 +568,30 @@ function active_and_history(array $connections, ?int $historyLimit = null): arra
                 $tx['ended_at']=$ts;
                 $tx['duration']=max(0,$ts-$tx['started_at']);
                 $tx['state']='ended';
+
+                if(
+                    strpos(
+                        (string)($tx['protocol']??''),
+                        'D-STAR/'
+                    )===0
+                ){
+                    $station=xlx026_find_dstar_station(
+                        $dstarStations,
+                        (string)($tx['callsign']??''),
+                        (string)($tx['suffix']??''),
+                        (string)($tx['module']??''),
+                        (int)($tx['started_at']??0),
+                        $ts
+                    );
+
+                    if($station!==null){
+                        $tx=xlx026_apply_dstar_station(
+                            $tx,
+                            $station
+                        );
+                    }
+                }
+
                 $history[]=$tx;
                 unset($active[$mod]);
             }
@@ -280,7 +599,33 @@ function active_and_history(array $connections, ?int $historyLimit = null): arra
     }
 
     foreach($active as $m=>$tx){
-        if(time()-$tx['started_at']>600) unset($active[$m]);
+        if(time()-$tx['started_at']>600){
+            unset($active[$m]);
+            continue;
+        }
+
+        if(
+            strpos(
+                (string)($tx['protocol']??''),
+                'D-STAR/'
+            )===0
+        ){
+            $station=xlx026_find_dstar_station(
+                $dstarStations,
+                (string)($tx['callsign']??''),
+                (string)($tx['suffix']??''),
+                (string)($tx['module']??''),
+                (int)($tx['started_at']??0),
+                time()
+            );
+
+            if($station!==null){
+                $active[$m]=xlx026_apply_dstar_station(
+                    $tx,
+                    $station
+                );
+            }
+        }
     }
 
     $unique=[];
@@ -298,8 +643,18 @@ function active_and_history(array $connections, ?int $historyLimit = null): arra
     $history=array_values($unique);
     usort($history,fn($a,$b)=>$b['started_at']<=>$a['started_at']);
 
+    if ($historySince !== null) {
+        $history = array_values(
+            array_filter(
+                $history,
+                static fn(array $tx): bool =>
+                    (int)($tx['started_at'] ?? 0) >= $historySince
+            )
+        );
+    }
+
     $limit = $historyLimit ?? (int)cfg()['history_limit'];
-    $limit = max(1, min(500, $limit));
+    $limit = max(1, min(5000, $limit));
 
     return [
         'active'=>$active,
@@ -358,8 +713,8 @@ function write_reflectors_cache(string $cacheFile,array $items): void {
 }
 
 function fetch_reflectors(): array {
-    $cacheFile=sys_get_temp_dir().'/xlx_reflectors_cache_v1.json';
-    $lockFile=sys_get_temp_dir().'/xlx_reflectors_cache_v1.lock';
+    $cacheFile=sys_get_temp_dir().'/xlx026_reflectors_cache_v1.json';
+    $lockFile=sys_get_temp_dir().'/xlx026_reflectors_cache_v1.lock';
     $cacheTtl=60;
 
     $cached=read_reflectors_cache($cacheFile,$cacheTtl);
@@ -379,7 +734,7 @@ function fetch_reflectors(): array {
         $ctx=stream_context_create([
             'http'=>[
                 'timeout'=>8,
-                'user_agent'=>'{{REFLECTOR_NAME}}-Dashboard/6.1',
+                'user_agent'=>'XLX-Modern-Painel/6.1',
                 'ignore_errors'=>true
             ],
             'ssl'=>[

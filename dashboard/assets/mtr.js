@@ -232,6 +232,21 @@
         greenMaximum,
         yellowMaximum
     ) {
+        /*
+         * null, undefined e string vazia significam:
+         * nenhuma medicao disponivel.
+         *
+         * Number(null) === 0 em JavaScript; portanto
+         * precisam ser barrados antes da conversao.
+         */
+        if (
+            value === null
+            || value === undefined
+            || value === ''
+        ) {
+            return null;
+        }
+
         const number = Number(value);
 
         if (!Number.isFinite(number)) {
@@ -950,7 +965,7 @@
         }
     );
 
-    window.XLXMTR =
+    window.XLX026MTR =
         Object.freeze({
             sync,
         });
