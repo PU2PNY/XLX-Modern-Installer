@@ -21,12 +21,15 @@ readonly CONFIRMATION="CONFIRMO_INSTALACAO_REAL_XLX"
 MODE="install"
 FORCE_CLEAN="no"
 DASHBOARD_LANG=""
+APRS_DPRS_MODE="ask"
 
 for arg in "$@"; do
     case "$arg" in
         --check|--dry-run) MODE="check" ;;
         --force-clean) FORCE_CLEAN="yes" ;;
         --lang=*) DASHBOARD_LANG="${arg#*=}" ;;
+        --with-aprs-dprs) APRS_DPRS_MODE="yes" ;;
+        --without-aprs-dprs) APRS_DPRS_MODE="no" ;;
         -h|--help)
             cat <<'HELP'
 XLX Modern Installer
@@ -35,6 +38,7 @@ Uso / Usage:
   sudo bash install.sh --check
   sudo bash install.sh
   sudo bash install.sh --lang=en
+  sudo bash install.sh --with-aprs-dprs
 
 Opções / Options:
   --check       Executa somente diagnóstico e validações.
@@ -46,6 +50,15 @@ Opções / Options:
   --lang=CODE   Define o idioma do dashboard moderno.
                 Sets the modern dashboard language.
                 pt-BR | en | es | fr | de | it
+  --with-aprs-dprs
+                Instala também o módulo APRS/D-PRS independente e pinado.
+                Also installs the pinned independent APRS/D-PRS module.
+  --without-aprs-dprs
+                Não oferece nem instala APRS/D-PRS nesta execução.
+                Skips APRS/D-PRS in this run.
+
+Sem uma dessas duas últimas opções, a instalação real pergunta se o módulo
+APRS/D-PRS deve ser instalado. Ignorar o módulo não altera a instalação base.
 HELP
             exit 0
             ;;
@@ -172,6 +185,7 @@ PLANO DA INSTALAÇÃO REAL
 7. Configurar Apache e HTTPS, quando selecionado.
 8. Preparar as bases utilizadas pelo XLX.
 9. Iniciar e validar os serviços.
+10. APRS/D-PRS opcional: ${APRS_DPRS_MODE}.
 
 Base técnica: PP5PK/XLX_Installer
 Autor original: Daniel K. — PP5PK
@@ -190,6 +204,14 @@ run_check() {
     ok "Rede funcional."
     ok "Nenhuma instalação ativa será sobrescrita."
     ok "Commit e SHA-256 confirmados."
+
+    if [ "$APRS_DPRS_MODE" = "yes" ]; then
+        section "PRÉ-VALIDAÇÃO APRS/D-PRS"
+        bash "$ROOT_DIR/modules/67-aprs-dprs.sh" --check
+    else
+        info "APRS/D-PRS não solicitado no modo de pré-validação."
+    fi
+
     info "Nenhuma instalação foi executada."
 }
 
@@ -202,8 +224,25 @@ confirm_real_installation() {
     [ "$typed" = "$CONFIRMATION" ] || fatal "Confirmação incorreta. Instalação cancelada."
 }
 
+resolve_aprs_choice() {
+    local answer
+    case "$APRS_DPRS_MODE" in
+        yes) return 0 ;;
+        no) return 1 ;;
+        ask)
+            printf '\n'
+            read -r -p "Deseja instalar também o módulo opcional APRS/D-PRS? [s/N]: " answer
+            case "${answer,,}" in
+                s|sim|y|yes) APRS_DPRS_MODE="yes"; return 0 ;;
+                *) APRS_DPRS_MODE="no"; return 1 ;;
+            esac
+            ;;
+        *) fatal "Estado APRS/D-PRS inválido: $APRS_DPRS_MODE" ;;
+    esac
+}
+
 execute_installer() {
-    local stamp logfile installer_rc failures service
+    local stamp logfile installer_rc failures service dashboard_dest
     stamp="$(date +%Y%m%d_%H%M%S)"
     mkdir -p "$LOG_ROOT"; chmod 700 "$LOG_ROOT"
     logfile="${LOG_ROOT}/install_${stamp}.log"
@@ -222,6 +261,15 @@ execute_installer() {
         bash "$ROOT_DIR/modules/60-dashboard-modern.sh" "--lang=$DASHBOARD_LANG"
     else
         bash "$ROOT_DIR/modules/60-dashboard-modern.sh"
+    fi
+
+    dashboard_dest="${INSTALL_DIR:-/var/www/html/xlx-dashboard}"
+    if resolve_aprs_choice; then
+        section "INSTALANDO APRS/D-PRS OPCIONAL"
+        XLX_DASHBOARD_DIR="$dashboard_dest" \
+            bash "$ROOT_DIR/modules/67-aprs-dprs.sh" "--dashboard-dir=$dashboard_dest"
+    else
+        info "APRS/D-PRS não instalado nesta execução. A instalação independente continua disponível posteriormente."
     fi
 
     section "VALIDAÇÃO PÓS-INSTALAÇÃO"
