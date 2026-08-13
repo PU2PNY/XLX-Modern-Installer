@@ -148,11 +148,15 @@ build_candidate(){
         done < <(find "$work/assets" -type f -name '*.js' -print0)
     fi
 
+    # Os catálogos em i18n/locales são fonte de build e preservam placeholders
+    # deliberadamente para futuras compilações. A verificação final deve seguir
+    # a mesma exclusão usada pelo renderizador oficial.
     if grep -REn '\{\{[A-Z0-9_]+\}\}' "$work" \
+        --exclude-dir='locales' \
         --include='*.php' --include='*.js' --include='*.css' --include='*.html' \
         --include='*.json' --include='*.xml' --include='*.txt' >/dev/null 2>&1
     then
-        fatal "O candidato contém placeholders não resolvidos."
+        fatal "O candidato contém placeholders não resolvidos em arquivos publicáveis."
     fi
 }
 
