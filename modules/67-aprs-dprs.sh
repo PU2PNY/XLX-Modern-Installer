@@ -50,13 +50,15 @@ done
 
 [ "$(id -u)" -eq 0 ] || fatal "Execute como root."
 
-for cmd in bash curl find mktemp php python3 sha256sum tar; do
+for cmd in bash curl find mktemp sha256sum tar; do
     command -v "$cmd" >/dev/null 2>&1 || fatal "Comando obrigatório ausente: $cmd"
 done
 
 validate_archive_paths(){
     local archive="$1"
-    python3 - "$archive" <<'PY'
+
+    if command -v python3 >/dev/null 2>&1; then
+        python3 - "$archive" <<'PY'
 import sys, tarfile
 p=sys.argv[1]
 with tarfile.open(p, 'r:gz') as tf:
@@ -71,10 +73,17 @@ with tarfile.open(p, 'r:gz') as tf:
             if link.startswith('/') or any(x == '..' for x in link_parts):
                 raise SystemExit(f'unsafe archive link: {name} -> {link}')
 PY
+        return
+    fi
+
+    if tar -tzf "$archive" | grep -Eq '(^/|(^|/)\.\.(/|$))'; then
+        fatal "Arquivo APRS/D-PRS contém caminho inseguro."
+    fi
+    warn "Python ainda não está disponível; validação avançada de links do arquivo foi adiada."
 }
 
 validate_source(){
-    local source="$1" actual
+    local source="$1" actual has_php=0 has_python=0
 
     [ -f "$source/install.sh" ] || fatal "install.sh ausente no componente APRS/D-PRS."
     [ -f "$source/SOURCE-MANIFEST.sha256" ] || fatal "SOURCE-MANIFEST.sha256 ausente."
@@ -94,22 +103,36 @@ validate_source(){
         bash -n "$file"
     done < <(find "$source" -type f -name '*.sh' -print0)
 
-    while IFS= read -r -d '' file; do
-        php -l "$file" >/dev/null
-    done < <(find "$source" -type f -name '*.php' -print0)
+    if command -v php >/dev/null 2>&1; then
+        has_php=1
+        while IFS= read -r -d '' file; do
+            php -l "$file" >/dev/null
+        done < <(find "$source" -type f -name '*.php' -print0)
+    elif [ "$MODE" = "install" ]; then
+        fatal "PHP ainda não está disponível para instalar APRS/D-PRS."
+    else
+        warn "PHP ainda não está disponível; lint PHP será repetido na instalação real."
+    fi
 
-    python3 - "$source/gateway/xlx_aprs_dprs.py" <<'PY'
+    if command -v python3 >/dev/null 2>&1; then
+        has_python=1
+        python3 - "$source/gateway/xlx_aprs_dprs.py" <<'PY'
 import pathlib, sys
 p=pathlib.Path(sys.argv[1])
 compile(p.read_text(encoding='utf-8'), str(p), 'exec')
 PY
+    elif [ "$MODE" = "install" ]; then
+        fatal "Python 3 ainda não está disponível para instalar APRS/D-PRS."
+    else
+        warn "Python 3 ainda não está disponível; validação do gateway será repetida na instalação real."
+    fi
 
-    if [ -f "$source/scripts/validate-source.sh" ]; then
+    if [ "$has_php" -eq 1 ] && [ "$has_python" -eq 1 ] && [ -f "$source/scripts/validate-source.sh" ]; then
         bash -n "$source/scripts/validate-source.sh"
         (cd "$source" && bash scripts/validate-source.sh >/dev/null)
     fi
 
-    ok "APRS/D-PRS validado."
+    ok "APRS/D-PRS validado no nível disponível neste host."
     info "Commit fixado: $APRS_COMMIT"
     info "SHA-256 install.sh: $APRS_INSTALLER_SHA256"
 }
