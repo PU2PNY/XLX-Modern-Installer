@@ -134,15 +134,15 @@ $allowed = ['ao-vivo','modulos','conectados','ranking','refletores'];
 if ($certificateEnabled) $allowed[] = 'certificado';
 NEW,
             <<<'OLD'
-    'refletores' => 'Lista de refletores XLX',
-  ];
+  $html = '';
+  foreach ($items as $slug => $label) {
 OLD
             => <<<'NEW'
-    'refletores' => 'Lista de refletores XLX',
-  ];
   if (is_file(__DIR__.'/certificado-view.php') && is_file(__DIR__.'/api/certificado.php')) {
     $items['certificado'] = 'Certificados';
   }
+  $html = '';
+  foreach ($items as $slug => $label) {
 NEW,
             <<<'OLD'
 ];
