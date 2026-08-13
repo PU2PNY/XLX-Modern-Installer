@@ -17,6 +17,15 @@ readonly VENDOR_ROOT="/opt/xlx-modern-installer/vendor/xlx-aprs-dprs"
 
 MODE="install"
 DASHBOARD="${XLX_DASHBOARD_DIR:-/var/www/html/xlx-dashboard}"
+SOURCE=""
+TEMP_DIR=""
+
+cleanup(){
+    if [ -n "$TEMP_DIR" ] && [ -d "$TEMP_DIR" ]; then
+        rm -rf -- "$TEMP_DIR"
+    fi
+}
+trap cleanup EXIT
 
 for arg in "$@"; do
     case "$arg" in
@@ -58,7 +67,8 @@ with tarfile.open(p, 'r:gz') as tf:
             raise SystemExit(f'unsafe archive path: {name}')
         if m.issym() or m.islnk():
             link=m.linkname
-            if link.startswith('/') or '..' in [x for x in link.split('/') if x not in ('', '.')]:
+            link_parts=[x for x in link.split('/') if x not in ('', '.')]
+            if link.startswith('/') or any(x == '..' for x in link_parts):
                 raise SystemExit(f'unsafe archive link: {name} -> {link}')
 PY
 }
@@ -94,7 +104,8 @@ p=pathlib.Path(sys.argv[1])
 compile(p.read_text(encoding='utf-8'), str(p), 'exec')
 PY
 
-    if [ -x "$source/scripts/validate-source.sh" ]; then
+    if [ -f "$source/scripts/validate-source.sh" ]; then
+        bash -n "$source/scripts/validate-source.sh"
         (cd "$source" && bash scripts/validate-source.sh >/dev/null)
     fi
 
@@ -104,19 +115,17 @@ PY
 }
 
 prepare_source(){
-    local final="$VENDOR_ROOT/$APRS_COMMIT" temp archive url
+    local final="$VENDOR_ROOT/$APRS_COMMIT" archive url
 
     if [ -d "$final" ]; then
         validate_source "$final"
-        printf '%s' "$final"
+        SOURCE="$final"
         return
     fi
 
-    temp="$(mktemp -d /opt/xlx-aprs-dprs-fetch.XXXXXX)"
-    archive="$temp/source.tar.gz"
+    TEMP_DIR="$(mktemp -d /opt/xlx-aprs-dprs-fetch.XXXXXX)"
+    archive="$TEMP_DIR/source.tar.gz"
     url="https://github.com/${APRS_REPOSITORY}/archive/${APRS_COMMIT}.tar.gz"
-
-    trap 'rm -rf "${temp:-}"' RETURN
 
     info "Baixando APRS/D-PRS do commit revisado..."
     curl --fail --location --silent --show-error --proto '=https' --tlsv1.2 \
@@ -124,21 +133,21 @@ prepare_source(){
     [ -s "$archive" ] || fatal "Arquivo APRS/D-PRS vazio."
 
     validate_archive_paths "$archive"
-    mkdir -p "$temp/source"
-    tar -xzf "$archive" --strip-components=1 -C "$temp/source"
-    validate_source "$temp/source"
+    mkdir -p "$TEMP_DIR/source"
+    tar -xzf "$archive" --strip-components=1 -C "$TEMP_DIR/source"
+    validate_source "$TEMP_DIR/source"
 
     mkdir -p "$VENDOR_ROOT"
     chmod 700 "$VENDOR_ROOT"
-    mv "$temp/source" "$final"
+    mv "$TEMP_DIR/source" "$final"
     chmod -R go-rwx "$final"
 
-    trap - RETURN
-    rm -rf "$temp"
-    printf '%s' "$final"
+    rm -rf -- "$TEMP_DIR"
+    TEMP_DIR=""
+    SOURCE="$final"
 }
 
-SOURCE="$(prepare_source)"
+prepare_source
 
 if [ "$MODE" = "check" ]; then
     ok "Pré-validação APRS/D-PRS concluída; nenhuma instalação executada."
