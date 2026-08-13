@@ -5,7 +5,7 @@ on:
     branches:
       - 'sync/production-20260813'
     paths:
-      - '.sync-payload/RUN3'
+      - '.sync-payload/RUN2'
 
 permissions:
   contents: write
