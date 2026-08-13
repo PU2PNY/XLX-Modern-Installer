@@ -39,6 +39,22 @@ jobs:
         run: |
           set -Eeuo pipefail
           rsync -a /tmp/core-overlay/ dashboard/
+          python3 - <<'PY'
+          from pathlib import Path
+          files = [
+              'dashboard/assets/ao-vivo-clean-v1.css',
+              'dashboard/assets/app.css',
+              'dashboard/assets/app.js',
+              'dashboard/assets/header-unificado-v1.css',
+              'dashboard/assets/header-unificado-v1.js',
+              'dashboard/assets/history-mobile-fit-v2.css',
+              'dashboard/assets/table-row-hover-v1.css',
+          ]
+          for name in files:
+              p = Path(name)
+              text = p.read_text(encoding='utf-8')
+              p.write_text(text.rstrip('\n') + '\n', encoding='utf-8')
+          PY
 
       - name: Validate synchronized source
         shell: bash
