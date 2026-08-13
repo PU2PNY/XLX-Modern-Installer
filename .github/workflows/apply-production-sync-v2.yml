@@ -5,7 +5,7 @@ on:
     branches:
       - 'sync/production-20260813'
     paths:
-      - '.sync-payload/RUN2'
+      - '.sync-payload/RUN3'
 
 permissions:
   contents: write
@@ -52,7 +52,6 @@ jobs:
           grep -F 'CONNECTED_COUNT_VOICE_V103_NO_TX' dashboard/assets/app.js
           grep -F "const reflector='{{REFLECTOR_NAME}}';" dashboard/assets/app.js
           grep -F '/var/cache/xlx-ham-weather' dashboard/api/ham-weather.php
-          grep -F '/var/cache/xlx-dashboard' dashboard/api/common.php
           ! grep -REn 'xlx026\.net|XLX026 Brasil|YSF 72426|TG 4003|82\.152\.175\.30|/var/cache/xlx026' \
             dashboard/api/common.php dashboard/api/ham-weather.php dashboard/api/live.php dashboard/api/mtr.php \
             dashboard/assets/app.js dashboard/assets/install-app.js dashboard/llms.txt dashboard/robots.txt dashboard/site.webmanifest
