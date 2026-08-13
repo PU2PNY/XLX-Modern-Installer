@@ -10,6 +10,9 @@ readonly CONFIRMATION="CONFIRMO_ATUALIZACAO_XLX_MODERN"
 MODE="check"
 DASHBOARD=""
 SITE_CONFIG_SOURCE=""
+PRESERVED_LOCAL_FILES=0
+PRESERVED_INDEX=0
+PRESERVED_EXTRA_ROUTES=""
 
 RED=$'\033[31m'; YELLOW=$'\033[33m'; GREEN=$'\033[32m'; BLUE=$'\033[34m'; RESET=$'\033[0m'
 info(){ printf '%s[INFO]%s %s\n' "$BLUE" "$RESET" "$*"; }
@@ -40,6 +43,12 @@ Opções:
   --site-config=FILE   Usa um config/site.php já preparado para migrar um
                        dashboard legado que ainda não possua esse arquivo.
 
+Proteções de compatibilidade:
+- arquivos locais que não pertencem ao núcleo universal são preservados;
+- se o index.php atual possuir rotas extras, o index.php local é preservado
+  neste ciclo para impedir perda de páginas personalizadas;
+- config/site.php é sempre tratado separadamente e validado.
+
 O atualizador não executa git pull, não recompila o XLXD e não altera bancos
 ou credenciais do APRS/D-PRS.
 HELP
@@ -52,7 +61,7 @@ done
 [ "$(id -u)" -eq 0 ] || fatal "Execute como root."
 [ -d "$ROOT_DIR/dashboard" ] || fatal "Fonte dashboard ausente: $ROOT_DIR/dashboard"
 
-for cmd in bash find mv php rsync sha256sum tar; do
+for cmd in bash find grep mv php rsync sha256sum sort tar; do
     command -v "$cmd" >/dev/null 2>&1 || fatal "Comando obrigatório ausente: $cmd"
 done
 
@@ -81,7 +90,20 @@ validate_site_config(){
     php -r '
       $c=require $argv[1];
       if(!is_array($c)) exit(1);
-      foreach([["reflector","name"],["reflector","title"],["reflector","domain"],["radio","reflector_number"],["radio","ysf_id"],["radio","dmr_tg"]] as $p){
+      foreach([
+        ["reflector","name"],
+        ["reflector","title"],
+        ["reflector","description"],
+        ["reflector","sysop_callsign"],
+        ["reflector","location"],
+        ["reflector","country"],
+        ["reflector","domain"],
+        ["reflector","contact_email"],
+        ["radio","reflector_number"],
+        ["radio","reflector_short_number"],
+        ["radio","ysf_id"],
+        ["radio","dmr_tg"]
+      ] as $p){
         if(trim((string)($c[$p[0]][$p[1]]??""))==="") exit(2);
       }
     ' "$file" || fatal "config/site.php incompleto ou inválido."
@@ -105,6 +127,72 @@ validate_source(){
     ok "Fonte validada."
 }
 
+extract_index_routes(){
+    local file="$1"
+    php -r '
+      $s=@file_get_contents($argv[1]);
+      if($s===false) exit(2);
+      $allowed="\$allowed";
+      if(!preg_match("/\\$allowed\\s*=\\s*\\[(.*?)\\]\\s*;/s",$s,$m)) exit(3);
+      preg_match_all("/[\\x27\\x22]([a-z0-9][a-z0-9-]*)[\\x27\\x22]/i",$m[1],$x);
+      foreach(array_values(array_unique($x[1])) as $r) echo $r,"\n";
+    ' "$file"
+}
+
+preserve_local_extensions(){
+    local work="$1"
+    local before after current_routes candidate_routes route extra_routes=()
+
+    [ -f "$DASHBOARD/index.php" ] || fatal "index.php atual ausente: $DASHBOARD/index.php"
+    [ -f "$work/index.php" ] || fatal "index.php candidato ausente: $work/index.php"
+
+    if ! candidate_routes="$(extract_index_routes "$work/index.php")"; then
+        fatal "Não foi possível identificar as rotas do index.php do núcleo universal."
+    fi
+
+    if current_routes="$(extract_index_routes "$DASHBOARD/index.php" 2>/dev/null)"; then
+        while IFS= read -r route; do
+            [ -n "$route" ] || continue
+            if ! grep -Fxq -- "$route" <<<"$candidate_routes"; then
+                extra_routes+=("$route")
+            fi
+        done <<<"$current_routes"
+
+        if [ "${#extra_routes[@]}" -gt 0 ]; then
+            PRESERVED_EXTRA_ROUTES="$(IFS=,; printf '%s' "${extra_routes[*]}")"
+            cp -a "$DASHBOARD/index.php" "$work/index.php"
+            PRESERVED_INDEX=1
+            warn "Rotas locais extras detectadas: $PRESERVED_EXTRA_ROUTES"
+            warn "index.php atual preservado neste ciclo para impedir regressão funcional."
+        fi
+    else
+        cp -a "$DASHBOARD/index.php" "$work/index.php"
+        PRESERVED_INDEX=1
+        PRESERVED_EXTRA_ROUTES="PARSE_INDISPONIVEL"
+        warn "Não foi possível interpretar as rotas do index.php atual."
+        warn "Por segurança, o index.php atual será preservado neste ciclo."
+    fi
+
+    before="$(find "$work" -type f | wc -l | tr -d ' ')"
+
+    # Preserva somente arquivos/caminhos que não existem no candidato do núcleo.
+    # Arquivos gerenciados pelo núcleo continuam vindo da nova versão.
+    # config/site.php fica fora desta cópia porque é tratado e validado acima.
+    rsync -a --ignore-existing \
+        --exclude='.git/' \
+        --exclude='config/site.php' \
+        "$DASHBOARD/" "$work/"
+
+    after="$(find "$work" -type f | wc -l | tr -d ' ')"
+    PRESERVED_LOCAL_FILES=$((after-before))
+
+    if [ "$PRESERVED_LOCAL_FILES" -gt 0 ]; then
+        info "Arquivos locais exclusivos preservados: $PRESERVED_LOCAL_FILES"
+    else
+        info "Nenhum arquivo local exclusivo precisou ser preservado."
+    fi
+}
+
 build_candidate(){
     local work="$1" site_config="$2" locale
 
@@ -126,12 +214,7 @@ build_candidate(){
         php "$ROOT_DIR/dashboard/install/render-template.php" "$work"
     fi
 
-    # APRS/D-PRS é um componente independente. Se já estiver instalado dentro
-    # do dashboard, o update do painel não o apaga nem o sobrescreve.
-    if [ -d "$DASHBOARD/aprs-dprs" ]; then
-        mkdir -p "$work/aprs-dprs"
-        rsync -a "$DASHBOARD/aprs-dprs/" "$work/aprs-dprs/"
-    fi
+    preserve_local_extensions "$work"
 
     find "$work" -type d -exec chmod 755 {} \;
     find "$work" -type f -exec chmod 644 {} \;
@@ -194,10 +277,17 @@ CURRENT_INDEX_SHA="$(sha256sum "$DASHBOARD/index.php" | awk '{print $1}')"
 CANDIDATE_INDEX_SHA="$(sha256sum "$CANDIDATE/index.php" | awk '{print $1}')"
 info "index.php atual    : $CURRENT_INDEX_SHA"
 info "index.php candidato: $CANDIDATE_INDEX_SHA"
+info "arquivos locais preservados: $PRESERVED_LOCAL_FILES"
+if [ "$PRESERVED_INDEX" -eq 1 ]; then
+    warn "index.php local preservado; rotas extras: $PRESERVED_EXTRA_ROUTES"
+fi
 
 if [ "$MODE" = "check" ]; then
     rm -rf "$CANDIDATE"
     ok "Pré-validação concluída. Produção não foi alterada."
+    echo "PRESERVED_LOCAL_FILES=$PRESERVED_LOCAL_FILES"
+    echo "PRESERVED_INDEX=$PRESERVED_INDEX"
+    echo "PRESERVED_EXTRA_ROUTES=$PRESERVED_EXTRA_ROUTES"
     echo "STATUS=UPDATE_CHECK_OK"
     exit 0
 fi
@@ -265,4 +355,7 @@ rm -rf "$OLD"
 ok "Dashboard atualizado e validado."
 info "Backup : $ARCHIVE"
 info "Rollback: sudo bash $BACKUP_DIR/ROLLBACK.sh"
+echo "PRESERVED_LOCAL_FILES=$PRESERVED_LOCAL_FILES"
+echo "PRESERVED_INDEX=$PRESERVED_INDEX"
+echo "PRESERVED_EXTRA_ROUTES=$PRESERVED_EXTRA_ROUTES"
 echo "STATUS=UPDATE_APPLY_OK"

@@ -43,6 +43,31 @@ $excludedParts = [
     DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'site.php',
 ];
 
+/*
+ * Route slugs are application identifiers, not user-facing copy. Some
+ * translated source strings (for example "conectados") can be identical to a
+ * slug. Protect quoted route identifiers before textual translation and
+ * restore them afterwards so locale builds never change navigation semantics.
+ */
+$routeSlugs = [
+    'ao-vivo',
+    'modulos',
+    'conectados',
+    'ranking',
+    'refletores',
+    'noticias',
+    'suporte',
+    'certificado',
+    'digital-lab',
+];
+$routeProtection = [];
+foreach ($routeSlugs as $routeSlug) {
+    $sentinel = '__XLX_ROUTE_' . strtoupper(str_replace('-', '_', $routeSlug)) . '__';
+    $routeProtection["'{$routeSlug}'"] = "'{$sentinel}'";
+    $routeProtection['"' . $routeSlug . '"'] = '"' . $sentinel . '"';
+}
+$routeRestore = array_flip($routeProtection);
+
 $filesChanged = 0;
 $replacementCount = 0;
 $fileReport = [];
@@ -79,6 +104,8 @@ foreach ($iterator as $fileInfo) {
     $before = $contents;
     $countForFile = 0;
 
+    $contents = strtr($contents, $routeProtection);
+
     if ($locale !== 'pt-BR') {
         foreach ($sourceMessages as $key => $sourceText) {
             if (!array_key_exists($key, $targetMessages)) {
@@ -108,6 +135,8 @@ foreach ($iterator as $fileInfo) {
         $contents = str_replace('toLocaleTimeString("pt-BR"', 'toLocaleTimeString("' . $htmlLocale . '"', $contents, $dateLocaleCount2);
         $dateLocaleCount += $dateLocaleCount2;
     }
+
+    $contents = strtr($contents, $routeRestore);
 
     $countForFile += $langCount + $ogCount + $dateLocaleCount;
 
