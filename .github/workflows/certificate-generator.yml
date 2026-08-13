@@ -1,0 +1,75 @@
+name: Certificate Generator integration
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  certificates:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate pinned external source
+        run: sudo bash modules/66-certificates.sh --check
+
+      - name: Build generic dashboard with optional hook
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          work="$(mktemp -d)"
+          target="$work/dashboard"
+          cp -a dashboard "$target"
+          mkdir -p "$target/config"
+          cat > "$target/config/site.php" <<'PHP'
+          <?php
+          declare(strict_types=1);
+          return [
+            'reflector'=>[
+              'name'=>'XLX999','title'=>'XLX999 Community','description'=>'Test reflector',
+              'sysop_callsign'=>'N0CALL','location'=>'Test City','country'=>'Test Country',
+              'domain'=>'xlx999.example.invalid','contact_email'=>'noreply@example.invalid',
+            ],
+            'radio'=>['reflector_number'=>'999','reflector_short_number'=>'999','ysf_id'=>'99999','dmr_tg'=>'4999'],
+            'locale'=>['default'=>'en'],
+            'timezone'=>'UTC',
+            'certificates'=>['enabled'=>true,'anniversary'=>''],
+          ];
+          PHP
+          php "$target/i18n/build.php" "$target" en
+          php dashboard/install/render-placeholders.php "$target"
+          php dashboard/install/render-template.php "$target"
+          grep -Fq 'XLX_CERTIFICATES_OPTIONAL_HOOK_V1' "$target/index.php"
+
+          data="$work/cert-data"
+          hmac_path="$work/cert-conf/hmac.key"
+          sudo env XLX_DASHBOARD_DIR="$target" \
+            XLX_CERT_DATA_DIR="$data" \
+            XLX_CERT_SECRET_FILE="$hmac_path" \
+            XLX_CERT_CAMPAIGN_PACK=portable \
+            bash modules/66-certificates.sh \
+              "--dashboard-dir=$target" \
+              "--data-dir=$data" \
+              "--secret-file=$hmac_path" \
+              --campaign-pack=portable
+
+          sudo test -s "$target/certificado-view.php"
+          sudo test -s "$target/certificado-config.php"
+          sudo test -s "$target/api/certificado.php"
+          sudo test -s "$target/assets/certificado.css"
+          sudo test -s "$target/assets/certificado.js"
+          sudo test -s "$target/assets/vendor/qrcode.min.js"
+          sudo test -s "$hmac_path"
+          sudo test -s "$data/rate.json"
+          sudo test -e "$data/emissoes.jsonl"
+          grep -Fq "\$allowed[] = 'certificado';" "$target/index.php"
+          grep -Fq "\$items['certificado'] = 'Certificados';" "$target/index.php"
+          grep -Fq "require __DIR__.'/certificado-view.php';" "$target/index.php"
+          grep -Fq 'assets/certificado.js' "$target/index.php"
+          grep -Fq 'assets/cert-event-alert-v1.js' "$target/index.php"
