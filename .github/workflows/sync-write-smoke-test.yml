@@ -1,0 +1,18 @@
+name: Sync write smoke test
+
+on:
+  push:
+    branches:
+      - 'sync/production-20260813'
+    paths:
+      - '.sync-payload/WRITE_TEST'
+
+permissions:
+  contents: write
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo WRITE_OK
