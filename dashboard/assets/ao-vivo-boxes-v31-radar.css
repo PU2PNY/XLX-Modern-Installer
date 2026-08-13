@@ -1,0 +1,714 @@
+/*
+ * XLX026 — STANDBY RADAR V3.1
+ * Escopo exclusivo do standby.
+ *
+ * IMPORTANTE:
+ * esta folha substitui deliberadamente o background
+ * com GIF definido pela BOXES V2.
+ */
+
+
+/* ==========================================================
+   BOX STANDBY
+   ========================================================== */
+
+body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.standby.compact-tx.standby-v30{
+    position:relative !important;
+    isolation:isolate !important;
+
+    border:
+        1px solid
+        rgba(37,236,166,.34) !important;
+
+    background:
+        radial-gradient(
+            ellipse at 8% 50%,
+            rgba(32,255,178,.070),
+            transparent 34%
+        ),
+        linear-gradient(
+            135deg,
+            #071b26 0%,
+            #061720 54%,
+            #071c27 100%
+        ) !important;
+
+    box-shadow:
+        inset 0 0 0 1px
+        rgba(42,255,183,.025),
+
+        0 10px 28px
+        rgba(0,0,0,.18) !important;
+}
+
+
+/* ==========================================================
+   SUBSTITUI O ::before DA V2
+   NENHUMA IMAGEM
+   ========================================================== */
+
+body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.standby.compact-tx.standby-v30::before{
+    content:"" !important;
+
+    position:absolute !important;
+    inset:0 !important;
+
+    z-index:0 !important;
+
+    background-image:
+        linear-gradient(
+            rgba(42,255,181,.020) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(42,255,181,.017) 1px,
+            transparent 1px
+        ),
+        radial-gradient(
+            ellipse at 9% 50%,
+            rgba(29,255,176,.060),
+            transparent 34%
+        ) !important;
+
+    background-color:
+        transparent !important;
+
+    background-size:
+        24px 24px,
+        24px 24px,
+        auto !important;
+
+    background-position:
+        0 0,
+        0 0,
+        center !important;
+
+    background-repeat:
+        repeat,
+        repeat,
+        no-repeat !important;
+
+    opacity:.95 !important;
+
+    filter:none !important;
+    transform:none !important;
+
+    pointer-events:none !important;
+
+    animation:
+        xlx026V31Breath
+        5.8s
+        ease-in-out
+        infinite !important;
+}
+
+
+/* ==========================================================
+   FAIXA SUAVE DE VARREDURA
+   ========================================================== */
+
+body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.standby.compact-tx.standby-v30::after{
+    content:"" !important;
+
+    position:absolute !important;
+
+    top:0 !important;
+    bottom:0 !important;
+    left:-25% !important;
+
+    width:17% !important;
+
+    z-index:0 !important;
+
+    border:0 !important;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            rgba(55,255,187,.035),
+            rgba(55,255,187,.070),
+            transparent
+        ) !important;
+
+    opacity:0;
+
+    pointer-events:none !important;
+
+    animation:
+        xlx026V31BoxScan
+        7.4s
+        ease-in-out
+        infinite !important;
+}
+
+
+body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.standby.compact-tx.standby-v30 > *{
+    position:relative !important;
+    z-index:2 !important;
+}
+
+
+/* ==========================================================
+   LAYOUT INTERNO
+   ========================================================== */
+
+body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.standby.compact-tx.standby-v30
+.standby-v30-content{
+    display:grid !important;
+
+    grid-template-columns:
+        74px
+        minmax(190px,.82fr)
+        minmax(0,1.40fr) !important;
+
+    align-items:center !important;
+
+    width:100% !important;
+    min-width:0 !important;
+
+    height:72px !important;
+    min-height:0 !important;
+
+    margin:18px 0 0 !important;
+    padding:0 !important;
+
+    gap:12px !important;
+
+    text-align:left !important;
+}
+
+
+/* ==========================================================
+   RADAR PRINCIPAL
+   ========================================================== */
+
+body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.standby.compact-tx.standby-v30
+.standby-v30-radar{
+    position:relative !important;
+
+    display:block !important;
+
+    width:64px !important;
+    height:64px !important;
+
+    min-width:64px !important;
+    min-height:64px !important;
+
+    margin:0 auto !important;
+    padding:0 !important;
+
+    overflow:hidden !important;
+
+    border:
+        1px solid
+        rgba(64,255,192,.70) !important;
+
+    border-radius:50% !important;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent 49%,
+            rgba(62,255,191,.14) 49.5%,
+            rgba(62,255,191,.14) 50.5%,
+            transparent 51%
+        ),
+
+        linear-gradient(
+            0deg,
+            transparent 49%,
+            rgba(62,255,191,.14) 49.5%,
+            rgba(62,255,191,.14) 50.5%,
+            transparent 51%
+        ),
+
+        repeating-radial-gradient(
+            circle at center,
+            transparent 0 8px,
+            rgba(53,255,185,.17) 8.5px 9.5px,
+            transparent 10px 18px
+        ),
+
+        radial-gradient(
+            circle at center,
+            rgba(27,255,175,.09),
+            rgba(5,35,38,.93) 62%,
+            rgba(2,18,27,.99) 100%
+        ) !important;
+
+    box-shadow:
+        inset 0 0 18px
+        rgba(31,255,177,.11),
+
+        0 0 0 4px
+        rgba(27,245,169,.025),
+
+        0 0 22px
+        rgba(30,255,179,.11) !important;
+
+    filter:none !important;
+    transform:none !important;
+
+    box-sizing:border-box !important;
+}
+
+
+/* ==========================================================
+   FEIXE GIRATORIO
+   ========================================================== */
+
+body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.standby.compact-tx.standby-v30
+.standby-v30-radar::before{
+    content:"" !important;
+
+    position:absolute !important;
+
+    inset:3px !important;
+
+    border:0 !important;
+    border-radius:50% !important;
+
+    background:
+        conic-gradient(
+            from 0deg,
+            transparent 0deg,
+            transparent 282deg,
+            rgba(43,255,182,.015) 301deg,
+            rgba(43,255,182,.11) 327deg,
+            rgba(43,255,182,.35) 349deg,
+            rgba(111,255,208,.75) 358deg,
+            transparent 360deg
+        ) !important;
+
+    transform-origin:
+        50% 50% !important;
+
+    animation:
+        xlx026V31RadarRotate
+        3.2s
+        linear
+        infinite !important;
+
+    pointer-events:none !important;
+}
+
+
+/* centro */
+
+body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.standby.compact-tx.standby-v30
+.standby-v30-radar::after{
+    content:"" !important;
+
+    position:absolute !important;
+
+    left:50% !important;
+    top:50% !important;
+
+    width:4px !important;
+    height:4px !important;
+
+    margin:
+        -2px
+        0
+        0
+        -2px !important;
+
+    border-radius:50% !important;
+
+    background:
+        #62ffc8 !important;
+
+    box-shadow:
+        0 0 5px
+        rgba(85,255,198,.95),
+
+        0 0 12px
+        rgba(85,255,198,.38) !important;
+}
+
+
+/* ==========================================================
+   PONTOS DO RADAR
+   ========================================================== */
+
+body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.standby.compact-tx.standby-v30
+.standby-v30-radar > span{
+    position:absolute !important;
+
+    left:70% !important;
+    top:27% !important;
+
+    width:4px !important;
+    height:4px !important;
+
+    border-radius:50% !important;
+
+    background:
+        #69ffca !important;
+
+    box-shadow:
+        0 0 6px
+        rgba(82,255,195,.95) !important;
+
+    opacity:0 !important;
+
+    animation:
+        xlx026V31BlipA
+        3.2s
+        ease-in-out
+        infinite !important;
+}
+
+
+body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.standby.compact-tx.standby-v30
+.standby-v30-radar > i{
+    position:absolute !important;
+
+    left:28% !important;
+    top:67% !important;
+
+    width:3px !important;
+    height:3px !important;
+
+    border-radius:50% !important;
+
+    background:
+        #47edb0 !important;
+
+    box-shadow:
+        0 0 5px
+        rgba(69,241,176,.85) !important;
+
+    opacity:0 !important;
+
+    animation:
+        xlx026V31BlipB
+        3.2s
+        ease-in-out
+        infinite !important;
+}
+
+
+/* ==========================================================
+   TEXTO DE ESTADO
+   ========================================================== */
+
+body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.standby.compact-tx.standby-v30
+.standby-v30-state{
+    min-width:0 !important;
+
+    font-size:0 !important;
+
+    white-space:nowrap !important;
+    overflow:hidden !important;
+}
+
+
+body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.standby.compact-tx.standby-v30
+.standby-v30-state::before{
+    content:"Monitor em escuta" !important;
+
+    display:block !important;
+
+    color:#f2fff9 !important;
+
+    font-size:
+        clamp(
+            15px,
+            1.3vw,
+            20px
+        ) !important;
+
+    font-weight:900 !important;
+
+    line-height:1 !important;
+
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+}
+
+
+body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.standby.compact-tx.standby-v30
+.standby-v30-state::after{
+    content:"Aguardando a proxima transmissao" !important;
+
+    display:block !important;
+
+    margin-top:6px !important;
+
+    color:
+        rgba(
+            139,
+            220,
+            194,
+            .75
+        ) !important;
+
+    font-size:7px !important;
+    font-weight:800 !important;
+
+    line-height:1 !important;
+
+    letter-spacing:.09em !important;
+
+    text-transform:uppercase !important;
+
+    white-space:nowrap !important;
+}
+
+
+/* ==========================================================
+   ULTIMA TRANSMISSAO
+   ========================================================== */
+
+body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.standby.compact-tx.standby-v30
+.standby-v30-last{
+    width:100% !important;
+    min-width:0 !important;
+
+    margin:0 !important;
+
+    padding:
+        7px
+        10px !important;
+
+    overflow:hidden !important;
+
+    border:
+        1px solid
+        rgba(42,229,166,.15) !important;
+
+    border-radius:9px !important;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(8,41,43,.48),
+            rgba(5,27,35,.67)
+        ) !important;
+
+    box-shadow:
+        inset 2px 0 0
+        rgba(43,242,174,.22) !important;
+
+    box-sizing:border-box !important;
+}
+
+
+/* ==========================================================
+   ANIMACOES
+   ========================================================== */
+
+@keyframes xlx026V31RadarRotate{
+    from{
+        transform:rotate(0deg);
+    }
+
+    to{
+        transform:rotate(360deg);
+    }
+}
+
+
+@keyframes xlx026V31BlipA{
+    0%,
+    40%{
+        opacity:0;
+        transform:scale(.65);
+    }
+
+    49%{
+        opacity:1;
+        transform:scale(1);
+    }
+
+    65%{
+        opacity:.55;
+    }
+
+    80%,
+    100%{
+        opacity:0;
+        transform:scale(.7);
+    }
+}
+
+
+@keyframes xlx026V31BlipB{
+    0%,
+    10%{
+        opacity:0;
+    }
+
+    20%{
+        opacity:.85;
+        transform:scale(1);
+    }
+
+    35%{
+        opacity:.35;
+    }
+
+    50%,
+    100%{
+        opacity:0;
+        transform:scale(.7);
+    }
+}
+
+
+@keyframes xlx026V31Breath{
+    0%,
+    100%{
+        opacity:.77;
+    }
+
+    50%{
+        opacity:1;
+    }
+}
+
+
+@keyframes xlx026V31BoxScan{
+    0%{
+        left:-25%;
+        opacity:0;
+    }
+
+    15%{
+        opacity:.38;
+    }
+
+    60%{
+        opacity:.16;
+    }
+
+    74%{
+        left:112%;
+        opacity:0;
+    }
+
+    100%{
+        left:112%;
+        opacity:0;
+    }
+}
+
+
+/* ==========================================================
+   MOBILE
+   ========================================================== */
+
+@media (max-width:720px){
+
+    body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.standby.compact-tx.standby-v30
+    .standby-v30-content{
+        grid-template-columns:
+            44px
+            minmax(94px,.83fr)
+            minmax(0,1.22fr) !important;
+
+        gap:6px !important;
+    }
+
+
+    body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.standby.compact-tx.standby-v30
+    .standby-v30-radar{
+        width:40px !important;
+        height:40px !important;
+
+        min-width:40px !important;
+        min-height:40px !important;
+    }
+
+
+    body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.standby.compact-tx.standby-v30
+    .standby-v30-state::before{
+        font-size:
+            clamp(
+                10px,
+                2.7vw,
+                13px
+            ) !important;
+    }
+
+
+    body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.standby.compact-tx.standby-v30
+    .standby-v30-state::after{
+        margin-top:4px !important;
+        font-size:5px !important;
+        letter-spacing:.04em !important;
+    }
+}
+
+
+/* ==========================================================
+   MOVIMENTO REDUZIDO
+   ========================================================== */
+
+@media (prefers-reduced-motion:reduce){
+
+    body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.standby.compact-tx.standby-v30::before,
+
+    body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.standby.compact-tx.standby-v30::after,
+
+    body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.standby.compact-tx.standby-v30
+    .standby-v30-radar::before,
+
+    body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.standby.compact-tx.standby-v30
+    .standby-v30-radar > span,
+
+    body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.standby.compact-tx.standby-v30
+    .standby-v30-radar > i{
+        animation:none !important;
+    }
+}

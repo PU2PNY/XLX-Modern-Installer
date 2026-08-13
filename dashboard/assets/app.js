@@ -47,9 +47,11 @@ function txCard(m){
      <strong>${esc(gateway)}</strong>
     </div>
 
-    <div>
-     <small>Protocolo e módulo</small>
-     <strong>${esc(tx.protocol)} • Módulo ${esc(m.module)}</strong>
+    <div class="tx-v30-protocol-box tx-v30-protocol-box-v2">
+     <small>Protocolo em uso</small>
+     <strong class="tx-v30-protocol-line tx-v30-protocol-line-v2">
+      <span class="tx-v30-protocol-value tx-v30-protocol-value-v2">${esc(tx.protocol)}</span>
+     </strong>
     </div>
 
     <div>
@@ -96,8 +98,8 @@ function standbyCard(m,newest){
  </article>`
 }
 
-function toast(c){let el=document.createElement('div');el.className='toast';el.innerHTML=`<div class="toast-icon">${esc(c.country?.flag||'↗')}</div><div><strong>${esc(c.callsign)} — ${esc(c.name)}</strong><span>Conectou por ${esc(c.protocol)} • módulo ${esc(c.module)}</span></div>`;$('#toastStack')?.append(el);setTimeout(()=>el.classList.add('out'),7500);setTimeout(()=>el.remove(),8500)}
-function updateTitle(d){const active=Object.values(d.modules).filter(m=>m.transmission).map(m=>m.transmission.callsign);document.title=active.length?`(${d.connected_count}) ${active.join(' + ')} TX — {{REFLECTOR_NAME}}`:`(${d.connected_count}) {{REFLECTOR_NAME}}`;}
+function toast(c){let el=document.createElement('div');el.className='toast';el.innerHTML=`<div class="toast-icon">${flag(c)}</div><div><strong>${esc(c.callsign)} — ${esc(c.name)}</strong><span>Conectou por ${esc(c.protocol)} • módulo ${esc(c.module)}</span></div>`;$('#toastStack')?.append(el);setTimeout(()=>el.classList.add('out'),7500);setTimeout(()=>el.remove(),8500)}
+function updateTitle(d){const active=Object.values(d.modules).filter(m=>m.transmission).map(m=>m.transmission.callsign);document.title=active.length?`(${d.connected_count}) ${active.join(' + ')} TX — {{REFLECTOR_NAME}}`:`(${d.connected_count}) {{REFLECTOR_TITLE}}`;}
 function historyCallKey(x){return String(x?.callsign||'').trim().toUpperCase()}
 function historyRowId(callKey,index){const safe=Array.from(callKey).map(ch=>/[A-Z0-9_-]/.test(ch)?ch:'x'+ch.charCodeAt(0).toString(16)+'x').join('');return `history-${safe}-${index}`}
 function ensureHistoryDropdownStyles(){
@@ -137,8 +139,9 @@ function historyRowMarkup(x,statusHtml,attrs='',position=''){
  return `<tr ${attrs}><td><span class="history-row-country"><span class="history-row-number" aria-hidden="true">${rowNumber}</span>${flag(x)}</span></td><td>${fmtTime(x.started_at)}</td><td><a target="_blank" href="${esc(x.qrz)}">${esc(x.callsign)}</a></td><td>${esc(x.name)}</td><td><span class="protocol">${esc(x.protocol)}</span></td><td>${esc(x.module)}</td><td>${duration(x.duration)}</td><td>${statusHtml}</td></tr>`;
 }
 function historyMarkup(d){
- const rows=d.history||[];
- if(!rows.length)return `<tr><td colspan="8">O histórico será preenchido pelas transmissões registradas.</td></tr>`;
+ const cutoff=Number(d.generated_at||Math.floor(Date.now()/1000))-86400;
+ const rows=(d.history||[]).filter(x=>Number(x.started_at||0)>=cutoff);
+ if(!rows.length)return `<tr><td colspan="8">Nenhuma transmissão registrada nas últimas 24 horas.</td></tr>`;
  const groups=new Map();
  rows.forEach((x,index)=>{
   const base=historyCallKey(x);
@@ -146,7 +149,7 @@ function historyMarkup(d){
   if(!groups.has(key))groups.set(key,[]);
   groups.get(key).push(x);
  });
- return [...groups.entries()].slice(0,20).map(([callKey,items],groupIndex)=>{
+ return [...groups.entries()].slice(0,40).map(([callKey,items],groupIndex)=>{
   const latest=items[0];
   const previous=items.slice(1);
   const expanded=historyExpandedCalls.has(callKey);
@@ -156,7 +159,7 @@ function historyMarkup(d){
   const older=previous.map((x,index)=>{
    const hidden=expanded?'':` style="display:none!important"`;
    const attrs=`id="${esc(previousIds[index])}" class="history-previous-row" data-history-parent="${esc(callKey)}"${hidden}`;
-   return historyRowMarkup(x,onlineBadge(Boolean(x.online)),attrs,'');
+   return historyRowMarkup(x,onlineBadge(Boolean(x.online)),attrs,`${groupIndex+1}.${index+1}`);
   }).join('');
   return main+older;
  }).join('');
@@ -179,14 +182,14 @@ function toggleHistoryGroup(callKey,button){
 function moduleInfo(m){const defs={A:['Envio de imagens D-STAR','Módulo A • imagens digitais','{{REFLECTOR_NAME}}-A'],B:['APRS / D-PRS','Dados digitais','{{REFLECTOR_NAME}}-B'],C:['C4FM/YSF e DMR','YSF {{YSF_ID}} • DMR TG {{DMR_TG}}','{{REFLECTOR_NAME}}-C'],D:['D-STAR','{{REFLECTOR_NAME}}-D / XRF{{REFLECTOR_NUMBER}}-D','{{REFLECTOR_NAME}}-D'],E:['D-STAR Echo','Teste de áudio','{{REFLECTOR_NAME}}-E']};return defs[m.module]||[m.configured_protocol,m.access,'{{REFLECTOR_NAME}}-'+m.module]}
 function renderModules(d){$('#moduleOverview').innerHTML=Object.values(d.modules).map(m=>{const i=moduleInfo(m);return `<article class="module-mini ${m.transmission?'active':''}"><div class="module-mini-top"><span class="module-letter">${esc(m.module)}</span><span class="module-count">${m.connected_count} conectado${m.connected_count===1?'':'s'}</span></div><strong>${esc(i[0])}</strong><small>${esc(i[1])}</small><div class="module-id">${esc(i[2])}</div><div class="module-state">${m.transmission?'<i class="red"></i> Transmitindo agora':'<i></i> Aguardando transmissão'}</div></article>`}).join('');
  const functions={A:'Imagens D-STAR',B:'APRS / D-PRS',C:'C4FM/YSF/DMR',D:'D-STAR',E:'Echo / teste'};
- const rows=Object.values(d.modules).map((m,idx)=>{const n=idx+1,letter=m.module;return `<tr><td><b>${esc(letter)}</b></td><td>${esc(functions[letter]||m.configured_protocol)}</td><td>${m.connected_count}</td><td>REF{{REFLECTOR_NUMBER}}${letter}L</td><td>*26${letter}</td><td>XRF{{REFLECTOR_NUMBER}}${letter}L</td><td>B{{REFLECTOR_SHORT_NUMBER}}${letter}</td><td>DCS{{REFLECTOR_NUMBER}}${letter}L</td><td>D{{REFLECTOR_SHORT_NUMBER}}${letter}</td><td>${4000+n}</td><td>${9+n}</td></tr>`}).join('');$('#moduleReferenceRows').innerHTML=rows; }
+ const rows=Object.values(d.modules).map((m,idx)=>{const n=idx+1,letter=m.module;return `<tr><td><b>${esc(letter)}</b></td><td>${esc(functions[letter]||m.configured_protocol)}</td><td>${m.connected_count}</td><td>REF{{REFLECTOR_NUMBER}}${letter}L</td><td>*{{REFLECTOR_SHORT_NUMBER}}${letter}</td><td>XRF{{REFLECTOR_NUMBER}}${letter}L</td><td>B{{REFLECTOR_SHORT_NUMBER}}${letter}</td><td>DCS{{REFLECTOR_NUMBER}}${letter}L</td><td>D{{REFLECTOR_SHORT_NUMBER}}${letter}</td><td>${4000+n}</td><td>${9+n}</td></tr>`}).join('');$('#moduleReferenceRows').innerHTML=rows; }
 function connectedRows(d,query=''){const q=query.trim().toLowerCase();const rows=d.connections.filter(c=>!q||[c.callsign,c.name,c.location,c.protocol,c.module].some(v=>String(v||'').toLowerCase().includes(q)));return rows.length?rows.map((c,i)=>`<tr><td>${i+1}</td><td>${flag(c)}</td><td><a target="_blank" href="${esc(c.qrz)}">${esc(c.callsign)}${c.suffix?' '+esc(c.suffix):''}</a></td><td>${esc(c.name)}</td><td>${esc(c.location)}</td><td><span class="protocol">${esc(c.protocol)}</span></td><td>${esc(c.module)}</td><td>${fmtTime(c.connected_at)}</td><td data-start="${c.connected_at}">${elapsed(c.connected_at)}</td><td>${fmtTime(c.last_activity)}</td></tr>`).join(''):`<tr><td colspan="10">Nenhuma estação corresponde à pesquisa.</td></tr>`}
 function rankList(items,valueLabel){return items.length?items.map((x,i)=>`<div class="rank-item"><span class="rank-pos">${i+1}</span><div><b>${esc(x.label)}</b><small>${esc(x.sub||'')}</small></div><strong>${esc(valueLabel(x.value))}</strong></div>`).join(''):'<div class="rank-empty">Dados insuficientes no histórico disponível.</div>'}
 function aggregate(arr,keyFn,valFn=()=>1){const m=new Map();arr.forEach(x=>{const k=keyFn(x);if(!k)return;const old=m.get(k)||{label:k,value:0,sub:''};old.value+=valFn(x);m.set(k,old)});return [...m.values()].sort((a,b)=>b.value-a.value)}
 function renderRanking(d){const h=d.history||[],c=d.connections||[];const tx=aggregate(h,x=>x.callsign);tx.forEach(x=>{const y=h.find(z=>z.callsign===x.label);x.sub=y?.name||''});const air=aggregate(h,x=>x.callsign,x=>Number(x.duration||0));air.forEach(x=>{const y=h.find(z=>z.callsign===x.label);x.sub=y?.name||''});const con=[...c].sort((a,b)=>a.connected_at-b.connected_at).slice(0,10).map(x=>({label:x.callsign,sub:x.name,value:Math.max(0,Math.floor(Date.now()/1000-x.connected_at))}));const hrs=aggregate(h,x=>String(new Date(x.started_at*1000).getHours()).padStart(2,'0')+':00');const prot=aggregate(h,x=>x.protocol);const mods=aggregate(h,x=>'Módulo '+x.module);$('#rankTx').innerHTML=rankList(tx.slice(0,10),v=>v+' TX');$('#rankAirtime').innerHTML=rankList(air.slice(0,10),v=>duration(v));$('#rankConnected').innerHTML=rankList(con,v=>elapsed(Math.floor(Date.now()/1000-v)));$('#rankHours').innerHTML=rankList(hrs.slice(0,8),v=>v+' TX');$('#rankProtocols').innerHTML=rankList(prot.slice(0,8),v=>v+' TX');$('#rankModules').innerHTML=rankList(mods.slice(0,8),v=>v+' TX');const topTx=tx[0],topAir=air[0],topHour=hrs[0];$('#rankingHighlights').innerHTML=`<article><small>Mais transmissões</small><b>${esc(topTx?.label||'—')}</b><span>${topTx?topTx.value+' transmissões':'Sem dados'}</span></article><article><small>Maior tempo no ar</small><b>${esc(topAir?.label||'—')}</b><span>${topAir?duration(topAir.value):'Sem dados'}</span></article><article><small>Horário mais ativo</small><b>${esc(topHour?.label||'—')}</b><span>${topHour?topHour.value+' transmissões':'Sem dados'}</span></article><article><small>Conectados agora</small><b>${d.connected_count}</b><span>${d.active_count} transmissão${d.active_count===1?'':'ões'} ativa${d.active_count===1?'':'s'}</span></article>`}
 function renderReflectors(data){ const rows = (data.reflectors||[]).slice(0,300); $('#reflectorRows').innerHTML = rows.length ? rows.map((r,i)=>`<tr><td>${i+1}</td><td>${r.dashboardurl?`<a target="_blank" rel="noopener" href="${esc(r.dashboardurl)}">${esc(r.name)}</a>`:esc(r.name)}</td><td>${esc(r.country||'—')}</td><td>${onlineBadge((r.status||'').toLowerCase()==='online')}</td><td>${esc(r.comment||'—')}</td></tr>`).join('') : '<tr><td colspan="5">Não foi possível carregar a lista de refletores neste momento.</td></tr>'; }
-function render(d){lastData=d;$('#syncState').textContent='Ao vivo';updateTitle(d);
- if(page==='ao-vivo'){ $('#serverLine').textContent=`Atualizado às ${fmtTime(d.generated_at)}`; $('#headerConnected').textContent=d.connected_count; $('#headerActive').textContent=d.active_count; $('#widgetCount').textContent=d.active_count?`${d.active_count} no ar`:'Standby'; const active=Object.values(d.modules).filter(m=>m.transmission); const newest=[...d.history].sort((a,b)=>b.started_at-a.started_at)[0]||null; const standModule=Object.values(d.modules)[0];
+function render(d){lastData=d;$('#syncState').textContent='Ao vivo';updateTitle(d);trackConnectedCountVoice(d);
+ if(page==='ao-vivo'){ $('#headerConnected').textContent=d.connected_count; $('#headerActive').textContent=d.active_count; $('#widgetCount').textContent=d.active_count?`${d.active_count} no ar`:'Standby'; const active=Object.values(d.modules).filter(m=>m.transmission); const newest=[...d.history].sort((a,b)=>b.started_at-a.started_at)[0]||null; const standModule=Object.values(d.modules)[0];
 
  /*
   * A API geral pode preencher o box somente na carga inicial.
@@ -211,13 +214,13 @@ function render(d){lastData=d;$('#syncState').textContent='Ao vivo';updateTitle(
  const nowSet=new Set(d.connections.map(c=>`${c.callsign}|${c.suffix}|${c.protocol}|${c.module}|${c.ip}`));if(previousConnections!==null)d.connections.forEach(c=>{const k=`${c.callsign}|${c.suffix}|${c.protocol}|${c.module}|${c.ip}`;if(!previousConnections.has(k))toast(c)});previousConnections=nowSet; }
 let statusUpdateRunning=false;
 async function update(){
- if(statusUpdateRunning||document.hidden)return;
+ if(statusUpdateRunning||(document.hidden&&page!=='ao-vivo'))return;
  statusUpdateRunning=true;
  const controller=new AbortController();
  const timeoutId=setTimeout(()=>controller.abort(),4000);
  try{
   const statusEndpoint=page==='ao-vivo'
-   ?'api/status.php?history=150&ts='
+   ?'api/status.php?history_hours=24&ts='
    :'api/status.php?ts=';
   const r=await fetch(statusEndpoint+Date.now(),{cache:'no-store',signal:controller.signal});
   const d=await r.json();
@@ -245,6 +248,467 @@ let txRxAudioUnlocked=false;
  */
 let txRxSoundEnabled=
  localStorage.getItem('xlx026TxRxSound')!=='disabled';
+
+
+/*
+ * ==========================================================
+ * XLX026_CONNECTED_COUNT_VOICE_V1
+ *
+ * Fala somente o total já recebido pelo status.php.
+ *
+ * NÃO cria:
+ * - fetch
+ * - polling
+ * - API
+ * - timer recorrente
+ *
+ * Regras:
+ * - somente página Ao Vivo
+ * - respeita o mesmo botão de som dos bips
+ * - espera 10 segundos após a última mudança
+ * - máximo de 30 segundos durante mudanças contínuas
+ * - nunca repete o mesmo total já falado
+ * ==========================================================
+ */
+
+/*
+ * XLX026_CONNECTED_COUNT_VOICE_V103_NO_TX
+ *
+ * - conexao/desconexao: 3 segundos apos a ultima mudanca
+ * - varias mudancas: somente o total final
+ * - repeticao: a cada 30 minutos sem conectar/desconectar
+ * - TX/RX nao reinicia os 30 minutos
+ * - mesmo botao dos bips
+ * - som ligado por padrao
+ */
+
+const CONNECTED_VOICE_DEBOUNCE_MS=3000;
+const CONNECTED_VOICE_REPEAT_MS=1800000;
+
+let connectedVoiceSignature=null;
+let connectedVoiceCurrentTotal=null;
+
+let connectedVoiceEventTimer=null;
+let connectedVoicePendingEvent=false;
+
+let connectedVoiceLastConnectionChangeAt=0;
+let connectedVoiceNextRepeatAt=0;
+
+let connectedVoiceUserActivated=false;
+
+let connectedVoiceUtterance=null;
+let connectedVoiceStarted=null;
+let connectedVoiceLastError=null;
+
+
+function connectedVoiceSupported(){
+ return (
+  'speechSynthesis' in window &&
+  'SpeechSynthesisUtterance' in window
+ );
+}
+
+
+function clearConnectedVoiceEventTimer(){
+ if(connectedVoiceEventTimer===null)return;
+
+ clearTimeout(connectedVoiceEventTimer);
+ connectedVoiceEventTimer=null;
+}
+
+
+function chooseConnectedVoice(){
+ try{
+  const voices=
+   window.speechSynthesis.getVoices()||[];
+
+  return (
+   voices.find(
+    voice=>
+     String(voice.lang||'')
+      .toLowerCase()==='pt-br'
+   )||
+   voices.find(
+    voice=>
+     String(voice.lang||'')
+      .toLowerCase()
+      .startsWith('pt')
+   )||
+   null
+  );
+
+ }catch(error){
+  return null;
+ }
+}
+
+
+function connectedVoiceValue(total){
+ return Math.max(
+  0,
+  Math.floor(Number(total)||0)
+ );
+}
+
+
+/*
+ * V10.3
+ *
+ * A locucao do total nunca deve competir com uma
+ * transmissao digital ativa.
+ */
+function connectedVoiceTxActive(){
+ return Number(lastData?.active_count||0)>0;
+}
+
+
+/*
+ * Se TX comecar enquanto existe:
+ * - timer de voz;
+ * - anuncio pendente;
+ * - locucao em andamento;
+ *
+ * preservamos o evento para falar depois do TX.
+ */
+function deferConnectedVoiceForTx(){
+ if(page!=='ao-vivo')return;
+
+ const hadVoiceWaiting=
+  connectedVoicePendingEvent||
+  connectedVoiceEventTimer!==null||
+  connectedVoiceUtterance!==null;
+
+ clearConnectedVoiceEventTimer();
+
+ if(connectedVoiceUtterance!==null){
+  /*
+   * Zera a referencia antes do cancel().
+   * Assim callbacks atrasados da utterance antiga
+   * nao modificam o estado atual.
+   */
+  connectedVoiceUtterance=null;
+
+  try{
+   window.speechSynthesis.cancel();
+  }catch(error){
+  }
+ }
+
+ if(hadVoiceWaiting){
+  connectedVoicePendingEvent=true;
+ }
+}
+
+
+/*
+ * Assinatura somente de CONEXAO.
+ *
+ * last_activity nao participa.
+ * Portanto TX/RX nao reinicia os 30 minutos.
+ */
+function connectedVoiceConnectionKey(connection){
+ const c=connection||{};
+
+ return [
+  c.callsign||'',
+  c.suffix||'',
+  c.protocol||'',
+  c.module||'',
+  c.ip||'',
+  c.connected_at||''
+ ]
+ .map(value=>String(value))
+ .join('|');
+}
+
+
+function connectedVoiceBuildSignature(data){
+ const connections=
+  Array.isArray(data?.connections)
+   ?data.connections
+   :[];
+
+ return connections
+  .map(connectedVoiceConnectionKey)
+  .sort()
+  .join('\n');
+}
+
+
+function connectedVoiceReflectorSpeech(){
+ const reflector='{{REFLECTOR_NAME}}';
+ const match=/^XLX(\d{3})$/i.exec(reflector);
+ if(!match)return reflector;
+ const words=['zero','um','dois','três','quatro','cinco','seis','sete','oito','nove'];
+ return `XLX ${match[1].split('').map(d=>words[Number(d)]||d).join(' ')}`;
+}
+
+function speakConnectedCount(total,reason='event'){
+ if(
+  page!=='ao-vivo'||
+  !txRxSoundEnabled||
+  !connectedVoiceUserActivated||
+  !connectedVoiceSupported()||
+  connectedVoiceTxActive()
+ ){
+  return false;
+ }
+
+ const value=
+  connectedVoiceValue(total);
+
+ try{
+  window.speechSynthesis.cancel();
+
+  const utterance=
+   new SpeechSynthesisUtterance(
+    `${connectedVoiceReflectorSpeech()} com ${value} estações conectadas.`
+   );
+
+  utterance.lang='pt-BR';
+
+  /*
+   * Rapida e mais animada.
+   */
+  utterance.rate=1.55;
+  utterance.pitch=1.05;
+  utterance.volume=1;
+
+  const voice=chooseConnectedVoice();
+
+  if(voice){
+   utterance.voice=voice;
+  }
+
+  connectedVoiceUtterance=utterance;
+  connectedVoiceLastError=null;
+
+  utterance.onstart=()=>{
+   if(connectedVoiceUtterance!==utterance)return;
+
+   connectedVoiceStarted=value;
+  };
+
+  utterance.onend=()=>{
+   if(connectedVoiceUtterance!==utterance)return;
+
+   connectedVoiceUtterance=null;
+  };
+
+  utterance.onerror=event=>{
+   if(connectedVoiceUtterance!==utterance)return;
+
+   connectedVoiceLastError=
+    String(event?.error||'speech-error');
+
+   connectedVoiceUtterance=null;
+  };
+
+  window.speechSynthesis.speak(utterance);
+
+  return true;
+
+ }catch(error){
+  connectedVoiceLastError=
+   String(
+    error?.message||
+    error||
+    'speech-error'
+   );
+
+  connectedVoiceUtterance=null;
+
+  return false;
+ }
+}
+
+
+function scheduleConnectedVoiceEvent(){
+ clearConnectedVoiceEventTimer();
+
+ if(
+  page!=='ao-vivo'||
+  connectedVoiceCurrentTotal===null||
+  !connectedVoicePendingEvent||
+  !txRxSoundEnabled||
+  !connectedVoiceUserActivated||
+  !connectedVoiceSupported()||
+  connectedVoiceTxActive()
+ ){
+  return;
+ }
+
+ connectedVoiceEventTimer=setTimeout(
+  ()=>{
+   connectedVoiceEventTimer=null;
+
+   /*
+    * V10.3:
+    * TX ganhou prioridade.
+    *
+    * Se alguem estiver transmitindo agora,
+    * o evento continua pendente.
+    */
+   if(connectedVoiceTxActive()){
+    connectedVoicePendingEvent=true;
+    return;
+   }
+
+   /*
+    * Somente consumimos o evento quando
+    * realmente chegou a hora de falar
+    * SEM transmissao ativa.
+    */
+   connectedVoicePendingEvent=false;
+
+   speakConnectedCount(
+    connectedVoiceCurrentTotal,
+    'event'
+   );
+  },
+  CONNECTED_VOICE_DEBOUNCE_MS
+ );
+}
+
+
+/*
+ * Se o navegador atrasar timers em segundo plano,
+ * nao toca todas as repeticoes atrasadas.
+ * Avanca direto para o proximo ciclo futuro.
+ */
+function advanceConnectedVoiceRepeat(now){
+ if(!connectedVoiceNextRepeatAt)return;
+
+ while(connectedVoiceNextRepeatAt<=now){
+  connectedVoiceNextRepeatAt+=
+   CONNECTED_VOICE_REPEAT_MS;
+ }
+}
+
+
+function trackConnectedCountVoice(data){
+ if(page!=='ao-vivo')return;
+
+ const now=Date.now();
+
+ const value=
+  connectedVoiceValue(
+   data?.connected_count
+  );
+
+ const signature=
+  connectedVoiceBuildSignature(data);
+
+ connectedVoiceCurrentTotal=value;
+
+
+ /*
+  * Primeira leitura da pagina:
+  * baseline atual + primeira fala apos 3 segundos.
+  */
+ if(connectedVoiceSignature===null){
+  connectedVoiceSignature=signature;
+
+  connectedVoiceLastConnectionChangeAt=now;
+
+  connectedVoiceNextRepeatAt=
+   now+CONNECTED_VOICE_REPEAT_MS;
+
+  connectedVoicePendingEvent=true;
+
+  scheduleConnectedVoiceEvent();
+
+  return;
+ }
+
+
+ /*
+  * Mudou a composicao das conexoes:
+  * alguem entrou, saiu ou reconectou.
+  */
+ if(signature!==connectedVoiceSignature){
+  connectedVoiceSignature=signature;
+
+  connectedVoiceLastConnectionChangeAt=now;
+
+  connectedVoiceNextRepeatAt=
+   now+CONNECTED_VOICE_REPEAT_MS;
+
+  connectedVoicePendingEvent=true;
+
+  /*
+   * Nova mudanca reinicia os 3 segundos.
+   */
+  scheduleConnectedVoiceEvent();
+
+  return;
+ }
+
+
+ /*
+  * Se aguardava a fala e antes faltava liberacao
+  * de audio, permite reagendar depois.
+  */
+ if(
+  connectedVoicePendingEvent &&
+  connectedVoiceEventTimer===null
+ ){
+  scheduleConnectedVoiceEvent();
+ }
+
+
+ /*
+  * Repeticao a cada 30 minutos SEM
+  * qualquer conexao/desconexao.
+  *
+  * TX/RX nao altera connectedVoiceSignature.
+  */
+ if(
+  connectedVoiceNextRepeatAt &&
+  now>=connectedVoiceNextRepeatAt &&
+  !connectedVoiceTxActive()
+ ){
+  speakConnectedCount(
+   connectedVoiceCurrentTotal,
+   'repeat'
+  );
+
+  advanceConnectedVoiceRepeat(now);
+ }
+}
+
+
+function armConnectedVoice(){
+ if(page!=='ao-vivo')return;
+
+ connectedVoiceUserActivated=true;
+
+ scheduleConnectedVoiceEvent();
+}
+
+
+if(page==='ao-vivo'){
+ document.addEventListener(
+  'pointerdown',
+  armConnectedVoice,
+  {
+   once:true,
+   passive:true
+  }
+ );
+
+ document.addEventListener(
+  'keydown',
+  armConnectedVoice,
+  {
+   once:true
+  }
+ );
+}
+
+
+/* /XLX026_CONNECTED_COUNT_VOICE_V101 */
+
 
 function updateTxRxSoundButton(){
  const button=document.getElementById('txRxSoundButton');
@@ -418,6 +882,10 @@ document.addEventListener(
  true
 );
 
+/*
+ * XLX026_TXRX_SOUND_STRONG_V1
+ * Sinais TX/RX mais fortes e distintos.
+ */
 function playTxRxTone(frequency,duration,delay){
  if(!txRxSoundEnabled)return;
 
@@ -441,13 +909,13 @@ function playTxRxTone(frequency,duration,delay){
  const oscillator=txRxAudioContext.createOscillator();
  const gain=txRxAudioContext.createGain();
 
- oscillator.type='sine';
+ oscillator.type='triangle';
  oscillator.frequency.setValueAtTime(frequency,start);
 
  gain.gain.setValueAtTime(0.0001,start);
  gain.gain.exponentialRampToValueAtTime(
-  0.16,
-  start+0.01
+  0.32,
+  start+0.008
  );
  gain.gain.exponentialRampToValueAtTime(
   0.0001,
@@ -461,13 +929,23 @@ function playTxRxTone(frequency,duration,delay){
  oscillator.stop(start+(duration/1000)+0.02);
 }
 
+/*
+ * Início: bip único, mais agudo e forte.
+ */
 function playTxStartedSound(){
- playTxRxTone(880,120,0);
+ playTxRxTone(1120,150,0);
 }
 
+/*
+ * Final: dois bips descendentes.
+ */
+/*
+ * XLX026_TXRX_END_DOUBLE_BEEP_V1
+ * Fim de TX com dois bips mais separados e nítidos.
+ */
 function playTxEndedSound(){
- playTxRxTone(660,90,0);
- playTxRxTone(660,90,160);
+ playTxRxTone(760,95,0);
+ playTxRxTone(520,95,230);
 }
 
 function detectTxRxSound(active){
@@ -495,6 +973,7 @@ function detectTxRxSound(active){
  );
 
  if(started){
+  deferConnectedVoiceForTx();
   playTxStartedSound();
  }
 
@@ -514,7 +993,6 @@ function renderLiveTxRxOnly(live){
  const moduleGrid=document.getElementById('moduleGrid');
  const widgetCount=document.getElementById('widgetCount');
  const headerActive=document.getElementById('headerActive');
- const serverLine=document.getElementById('serverLine');
 
  const active=Object.values(lastData.modules)
   .filter(module=>module.transmission);
@@ -556,11 +1034,6 @@ function renderLiveTxRxOnly(live){
   headerActive.textContent=live.active_count;
  }
 
- if(serverLine){
-  serverLine.textContent=
-   `Atualizado às ${fmtTime(live.generated_at)}`;
- }
-
  /*
   * Redesenha o conteúdo visual somente quando houver
   * alteração efetiva no estado TX/RX.
@@ -575,7 +1048,7 @@ function renderLiveTxRxOnly(live){
     .map(txCard)
     .join('');
 
-   window.XLXMTR?.sync(
+   window.XLX026MTR?.sync(
     active.slice(0,3)
    );
   }else{
@@ -590,7 +1063,7 @@ function renderLiveTxRxOnly(live){
      standbyCard(standbyModule,newest);
    }
 
-   window.XLXMTR?.sync([]);
+   window.XLX026MTR?.sync([]);
   }
 
   lastLiveVisualSignature=visualSignature;
@@ -639,6 +1112,19 @@ async function updateLiveTxRx(){
   lastData.active_count=live.active_count;
   lastData.generated_at=live.generated_at;
 
+  /*
+   * V10.3:
+   * acabou todo TX e existe anuncio pendente:
+   * inicia os 3 segundos somente agora.
+   */
+  if(
+   Number(live.active_count||0)===0 &&
+   connectedVoicePendingEvent &&
+   connectedVoiceEventTimer===null
+  ){
+   scheduleConnectedVoiceEvent();
+  }
+
   renderLiveTxRxOnly(live);
  }catch(error){
  }finally{
@@ -647,25 +1133,80 @@ async function updateLiveTxRx(){
  }
 }
 
+const LIVE_POLL_ACTIVE_MS=250;
+const LIVE_POLL_STANDBY_MS=500;
+
+let liveLoopEnabled=false;
+
+function livePollDelay(){
+ return Number(lastData?.active_count||0)>0
+  ? LIVE_POLL_ACTIVE_MS
+  : LIVE_POLL_STANDBY_MS;
+}
+
+async function runLiveTxRxLoop(){
+ if(
+  !liveLoopEnabled||
+  document.hidden||
+  page!=='ao-vivo'
+ ){
+  liveUpdateTimer=null;
+  return;
+ }
+
+ const cycleStarted=performance.now();
+
+ await updateLiveTxRx();
+
+ if(
+  !liveLoopEnabled||
+  document.hidden||
+  page!=='ao-vivo'
+ ){
+  liveUpdateTimer=null;
+  return;
+ }
+
+ const targetDelay=livePollDelay();
+
+ const elapsed=
+  performance.now()-cycleStarted;
+
+ const wait=Math.max(
+  0,
+  targetDelay-elapsed
+ );
+
+ liveUpdateTimer=setTimeout(
+  runLiveTxRxLoop,
+  wait
+ );
+}
+
 function startLiveTxRx(){
+ if(page!=='ao-vivo')return;
+
+ liveLoopEnabled=true;
+
  if(
   liveUpdateTimer!==null||
-  page!=='ao-vivo'
+  liveUpdateRunning
  )return;
 
  ensureTxRxSoundButton();
- updateLiveTxRx();
 
- liveUpdateTimer=setInterval(
-  updateLiveTxRx,
-  250
+ liveUpdateTimer=setTimeout(
+  runLiveTxRxLoop,
+  0
  );
 }
 
 function stopLiveTxRx(){
+ liveLoopEnabled=false;
+
  if(liveUpdateTimer===null)return;
 
- clearInterval(liveUpdateTimer);
+ clearTimeout(liveUpdateTimer);
  liveUpdateTimer=null;
 }
 
@@ -682,15 +1223,23 @@ function stopStatusUpdates(){
 }
 document.addEventListener('visibilitychange',()=>{
  if(document.hidden){
-  stopStatusUpdates();
+  if(page!=='ao-vivo'){
+   stopStatusUpdates();
+  }
+
   stopLiveTxRx();
+
  }else{
   startStatusUpdates();
   startLiveTxRx();
  }
 });
-if(!document.hidden){
+
+if(page==='ao-vivo'||!document.hidden){
  startStatusUpdates();
+}
+
+if(!document.hidden){
  startLiveTxRx();
 }
 loadReflectors();
@@ -1052,12 +1601,14 @@ toggle?.addEventListener('click',()=>{if(!nav)return;const open=nav.classList.to
 })();
 
 /* ==========================================================
-   XLX026_TX_CALLSIGN_FIX_V1
-   SOMENTE BOX VERMELHO DE TRANSMISSAO
+   XLX026_TX_CALLSIGN_FIX_V2
+   OTIMIZADO
    ========================================================== */
 (function () {
-  if (window.__XLX026_TX_CALLSIGN_FIX_V1__) return;
-  window.__XLX026_TX_CALLSIGN_FIX_V1__ = true;
+  'use strict';
+
+  if (window.__XLX026_TX_CALLSIGN_FIX_V2__) return;
+  window.__XLX026_TX_CALLSIGN_FIX_V2__ = true;
 
   function normalizeLiveCallsign(raw) {
     const txt = String(raw || '')
@@ -1067,50 +1618,134 @@ toggle?.addEventListener('click',()=>{if(!nav)return;const open=nav.classList.to
 
     if (!txt) return '';
 
-    /* Ex.: PY1RCM B -> PY1RCM-B
-       Ex.: PU2PNY D -> PU2PNY-D */
-    const m = txt.match(/^([A-Z0-9\/]+)\s+([A-Z])$/);
+    const match =
+      txt.match(/^([A-Z0-9\/]+)\s+([A-Z])$/);
 
-    if (m) {
-      return m[1] + '-' + m[2];
+    if (match) {
+      return match[1] + '-' + match[2];
     }
 
     return txt;
   }
 
   function fixLiveTxCard() {
-    if (!document.body || document.body.dataset.page !== 'ao-vivo') return;
+    if (
+      !document.body ||
+      document.body.dataset.page !== 'ao-vivo'
+    ) {
+      return;
+    }
 
-    document.querySelectorAll('.tx-card.live .callsign').forEach(function(el) {
-      const fixed = normalizeLiveCallsign(el.textContent);
-      if (fixed) {
-        el.textContent = fixed;
-      }
-      el.style.whiteSpace = 'nowrap';
-      el.style.wordBreak = 'normal';
-      el.style.overflowWrap = 'normal';
-    });
+    const grid =
+      document.getElementById('moduleGrid');
+
+    if (!grid) return;
+
+    grid
+      .querySelectorAll(
+        '.tx-card.live .callsign'
+      )
+      .forEach(function (el) {
+
+        const current =
+          String(el.textContent || '')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .toUpperCase();
+
+        const fixed =
+          normalizeLiveCallsign(current);
+
+        /*
+         * Só altera conteúdo quando realmente necessário.
+         */
+        if (
+          fixed &&
+          fixed !== current
+        ) {
+          el.textContent = fixed;
+        }
+
+        if (
+          el.style.whiteSpace !== 'nowrap'
+        ) {
+          el.style.whiteSpace = 'nowrap';
+        }
+
+        if (
+          el.style.wordBreak !== 'normal'
+        ) {
+          el.style.wordBreak = 'normal';
+        }
+
+        if (
+          el.style.overflowWrap !== 'normal'
+        ) {
+          el.style.overflowWrap = 'normal';
+        }
+      });
   }
 
-  document.addEventListener('DOMContentLoaded', function () {
+  function startCallsignFix() {
+
+    const grid =
+      document.getElementById('moduleGrid');
+
+    if (!grid) return;
+
+    let scheduled = false;
+
+    function scheduleFix() {
+
+      if (scheduled) return;
+
+      scheduled = true;
+
+      window.requestAnimationFrame(
+        function () {
+          scheduled = false;
+          fixLiveTxCard();
+        }
+      );
+    }
+
+    /*
+     * Primeira verificação.
+     */
     fixLiveTxCard();
 
-    const target = document.body;
-    const observer = new MutationObserver(function () {
-      fixLiveTxCard();
-    });
+    /*
+     * Observa somente o box que realmente muda.
+     * Não observa mais o document.body inteiro.
+     */
+    const observer =
+      new MutationObserver(scheduleFix);
 
-    observer.observe(target, {
-      childList: true,
-      subtree: true,
-      characterData: true
-    });
+    observer.observe(
+      grid,
+      {
+        childList: true,
+        subtree: true,
+        characterData: true
+      }
+    );
+  }
 
-    setInterval(fixLiveTxCard, 1500);
-  });
+  if (
+    document.readyState === 'loading'
+  ) {
+    document.addEventListener(
+      'DOMContentLoaded',
+      startCallsignFix,
+      { once: true }
+    );
+  } else {
+    startCallsignFix();
+  }
+
 })();
 
-/* FIM XLX026_TX_CALLSIGN_FIX_V1 */
+/* FIM XLX026_TX_CALLSIGN_FIX_V2 */
 
 
 

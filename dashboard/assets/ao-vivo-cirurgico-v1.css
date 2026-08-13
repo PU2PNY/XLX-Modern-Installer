@@ -1,0 +1,328 @@
+/*
+ * XLX026 AO VIVO CIRURGICO V1
+ *
+ * Escopo deliberadamente restrito a:
+ * body[data-page="ao-vivo"]
+ *
+ * Objetivos:
+ * - resumo de conexoes no topo;
+ * - protocolo em destaque sem aumentar a altura dos detalhes;
+ * - suportar 1, 2 e 3 transmissoes;
+ * - impedir overflow/sobreposicao.
+ */
+
+/* ============================================================
+   CONTADORES NO TOPO
+   ============================================================ */
+
+body[data-page="ao-vivo"] .live-widget > .live-summary-bar{
+    display:grid !important;
+    grid-template-columns:
+        minmax(0,1fr)
+        minmax(0,1fr) !important;
+    align-items:stretch !important;
+    gap:6px !important;
+
+    width:100% !important;
+    min-width:0 !important;
+
+    margin:0 0 9px !important;
+    padding:0 !important;
+
+    box-sizing:border-box !important;
+}
+
+body[data-page="ao-vivo"] .live-widget .live-summary-item{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+
+    gap:5px !important;
+
+    min-width:0 !important;
+    min-height:30px !important;
+
+    margin:0 !important;
+    padding:5px 8px !important;
+
+    overflow:hidden !important;
+
+    border:1px solid rgba(40,81,100,.90) !important;
+    border-radius:9px !important;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(8,31,42,.96),
+            rgba(5,23,32,.96)
+        ) !important;
+
+    box-sizing:border-box !important;
+}
+
+body[data-page="ao-vivo"] .live-widget .live-summary-item b{
+    flex:0 0 auto !important;
+
+    margin:0 !important;
+
+    color:#ffffff !important;
+
+    font-size:clamp(14px,1.35vw,18px) !important;
+    font-weight:900 !important;
+    line-height:1 !important;
+
+    font-variant-numeric:tabular-nums !important;
+}
+
+body[data-page="ao-vivo"] .live-widget .live-summary-item small{
+    display:block !important;
+
+    min-width:0 !important;
+
+    margin:0 !important;
+
+    color:#b7cfda !important;
+
+    font-size:clamp(8px,.72vw,10px) !important;
+    font-weight:700 !important;
+    line-height:1 !important;
+
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+}
+
+body[data-page="ao-vivo"] .live-widget .live-summary-connected{
+    border-color:rgba(0,216,255,.30) !important;
+}
+
+body[data-page="ao-vivo"] .live-widget .live-summary-connected b{
+    color:#eaffff !important;
+}
+
+body[data-page="ao-vivo"] .live-widget .live-summary-active{
+    border-color:rgba(255,49,92,.28) !important;
+}
+
+body[data-page="ao-vivo"] .live-widget .live-summary-active b{
+    color:#ff91aa !important;
+}
+
+
+/* ============================================================
+   PROTOCOLO EM USO
+   ============================================================ */
+
+body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.live.tx-v30
+.tx-v30-details
+> .tx-v30-protocol-box{
+    min-width:0 !important;
+
+    border-color:rgba(0,216,255,.42) !important;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(0,216,255,.09),
+            rgba(7,27,37,.91)
+        ) !important;
+}
+
+body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.live.tx-v30
+.tx-v30-protocol-box
+> small{
+    color:#86dff0 !important;
+}
+
+body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.live.tx-v30
+.tx-v30-protocol-line{
+    display:flex !important;
+    flex-direction:row !important;
+    align-items:center !important;
+
+    gap:5px !important;
+
+    width:100% !important;
+    min-width:0 !important;
+    max-width:100% !important;
+
+    margin:0 !important;
+
+    line-height:1 !important;
+
+    white-space:nowrap !important;
+    overflow:hidden !important;
+
+    box-sizing:border-box !important;
+}
+
+body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.live.tx-v30
+.tx-v30-protocol-value{
+    display:inline-flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+
+    flex:0 1 auto !important;
+
+    min-width:0 !important;
+    max-width:68% !important;
+
+    margin:0 !important;
+    padding:3px 6px !important;
+
+    border:1px solid rgba(0,216,255,.55) !important;
+    border-radius:999px !important;
+
+    background:rgba(0,216,255,.12) !important;
+
+    color:#bff7ff !important;
+
+    font-size:clamp(9px,.88vw,13px) !important;
+    font-weight:950 !important;
+    line-height:1 !important;
+    letter-spacing:.025em !important;
+
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+
+    box-shadow:
+        0 0 10px rgba(0,216,255,.08) !important;
+
+    box-sizing:border-box !important;
+}
+
+body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.live.tx-v30
+.tx-v30-module-inline{
+    display:inline-block !important;
+
+    flex:0 1 auto !important;
+
+    min-width:0 !important;
+
+    color:#a8c7d4 !important;
+
+    font-size:clamp(7px,.62vw,9px) !important;
+    font-weight:800 !important;
+    line-height:1 !important;
+
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+}
+
+
+/* ============================================================
+   PROTECAO CONTRA SOBREPOSICAO
+   ============================================================ */
+
+body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.live.tx-v30
+.tx-v30-details,
+body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.live.tx-v30
+.tx-v30-details
+> div{
+    min-width:0 !important;
+}
+
+body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.live.tx-v30
+.tx-v30-details
+> div{
+    overflow:hidden !important;
+}
+
+
+/* ============================================================
+   TELAS ESTREITAS
+   ============================================================ */
+
+@media (max-width:700px){
+
+    body[data-page="ao-vivo"]
+    .live-widget
+    > .live-summary-bar{
+        gap:5px !important;
+        margin-bottom:7px !important;
+    }
+
+    body[data-page="ao-vivo"]
+    .live-widget
+    .live-summary-item{
+        min-height:28px !important;
+        padding:4px 6px !important;
+    }
+
+    body[data-page="ao-vivo"]
+    .live-widget
+    .live-summary-item b{
+        font-size:14px !important;
+    }
+
+    body[data-page="ao-vivo"]
+    .live-widget
+    .live-summary-item small{
+        font-size:8px !important;
+    }
+
+    body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-protocol-value{
+        max-width:66% !important;
+        padding:2px 5px !important;
+        font-size:9px !important;
+    }
+
+    body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-module-inline{
+        font-size:7px !important;
+    }
+}
+
+
+/* ============================================================
+   CARDS MUITO ESTREITOS — 2/3 TX OU LAYOUT COMPACTADO
+   ============================================================ */
+
+@container (max-width:260px){
+
+    body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-protocol-line{
+        gap:3px !important;
+    }
+
+    body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-protocol-value{
+        max-width:64% !important;
+        padding:2px 4px !important;
+        font-size:8px !important;
+    }
+
+    body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-module-inline{
+        font-size:6px !important;
+    }
+}

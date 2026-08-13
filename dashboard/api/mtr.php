@@ -386,17 +386,19 @@ if (
 }
 
 /*
- * Obtém o destino diretamente da API rápida.
- * O navegador não escolhe nem envia o endereço IP.
+ * Obtém o destino diretamente da mesma API rápida,
+ * executando-a localmente pelo PHP CLI.
+ *
+ * Evita a cadeia:
+ * mtr.php -> curl -> Apache -> live.php
+ *
+ * O navegador continua sem escolher nem enviar o endereço IP.
  */
 $liveResult = runCommand([
-    '/usr/bin/curl',
-    '-ksS',
-    '--max-time',
-    '3',
-    'https://127.0.0.1/api/live.php?mtr=1',
-    '-H',
-    'Host: {{REFLECTOR_DOMAIN}}',
+    '/usr/bin/php',
+    '-d',
+    'date.timezone=America/Sao_Paulo',
+    __DIR__ . '/live.php',
 ]);
 
 $live = json_decode(
