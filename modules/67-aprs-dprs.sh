@@ -10,9 +10,9 @@ warn(){ printf '%s[ATENÇÃO]%s %s\n' "$YELLOW" "$RESET" "$*"; }
 fatal(){ printf '%s[ERRO]%s %s\n' "$RED" "$RESET" "$*" >&2; exit 1; }
 
 readonly APRS_REPOSITORY="PU2PNY/XLX-APRS-DPRS"
-readonly APRS_COMMIT="771abaa0c1ea662f33f3fa0c4a59ec712b1e4fcb"
+readonly APRS_COMMIT="a6caec929f0098cf940093f2ccf9e23cddeaa2a5"
 readonly APRS_INSTALLER_SHA256="0c5c26adbf9b54fe803e3cbaf2ddc17e4ba737f7c9f3b5606231b67c9a9403f9"
-readonly APRS_MANIFEST_SHA256="b4a0e8f1e1fec7e894cff4c61b18c5891122278ecf5f2f666e5398b361c808d4"
+readonly APRS_MANIFEST_SHA256="98a16770ca0d06194d6c67c82d4fe7146dd8a06a72b26eb92ac8eef8d0856e4e"
 readonly VENDOR_ROOT="/opt/xlx-modern-installer/vendor/xlx-aprs-dprs"
 
 MODE="install"
