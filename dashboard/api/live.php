@@ -7,7 +7,7 @@ header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
 
 $logFile = '/var/log/xlx.log';
-$statusCache = '/var/cache/xlx-dashboard/status.json';
+$statusCache = '/var/cache/xlx026-dashboard/status.json';
 
 if (!is_readable($logFile)) {
     http_response_code(503);

@@ -1,0 +1,588 @@
+/*
+ * XLX026 BRASIL
+ * ACCESSIBILITY V3
+ *
+ * Camada independente.
+ * Não contém áudio, polling ou lógica TX/RX.
+ */
+
+/* ================================================================
+   FOCO VISÍVEL
+================================================================ */
+
+a:focus,
+button:focus,
+input:focus,
+select:focus,
+textarea:focus,
+summary:focus,
+[tabindex]:focus {
+    outline: 3px solid #ffbf00 !important;
+    outline-offset: 3px !important;
+}
+
+/* ================================================================
+   PULAR PARA CONTEÚDO
+================================================================ */
+
+#xlx-a11y-skip {
+    position: fixed;
+    top: 8px;
+    left: 8px;
+    z-index: 2147483647;
+
+    padding: 12px 16px;
+
+    background: #fff;
+    color: #000;
+
+    border: 3px solid #000;
+    border-radius: 8px;
+
+    font-family: Arial, sans-serif;
+    font-weight: bold;
+
+    text-decoration: none;
+
+    transform: translateY(-180%);
+}
+
+#xlx-a11y-skip:focus {
+    transform: translateY(0);
+}
+
+/* ================================================================
+   LANÇADOR
+================================================================ */
+
+#xlx-a11y-launcher {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+
+    z-index: 2147483000;
+
+    display: inline-flex;
+    align-items: stretch;
+
+    border-radius: 10px;
+
+    box-shadow: 0 5px 22px rgba(0,0,0,.38);
+}
+
+#xlx-a11y-trigger {
+    min-height: 48px;
+
+    padding: 9px 13px;
+
+    border: 2px solid #fff;
+    border-right: 0;
+
+    border-radius: 10px 0 0 10px;
+
+    background: #111;
+    color: #fff;
+
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    font-weight: bold;
+
+    cursor: pointer;
+}
+
+#xlx-a11y-hide {
+    width: 42px;
+    min-height: 48px;
+
+    border: 2px solid #fff;
+
+    border-radius: 0 10px 10px 0;
+
+    background: #242424;
+    color: #fff;
+
+    font-family: Arial, sans-serif;
+    font-size: 20px;
+    font-weight: bold;
+
+    cursor: pointer;
+}
+
+#xlx-a11y-hide:hover,
+#xlx-a11y-hide:focus {
+    background: #690000;
+}
+
+/* ================================================================
+   LANÇADOR DENTRO DO MENU
+================================================================ */
+
+#xlx-a11y-launcher.xlx-a11y-in-menu {
+    position: static !important;
+
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    top: auto !important;
+
+    z-index: auto !important;
+
+    margin: 2px 5px !important;
+
+    box-shadow: none !important;
+}
+
+.xlx-a11y-menu-holder {
+    list-style: none !important;
+
+    display: flex !important;
+    align-items: center !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* ================================================================
+   PAINEL
+================================================================ */
+
+#xlx-a11y-panel {
+    position: fixed;
+
+    right: 16px;
+    bottom: 78px;
+
+    z-index: 2147483500;
+
+    width: 370px;
+    max-width: calc(100vw - 30px);
+    max-height: calc(100vh - 100px);
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    background: #fff;
+    color: #111;
+
+    border: 2px solid #222;
+    border-radius: 14px;
+
+    box-shadow: 0 10px 42px rgba(0,0,0,.46);
+
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+}
+
+#xlx-a11y-panel[hidden] {
+    display: none !important;
+}
+
+.xlx-a11y-head {
+    position: sticky;
+    top: 0;
+
+    z-index: 5;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 13px 14px;
+
+    background: #111;
+    color: #fff;
+}
+
+.xlx-a11y-head strong {
+    font-size: 18px;
+}
+
+#xlx-a11y-close {
+    width: 42px;
+    height: 42px;
+
+    border: 2px solid #fff;
+    border-radius: 8px;
+
+    background: #111;
+    color: #fff;
+
+    font-size: 24px;
+
+    cursor: pointer;
+}
+
+.xlx-a11y-body {
+    padding: 15px;
+}
+
+.xlx-a11y-description {
+    margin: 0 0 14px;
+
+    line-height: 1.5;
+}
+
+.xlx-a11y-label {
+    display: block;
+
+    margin: 13px 0 7px;
+
+    font-weight: bold;
+}
+
+/* ================================================================
+   FONTE
+================================================================ */
+
+.xlx-a11y-font-controls {
+    display: flex;
+    gap: 7px;
+}
+
+.xlx-a11y-font-controls button {
+    flex: 1;
+
+    min-height: 45px;
+
+    border: 2px solid #444;
+    border-radius: 8px;
+
+    background: #f5f5f5;
+    color: #111;
+
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    font-weight: bold;
+
+    cursor: pointer;
+}
+
+/* ================================================================
+   SWITCHES
+================================================================ */
+
+.xlx-a11y-option {
+    width: 100%;
+    min-height: 49px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 10px;
+
+    margin: 7px 0;
+    padding: 9px 11px;
+
+    border: 2px solid #555;
+    border-radius: 9px;
+
+    background: #fff;
+    color: #111;
+
+    font-family: Arial, sans-serif;
+    font-size: 15px;
+    font-weight: bold;
+
+    text-align: left;
+
+    cursor: pointer;
+}
+
+.xlx-a11y-option:after {
+    content: "OFF";
+
+    min-width: 43px;
+
+    padding: 4px 6px;
+
+    border-radius: 20px;
+
+    background: #ddd;
+    color: #111;
+
+    font-size: 11px;
+    font-weight: bold;
+
+    text-align: center;
+}
+
+.xlx-a11y-option[aria-checked="true"] {
+    border-color: #09652a;
+    background: #edf9f0;
+}
+
+.xlx-a11y-option[aria-checked="true"]:after {
+    content: "ON";
+
+    background: #09652a;
+    color: #fff;
+}
+
+/* ================================================================
+   AÇÕES
+================================================================ */
+
+.xlx-a11y-actions {
+    margin-top: 14px;
+
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+
+    gap: 8px;
+}
+
+.xlx-a11y-actions button {
+    min-height: 45px;
+
+    border: 2px solid #333;
+    border-radius: 8px;
+
+    background: #f7f7f7;
+    color: #111;
+
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    font-weight: bold;
+
+    cursor: pointer;
+}
+
+#xlx-a11y-reset {
+    border-color: #8b0000;
+    color: #8b0000;
+}
+
+/* ================================================================
+   DIAGNÓSTICO
+================================================================ */
+
+#xlx-a11y-diagnostic {
+    display: none;
+
+    margin-top: 11px;
+    padding: 10px;
+
+    border: 2px solid #555;
+    border-radius: 8px;
+
+    background: #f7f7f7;
+    color: #111;
+
+    line-height: 1.45;
+    font-size: 13px;
+}
+
+#xlx-a11y-diagnostic.xlx-show {
+    display: block;
+}
+
+#xlx-a11y-diagnostic strong {
+    display: block;
+
+    margin-bottom: 5px;
+}
+
+/* ================================================================
+   LINKS DESTACADOS
+================================================================ */
+
+html.xlx-a11y-links a {
+    text-decoration: underline !important;
+
+    text-decoration-thickness: 2px !important;
+    text-underline-offset: 3px !important;
+}
+
+/* ================================================================
+   LEITURA FACILITADA
+================================================================ */
+
+html.xlx-a11y-readable body {
+    line-height: 1.65 !important;
+
+    letter-spacing: .015em !important;
+    word-spacing: .045em !important;
+}
+
+html.xlx-a11y-readable p,
+html.xlx-a11y-readable li,
+html.xlx-a11y-readable td,
+html.xlx-a11y-readable th,
+html.xlx-a11y-readable label {
+    line-height: 1.7 !important;
+}
+
+/* ================================================================
+   CONTROLES MAIORES
+================================================================ */
+
+html.xlx-a11y-controls button,
+html.xlx-a11y-controls select,
+html.xlx-a11y-controls textarea,
+html.xlx-a11y-controls input,
+html.xlx-a11y-controls summary,
+html.xlx-a11y-controls [role="button"],
+html.xlx-a11y-controls nav a {
+    min-height: 44px !important;
+}
+
+html.xlx-a11y-controls button,
+html.xlx-a11y-controls [role="button"],
+html.xlx-a11y-controls nav a {
+    min-width: 44px;
+}
+
+/* ================================================================
+   ALTO CONTRASTE
+================================================================ */
+
+html.xlx-a11y-contrast body {
+    background: #fff !important;
+    color: #000 !important;
+}
+
+html.xlx-a11y-contrast main,
+html.xlx-a11y-contrast article,
+html.xlx-a11y-contrast section,
+html.xlx-a11y-contrast aside,
+html.xlx-a11y-contrast .card,
+html.xlx-a11y-contrast .box,
+html.xlx-a11y-contrast .panel,
+html.xlx-a11y-contrast .widget,
+html.xlx-a11y-contrast .table-wrapper,
+html.xlx-a11y-contrast table {
+    border-color: #333 !important;
+}
+
+html.xlx-a11y-contrast table {
+    background: #fff !important;
+    color: #000 !important;
+}
+
+html.xlx-a11y-contrast th {
+    background: #111 !important;
+    color: #fff !important;
+}
+
+html.xlx-a11y-contrast td {
+    background: #fff !important;
+    color: #000 !important;
+    border-color: #555 !important;
+}
+
+html.xlx-a11y-contrast input,
+html.xlx-a11y-contrast select,
+html.xlx-a11y-contrast textarea {
+    background: #fff !important;
+    color: #000 !important;
+
+    border: 2px solid #111 !important;
+}
+
+html.xlx-a11y-contrast a {
+    color: #0047a8;
+}
+
+html.xlx-a11y-contrast a:visited {
+    color: #551a8b;
+}
+
+/*
+ * Intencional:
+ * não sobrescrever globalmente badges/estados TX/RX.
+ * Vermelho, verde e demais indicadores operacionais
+ * continuam sob controle do painel original.
+ */
+
+/* ================================================================
+   MOVIMENTO REDUZIDO
+================================================================ */
+
+html.xlx-a11y-motion *,
+html.xlx-a11y-motion *:before,
+html.xlx-a11y-motion *:after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+
+    transition-duration: .001ms !important;
+
+    scroll-behavior: auto !important;
+}
+
+/*
+ * Não tentamos congelar GIFs operacionais porque isso poderia
+ * apagar ou falsear indicadores TX/RX do painel.
+ */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *:before,
+    *:after {
+        animation-duration: .001ms !important;
+        animation-iteration-count: 1 !important;
+
+        transition-duration: .001ms !important;
+
+        scroll-behavior: auto !important;
+    }
+}
+
+/* ================================================================
+   SOMENTE LEITOR DE TELA
+================================================================ */
+
+.xlx-a11y-sr {
+    position: absolute !important;
+
+    width: 1px !important;
+    height: 1px !important;
+
+    padding: 0 !important;
+    margin: -1px !important;
+
+    overflow: hidden !important;
+
+    clip: rect(0,0,0,0) !important;
+
+    white-space: nowrap !important;
+
+    border: 0 !important;
+}
+
+/* ================================================================
+   MOBILE
+================================================================ */
+
+@media (max-width: 520px) {
+
+    #xlx-a11y-launcher {
+        right: 8px;
+        bottom: 8px;
+    }
+
+    #xlx-a11y-trigger .xlx-a11y-trigger-text {
+        display: none;
+    }
+
+    #xlx-a11y-launcher.xlx-a11y-in-menu
+    .xlx-a11y-trigger-text {
+        display: inline;
+    }
+
+    #xlx-a11y-panel {
+        left: 7px;
+        right: 7px;
+
+        bottom: 65px;
+
+        width: auto;
+
+        max-width: none;
+        max-height: calc(100vh - 80px);
+    }
+
+    .xlx-a11y-actions {
+        grid-template-columns: 1fr;
+    }
+}

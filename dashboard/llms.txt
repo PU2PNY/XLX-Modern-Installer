@@ -1,13 +1,14 @@
-# {{REFLECTOR_TITLE}}
+# XLX026 Brasil
 
-{{REFLECTOR_TITLE}} é um refletor digital multiprotocolo para a comunidade radioamadora.
+XLX026 Brasil é um refletor digital multiprotocolo voltado à comunidade radioamadora brasileira.
 
 ## Conteúdo principal
-- Painel ao vivo: https://{{REFLECTOR_DOMAIN}}/
-- Módulos e acessos: https://{{REFLECTOR_DOMAIN}}/?page=modulos
-- Estações conectadas: https://{{REFLECTOR_DOMAIN}}/?page=conectados
-- Ranking de atividade recente: https://{{REFLECTOR_DOMAIN}}/?page=ranking
-- Lista de refletores XLX: https://{{REFLECTOR_DOMAIN}}/?page=refletores
+- Painel ao vivo: https://{{DOMAIN}}/
+- Módulos e acessos: https://{{DOMAIN}}/?page=modulos
+- Estações conectadas: https://{{DOMAIN}}/?page=conectados
+- Ranking de atividade recente: https://{{DOMAIN}}/?page=ranking
+- Lista de refletores XLX: https://{{DOMAIN}}/?page=refletores
+- Suporte e tutoriais: https://{{DOMAIN}}/?page=suporte
 
 ## Protocolos
 D-STAR, DMR e C4FM/YSF.

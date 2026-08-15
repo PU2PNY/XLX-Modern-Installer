@@ -78,7 +78,7 @@ function standbyCard(m,newest){
  return `<article class="tx-card standby compact-tx standby-v30">
   <div class="tx-top">
    <div>
-    <span class="module-badge">{{REFLECTOR_NAME}} AO VIVO</span>
+    <span class="module-badge">XLX026 AO VIVO</span>
     <h3>Aguardando transmissão</h3>
    </div>
    <span class="ready"><i></i> STANDBY</span>
@@ -94,12 +94,13 @@ function standbyCard(m,newest){
     <strong>${callsign}</strong>
     <span>${name}</span>
    </div>
+
   </div>
  </article>`
 }
 
 function toast(c){let el=document.createElement('div');el.className='toast';el.innerHTML=`<div class="toast-icon">${flag(c)}</div><div><strong>${esc(c.callsign)} — ${esc(c.name)}</strong><span>Conectou por ${esc(c.protocol)} • módulo ${esc(c.module)}</span></div>`;$('#toastStack')?.append(el);setTimeout(()=>el.classList.add('out'),7500);setTimeout(()=>el.remove(),8500)}
-function updateTitle(d){const active=Object.values(d.modules).filter(m=>m.transmission).map(m=>m.transmission.callsign);document.title=active.length?`(${d.connected_count}) ${active.join(' + ')} TX — {{REFLECTOR_NAME}}`:`(${d.connected_count}) {{REFLECTOR_TITLE}}`;}
+function updateTitle(d){const active=Object.values(d.modules).filter(m=>m.transmission).map(m=>m.transmission.callsign);document.title=active.length?`(${d.connected_count}) ${active.join(' + ')} TX — XLX026`:`(${d.connected_count}) XLX026 Brasil`;}
 function historyCallKey(x){return String(x?.callsign||'').trim().toUpperCase()}
 function historyRowId(callKey,index){const safe=Array.from(callKey).map(ch=>/[A-Z0-9_-]/.test(ch)?ch:'x'+ch.charCodeAt(0).toString(16)+'x').join('');return `history-${safe}-${index}`}
 function ensureHistoryDropdownStyles(){
@@ -179,10 +180,10 @@ function toggleHistoryGroup(callKey,button){
   else row.style.setProperty('display','none','important');
  });
 }
-function moduleInfo(m){const defs={A:['Envio de imagens D-STAR','Módulo A • imagens digitais','{{REFLECTOR_NAME}}-A'],B:['APRS / D-PRS','Dados digitais','{{REFLECTOR_NAME}}-B'],C:['C4FM/YSF e DMR','YSF {{YSF_ID}} • DMR TG {{DMR_TG}}','{{REFLECTOR_NAME}}-C'],D:['D-STAR','{{REFLECTOR_NAME}}-D / XRF{{REFLECTOR_NUMBER}}-D','{{REFLECTOR_NAME}}-D'],E:['D-STAR Echo','Teste de áudio','{{REFLECTOR_NAME}}-E']};return defs[m.module]||[m.configured_protocol,m.access,'{{REFLECTOR_NAME}}-'+m.module]}
+function moduleInfo(m){const defs={A:['Envio de imagens D-STAR','Módulo A • imagens digitais','XLX026-A'],B:['APRS / D-PRS','Dados digitais','XLX026-B'],C:['C4FM/YSF e DMR','YSF 72426 • DMR TG 4003','XLX026-C'],D:['D-STAR','XLX026-D / XRF026-D','XLX026-D'],E:['D-STAR Echo','Teste de áudio','XLX026-E']};return defs[m.module]||[m.configured_protocol,m.access,'XLX026-'+m.module]}
 function renderModules(d){$('#moduleOverview').innerHTML=Object.values(d.modules).map(m=>{const i=moduleInfo(m);return `<article class="module-mini ${m.transmission?'active':''}"><div class="module-mini-top"><span class="module-letter">${esc(m.module)}</span><span class="module-count">${m.connected_count} conectado${m.connected_count===1?'':'s'}</span></div><strong>${esc(i[0])}</strong><small>${esc(i[1])}</small><div class="module-id">${esc(i[2])}</div><div class="module-state">${m.transmission?'<i class="red"></i> Transmitindo agora':'<i></i> Aguardando transmissão'}</div></article>`}).join('');
  const functions={A:'Imagens D-STAR',B:'APRS / D-PRS',C:'C4FM/YSF/DMR',D:'D-STAR',E:'Echo / teste'};
- const rows=Object.values(d.modules).map((m,idx)=>{const n=idx+1,letter=m.module;return `<tr><td><b>${esc(letter)}</b></td><td>${esc(functions[letter]||m.configured_protocol)}</td><td>${m.connected_count}</td><td>REF{{REFLECTOR_NUMBER}}${letter}L</td><td>*{{REFLECTOR_SHORT_NUMBER}}${letter}</td><td>XRF{{REFLECTOR_NUMBER}}${letter}L</td><td>B{{REFLECTOR_SHORT_NUMBER}}${letter}</td><td>DCS{{REFLECTOR_NUMBER}}${letter}L</td><td>D{{REFLECTOR_SHORT_NUMBER}}${letter}</td><td>${4000+n}</td><td>${9+n}</td></tr>`}).join('');$('#moduleReferenceRows').innerHTML=rows; }
+ const rows=Object.values(d.modules).map((m,idx)=>{const n=idx+1,letter=m.module;return `<tr><td><b>${esc(letter)}</b></td><td>${esc(functions[letter]||m.configured_protocol)}</td><td>${m.connected_count}</td><td>REF026${letter}L</td><td>*26${letter}</td><td>XRF026${letter}L</td><td>B26${letter}</td><td>DCS026${letter}L</td><td>D26${letter}</td><td>${4000+n}</td><td>${9+n}</td></tr>`}).join('');$('#moduleReferenceRows').innerHTML=rows; }
 function connectedRows(d,query=''){const q=query.trim().toLowerCase();const rows=d.connections.filter(c=>!q||[c.callsign,c.name,c.location,c.protocol,c.module].some(v=>String(v||'').toLowerCase().includes(q)));return rows.length?rows.map((c,i)=>`<tr><td>${i+1}</td><td>${flag(c)}</td><td><a target="_blank" href="${esc(c.qrz)}">${esc(c.callsign)}${c.suffix?' '+esc(c.suffix):''}</a></td><td>${esc(c.name)}</td><td>${esc(c.location)}</td><td><span class="protocol">${esc(c.protocol)}</span></td><td>${esc(c.module)}</td><td>${fmtTime(c.connected_at)}</td><td data-start="${c.connected_at}">${elapsed(c.connected_at)}</td><td>${fmtTime(c.last_activity)}</td></tr>`).join(''):`<tr><td colspan="10">Nenhuma estação corresponde à pesquisa.</td></tr>`}
 function rankList(items,valueLabel){return items.length?items.map((x,i)=>`<div class="rank-item"><span class="rank-pos">${i+1}</span><div><b>${esc(x.label)}</b><small>${esc(x.sub||'')}</small></div><strong>${esc(valueLabel(x.value))}</strong></div>`).join(''):'<div class="rank-empty">Dados insuficientes no histórico disponível.</div>'}
 function aggregate(arr,keyFn,valFn=()=>1){const m=new Map();arr.forEach(x=>{const k=keyFn(x);if(!k)return;const old=m.get(k)||{label:k,value:0,sub:''};old.value+=valFn(x);m.set(k,old)});return [...m.values()].sort((a,b)=>b.value-a.value)}
@@ -435,14 +436,6 @@ function connectedVoiceBuildSignature(data){
 }
 
 
-function connectedVoiceReflectorSpeech(){
- const reflector='{{REFLECTOR_NAME}}';
- const match=/^XLX(\d{3})$/i.exec(reflector);
- if(!match)return reflector;
- const words=['zero','um','dois','três','quatro','cinco','seis','sete','oito','nove'];
- return `XLX ${match[1].split('').map(d=>words[Number(d)]||d).join(' ')}`;
-}
-
 function speakConnectedCount(total,reason='event'){
  if(
   page!=='ao-vivo'||
@@ -462,7 +455,7 @@ function speakConnectedCount(total,reason='event'){
 
   const utterance=
    new SpeechSynthesisUtterance(
-    `${connectedVoiceReflectorSpeech()} com ${value} estações conectadas.`
+    `XLX zero vinte e seis com ${value} estações conectados.`
    );
 
   utterance.lang='pt-BR';

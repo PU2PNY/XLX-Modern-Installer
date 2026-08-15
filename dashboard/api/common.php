@@ -478,21 +478,38 @@ function history_log_lines(string $currentLog,int $bytes=4194304): array {
     if(is_readable($rotated)) $sources[]=['path'=>$rotated,'gzip'=>true];
     if(is_readable($currentLog)) $sources[]=['path'=>$currentLog,'gzip'=>false];
 
-    $lines=[];
+    /*
+     * XLX026_HISTORY_SORT_ONCE_V1
+     *
+     * Antes, parse_any_time() era executado repetidamente
+     * dentro do comparador do usort().
+     *
+     * Agora cada linha tem seu timestamp calculado uma única
+     * vez. A ordenação compara somente inteiros.
+     */
+    $rows=[];
     $seen=[];
+    $sequence=0;
 
     foreach($sources as $source){
         $raw='';
 
         if($source['gzip']){
             $handle=@gzopen($source['path'],'rb');
+
             if($handle){
                 while(!gzeof($handle)){
                     $chunk=gzread($handle,65536);
+
                     if($chunk===false) break;
+
                     $raw.=$chunk;
-                    if(strlen($raw)>$bytes) $raw=substr($raw,-$bytes);
+
+                    if(strlen($raw)>$bytes){
+                        $raw=substr($raw,-$bytes);
+                    }
                 }
+
                 gzclose($handle);
             }
         }else{
@@ -501,16 +518,44 @@ function history_log_lines(string $currentLog,int $bytes=4194304): array {
 
         foreach(preg_split('/\R/',$raw)?:[] as $line){
             if($line==='') continue;
+
             $hash=sha1($line);
+
             if(isset($seen[$hash])) continue;
+
             $seen[$hash]=true;
-            $lines[]=$line;
+
+            $rows[]=[
+                'time'=>parse_any_time($line),
+                'sequence'=>$sequence++,
+                'line'=>$line
+            ];
         }
     }
 
-    usort($lines,static function(string $a,string $b): int {
-        return parse_any_time($a)<=>parse_any_time($b);
-    });
+    /*
+     * PHP 8 usa ordenação estável. sequence preserva
+     * explicitamente a ordem original quando dois registros
+     * possuem exatamente o mesmo timestamp.
+     */
+    usort(
+        $rows,
+        static function(array $a,array $b): int {
+            $cmp=$a['time']<=>$b['time'];
+
+            if($cmp!==0){
+                return $cmp;
+            }
+
+            return $a['sequence']<=>$b['sequence'];
+        }
+    );
+
+    $lines=[];
+
+    foreach($rows as $row){
+        $lines[]=$row['line'];
+    }
 
     return $lines;
 }
@@ -734,7 +779,7 @@ function fetch_reflectors(): array {
         $ctx=stream_context_create([
             'http'=>[
                 'timeout'=>8,
-                'user_agent'=>'XLX-Modern-Painel/6.1',
+                'user_agent'=>'XLX026-Painel/6.1',
                 'ignore_errors'=>true
             ],
             'ssl'=>[

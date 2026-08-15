@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'xlx-modern-pwa-v33';
+const CACHE_VERSION = 'xlx026-pwa-v33';
 
 self.addEventListener('install', () => {
     self.skipWaiting();
@@ -9,7 +9,7 @@ self.addEventListener('activate', event => {
         caches.keys()
             .then(keys => Promise.all(
                 keys
-                    .filter(key => (key.startsWith('xlx-modern-pwa-') || key.startsWith('xlx026-pwa-')) && key !== CACHE_VERSION)
+                    .filter(key => key.startsWith('xlx026-pwa-') && key !== CACHE_VERSION)
                     .map(key => caches.delete(key))
             ))
             .then(() => self.clients.claim())

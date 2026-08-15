@@ -496,7 +496,7 @@ if (
 }
 
 $cacheDirectory =
-    '/var/cache/xlx-dashboard/mtr';
+    '/var/cache/xlx026-dashboard/mtr';
 
 $cacheTtl = 9;
 
@@ -825,7 +825,7 @@ if (
     ) !== ''
 ) {
     error_log(
-        'XLX MTR: '
+        'XLX026 MTR: '
         . preg_replace(
             '/\s+/',
             ' ',
