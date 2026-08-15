@@ -716,7 +716,7 @@ function parse_reflectors_payload(string $raw): array {
 
     foreach($m[1]??[] as $block){
         $pick=static function(string $tag) use($block): string {
-            return preg_match('/<'.preg_quote($tag,'/').'>\s*(.*?)<\/'.preg_quote($tag,'/').'>/si',$block,$x)
+            return preg_match('/<'.preg_quote($tag,'/').'>(.*?)<\/'.preg_quote($tag,'/').'>/si',$block,$x)
                 ? trim(strip_tags(html_entity_decode($x[1],ENT_QUOTES|ENT_XML1,'UTF-8')))
                 : '';
         };
