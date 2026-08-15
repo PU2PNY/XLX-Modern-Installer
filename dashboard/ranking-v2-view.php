@@ -43,7 +43,7 @@ body[data-page=ranking] .rv2-old{display:none!important}
 
 <section class="rv2" id="rankingV2">
  <section class="rv2-display">
-  <div class="rv2-brand">RANKING XLX026 BRASIL</div>
+  <div class="rv2-brand">RANKING {{REFLECTOR_TITLE}}</div>
   <div style="margin-top:12px;color:#88a9b9;font-size:9px;font-weight:900">MAIS TEMPO CONECTADO</div>
   <div class="rv2-call" id="rv2Call">—</div>
   <div class="rv2-clock" id="rv2Clock">00:00:00</div>

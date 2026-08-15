@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 require __DIR__ . '/common.php';
+require __DIR__ . '/authorized-sync-v1.php';
+require __DIR__ . '/user-directory.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
@@ -39,8 +41,8 @@ $cacheVariant = $is24HourHistory
             : '-' . $historyLimit
     );
 
-$cacheFile = '/var/cache/xlx026-dashboard/status' . $cacheVariant . '.json';
-$lockFile  = '/var/cache/xlx026-dashboard/status' . $cacheVariant . '.lock';
+$cacheFile = '/var/cache/xlx-dashboard/status' . $cacheVariant . '.json';
+$lockFile  = '/var/cache/xlx-dashboard/status' . $cacheVariant . '.lock';
 $cacheTtl  = 1;
 
 function send_cached_status(
@@ -75,7 +77,7 @@ function send_cached_status(
     }
 
     header(
-        'X-XLX026-Cache: ' .
+        'X-{{REFLECTOR_NAME}}-Cache: ' .
         ($allowExpired ? 'stale-while-refresh' : 'fresh')
     );
 
@@ -92,10 +94,7 @@ $lockHandle = fopen($lockFile, 'c');
 if ($lockHandle === false) {
     http_response_code(503);
     echo json_encode(
-        [
-            'ok' => false,
-            'error' => 'status_lock_unavailable',
-        ],
+        ['ok' => false, 'error' => 'status_lock_unavailable'],
         JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
     );
     exit;
@@ -103,42 +102,42 @@ if ($lockHandle === false) {
 
 try {
     if (!flock($lockHandle, LOCK_EX | LOCK_NB)) {
-        /*
-         * Outro processo já está atualizando os dados.
-         * Entrega imediatamente o último cache válido, mesmo vencido,
-         * para não prender processos do Apache.
-         */
         if (send_cached_status($cacheFile, $cacheTtl, true)) {
             fclose($lockHandle);
             exit;
         }
 
         fclose($lockHandle);
-
         http_response_code(503);
         echo json_encode(
-            [
-                'ok' => false,
-                'error' => 'status_refresh_in_progress',
-            ],
-            JSON_UNESCAPED_UNICODE |
-            JSON_UNESCAPED_SLASHES
+            ['ok' => false, 'error' => 'status_refresh_in_progress'],
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
         );
         exit;
     }
 
-    /*
-     * Outro processo pode ter atualizado o cache enquanto este
-     * processo aguardava pelo bloqueio.
-     */
     if (send_cached_status($cacheFile, $cacheTtl)) {
         flock($lockHandle, LOCK_UN);
         fclose($lockHandle);
         exit;
     }
 
-    $connections = parse_xml_connections();
-    $tx = active_and_history($connections, $historyLimit, $historySince);
+    $connections = array_map(
+        'xlx_user_directory_apply',
+        parse_xml_connections_sync()
+    );
+
+    $tx = active_and_history_sync(
+        $connections,
+        $historyLimit,
+        $historySince
+    );
+
+    foreach ($tx['active'] as $module => $transmission) {
+        $tx['active'][$module] = xlx_user_directory_apply($transmission);
+    }
+    $tx['history'] = array_map('xlx_user_directory_apply', $tx['history']);
+
     $online = online_index($connections);
     $modules = [];
 
@@ -153,14 +152,11 @@ try {
 
         $protocols = array_values(
             array_unique(
-                array_filter(
-                    array_column($moduleConnections, 'protocol')
-                )
+                array_filter(array_column($moduleConnections, 'protocol'))
             )
         );
 
         $lastTransmission = null;
-
         foreach ($tx['history'] as $historyItem) {
             if ($historyItem['module'] === $letter) {
                 $lastTransmission = $historyItem;
@@ -182,9 +178,7 @@ try {
 
     $history = array_map(
         static function (array $historyItem) use ($online): array {
-            $historyItem['online'] =
-                !empty($online[$historyItem['callsign']]);
-
+            $historyItem['online'] = !empty($online[$historyItem['callsign']]);
             return $historyItem;
         },
         $tx['history']
@@ -203,6 +197,7 @@ try {
             'xml' => is_readable(cfg()['xml_path']),
             'log' => is_readable(cfg()['log_path']),
             'db' => is_readable(cfg()['users_db']),
+            'overrides' => is_readable((string)(cfg()['users_override_db'] ?? '')),
         ],
     ];
 
@@ -218,18 +213,15 @@ try {
     }
 
     $temporaryFile = $cacheFile . '.' . getmypid() . '.tmp';
-
     if (file_put_contents($temporaryFile, $json, LOCK_EX) === false) {
         throw new RuntimeException('Falha ao gravar cache temporário.');
     }
-
     if (!rename($temporaryFile, $cacheFile)) {
         @unlink($temporaryFile);
         throw new RuntimeException('Falha ao publicar cache.');
     }
 
     echo $json;
-
     flock($lockHandle, LOCK_UN);
     fclose($lockHandle);
 } catch (Throwable $exception) {
@@ -238,13 +230,8 @@ try {
         fclose($lockHandle);
     }
 
-    /*
-     * Em caso de falha durante uma atualização, tenta entregar
-     * o último cache válido, mesmo que esteja vencido.
-     */
     if (is_readable($cacheFile)) {
         $fallback = file_get_contents($cacheFile);
-
         if ($fallback !== false && $fallback !== '') {
             echo $fallback;
             exit;
@@ -252,12 +239,8 @@ try {
     }
 
     http_response_code(503);
-
     echo json_encode(
-        [
-            'ok' => false,
-            'error' => 'status_temporarily_unavailable',
-        ],
+        ['ok' => false, 'error' => 'status_temporarily_unavailable'],
         JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
     );
 }

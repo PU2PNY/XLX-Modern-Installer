@@ -6,7 +6,7 @@ header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: no-referrer');
 header('Cache-Control: no-store');
 
-const CACHE_DIR = '/var/cache/xlx026-ham-weather';
+const CACHE_DIR = '/var/cache/xlx-ham-weather';
 const WEATHER_TTL = 600;
 const SPACE_TTL = 300;
 const MAX_BODY = 1048576;
@@ -53,7 +53,7 @@ function httpJson(string $url): ?array {
         CURLOPT_TIMEOUT=>12,
         CURLOPT_SSL_VERIFYPEER=>true,
         CURLOPT_SSL_VERIFYHOST=>2,
-        CURLOPT_USERAGENT=>'XLX026-HamWeather/3 (+https://{{DOMAIN}}/)',
+        CURLOPT_USERAGENT=>'XLX-Modern-HamWeather/3',
         CURLOPT_HTTPHEADER=>['Accept: application/json'],
         CURLOPT_WRITEFUNCTION=>static function($ch,string $chunk) use (&$body): int {
             if (strlen($body)+strlen($chunk)>MAX_BODY) return 0;

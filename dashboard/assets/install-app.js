@@ -73,7 +73,7 @@
 
     const configureIOS = () => {
         description.textContent =
-            'Adicione o XLX026 à Tela de Início para abrir o painel como um aplicativo.';
+            'Adicione o {{REFLECTOR_NAME}} à Tela de Início para abrir o painel como um aplicativo.';
 
         installButton.textContent = 'Ver como instalar';
     };

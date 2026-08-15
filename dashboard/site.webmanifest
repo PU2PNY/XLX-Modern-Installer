@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "XLX026 Brasil",
-  "short_name": "XLX026",
-  "description": "Painel ao vivo do refletor digital multiprotocolo XLX026 Brasil.",
+  "name": "{{REFLECTOR_TITLE}}",
+  "short_name": "{{REFLECTOR_NAME}}",
+  "description": "Painel ao vivo do refletor digital multiprotocolo {{REFLECTOR_TITLE}}.",
   "lang": "pt-BR",
   "dir": "ltr",
   "start_url": "/?source=pwa",
