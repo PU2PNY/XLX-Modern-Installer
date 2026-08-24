@@ -38,7 +38,7 @@ SERVICE="$(fetch_verify ops/agent/xlx026-github-agent.service edb052b52813d7456f
 TIMER="$(fetch_verify ops/agent/xlx026-github-agent.timer 61f1a6971b6349570e02c60576ddf5507bf5183ab8a532ef1b40a6f656f3022e)"
 SMOKE="$(fetch_verify ops/readonly-smoke.sh 8202f4e6423f0afec815f7bcac307f295cd8c530d3a2ec424012bf907237db6d)"
 BACKUP="$(fetch_verify ops/root/xlx026-safe-backup.sh 199400aae2aad209629fa40cf05313a24c0dae98b47db746ca72130c7a177ebb)"
-GOLDEN="$(fetch_verify ops/root/xlx026-golden-lab-v2.sh 521666c713ea43cec9be784cb2250fdf5df9b0b01e5786048a79642bb6958aa9)"
+GOLDEN="$(fetch_verify ops/root/xlx026-golden-lab-v2.sh 5bb49ee755ccd6401603c24cb178db9dd72eefe53c9354eef325468973450182)"
 
 bash -n "$AGENT"
 bash -n "$SMOKE"
