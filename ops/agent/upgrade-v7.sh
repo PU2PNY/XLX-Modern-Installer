@@ -3,15 +3,15 @@ set -Eeuo pipefail
 export LANG=C
 umask 077
 
-SOURCE_REF="a8fcb9055c7a03bb2db0656b6146f076faf450f9"
+SOURCE_REF="b4f19164471c9af9a196f0f60e78a6fb19651377"
 RAW="https://raw.githubusercontent.com/PU2PNY/XLX-Modern-Installer/${SOURCE_REF}"
 EXPECTED_PROD_SHA="ffd01e4546ba12069f9181c6fe4d6fba620f7188dc39cde94fa572ec06fe4347"
 
 FINALIZER_BLOB="aa707756b6af9ac30ff0a2fefbd62243b3e5f671"
 PRECHECK_BLOB="07e2956c77269ccd07f46d9b3d5b9f29517362dd"
 RELEASE_BLOB="81298c3e64579eac0e6ff4f253762b38b3443d82"
-PANEL_BLOB="a6fa274530747da9949b8241ba0f9584e605a6cd"
-FINISH_BLOB="b544bca16b74336c479c7ff5cdf89f92c17be0b5"
+PANEL_BLOB="83fc804783b289b0ee505fa272b61674e2e80205"
+FINISH_BLOB="38b199ad7f18ded263d2d7b937af904a616e61a8"
 
 TMP="$(mktemp -d /tmp/xlx026-agent-v7.XXXXXX)"
 PRE=""
@@ -69,7 +69,6 @@ PRECHECK="$(fetch_verify_blob ops/root/xlx026-core-260-prepublish-v1.sh "$PRECHE
 RELEASE="$(fetch_verify_blob ops/root/xlx026-core-260-release-v1.sh "$RELEASE_BLOB")"
 PANEL="$(fetch_verify_blob ops/root/xlx026-panel-footer-v1.sh "$PANEL_BLOB")"
 FINISH="$(fetch_verify_blob ops/root/xlx026-finish-project-v1.sh "$FINISH_BLOB")"
-
 for f in "$FINALIZER" "$PRECHECK" "$RELEASE" "$PANEL" "$FINISH"; do bash -n "$f"; done
 
 if [[ "${XLX026_UPGRADE_V7_VERIFY_ONLY:-0}" == "1" ]]; then
