@@ -42,7 +42,10 @@ done
 
 section "1/8 — PREPARAR V9 CORRIGIDA"
 curl --fail --silent --show-error --location --connect-timeout 10 --max-time 60 "$V9_URL" -o "$V9"
-[[ "$(git hash-object "$V9")" == "$V9_BLOB" ]] || { fail "blob V9 divergente"; exit 10; }
+GOT_V9_BLOB="$(git hash-object "$V9")"
+echo "v9_blob_expected=$V9_BLOB"
+echo "v9_blob_obtained=$GOT_V9_BLOB"
+[[ "$GOT_V9_BLOB" == "$V9_BLOB" ]] || { fail "blob V9 divergente"; exit 10; }
 python3 - "$V9" <<'PY'
 from pathlib import Path
 import re,sys
@@ -63,10 +66,13 @@ if len(blocks)!=2:
     raise SystemExit(f'V10: blocos Python V9={len(blocks)}')
 for i,b in enumerate(blocks,1):
     compile(b,f'v9-fixed-{i}.py','exec')
+print(f'[OK] Python embutido da V9 corrigida: {len(blocks)} blocos')
 PY
 bash -n "$V9"
-grep -Fq "sha256sum -c xlxd-core-2.6.0-candidate.sha256" "$V9"
-grep -Fq 'chmod 0750 \"$OUT/xlxd-core-2.6.0-candidate\"' "$V9"
+grep -Fq 'sha256sum -c xlxd-core-2.6.0-candidate.sha256' "$V9" || { fail "hotfix checksum não encontrado"; exit 11; }
+grep -Fq 'chmod 0750 "$OUT/xlxd-core-2.6.0-candidate"' "$V9" || { fail "hotfix executável não encontrado"; exit 12; }
+grep -nF 'sha256sum -c xlxd-core-2.6.0-candidate.sha256' "$V9" | head -1
+grep -nF 'chmod 0750 "$OUT/xlxd-core-2.6.0-candidate"' "$V9" | head -1
 ok "V9 corrigida deterministicamente: checksum e bit executável"
 
 if [[ "${XLX026_V10_VERIFY_ONLY:-0}" == "1" ]]; then
