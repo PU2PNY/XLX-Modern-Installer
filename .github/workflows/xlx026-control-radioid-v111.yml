@@ -1,0 +1,177 @@
+name: XLX026 Control RadioID v1.1.1
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'control/xlx026-radioid-helper-v111'
+      - 'control/xlx026-control-dispatch-v111'
+      - 'control/patch-xlx026-control-v111.py'
+      - 'control/xlx026-control-index-radioid-v2.php'
+      - 'ops/root/xlx026-control-radioid-v111-fix.sh'
+      - '.github/workflows/xlx026-control-radioid-v111.yml'
+  pull_request:
+    paths:
+      - 'control/xlx026-radioid-helper-v111'
+      - 'control/xlx026-control-dispatch-v111'
+      - 'control/patch-xlx026-control-v111.py'
+      - 'control/xlx026-control-index-radioid-v2.php'
+      - 'ops/root/xlx026-control-radioid-v111-fix.sh'
+      - '.github/workflows/xlx026-control-radioid-v111.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Syntax and runtime security
+        run: |
+          set -Eeuo pipefail
+          bash -n control/xlx026-radioid-helper-v111
+          bash -n control/xlx026-control-dispatch-v111
+          python3 -m py_compile control/patch-xlx026-control-v111.py
+          if grep -En 'eval |bash -c|sh -c|NOPASSWD:[[:space:]]*ALL|shell_exec\(|passthru\(|proc_open\(|popen\(' control/xlx026-radioid-helper-v111 control/xlx026-control-dispatch-v111; then
+            echo 'FORBIDDEN RUNTIME PATTERN'
+            exit 1
+          fi
+          for a in status listeners logs backups restart radioid-status radioid-search radioid-save radioid-delete radioid-refresh radioid-check; do
+            grep -Fq "$a" control/xlx026-control-dispatch-v111 || { echo "dispatcher action missing: $a"; exit 1; }
+          done
+
+      - name: Patch Control UI v1.1.0 to v1.1.1
+        run: |
+          set -Eeuo pipefail
+          cp control/xlx026-control-index-radioid-v2.php /tmp/control-v111.php
+          python3 control/patch-xlx026-control-v111.py /tmp/control-v111.php
+          php -l /tmp/control-v111.php
+          grep -Fq "const CTRL_VER='1.1.1'" /tmp/control-v111.php
+          grep -Fq 'function helper_reason' /tmp/control-v111.php
+          grep -Fq 'sincronização atômica' /tmp/control-v111.php
+          echo "PATCHED_INDEX_BLOB=$(git hash-object /tmp/control-v111.php)"
+
+      - name: Prepare production-like RadioID fixture
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq sqlite3 php-cli php-sqlite3
+          sudo install -d -m 0777 /xlxd/users_db
+          sudo install -d -m 0700 /root/backups-xlx026/radioid-control
+          sudo tee /xlxd/users_db/users_base.csv >/dev/null <<'CSV'
+          DMRID,CALLSIGN,FIRSTNAME,LASTNAME,CITY,STATE,COUNTRY
+          7240001,PY2ABC,Ana,Silva,Sao Paulo,Sao Paulo,Brazil
+          7240002,PU2XYZ,Bruno,Souza,Santa Isabel,Sao Paulo,Brazil
+          3100001,K1AAA,John,Doe,Boston,MA,USA
+          7240004,PY2ABC,Outro,Registro,Campinas,Sao Paulo,Brazil
+          CSV
+          sudo tee /xlxd/users_db/reflector_user_manager.sh >/dev/null <<'SH'
+          #!/usr/bin/env bash
+          exit 0
+          SH
+          sudo chmod 0755 /xlxd/users_db/reflector_user_manager.sh
+          sudo tee /xlxd/users_db/create_user_db.php >/dev/null <<'PHP'
+          <?php
+          $csvFile = '/xlxd/users_db/users_base.csv';
+          $dbFile = '/xlxd/users_db/users.db';
+          $db = new SQLite3($dbFile);
+          $db->exec('DROP TABLE IF EXISTS users');
+          $db->exec('CREATE TABLE users (callsign TEXT PRIMARY KEY, name TEXT, city_state TEXT)');
+          $h=fopen($csvFile,'r'); fgetcsv($h);
+          $st=$db->prepare('INSERT OR REPLACE INTO users (callsign,name,city_state) VALUES (:c,:n,:l)');
+          while(($r=fgetcsv($h))!==false){
+            if(count($r)<7) continue;
+            $c=strtoupper(trim($r[1])); if($c==='') continue;
+            $st->bindValue(':c',$c,SQLITE3_TEXT);
+            $st->bindValue(':n',trim($r[2].' '.$r[3]),SQLITE3_TEXT);
+            $st->bindValue(':l',trim($r[4]).', '.trim($r[5]),SQLITE3_TEXT);
+            $st->execute();
+          }
+          fclose($h); $db->close();
+          PHP
+          sudo php /xlxd/users_db/create_user_db.php
+          test "$(sudo sqlite3 /xlxd/users_db/users.db 'pragma integrity_check;')" = ok
+
+      - name: Same callsign edit remains supported
+        run: |
+          set -Eeuo pipefail
+          sudo bash control/xlx026-radioid-helper-v111 radioid-save 7240001 PY2ABC 7240001 PY2ABC Maria Silva Sao-Paulo Sao-Paulo Brazil >/tmp/edit-same-call.json
+          grep -Fq '7240001,PY2ABC,Maria,Silva,Sao-Paulo,Sao-Paulo,Brazil' /xlxd/users_db/users_base.csv
+          test "$(grep -c ',PY2ABC,' /xlxd/users_db/users_base.csv)" = 2
+          python3 - <<'PY'
+          import json
+          x=json.load(open('/tmp/edit-same-call.json'))
+          assert x['ok'] is True and x['action']=='updated' and x['sync']=='atomic'
+          PY
+          test "$(sudo sqlite3 /xlxd/users_db/users.db 'pragma integrity_check;')" = ok
+
+      - name: New duplicate callsign and DMRID are rejected
+        run: |
+          set -Eeuo pipefail
+          before="$(sha256sum /xlxd/users_db/users_base.csv | awk '{print $1}')"
+          set +e
+          sudo bash control/xlx026-radioid-helper-v111 radioid-save '' '' 7249999 PY2ABC Novo Teste Cidade SP Brazil >/tmp/dup-call.out 2>&1
+          rc1=$?
+          sudo bash control/xlx026-radioid-helper-v111 radioid-save '' '' 7240002 PU2NEW Novo Teste Cidade SP Brazil >/tmp/dup-id.out 2>&1
+          rc2=$?
+          set -e
+          test "$rc1" -ne 0
+          test "$rc2" -ne 0
+          test "$(sha256sum /xlxd/users_db/users_base.csv | awk '{print $1}')" = "$before"
+
+      - name: Atomic SQLite replacement works with live reader
+        run: |
+          set -Eeuo pipefail
+          sudo rm -f /tmp/reader.ready
+          sudo python3 - <<'PY' &
+          import sqlite3,time
+          c=sqlite3.connect('/xlxd/users_db/users.db')
+          c.execute('BEGIN')
+          c.execute("select name from users where callsign='PU2XYZ'").fetchone()
+          open('/tmp/reader.ready','w').write('ready')
+          time.sleep(8)
+          c.execute("select name from users where callsign='PU2XYZ'").fetchone()
+          c.close()
+          PY
+          reader=$!
+          for i in $(seq 1 50); do test -f /tmp/reader.ready && break; sleep 0.1; done
+          test -f /tmp/reader.ready
+          sudo bash control/xlx026-radioid-helper-v111 radioid-save 7240002 PU2XYZ 7240002 PU2XYZ Roberto Souza Santa-Isabel Sao-Paulo Brazil >/tmp/live-reader-save.json
+          test "$(sudo sqlite3 /xlxd/users_db/users.db "select name from users where callsign='PU2XYZ';")" = 'Roberto Souza'
+          test "$(sudo sqlite3 /xlxd/users_db/users.db 'pragma integrity_check;')" = ok
+          wait "$reader"
+
+      - name: Forced generator failure restores CSV and DB byte-for-byte
+        run: |
+          set -Eeuo pipefail
+          csv_before="$(sha256sum /xlxd/users_db/users_base.csv | awk '{print $1}')"
+          db_before="$(sha256sum /xlxd/users_db/users.db | awk '{print $1}')"
+          sudo cp -a /xlxd/users_db/create_user_db.php /tmp/create_user_db.good.php
+          sudo tee /xlxd/users_db/create_user_db.php >/dev/null <<'PHP'
+          <?php
+          $csvFile = '/xlxd/users_db/users_base.csv';
+          $dbFile = '/xlxd/users_db/users.db';
+          file_put_contents($dbFile,'BROKEN');
+          exit(42);
+          PHP
+          set +e
+          sudo bash control/xlx026-radioid-helper-v111 radioid-save 7240002 PU2XYZ 7240002 PU2XYZ Falha Souza Santa-Isabel Sao-Paulo Brazil >/tmp/forced-fail.out 2>&1
+          rc=$?
+          set -e
+          test "$rc" -ne 0
+          test "$(sha256sum /xlxd/users_db/users_base.csv | awk '{print $1}')" = "$csv_before"
+          test "$(sha256sum /xlxd/users_db/users.db | awk '{print $1}')" = "$db_before"
+          test "$(sudo sqlite3 /xlxd/users_db/users.db 'pragma integrity_check;')" = ok
+          sudo cp -a /tmp/create_user_db.good.php /xlxd/users_db/create_user_db.php
+
+      - name: Read-only status and search remain valid
+        run: |
+          sudo bash control/xlx026-radioid-helper-v111 radioid-status >/tmp/status.json
+          sudo bash control/xlx026-radioid-helper-v111 radioid-search callsign PY2ABC >/tmp/search.json
+          python3 - <<'PY'
+          import json
+          s=json.load(open('/tmp/status.json')); q=json.load(open('/tmp/search.json'))
+          assert s['ok'] is True and s['integrity']=='ok'
+          assert q['count']==2
+          PY
