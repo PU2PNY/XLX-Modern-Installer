@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+export LANG=C
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+EXPECTED_SHA="10870cf84d91c936497c95c314a0b1eed79779e73260c7ec306cf6bba17632a7"
+EXPECTED_VERSION="2.6.0"
+SERVICE="xlxd.service"
+BIN="/xlxd/xlxd"
+XML="/var/log/xlxd.xml"
+LOG="/var/log/xlx.log"
+BACKUPS="/root/backups-xlx026"
+version(){ sed -n 's:.*<Version>\([^<]*\)</Version>.*:\1:p' "$XML" 2>/dev/null | head -1; }
+sha(){ sha256sum "$BIN" | awk '{print $1}'; }
+processes(){ pgrep -x xlxd 2>/dev/null | wc -l | tr -d ' '; }
+case "${1:-}" in
+ status)
+  echo "service=$(systemctl is-active "$SERVICE" 2>/dev/null || true)"
+  echo "version=$(version)"
+  echo "sha=$(sha)"
+  echo "pid=$(systemctl show -p MainPID --value "$SERVICE" 2>/dev/null || true)"
+  echo "processes=$(processes)"
+  echo "active_since=$(systemctl show -p ActiveEnterTimestamp --value "$SERVICE" 2>/dev/null || true)"
+  ;;
+ listeners)
+  ss -H -lunp 2>/dev/null | awk '/xlxd/ {print $4}' | sort -u
+  ;;
+ logs)
+  [[ -r "$LOG" ]] && tail -n 80 "$LOG" || echo "Log indisponível"
+  ;;
+ backups)
+  if [[ -d "$BACKUPS" ]]; then
+   find "$BACKUPS" -maxdepth 1 -mindepth 1 -type d -name 'XLX026_*' -printf '%T@ %TY-%Tm-%Td %TH:%TM  %f\n' 2>/dev/null | sort -nr | head -n 20 | cut -d' ' -f2-
+  else echo "Diretório de backups indisponível"; fi
+  ;;
+ restart)
+  before_sha="$(sha)"; before_version="$(version)"
+  [[ "$before_sha" == "$EXPECTED_SHA" ]] || { echo "ERRO: SHA atual divergente: $before_sha"; exit 20; }
+  [[ "$before_version" == "$EXPECTED_VERSION" ]] || { echo "ERRO: versão atual divergente: $before_version"; exit 21; }
+  systemctl is-active --quiet "$SERVICE" || { echo "ERRO: serviço não estava ativo antes do restart"; exit 22; }
+  echo "restart_started=$(date -Is)"
+  systemctl restart "$SERVICE"
+  ok=0
+  for _ in $(seq 1 30); do
+   if systemctl is-active --quiet "$SERVICE" && [[ "$(processes)" == "1" ]] && [[ "$(version)" == "$EXPECTED_VERSION" ]] && [[ "$(sha)" == "$EXPECTED_SHA" ]]; then ok=1; break; fi
+   sleep 0.5
+  done
+  if [[ "$ok" != "1" ]]; then
+   echo "ERRO: validação pós-restart falhou"
+   echo "service=$(systemctl is-active "$SERVICE" 2>/dev/null || true)"
+   echo "version=$(version)"; echo "sha=$(sha)"; echo "processes=$(processes)"
+   exit 23
+  fi
+  echo "restart_finished=$(date -Is)"
+  echo "service=active"; echo "version=$EXPECTED_VERSION"; echo "sha=$EXPECTED_SHA"; echo "processes=1"
+  ;;
+ *) echo "Uso permitido: status|listeners|logs|backups|restart" >&2; exit 64;;
+esac
