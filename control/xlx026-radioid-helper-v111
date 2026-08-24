@@ -1,1 +1,216 @@
-placeholder
+#!/usr/bin/env bash
+set -Eeuo pipefail
+export LANG=C
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+umask 077
+
+CSV="/xlxd/users_db/users_base.csv"
+DB="/xlxd/users_db/users.db"
+GEN="/xlxd/users_db/create_user_db.php"
+MANAGER="/xlxd/users_db/reflector_user_manager.sh"
+BACKUPS="/root/backups-xlx026/radioid-control"
+LOCK="/run/lock/xlx026-radioid-control.lock"
+
+need(){ [[ -f "$CSV" ]] || { echo 'ERRO: base CSV não encontrada' >&2; return 70; }; [[ -f "$GEN" ]] || { echo 'ERRO: gerador SQL não encontrado' >&2; return 71; }; command -v python3 >/dev/null || return 72; command -v sqlite3 >/dev/null || return 73; command -v php >/dev/null || return 74; }
+lock(){ install -d -m 0755 /run/lock; exec 9>"$LOCK"; flock -n 9 || { echo 'ERRO: outra operação de indicativos está em andamento' >&2; return 75; }; }
+text_ok(){ local v="$1" m="$2"; [[ ${#v} -le "$m" && "$v" != *$'\n'* && "$v" != *$'\r'* && "$v" != *','* ]]; }
+backup(){ local label="$1" stamp dir; stamp="$(date +%Y%m%d_%H%M%S)"; dir="$BACKUPS/${stamp}_${label}"; install -d -m 0700 "$dir"; cp -a "$CSV" "$dir/users_base.csv.before"; if [[ -f "$DB" ]]; then cp -a "$DB" "$dir/users.db.before"; echo yes >"$dir/users.db.existed"; else echo no >"$dir/users.db.existed"; fi; sha256sum "$dir/users_base.csv.before" >"$dir/users_base.csv.before.sha256"; [[ ! -f "$dir/users.db.before" ]] || sha256sum "$dir/users.db.before" >"$dir/users.db.before.sha256"; printf '%s' "$dir"; }
+restore(){ local dir="$1"; cp -a "$dir/users_base.csv.before" "$CSV"; if [[ "$(cat "$dir/users.db.existed" 2>/dev/null || echo no)" == yes && -f "$dir/users.db.before" ]]; then cp -a "$dir/users.db.before" "$DB"; else rm -f "$DB"; fi; }
+
+atomic_rebuild(){
+  local dir="$1" tmpdb="$DB.new.$$" tmpphp="$dir/create_user_db.atomic.php" rc integrity
+  rm -f "$tmpdb" "$tmpdb-journal" "$tmpdb-wal" "$tmpdb-shm"
+  cp -a "$GEN" "$tmpphp"
+  if ! python3 - "$tmpphp" "$DB" "$tmpdb" <<'PY'
+from pathlib import Path
+import sys
+p=Path(sys.argv[1]); old=sys.argv[2]; new=sys.argv[3]
+s=p.read_text(encoding='utf-8')
+patterns=[f"$dbFile = '{old}';",f'$dbFile = "{old}";']
+found=[x for x in patterns if x in s]
+if len(found)!=1: raise SystemExit(2)
+s=s.replace(found[0],found[0].replace(old,new),1)
+p.write_text(s,encoding='utf-8')
+PY
+  then restore "$dir"; echo 'ERRO: gerador SQL tem formato inesperado; base anterior restaurada' >&2; return 80; fi
+  set +e
+  php "$tmpphp" >"$dir/rebuild.log" 2>&1
+  rc=$?
+  set -e
+  if [[ "$rc" -ne 0 || ! -f "$tmpdb" ]]; then rm -f "$tmpdb"*; restore "$dir"; printf 'status=rollback\nreason=rebuild_failed\n' >"$dir/RESULT"; echo 'ERRO: reconstrução SQL falhou; base anterior restaurada' >&2; return 81; fi
+  integrity="$(sqlite3 "$tmpdb" 'PRAGMA integrity_check;' 2>/dev/null || true)"
+  if [[ "$integrity" != ok ]]; then rm -f "$tmpdb"*; restore "$dir"; printf 'status=rollback\nreason=integrity_failed\n' >"$dir/RESULT"; echo 'ERRO: novo banco SQL falhou na integridade; base anterior restaurada' >&2; return 82; fi
+  if ! python3 - "$tmpdb" <<'PY'
+import sqlite3,sys
+c=sqlite3.connect('file:'+sys.argv[1]+'?mode=ro',uri=True)
+cols=[r[1] for r in c.execute('pragma table_info(users)')]
+if cols[:3] != ['callsign','name','city_state']: raise SystemExit(3)
+c.execute('select count(*) from users').fetchone(); c.close()
+PY
+  then rm -f "$tmpdb"*; restore "$dir"; echo 'ERRO: estrutura do novo banco SQL é incompatível; base anterior restaurada' >&2; return 83; fi
+  if [[ -f "$DB" ]]; then chown --reference="$DB" "$tmpdb"; chmod --reference="$DB" "$tmpdb"; else chown root:www-data "$tmpdb" 2>/dev/null || chown root:root "$tmpdb"; chmod 0644 "$tmpdb"; fi
+  mv -f "$tmpdb" "$DB"
+  rm -f "$tmpdb-journal" "$tmpdb-wal" "$tmpdb-shm"
+  [[ "$(sqlite3 "$DB" 'PRAGMA integrity_check;' 2>/dev/null || true)" == ok ]] || { restore "$dir"; echo 'ERRO: validação após publicação falhou; base anterior restaurada' >&2; return 84; }
+  sha256sum "$CSV" >"$dir/users_base.csv.after.sha256"; sha256sum "$DB" >"$dir/users.db.after.sha256"; printf 'status=ok\nmode=atomic_replace\n' >"$dir/RESULT"
+}
+
+status(){ need; python3 - "$CSV" "$DB" "$MANAGER" "$GEN" <<'PY'
+import json,os,sqlite3,sys,time
+csvp,dbp,mgr,gen=sys.argv[1:]
+def meta(p):
+ if not os.path.exists(p): return {'exists':False,'size':0,'mtime':0,'mtime_text':'—'}
+ s=os.stat(p); return {'exists':True,'size':s.st_size,'mtime':int(s.st_mtime),'mtime_text':time.strftime('%d/%m/%Y %H:%M',time.localtime(s.st_mtime))}
+with open(csvp,'rb') as f: records=max(0,sum(1 for _ in f)-1)
+integ='ausente'
+if os.path.exists(dbp):
+ try:
+  c=sqlite3.connect('file:'+dbp+'?mode=ro',uri=True,timeout=3); integ=c.execute('pragma integrity_check').fetchone()[0]; c.close()
+ except Exception: integ='erro'
+print(json.dumps({'ok':True,'records':records,'csv':meta(csvp),'db':meta(dbp),'integrity':integ,'manager_exists':os.path.isfile(mgr),'generator_exists':os.path.isfile(gen)},ensure_ascii=False,separators=(',',':')))
+PY
+}
+
+search(){ need; local field="${1:-}" term="${2:-}"; [[ "$field" =~ ^(callsign|dmrid|name|city|country)$ ]] || { echo 'ERRO: filtro de pesquisa inválido' >&2; return 85; }; [[ -n "$term" ]] && text_ok "$term" 80 || { echo 'ERRO: termo de pesquisa inválido' >&2; return 86; }; python3 - "$CSV" "$field" "$term" <<'PY'
+import csv,fnmatch,json,sys
+path,field,term=sys.argv[1:]; idx={'dmrid':0,'callsign':1,'city':4,'country':6}; pat=term.casefold(); rows=[]
+def hit(v):
+ v=v.casefold(); return fnmatch.fnmatch(v,pat) if '*' in pat or '?' in pat else pat in v
+with open(path,'r',encoding='utf-8',errors='replace',newline='') as f:
+ r=csv.reader(f); next(r,None)
+ for row in r:
+  if len(row)<7: continue
+  value=(row[2]+' '+row[3]) if field=='name' else row[idx[field]]
+  if hit(value):
+   rows.append({'dmrid':row[0].strip(),'callsign':row[1].strip(),'first_name':row[2].strip(),'last_name':row[3].strip(),'city':row[4].strip(),'state':row[5].strip(),'country':row[6].strip()})
+   if len(rows)>=50: break
+print(json.dumps({'ok':True,'count':len(rows),'limited':len(rows)>=50,'rows':rows},ensure_ascii=False,separators=(',',':')))
+PY
+}
+
+save(){
+  need; lock; [[ "$#" -eq 9 ]] || return 87
+  local od="$1" oc="${2^^}" dmr="$3" call="${4^^}" first="$5" last="$6" city="$7" state="$8" country="$9" dir rc action err
+  [[ -z "$od" || "$od" =~ ^[0-9]{7}$ ]] || { echo 'ERRO: Radio ID original inválido' >&2; return 88; }
+  [[ -z "$oc" || "$oc" =~ ^[A-Z0-9]{1,8}$ ]] || { echo 'ERRO: indicativo original inválido' >&2; return 89; }
+  [[ -z "$dmr" || "$dmr" =~ ^[0-9]{7}$ ]] || { echo 'ERRO: Radio ID deve ter 7 dígitos ou ficar vazio' >&2; return 90; }
+  [[ "$call" =~ ^[A-Z0-9]{1,8}$ ]] || { echo 'ERRO: indicativo inválido' >&2; return 91; }
+  [[ -n "$first" && -n "$city" && -n "$state" && -n "$country" ]] || { echo 'ERRO: nome, cidade, estado e país são obrigatórios' >&2; return 92; }
+  text_ok "$first" 80 && text_ok "$last" 80 && text_ok "$city" 80 && text_ok "$state" 80 && text_ok "$country" 80 || { echo 'ERRO: os campos não podem conter vírgulas ou quebras de linha' >&2; return 93; }
+  dir="$(backup save)"
+  set +e
+  action="$(python3 - "$CSV" "$od" "$oc" "$dmr" "$call" "$first" "$last" "$city" "$state" "$country" 2>"$dir/edit.error" <<'PY'
+import csv,io,os,sys,tempfile
+path,od,oc,dmr,call,first,last,city,state,country=sys.argv[1:]
+raw=[]; parsed=[]
+with open(path,'r',encoding='utf-8',errors='strict',newline='') as f:
+ header=f.readline()
+ for line in f:
+  raw.append(line); parsed.append(next(csv.reader([line])))
+if not header: print('base CSV vazia',file=sys.stderr); raise SystemExit(10)
+match=[]
+if od or oc:
+ for i,row in enumerate(parsed):
+  if len(row)<7: continue
+  if od and row[0].strip()!=od: continue
+  if oc and row[1].strip().upper()!=oc: continue
+  match.append(i)
+ if len(match)!=1:
+  print('cadastro original não foi localizado de forma única',file=sys.stderr); raise SystemExit(11)
+ target=match[0]
+else: target=None
+for i,row in enumerate(parsed):
+ if len(row)<7 or i==target: continue
+ if dmr and row[0].strip()==dmr:
+  print('este Radio ID já pertence a outro cadastro',file=sys.stderr); raise SystemExit(12)
+ if target is None and row[1].strip().upper()==call:
+  print('este indicativo já existe; pesquise e edite o cadastro existente',file=sys.stderr); raise SystemExit(13)
+new=[dmr,call,first,last,city,state,country]
+newline='\r\n' if header.endswith('\r\n') else '\n'
+buf=io.StringIO(newline=''); csv.writer(buf,lineterminator=newline).writerow(new); new_record=buf.getvalue()
+st=os.stat(path); fd,tmp=tempfile.mkstemp(prefix='.users_base.',dir=os.path.dirname(path),text=True); os.close(fd)
+try:
+ with open(tmp,'w',encoding='utf-8',newline='') as out:
+  out.write(header)
+  if target is None:
+   for line in raw: out.write(line)
+   if raw and not raw[-1].endswith(('\n','\r')): out.write(newline)
+   out.write(new_record); action='added'
+  else:
+   for i,line in enumerate(raw): out.write(new_record if i==target else line)
+   action='updated'
+ os.chmod(tmp,st.st_mode & 0o7777); os.chown(tmp,st.st_uid,st.st_gid); os.replace(tmp,path)
+finally:
+ if os.path.exists(tmp): os.unlink(tmp)
+print(action)
+PY
+)"; rc=$?; set -e
+  if [[ "$rc" -ne 0 ]]; then err="$(head -1 "$dir/edit.error" 2>/dev/null || true)"; restore "$dir"; echo "ERRO: ${err:-não foi possível salvar o cadastro}; base anterior restaurada" >&2; return 94; fi
+  if atomic_rebuild "$dir"; then :; else rc=$?; return "$rc"; fi
+  python3 - "$action" "$dir" "$call" "$dmr" <<'PY'
+import json,sys
+print(json.dumps({'ok':True,'action':sys.argv[1],'backup':sys.argv[2],'callsign':sys.argv[3],'dmrid':sys.argv[4],'sync':'atomic'},ensure_ascii=False,separators=(',',':')))
+PY
+}
+
+delete(){
+ need; lock; [[ "$#" -eq 2 ]] || return 95; local dmr="$1" call="${2^^}" dir rc err
+ [[ -n "$dmr" || -n "$call" ]] || { echo 'ERRO: identificação do cadastro ausente' >&2; return 96; }; [[ -z "$dmr" || "$dmr" =~ ^[0-9]{7}$ ]] || return 97; [[ -z "$call" || "$call" =~ ^[A-Z0-9]{1,8}$ ]] || return 98
+ dir="$(backup delete)"; set +e
+ python3 - "$CSV" "$dmr" "$call" 2>"$dir/delete.error" <<'PY'
+import csv,os,sys,tempfile
+path,dmr,call=sys.argv[1:]; raw=[]; parsed=[]
+with open(path,'r',encoding='utf-8',errors='strict',newline='') as f:
+ header=f.readline()
+ for line in f: raw.append(line); parsed.append(next(csv.reader([line])))
+match=[]
+for i,row in enumerate(parsed):
+ if len(row)<7: continue
+ if dmr and row[0].strip()!=dmr: continue
+ if call and row[1].strip().upper()!=call: continue
+ match.append(i)
+if len(match)!=1: print('cadastro não foi localizado de forma única',file=sys.stderr); raise SystemExit(11)
+st=os.stat(path); fd,tmp=tempfile.mkstemp(prefix='.users_base.',dir=os.path.dirname(path),text=True); os.close(fd)
+try:
+ with open(tmp,'w',encoding='utf-8',newline='') as out:
+  out.write(header)
+  for i,line in enumerate(raw):
+   if i!=match[0]: out.write(line)
+ os.chmod(tmp,st.st_mode & 0o7777); os.chown(tmp,st.st_uid,st.st_gid); os.replace(tmp,path)
+finally:
+ if os.path.exists(tmp): os.unlink(tmp)
+PY
+ rc=$?; set -e
+ if [[ "$rc" -ne 0 ]]; then err="$(head -1 "$dir/delete.error" 2>/dev/null || true)"; restore "$dir"; echo "ERRO: ${err:-não foi possível excluir}; nada foi alterado" >&2; return 99; fi
+ if atomic_rebuild "$dir"; then :; else rc=$?; return "$rc"; fi
+ python3 - "$dir" "$call" "$dmr" <<'PY'
+import json,sys
+print(json.dumps({'ok':True,'action':'deleted','backup':sys.argv[1],'callsign':sys.argv[2],'dmrid':sys.argv[3],'sync':'atomic'},ensure_ascii=False,separators=(',',':')))
+PY
+}
+
+refresh(){ need; lock; local dir rc; dir="$(backup refresh)"; if atomic_rebuild "$dir"; then :; else rc=$?; return "$rc"; fi; python3 - "$dir" <<'PY'
+import json,sys
+print(json.dumps({'ok':True,'action':'refreshed','backup':sys.argv[1],'sync':'atomic'},ensure_ascii=False,separators=(',',':')))
+PY
+}
+check(){ need; python3 - "$DB" <<'PY'
+import json,os,sqlite3,sys
+p=sys.argv[1]
+if not os.path.exists(p): print(json.dumps({'ok':False,'integrity':'ausente'})); raise SystemExit(2)
+try:
+ c=sqlite3.connect('file:'+p+'?mode=ro',uri=True,timeout=3); r=c.execute('pragma integrity_check').fetchone()[0]; c.close()
+except Exception: r='erro'
+print(json.dumps({'ok':r=='ok','integrity':r},separators=(',',':'))); raise SystemExit(0 if r=='ok' else 3)
+PY
+}
+
+case "${1:-}" in
+ radioid-status) shift; [[ $# -eq 0 ]] || exit 64; status ;;
+ radioid-search) shift; [[ $# -eq 2 ]] || exit 64; search "$@" ;;
+ radioid-save) shift; [[ $# -eq 9 ]] || exit 64; save "$@" ;;
+ radioid-delete) shift; [[ $# -eq 2 ]] || exit 64; delete "$@" ;;
+ radioid-refresh) shift; [[ $# -eq 0 ]] || exit 64; refresh ;;
+ radioid-check) shift; [[ $# -eq 0 ]] || exit 64; check ;;
+ *) echo 'Uso permitido: radioid-status|radioid-search|radioid-save|radioid-delete|radioid-refresh|radioid-check' >&2; exit 64;;
+esac
