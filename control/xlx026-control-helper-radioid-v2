@@ -70,12 +70,14 @@ radioid_rebuild(){
   set -e
   if [[ "$rc" -ne 0 || ! -f "$RADIOID_DB" ]]; then
     radioid_restore "$dir"
+    printf 'status=rollback\nreason=rebuild_failed\n' > "$dir/RESULT"
     echo "ERRO: reconstrução SQL falhou; rollback executado" >&2
     return 75
   fi
   integrity="$(sqlite3 "$RADIOID_DB" 'PRAGMA integrity_check;' 2>/dev/null || true)"
   if [[ "$integrity" != ok ]]; then
     radioid_restore "$dir"
+    printf 'status=rollback\nreason=integrity_failed\n' > "$dir/RESULT"
     echo "ERRO: integridade SQL falhou; rollback executado" >&2
     return 76
   fi
@@ -109,7 +111,7 @@ if os.path.exists(db_path):
         con=sqlite3.connect(f'file:{db_path}?mode=ro',uri=True,timeout=3)
         integrity=con.execute('PRAGMA integrity_check').fetchone()[0]
         con.close()
-    except Exception as e:
+    except Exception:
         integrity='erro'
 out={"ok":True,"records":records,"csv":fmeta(csv_path),"db":fmeta(db_path),"integrity":integrity,"manager_exists":os.path.isfile(manager),"generator_exists":os.path.isfile(generator)}
 print(json.dumps(out,ensure_ascii=False,separators=(',',':')))
@@ -178,7 +180,7 @@ else:
 for i,row in enumerate(data):
     if len(row)<7 or i==target: continue
     if dmr and row[0].strip()==dmr: raise SystemExit('DMRID já utilizado')
-    if target is None and row[1].strip().upper()==call: raise SystemExit('indicativo já existe; pesquise e edite')
+    if row[1].strip().upper()==call: raise SystemExit('indicativo já utilizado')
 new=[dmr,call,first,last,city,state,country]
 if target is None:
     data.append(new); action='added'
@@ -202,7 +204,12 @@ PY
   rc=$?
   set -e
   if [[ "$rc" -ne 0 ]]; then radioid_restore "$dir"; echo 'ERRO: não foi possível salvar; base restaurada' >&2; return 87; fi
-  if ! radioid_rebuild "$dir"; then return $?; fi
+  if radioid_rebuild "$dir"; then
+    :
+  else
+    rc=$?
+    return "$rc"
+  fi
   python3 - "$action" "$dir" "$call" "$dmr" <<'PY'
 import json,sys
 print(json.dumps({"ok":True,"action":sys.argv[1],"backup":sys.argv[2],"callsign":sys.argv[3],"dmrid":sys.argv[4]},ensure_ascii=False,separators=(',',':')))
@@ -245,7 +252,12 @@ PY
   rc=$?
   set -e
   if [[ "$rc" -ne 0 ]]; then radioid_restore "$dir"; echo 'ERRO: registro não encontrado de forma única; nada alterado' >&2; return 92; fi
-  if ! radioid_rebuild "$dir"; then return $?; fi
+  if radioid_rebuild "$dir"; then
+    :
+  else
+    rc=$?
+    return "$rc"
+  fi
   python3 - "$dir" "$call" "$dmr" <<'PY'
 import json,sys
 print(json.dumps({"ok":True,"action":"deleted","backup":sys.argv[1],"callsign":sys.argv[2],"dmrid":sys.argv[3]},ensure_ascii=False,separators=(',',':')))
