@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# validation branch: no runtime behavior change
 set -Eeuo pipefail
 export LANG=C
 PATH=/usr/sbin:/usr/bin:/sbin:/bin
