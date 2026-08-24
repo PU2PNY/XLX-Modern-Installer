@@ -31,6 +31,9 @@ run_action() {
     candidate_build)
       /usr/local/sbin/xlx026-core-260-candidate-v1
       ;;
+    candidate_finalize)
+      /usr/local/sbin/xlx026-core-260-candidate-finalize-v1
+      ;;
     *)
       echo "[ERRO] ação não permitida: $action" >&2
       return 64
@@ -50,7 +53,7 @@ job=d.get('job_id','')
 action=d.get('action','')
 if not re.fullmatch(r'[A-Za-z0-9._-]{1,80}', job):
     raise SystemExit('invalid job_id')
-if action not in {'readonly_smoke','backup_only','golden_lab','candidate_build'}:
+if action not in {'readonly_smoke','backup_only','golden_lab','candidate_build','candidate_finalize'}:
     raise SystemExit('action not allowed')
 print(job)
 print(action)
