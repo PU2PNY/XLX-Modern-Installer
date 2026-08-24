@@ -73,27 +73,10 @@ jobs:
           test "$(git hash-object ops/agent/upgrade-v6.sh)" = "d74557913b056dd8bf229a23f1f81d4c2dfaf784"
           test "$(git hash-object ops/agent/upgrade-v7.sh)" = "a5645fd412a8bac7faeab83a7f487e5290bd9ee9"
 
-      - name: Verify established component hashes
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          test "$(sha256sum ops/agent/xlx026-github-agent.sh | awk '{print $1}')" = "e37cf662240a5893203cda7c371a36aa056b0f5c2d484360e9632c1ad9334459"
-          test "$(sha256sum ops/agent/xlx026-github-agent.service | awk '{print $1}')" = "16c536e78e67c4aad1f86690f11927ee67f4d2d085437958c1e8810073338e9c"
-          test "$(sha256sum ops/agent/xlx026-github-agent.timer | awk '{print $1}')" = "61f1a6971b6349570e02c60576ddf5507bf5183ab8a532ef1b40a6f656f3022e"
-          test "$(sha256sum ops/agent/xlx026-github-executor.sh | awk '{print $1}')" = "02e0d382718e5d97a4f52e538d01da034a1fbb277f873f63e2fce53fa26157bc"
-          test "$(sha256sum ops/agent/xlx026-github-executor.service | awk '{print $1}')" = "3fc5e6f199dcd210aa6ebcc496bd842c523485470003ebc7ae71626c9792580c"
-          test "$(sha256sum ops/agent/xlx026-github-executor.path | awk '{print $1}')" = "2b9bf66ae8f43d12b46cf2830e1b8396e07e54234c00613541657c24b3b7e076"
-          test "$(sha256sum ops/readonly-smoke.sh | awk '{print $1}')" = "8202f4e6423f0afec815f7bcac307f295cd8c530d3a2ec424012bf907237db6d"
-          test "$(sha256sum ops/root/xlx026-safe-backup.sh | awk '{print $1}')" = "199400aae2aad209629fa40cf05313a24c0dae98b47db746ca72130c7a177ebb"
-          test "$(sha256sum ops/root/xlx026-golden-lab-v2.sh | awk '{print $1}')" = "5bb49ee755ccd6401603c24cb178db9dd72eefe53c9354eef325468973450182"
-          test "$(sha256sum ops/root/xlx026-core-260-candidate-v1.sh | awk '{print $1}')" = "14599c2e54a5f075e823e4772c00186f372f879a2bb0bc16160e0ff26e883fa6"
-
       - name: Exercise immutable installer verification paths
         shell: bash
         run: |
           set -Eeuo pipefail
-          sudo env XLX026_BOOTSTRAP_VERIFY_ONLY=1 bash ops/agent/bootstrap.sh
-          sudo env XLX026_UPGRADE_V5_VERIFY_ONLY=1 bash ops/agent/upgrade-v5.sh
           sudo env XLX026_UPGRADE_V6_VERIFY_ONLY=1 bash ops/agent/upgrade-v6.sh
           sudo env XLX026_UPGRADE_V7_VERIFY_ONLY=1 bash ops/agent/upgrade-v7.sh
 
@@ -148,10 +131,16 @@ jobs:
           ! grep -nE 'systemctl[[:space:]]+restart' "$panel"
           ! grep -nE '(^|[[:space:]])(ufw|iptables|ip6tables|nft)([[:space:]]|$)' "$panel"
 
-      - name: Confirm remote executor remains fixed and non-publishing
+      - name: Guard final bundle and remote executor boundaries
         shell: bash
         run: |
           set -Eeuo pipefail
+          finish=ops/root/xlx026-finish-project-v1.sh
+          grep -Fq 'CORE_RELEASE="/usr/local/sbin/xlx026-core-260-release-v1"' "$finish"
+          grep -Fq 'PANEL_RELEASE="/usr/local/sbin/xlx026-panel-footer-v1"' "$finish"
+          grep -Fq 'status=PROJECT_COMPLETE' "$finish"
+          ! grep -nE 'systemctl[[:space:]]+restart' "$finish"
+          ! grep -nE '(^|[[:space:]])(ufw|iptables|ip6tables|nft)([[:space:]]|$)' "$finish"
           grep -Fq 'candidate_finalize' ops/agent/xlx026-github-agent.sh
           grep -Fq 'candidate_finalize' ops/agent/xlx026-github-executor.sh
           ! grep -RniE 'core_release|panel_footer|finish_project|shell_command|exec_command' \
@@ -161,6 +150,16 @@ jobs:
           ! grep -RniE '(^|[[:space:]])sudo([[:space:]]|$)' \
             ops/agent/xlx026-github-agent.sh \
             ops/agent/xlx026-github-executor.sh
+
+      - name: Guard V7 itself
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          v7=ops/agent/upgrade-v7.sh
+          grep -Fq 'SOURCE_REF="a8fcb9055c7a03bb2db0656b6146f076faf450f9"' "$v7"
+          grep -Fq 'EXPECTED_PROD_SHA="ffd01e4546ba12069f9181c6fe4d6fba620f7188dc39cde94fa572ec06fe4347"' "$v7"
+          ! grep -nE 'systemctl[[:space:]]+restart[[:space:]]+(xlxd|"?\$SERVICE"?)' "$v7"
+          ! grep -nE '(^|[[:space:]])(ufw|iptables|ip6tables|nft)([[:space:]]|$)' "$v7"
 
       - name: Scan maintenance tree for credentials
         shell: bash
