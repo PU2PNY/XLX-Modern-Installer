@@ -1,0 +1,20 @@
+[Unit]
+Description=XLX026 GitHub Maintenance Poller
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=xlxagent
+Group=xlxagent
+ExecStart=/usr/local/libexec/xlx026-github-agent/xlx026-github-agent.sh
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/xlx026-github-agent
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+LockPersonality=true
+RestrictRealtime=true
+NoNewPrivileges=true
+SystemCallArchitectures=native

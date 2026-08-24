@@ -1,0 +1,177 @@
+name: XLX026 Maintenance Validation
+
+on:
+  push:
+    branches:
+      - feature/xlx026-maint-20260823
+    paths:
+      - 'maintenance/**'
+      - 'ops/**'
+      - '.github/workflows/xlx026-maintenance-validate.yml'
+  pull_request:
+    paths:
+      - 'maintenance/**'
+      - 'ops/**'
+      - '.github/workflows/xlx026-maintenance-validate.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate shell syntax
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          files=(
+            ops/readonly-smoke.sh
+            ops/agent/xlx026-github-agent.sh
+            ops/agent/xlx026-github-executor.sh
+            ops/agent/bootstrap.sh
+            ops/agent/upgrade-v5.sh
+            ops/agent/upgrade-v6.sh
+            ops/agent/upgrade-v7.sh
+            ops/root/xlx026-safe-backup.sh
+            ops/root/xlx026-golden-lab-v2.sh
+            ops/root/xlx026-core-260-candidate-v1.sh
+            ops/root/xlx026-core-260-candidate-finalize-v1.sh
+            ops/root/xlx026-core-260-prepublish-v1.sh
+            ops/root/xlx026-core-260-release-v1.sh
+            ops/root/xlx026-panel-footer-v1.sh
+            ops/root/xlx026-finish-project-v1.sh
+          )
+          for f in "${files[@]}"; do bash -n "$f"; done
+
+      - name: Validate maintenance control schema
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python3 - <<'PY'
+          import json,re
+          with open('maintenance/control.json',encoding='utf-8') as f:
+              d=json.load(f)
+          assert d.get('schema') == 1
+          assert isinstance(d.get('enabled'),bool)
+          assert re.fullmatch(r'[A-Za-z0-9._-]{1,80}',d.get('job_id',''))
+          assert d.get('action') in {'idle','readonly_smoke','backup_only','golden_lab','candidate_build','candidate_finalize'}
+          PY
+
+      - name: Verify immutable final pipeline blobs
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          test "$(git hash-object ops/root/xlx026-core-260-candidate-finalize-v1.sh)" = "aa707756b6af9ac30ff0a2fefbd62243b3e5f671"
+          test "$(git hash-object ops/root/xlx026-core-260-prepublish-v1.sh)" = "07e2956c77269ccd07f46d9b3d5b9f29517362dd"
+          test "$(git hash-object ops/root/xlx026-core-260-release-v1.sh)" = "81298c3e64579eac0e6ff4f253762b38b3443d82"
+          test "$(git hash-object ops/root/xlx026-panel-footer-v1.sh)" = "83fc804783b289b0ee505fa272b61674e2e80205"
+          test "$(git hash-object ops/root/xlx026-finish-project-v1.sh)" = "38b199ad7f18ded263d2d7b937af904a616e61a8"
+          test "$(git hash-object ops/agent/upgrade-v6.sh)" = "d74557913b056dd8bf229a23f1f81d4c2dfaf784"
+          test "$(git hash-object ops/agent/upgrade-v7.sh)" = "68b402e521c5a1c55d99647c669807fcf594bcdd"
+
+      - name: Exercise immutable installer verification paths
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          sudo env XLX026_UPGRADE_V6_VERIFY_ONLY=1 bash ops/agent/upgrade-v6.sh
+          sudo env XLX026_UPGRADE_V7_VERIFY_ONLY=1 bash ops/agent/upgrade-v7.sh
+
+      - name: Guard lab and prepublish boundaries
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          for f in \
+            ops/root/xlx026-golden-lab-v2.sh \
+            ops/root/xlx026-core-260-candidate-v1.sh \
+            ops/root/xlx026-core-260-candidate-finalize-v1.sh \
+            ops/root/xlx026-core-260-prepublish-v1.sh; do
+            ! grep -nE '(^|[[:space:]])make[[:space:]]+install([[:space:]]|$)' "$f"
+          done
+          ! grep -nE '(cp|mv|install)[^\n]*/xlxd/xlxd([[:space:]]|$)' \
+            ops/root/xlx026-golden-lab-v2.sh \
+            ops/root/xlx026-core-260-candidate-v1.sh \
+            ops/root/xlx026-core-260-candidate-finalize-v1.sh \
+            ops/root/xlx026-core-260-prepublish-v1.sh
+          ! grep -nE 'systemctl[[:space:]]+(restart|stop)[[:space:]]+xlxd' \
+            ops/root/xlx026-core-260-candidate-finalize-v1.sh \
+            ops/root/xlx026-core-260-prepublish-v1.sh
+
+      - name: Guard release invariants
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          rel=ops/root/xlx026-core-260-release-v1.sh
+          grep -Fq 'EXPECTED_OLD_SHA="ffd01e4546ba12069f9181c6fe4d6fba620f7188dc39cde94fa572ec06fe4347"' "$rel"
+          grep -Fq 'PRECHECK="/usr/local/sbin/xlx026-core-260-prepublish-v1"' "$rel"
+          grep -Fq 'rollback(){' "$rel"
+          grep -Fq 'systemctl restart "$SERVICE"' "$rel"
+          grep -Fq 'EXPECTED_NEW_VERSION="2.6.0"' "$rel"
+          grep -Fq "awk '/xlxd/ {print \$4}'" "$rel"
+          grep -Fq 'SOURCE_MUTATED=1' "$rel"
+          ! grep -nE '(^|[[:space:]])make[[:space:]]+install([[:space:]]|$)' "$rel"
+          ! grep -nE '(^|[[:space:]])(ufw|iptables|ip6tables|nft)([[:space:]]|$)' "$rel"
+          bad="$(grep -nE 'systemctl[[:space:]]+restart' "$rel" | grep -v 'restart "\$SERVICE"' || true)"
+          test -z "$bad"
+
+      - name: Guard panel release invariants
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          panel=ops/root/xlx026-panel-footer-v1.sh
+          grep -Fq 'PANEL_VERSION="1.1.0"' "$panel"
+          grep -Fq 'EXPECTED_CORE_VERSION="2.6.0"' "$panel"
+          grep -Fq 'PANEL_SOURCE_URL="https://github.com/PU2PNY/XLX-Modern-Installer/tree/main/dashboard"' "$panel"
+          grep -Fq 'INSTALLER_URL="https://github.com/PU2PNY/XLX-Modern-Installer"' "$panel"
+          grep -Fq 'href=\"$PANEL_SOURCE_URL\"' "$panel"
+          grep -Fq 'href=\"$INSTALLER_URL\"' "$panel"
+          grep -Fq 'tar -C /var/www/html -czpf "$OUT/xlxd-novo.before.tar.gz" xlxd-novo' "$panel"
+          grep -Fq 'ROLLBACK WEB AUTOMÁTICO' "$panel"
+          ! grep -nE 'systemctl[[:space:]]+restart' "$panel"
+          ! grep -nE '(^|[[:space:]])(ufw|iptables|ip6tables|nft)([[:space:]]|$)' "$panel"
+
+      - name: Guard final bundle and remote executor boundaries
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          finish=ops/root/xlx026-finish-project-v1.sh
+          grep -Fq 'CORE_RELEASE="/usr/local/sbin/xlx026-core-260-release-v1"' "$finish"
+          grep -Fq 'PANEL_RELEASE="/usr/local/sbin/xlx026-panel-footer-v1"' "$finish"
+          grep -Fq 'status=PROJECT_COMPLETE' "$finish"
+          grep -Fq 'href=\"$PANEL_SOURCE_URL\"' "$finish"
+          grep -Fq 'href=\"$INSTALLER_URL\"' "$finish"
+          ! grep -nE 'systemctl[[:space:]]+restart' "$finish"
+          ! grep -nE '(^|[[:space:]])(ufw|iptables|ip6tables|nft)([[:space:]]|$)' "$finish"
+          grep -Fq 'candidate_finalize' ops/agent/xlx026-github-agent.sh
+          grep -Fq 'candidate_finalize' ops/agent/xlx026-github-executor.sh
+          ! grep -RniE 'core_release|panel_footer|finish_project|shell_command|exec_command' \
+            maintenance/control.json \
+            ops/agent/xlx026-github-agent.sh \
+            ops/agent/xlx026-github-executor.sh
+          ! grep -RniE '(^|[[:space:]])sudo([[:space:]]|$)' \
+            ops/agent/xlx026-github-agent.sh \
+            ops/agent/xlx026-github-executor.sh
+
+      - name: Guard V7 itself
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          v7=ops/agent/upgrade-v7.sh
+          grep -Fq 'SOURCE_REF="b4f19164471c9af9a196f0f60e78a6fb19651377"' "$v7"
+          grep -Fq 'EXPECTED_PROD_SHA="ffd01e4546ba12069f9181c6fe4d6fba620f7188dc39cde94fa572ec06fe4347"' "$v7"
+          grep -Fq 'PANEL_BLOB="83fc804783b289b0ee505fa272b61674e2e80205"' "$v7"
+          grep -Fq 'FINISH_BLOB="38b199ad7f18ded263d2d7b937af904a616e61a8"' "$v7"
+          ! grep -nE 'systemctl[[:space:]]+restart[[:space:]]+(xlxd|"?\$SERVICE"?)' "$v7"
+          ! grep -nE '(^|[[:space:]])(ufw|iptables|ip6tables|nft)([[:space:]]|$)' "$v7"
+
+      - name: Scan maintenance tree for credentials
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          if grep -RniE 'BEGIN (OPENSSH|RSA|EC|DSA) PRIVATE KEY|ghp_[A-Za-z0-9]+|github_pat_' maintenance ops; then
+            echo 'Potential credential/private key detected' >&2
+            exit 1
+          fi
