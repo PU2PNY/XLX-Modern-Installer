@@ -1,0 +1,52 @@
+name: XLX026 V10 Final Validation
+
+on:
+  pull_request:
+    paths:
+      - 'ops/agent/upgrade-v10-final.sh'
+      - 'ops/agent/upgrade-v9.sh'
+      - '.github/workflows/xlx026-v10-final.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate V10 blob and shell syntax
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          bash -n ops/agent/upgrade-v10-final.sh
+          test "$(git hash-object ops/agent/upgrade-v10-final.sh)" = "80f3efd2b489a10805026a288098e6ee7b6ddc2c"
+
+      - name: Run full V10 verify-only path
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          XLX026_V10_VERIFY_ONLY=1 bash ops/agent/upgrade-v10-final.sh
+
+      - name: Verify final invariants
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          f=ops/agent/upgrade-v10-final.sh
+          for token in \
+            'V9_BLOB="4879bd3b1a81ba141122d595705307538901d5d9"' \
+            'sha256sum -c xlxd-core-2.6.0-candidate.sha256' \
+            'chmod 0750' \
+            'CANDIDATE_V2_STATIC_OK' \
+            'EXPECTED_NEW_VERSION="2.6.0"' \
+            'EXPECTED_PANEL_VERSION="1.1.0"' \
+            'mtr_contract=HTTP_400_invalid_request' \
+            'listeners_preserved=yes' \
+            'PROJECT_COMPLETE'
+          do
+            grep -Fq "$token" "$f"
+          done
+          ! grep -Eq 'make[[:space:]]+install' "$f"
+          ! grep -Eq 'ufw|iptables|nft[[:space:]]' "$f"
