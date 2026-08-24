@@ -119,14 +119,18 @@ new=(
 new_text=pat.sub(new,text,count=1)
 if new_text.count(f'Painel XLX026 v{version}')!=1:
     raise SystemExit('novo marcador não ficou único')
-if new_text.count(panel_url)!=1 or new_text.count(installer_url)!=1:
-    raise SystemExit('links GitHub não ficaram únicos')
+if f'href="{panel_url}"' not in new_text:
+    raise SystemExit('href do código do painel ausente')
+if f'href="{installer_url}"' not in new_text:
+    raise SystemExit('href do instalador ausente')
 open(dst,'w',encoding='utf-8',newline='').write(new_text)
 PY
 chown --reference="$INDEX" "$TMP"
 chmod --reference="$INDEX" "$TMP"
 php -l "$TMP"
 [[ "$(grep -Foc "$NEW_MARKER" "$TMP")" -eq 1 ]]
+grep -Fq "href=\"$PANEL_SOURCE_URL\"" "$TMP"
+grep -Fq "href=\"$INSTALLER_URL\"" "$TMP"
 ok "Patch mínimo validado antes da publicação"
 
 section "4/7 — PUBLICAÇÃO ATÔMICA DO INDEX"
@@ -134,8 +138,8 @@ MUTATED=1
 mv -f "$TMP" "$INDEX"
 php -l "$INDEX"
 [[ "$(grep -Foc "$NEW_MARKER" "$INDEX")" -eq 1 ]] || { fail "novo marcador ausente após publicação"; exit 40; }
-[[ "$(grep -Foc "$PANEL_SOURCE_URL" "$INDEX")" -eq 1 ]] || { fail "link do código ausente"; exit 41; }
-[[ "$(grep -Foc "$INSTALLER_URL" "$INDEX")" -eq 1 ]] || { fail "link do instalador ausente"; exit 42; }
+grep -Fq "href=\"$PANEL_SOURCE_URL\"" "$INDEX" || { fail "link do código ausente"; exit 41; }
+grep -Fq "href=\"$INSTALLER_URL\"" "$INDEX" || { fail "link do instalador ausente"; exit 42; }
 ok "index.php atualizado"
 
 section "5/7 — VALIDAR TODAS AS PÁGINAS"
@@ -147,8 +151,8 @@ for path in "${PAGES[@]}"; do
   code="$(curl --fail-with-body --silent --show-error --location --connect-timeout 8 --max-time 25 -o "$body" -w '%{http_code}' "$BASE_URL$path")" || { fail "HTTP falhou em $path"; exit 50; }
   [[ "$code" == "200" ]] || { fail "HTTP $code em $path"; exit 51; }
   grep -Fq "$NEW_MARKER" "$body" || { fail "novo rodapé não aparece em $path"; exit 52; }
-  grep -Fq "$PANEL_SOURCE_URL" "$body" || { fail "link Código do Painel ausente em $path"; exit 53; }
-  grep -Fq "$INSTALLER_URL" "$body" || { fail "link Instalador ausente em $path"; exit 54; }
+  grep -Fq "href=\"$PANEL_SOURCE_URL\"" "$body" || { fail "link Código do Painel ausente em $path"; exit 53; }
+  grep -Fq "href=\"$INSTALLER_URL\"" "$body" || { fail "link Instalador ausente em $path"; exit 54; }
   printf '%s\t%s\t%s\n' "$path" "$code" "$(wc -c < "$body")" >> "$OUT/http/pages.tsv"
 done
 ok "Rodapé confirmado nas 9 páginas públicas"
