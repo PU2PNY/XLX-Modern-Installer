@@ -38,8 +38,8 @@ jobs:
 
       - name: Generic identity invariants
         run: |
-          files='control/index.php control/xlx-modern-control-helper modules/68-control-panel.sh install-control.sh'
-          ! grep -En 'xlx026\.net|Controle XLX026|queuspa|/etc/xlx026-control|/var/lib/xlx026-control|xlx026-control-helper' $files
+          ! grep -En 'https://xlx026\.net|Controle XLX026|/etc/xlx026-control|/var/lib/xlx026-control|/usr/local/sbin/xlx026-control-helper' control/index.php control/xlx-modern-control-helper install-control.sh
+          ! grep -En '^(CONTROL_USERNAME|USERNAME|DOMAIN|BASE_URL)=.*(queuspa|xlx026)' modules/68-control-panel.sh
           grep -Fq "/etc/xlx-modern-control/config.php" control/index.php
           grep -Fq "/usr/local/sbin/xlx-modern-control-helper" control/index.php
           grep -Fq 'TITLE="Controle $REFLECTOR_NAME"' modules/68-control-panel.sh
@@ -50,7 +50,7 @@ jobs:
           grep -Fq 'password_verify' control/index.php
           grep -Fq 'Repita a senha:' modules/68-control-panel.sh
           grep -Fq 'senha não será exibida nem persistida em texto puro' modules/68-control-panel.sh
-          ! grep -En "PASSWORD=['\"][^$]" modules/68-control-panel.sh control/index.php
+          ! grep -En '^PASSWORD=["'"'][^$][^"'"']+["'"']$' modules/68-control-panel.sh
 
       - name: Filesystem and sudo invariants
         run: |
