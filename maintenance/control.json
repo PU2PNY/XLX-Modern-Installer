@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "enabled": false,
-  "job_id": "bootstrap-000",
-  "action": "idle"
+  "enabled": true,
+  "job_id": "smoke-20260823-01",
+  "action": "readonly_smoke"
 }
