@@ -84,8 +84,8 @@ sha256sum /xlxd/xlxd > "$OUT/core.sha256"
   echo "core_sha=$(sha256sum /xlxd/xlxd | awk '{print $1}')"
   echo "live_sha_before=$(sha256sum "$LIVE" | awk '{print $1}')"
   echo "common_sha_before=$(sha256sum "$COMMON" | awk '{print $1}')"
-  echo "old_live_parser_count=$(grep -Fc 'for client\\s+([A-Z0-9]+)\\s*([A-Z0-9]+)?' "$LIVE" || true)"
-  echo "old_common_parser_count=$(grep -Fc 'for client\\s+([A-Z0-9]+)\\s*([A-Z0-9]+)?' "$COMMON" || true)"
+  echo "old_live_parser_count=$(grep -Fc 'for client\s+([A-Z0-9]+)\s*([A-Z0-9]+)?' "$LIVE" || true)"
+  echo "old_common_parser_count=$(grep -Fc 'for client\s+([A-Z0-9]+)\s*([A-Z0-9]+)?' "$COMMON" || true)"
 } | tee "$OUT/baseline.txt"
 grep 'Opening stream on module' "$LOG" | tail -20 > "$OUT/recent-opening-streams.txt" || true
 ok "Backup e evidência do log gravados em $OUT"
@@ -101,43 +101,39 @@ from pathlib import Path
 import sys
 live=Path(sys.argv[1]); common=Path(sys.argv[2]); marker=sys.argv[3]
 
-# Regex compatível com os dois contratos de log:
+# Compatibilidade dos logs:
 # 2.5.x: Opening stream on module D for client PU2ABC A with sid 123
 # 2.6.x: Opening stream on module D for PU2ABC A on/via PY2XYZ with sid 123
-# Os grupos permanecem: 1=módulo, 2=indicativo, 3=sufixo opcional, 4=sid.
-combined = r"Opening stream on module\\s+([A-Z])\\s+for\\s+(?:client\\s+)?([A-Z0-9\\/\\-]+)(?:\\s+((?!(?:on|via)\\b)[A-Z0-9]+))?(?:\\s+(?:on|via)\\s+[A-Z0-9\\/\\-]+(?:\\s+[A-Z0-9]+)?)?\\s+with sid\\s+(\\d+)"
+# Grupos preservados: 1=módulo, 2=indicativo, 3=sufixo opcional, 4=sid.
+combined = r"Opening stream on module\s+([A-Z])\s+for\s+(?:client\s+)?([A-Z0-9\/\-]+)(?:\s+((?!(?:on|via)\b)[A-Z0-9]+))?(?:\s+(?:on|via)\s+[A-Z0-9\/\-]+(?:\s+[A-Z0-9]+)?)?\s+with sid\s+(\d+)"
 
 s=live.read_text(encoding='utf-8')
 if marker not in s:
-    old1="'for client\\\\s+([A-Z0-9]+)\\\\s*([A-Z0-9]+)?\\\\s+' ."
-    old2="'with sid\\\\s+(\\\\d+)/i',"
+    old1=r"'for client\s+([A-Z0-9]+)\s*([A-Z0-9]+)?\s+' ."
+    old2=r"'with sid\s+(\d+)/i',"
     if s.count(old1)!=1 or s.count(old2)!=1:
         raise SystemExit(f'live.php: parser esperado não é único: old1={s.count(old1)} old2={s.count(old2)}')
     new=(
-        "'for\\\\s+(?:client\\\\s+)?([A-Z0-9\\\\/\\\\-]+)' .\n"
-        "            '(?:\\\\s+((?!(?:on|via)\\\\b)[A-Z0-9]+))?' .\n"
-        "            '(?:\\\\s+(?:on|via)\\\\s+[A-Z0-9\\\\/\\\\-]+(?:\\\\s+[A-Z0-9]+)?)?\\\\s+' ."
+        r"'for\s+(?:client\s+)?([A-Z0-9\/\-]+)' ." + "\n"
+        r"            '(?:\s+((?!(?:on|via)\b)[A-Z0-9]+))?' ." + "\n"
+        r"            '(?:\s+(?:on|via)\s+[A-Z0-9\/\-]+(?:\s+[A-Z0-9]+)?)?\s+' ."
     )
     s=s.replace(old1,new,1)
-    s=s.replace("foreach ($lines as $line) {", f"/* {marker}: parser compatível XLXD 2.5/2.6 */\nforeach ($lines as $line) {{",1)
+    loop="foreach ($lines as $line) {"
+    if s.count(loop)!=1:
+        raise SystemExit(f'live.php: foreach de log count={s.count(loop)}')
+    s=s.replace(loop, f"/* {marker}: parser compatível XLXD 2.5/2.6 */\n{loop}",1)
     live.write_text(s,encoding='utf-8')
 
 s=common.read_text(encoding='utf-8')
 if marker not in s:
-    old=r"Opening stream on module\\s+([A-Z])\\s+for client\\s+([A-Z0-9]+)\\s*([A-Z0-9]+)?\\s+with sid\\s+(\\d+)"
+    old=r"Opening stream on module\s+([A-Z])\s+for client\s+([A-Z0-9]+)\s*([A-Z0-9]+)?\s+with sid\s+(\d+)"
     if s.count(old)!=1:
         raise SystemExit(f'common.php: parser esperado count={s.count(old)}')
     s=s.replace(old,combined,1)
-    # Comentário curto junto do parser, sem reformatar o arquivo customizado.
-    pos=s.find(combined)
-    if pos<0:
-        raise SystemExit('common.php: parser novo não localizado após troca')
-    s=s[:pos] + marker + r"_" + s[pos:]
-    # O marcador acima ficaria dentro da regex; substituí-lo por comentário PHP imediatamente antes.
-    s=s.replace(marker + "_" + combined, combined,1)
     anchor="if(preg_match('/"+combined
-    if anchor not in s:
-        raise SystemExit('common.php: anchor novo não localizado')
+    if s.count(anchor)!=1:
+        raise SystemExit(f'common.php: parser novo anchor count={s.count(anchor)}')
     s=s.replace(anchor, "/* "+marker+": parser compatível XLXD 2.5/2.6 */\n        "+anchor,1)
     common.write_text(s,encoding='utf-8')
 PY
@@ -171,9 +167,13 @@ section "4/8 — TESTAR CONTRA LOG REAL"
 python3 - "$LOG" <<'PY'
 import re,sys
 p=re.compile(r'Opening stream on module\s+([A-Z])\s+for\s+(?:client\s+)?([A-Z0-9\/\-]+)(?:\s+((?!(?:on|via)\b)[A-Z0-9]+))?(?:\s+(?:on|via)\s+[A-Z0-9\/\-]+(?:\s+[A-Z0-9]+)?)?\s+with sid\s+(\d+)',re.I)
-with open(sys.argv[1],encoding='utf-8',errors='replace') as f:
-    lines=f.readlines()[-12000:]
-openings=[x.rstrip() for x in lines if 'Opening stream on module' in x]
+with open(sys.argv[1],'rb') as f:
+    f.seek(0,2)
+    size=f.tell()
+    f.seek(max(0,size-2097152))
+    raw=f.read().decode('utf-8','replace')
+lines=raw.splitlines()
+openings=[x for x in lines if 'Opening stream on module' in x]
 matches=[x for x in openings if p.search(x)]
 print(f'opening_lines_recent={len(openings)}')
 print(f'opening_lines_matched={len(matches)}')
