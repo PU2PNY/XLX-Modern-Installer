@@ -57,7 +57,7 @@ jobs:
           test "$(sha256sum ops/agent/xlx026-github-agent.timer | awk '{print $1}')" = "61f1a6971b6349570e02c60576ddf5507bf5183ab8a532ef1b40a6f656f3022e"
           test "$(sha256sum ops/readonly-smoke.sh | awk '{print $1}')" = "8202f4e6423f0afec815f7bcac307f295cd8c530d3a2ec424012bf907237db6d"
           test "$(sha256sum ops/root/xlx026-safe-backup.sh | awk '{print $1}')" = "199400aae2aad209629fa40cf05313a24c0dae98b47db746ca72130c7a177ebb"
-          test "$(sha256sum ops/root/xlx026-golden-lab-v2.sh | awk '{print $1}')" = "521666c713ea43cec9be784cb2250fdf5df9b0b01e5786048a79642bb6958aa9"
+          test "$(sha256sum ops/root/xlx026-golden-lab-v2.sh | awk '{print $1}')" = "5bb49ee755ccd6401603c24cb178db9dd72eefe53c9354eef325468973450182"
 
       - name: Exercise bootstrap download and hash path
         shell: bash
