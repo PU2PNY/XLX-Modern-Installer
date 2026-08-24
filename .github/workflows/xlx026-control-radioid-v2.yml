@@ -112,22 +112,52 @@ jobs:
           test "$(sudo sqlite3 /xlxd/users_db/users.db 'PRAGMA integrity_check;')" = 'ok'
           sudo find /root/backups-xlx026/radioid-control -type f -name 'users_base.csv.before' | grep -q .
 
-      - name: Duplicate protection
+      - name: Duplicate protections
         run: |
           set +e
-          sudo bash control/xlx026-control-helper-radioid-v2 radioid-save '' '' 7240002 PU2DUP Test User TestCity SP Brazil >/tmp/dup.out 2>&1
+          sudo bash control/xlx026-control-helper-radioid-v2 radioid-save '' '' 7240002 PU2DUP Test User TestCity SP Brazil >/tmp/dup-dmr.out 2>&1
+          rc_dmr=$?
+          sudo bash control/xlx026-control-helper-radioid-v2 radioid-save 7240001 PY2ABC 7240001 PU2XYZ Ana Silva Campinas SP Brazil >/tmp/dup-call.out 2>&1
+          rc_call=$?
+          set -e
+          test "$rc_dmr" -ne 0
+          test "$rc_call" -ne 0
+          grep -Fq 'PU2XYZ' /xlxd/users_db/users_base.csv
+          grep -Fq '7240001,PY2ABC,Ana,Silva,Campinas,SP,Brazil' /xlxd/users_db/users_base.csv
+          test "$(sudo sqlite3 /xlxd/users_db/users.db "select count(*) from users where dmrid='7240002';")" = '1'
+          test "$(sudo sqlite3 /xlxd/users_db/users.db "select count(*) from users where callsign='PU2XYZ';")" = '1'
+
+      - name: Forced rebuild failure restores CSV and SQLite
+        run: |
+          csv_before="$(sha256sum /xlxd/users_db/users_base.csv | awk '{print $1}')"
+          db_before="$(sha256sum /xlxd/users_db/users.db | awk '{print $1}')"
+          sudo cp -a /xlxd/users_db/create_user_db.php /tmp/create_user_db.php.good
+          sudo tee /xlxd/users_db/create_user_db.php >/dev/null <<'PHP'
+          <?php
+          @unlink(__DIR__.'/users.db');
+          file_put_contents(__DIR__.'/users.db','BROKEN');
+          exit(42);
+          PHP
+          set +e
+          sudo bash control/xlx026-control-helper-radioid-v2 radioid-save 7240001 PY2ABC 7240001 PY2ABC Ana Silva Santos SP Brazil >/tmp/rebuild-fail.out 2>&1
           rc=$?
           set -e
           test "$rc" -ne 0
-          grep -Fq 'PU2XYZ' /xlxd/users_db/users_base.csv
-          test "$(sudo sqlite3 /xlxd/users_db/users.db "select count(*) from users where dmrid='7240002';")" = '1'
+          test "$(sha256sum /xlxd/users_db/users_base.csv | awk '{print $1}')" = "$csv_before"
+          test "$(sha256sum /xlxd/users_db/users.db | awk '{print $1}')" = "$db_before"
+          test "$(sudo sqlite3 /xlxd/users_db/users.db 'PRAGMA integrity_check;')" = 'ok'
+          sudo find /root/backups-xlx026/radioid-control -type f -name RESULT -exec grep -l 'reason=rebuild_failed' {} + | grep -q .
+          sudo cp -a /tmp/create_user_db.php.good /xlxd/users_db/create_user_db.php
+          sudo bash control/xlx026-control-helper-radioid-v2 radioid-check >/tmp/check-after-rollback.json
 
       - name: Production updater invariants
         run: |
           grep -Fq 'OLD_INDEX_BLOB="c615cb8068d5d9ce900fc193ea771642f2206e94"' ops/root/xlx026-control-radioid-v2.sh
           grep -Fq 'OLD_HELPER_BLOB="dc78219b8a8a6fdfe6a364b2d422b5a5340e735c"' ops/root/xlx026-control-radioid-v2.sh
+          grep -Fq 'SOURCE_COMMIT="16cef879e18897df7c25eaaa99cce7a6f3ae6629"' ops/root/xlx026-control-radioid-v2.sh
           grep -Fq 'NEW_INDEX_BLOB="a617b6e359620834ffefc9d71c2632949aa6fe70"' ops/root/xlx026-control-radioid-v2.sh
-          grep -Fq 'NEW_HELPER_BLOB="2a0b62879ab91d73b746796a478ca5be4d63c2ff"' ops/root/xlx026-control-radioid-v2.sh
+          grep -Fq 'NEW_HELPER_BLOB="a40de58d5359d1d2f4250a22fcd884cde59f6477"' ops/root/xlx026-control-radioid-v2.sh
           grep -Fq "! grep -Eq 'eval |bash -c|sh -c|NOPASSWD:[[:space:]]*ALL'" ops/root/xlx026-control-radioid-v2.sh
           ! grep -Eq 'NOPASSWD:[[:space:]]*ALL' ops/root/xlx026-control-radioid-v2.sh
+          grep -Fq "grep -Fxiq 'mbstring'" ops/root/xlx026-control-radioid-v2.sh
           grep -Fq 'XLXD não foi reiniciado.' ops/root/xlx026-control-radioid-v2.sh

@@ -16,9 +16,9 @@ CORE_SHA="10870cf84d91c936497c95c314a0b1eed79779e73260c7ec306cf6bba17632a7"
 OLD_INDEX_BLOB="c615cb8068d5d9ce900fc193ea771642f2206e94"
 OLD_HELPER_BLOB="dc78219b8a8a6fdfe6a364b2d422b5a5340e735c"
 
-SOURCE_COMMIT="587160491ab3caf49f7663ee4ad40366ce98dbc6"
+SOURCE_COMMIT="16cef879e18897df7c25eaaa99cce7a6f3ae6629"
 NEW_INDEX_BLOB="a617b6e359620834ffefc9d71c2632949aa6fe70"
-NEW_HELPER_BLOB="2a0b62879ab91d73b746796a478ca5be4d63c2ff"
+NEW_HELPER_BLOB="a40de58d5359d1d2f4250a22fcd884cde59f6477"
 INDEX_URL="https://raw.githubusercontent.com/PU2PNY/XLX-Modern-Installer/${SOURCE_COMMIT}/control/xlx026-control-index-radioid-v2.php"
 HELPER_URL="https://raw.githubusercontent.com/PU2PNY/XLX-Modern-Installer/${SOURCE_COMMIT}/control/xlx026-control-helper-radioid-v2"
 
@@ -67,18 +67,20 @@ echo "helper_blob_atual=$CUR_HELPER"
 [[ -f /xlxd/users_db/reflector_user_manager.sh ]] || { fail "reflector_user_manager.sh não encontrado"; exit 9; }
 [[ -f /xlxd/users_db/users_base.csv ]] || { fail "users_base.csv não encontrado"; exit 10; }
 [[ -f /xlxd/users_db/create_user_db.php ]] || { fail "create_user_db.php não encontrado"; exit 11; }
-ok "baseline atual e arquivos RadioID aprovados"
+php -m | grep -Fxiq 'mbstring' || { fail "extensão PHP mbstring ausente; nada alterado"; exit 12; }
+ok "baseline atual, PHP e arquivos RadioID aprovados"
 
 section "2/8 — DOWNLOAD IMUTÁVEL"
 curl --fail --silent --show-error --location --connect-timeout 10 --max-time 60 "$INDEX_URL" -o "$NEW_INDEX"
 curl --fail --silent --show-error --location --connect-timeout 10 --max-time 60 "$HELPER_URL" -o "$NEW_HELPER"
-[[ "$(git hash-object "$NEW_INDEX")" == "$NEW_INDEX_BLOB" ]] || { fail "blob do novo index divergente"; exit 12; }
-[[ "$(git hash-object "$NEW_HELPER")" == "$NEW_HELPER_BLOB" ]] || { fail "blob do novo helper divergente"; exit 13; }
+[[ "$(git hash-object "$NEW_INDEX")" == "$NEW_INDEX_BLOB" ]] || { fail "blob do novo index divergente"; exit 13; }
+[[ "$(git hash-object "$NEW_HELPER")" == "$NEW_HELPER_BLOB" ]] || { fail "blob do novo helper divergente"; exit 14; }
 php -l "$NEW_INDEX" >/dev/null
 bash -n "$NEW_HELPER"
 grep -Fq "const CTRL_VER='1.1.0'" "$NEW_INDEX"
 grep -Fq 'Indicativos &amp; RadioID' "$NEW_INDEX"
 grep -Fq 'radioid-refresh' "$NEW_HELPER"
+grep -Fq 'reason=rebuild_failed' "$NEW_HELPER"
 ! grep -Eq 'eval |bash -c|sh -c|NOPASSWD:[[:space:]]*ALL' "$NEW_INDEX" "$NEW_HELPER"
 ok "fontes novas íntegras e sintaxe aprovada"
 
