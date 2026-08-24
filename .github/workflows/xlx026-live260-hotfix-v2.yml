@@ -1,0 +1,49 @@
+name: XLX026 Live 2.6 Parser Hotfix V2
+
+on:
+  push:
+    paths:
+      - 'ops/root/xlx026-live-260-parser-hotfix-v2.sh'
+      - '.github/workflows/xlx026-live260-hotfix-v2.yml'
+  pull_request:
+    paths:
+      - 'ops/root/xlx026-live-260-parser-hotfix-v2.sh'
+      - '.github/workflows/xlx026-live260-hotfix-v2.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bash syntax
+        run: bash -n ops/root/xlx026-live-260-parser-hotfix-v2.sh
+      - name: Safety scope
+        run: |
+          set -euo pipefail
+          f=ops/root/xlx026-live-260-parser-hotfix-v2.sh
+          grep -Fq 'EXPECTED_CORE_SHA="10870cf84d91c936497c95c314a0b1eed79779e73260c7ec306cf6bba17632a7"' "$f"
+          grep -Fq 'EXPECTED_LIVE_V1_SHA="b3ffeee168612f1bedd4545f4973fe25d7c9af1342d9f8dd9176ff32d24f8d31"' "$f"
+          grep -Fq 'EXPECTED_COMMON_V1_SHA="73508375e21a49261676c65f6e52c40baacc11b0164b10a758d8719905a97d99"' "$f"
+          grep -Fq 'XLX026_LOG260_COMPAT_V2' "$f"
+          ! grep -Eq 'systemctl[[:space:]]+(restart|stop)[[:space:]]+xlxd|make[[:space:]]+install' "$f"
+      - name: Regex contract
+        run: |
+          python3 - <<'PY'
+          import re
+          p=re.compile(r'Opening stream on module\s+([A-Z])\s+for\s+(?:client\s+)?([A-Z0-9\/\-]+)(?:\s+((?!(?:on|via)\b)[A-Z0-9]+))?(?:\s*\/\s*[A-Z0-9+_-]+)?(?:\s+(?:on|via)\s+[A-Z0-9\/\-]+(?:\s+[A-Z0-9]+)?)?\s+with sid\s+(\d+)',re.I)
+          tests={
+            'Opening stream on module B for client PY1RV B with sid 23427':('B','PY1RV','B','23427'),
+            'Opening stream on module C for PY1RO / DMR on PY1RO B with sid 15285':('C','PY1RO',None,'15285'),
+            'Opening stream on module C for PU3VVS / YSF on PU3VVS B with sid 17925':('C','PU3VVS',None,'17925'),
+            'Opening stream on module A for PU2PNY / DMR on PU2PNY B with sid 37891':('A','PU2PNY',None,'37891'),
+            'Opening stream on module D for PU2ABC A via XLX999 B with sid 3456':('D','PU2ABC','A','3456'),
+          }
+          for line,want in tests.items():
+              m=p.search(line)
+              assert m, line
+              assert m.groups()==want,(line,m.groups(),want)
+          print('regex contract OK')
+          PY
