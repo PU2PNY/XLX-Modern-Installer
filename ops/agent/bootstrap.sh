@@ -14,9 +14,15 @@ for c in curl sha256sum install useradd systemctl visudo sudo python3; do
 done
 
 fetch_verify(){
-  local rel="$1" expected="$2" out="$TMP/$(basename "$rel")"
-  curl --fail --silent --show-error --location --connect-timeout 10 --max-time 30 "$RAW/$rel" -o "$out"
-  local got
+  local rel expected out got
+  rel="$1"
+  expected="$2"
+  out="$TMP/$(basename "$rel")"
+
+  curl --fail --silent --show-error --location \
+    --connect-timeout 10 --max-time 30 \
+    "$RAW/$rel" -o "$out"
+
   got="$(sha256sum "$out" | awk '{print $1}')"
   [[ "$got" == "$expected" ]] || {
     echo "[ERRO] SHA-256 divergente em $rel" >&2
@@ -38,6 +44,11 @@ bash -n "$AGENT"
 bash -n "$SMOKE"
 bash -n "$BACKUP"
 bash -n "$GOLDEN"
+
+if [[ "${XLX026_BOOTSTRAP_VERIFY_ONLY:-0}" == "1" ]]; then
+  echo "[OK] Bootstrap verify-only: downloads, SHA-256 e sintaxe aprovados."
+  exit 0
+fi
 
 STAMP="$(date +%Y%m%d_%H%M%S)"
 PRE="/root/backups-xlx026/AGENT_BOOTSTRAP_PRE_${STAMP}"
