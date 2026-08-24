@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+export LANG=C
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+
+CORE_HELPER="/usr/local/sbin/xlx026-control-helper-core-v110"
+RADIO_HELPER="/usr/local/sbin/xlx026-radioid-helper-v111"
+
+[[ -x "$CORE_HELPER" ]] || { echo 'ERRO: helper principal indisponível' >&2; exit 70; }
+[[ -x "$RADIO_HELPER" ]] || { echo 'ERRO: helper RadioID indisponível' >&2; exit 71; }
+
+case "${1:-}" in
+  status|listeners|logs|backups|restart)
+    [[ "$#" -eq 1 ]] || exit 64
+    exec "$CORE_HELPER" "$1"
+    ;;
+  radioid-status|radioid-check|radioid-refresh)
+    [[ "$#" -eq 1 ]] || exit 64
+    exec "$RADIO_HELPER" "$1"
+    ;;
+  radioid-search)
+    [[ "$#" -eq 3 ]] || exit 64
+    exec "$RADIO_HELPER" "$@"
+    ;;
+  radioid-save)
+    [[ "$#" -eq 10 ]] || exit 64
+    exec "$RADIO_HELPER" "$@"
+    ;;
+  radioid-delete)
+    [[ "$#" -eq 3 ]] || exit 64
+    exec "$RADIO_HELPER" "$@"
+    ;;
+  *)
+    echo 'ERRO: ação não permitida' >&2
+    exit 64
+    ;;
+esac
