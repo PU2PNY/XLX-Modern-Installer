@@ -34,6 +34,7 @@ jobs:
           bash -n ops/agent/bootstrap.sh
           bash -n ops/root/xlx026-safe-backup.sh
           bash -n ops/root/xlx026-golden-lab-v2.sh
+          bash -n ops/root/xlx026-core-260-candidate-v1.sh
 
       - name: Validate maintenance control schema
         shell: bash
@@ -46,22 +47,23 @@ jobs:
           assert d.get('schema') == 1
           assert isinstance(d.get('enabled'), bool)
           assert re.fullmatch(r'[A-Za-z0-9._-]{1,80}', d.get('job_id',''))
-          assert d.get('action') in {'idle','readonly_smoke','backup_only','golden_lab'}
+          assert d.get('action') in {'idle','readonly_smoke','backup_only','golden_lab','candidate_build'}
           PY
 
-      - name: Verify bootstrap-pinned hashes
+      - name: Verify pinned hashes
         shell: bash
         run: |
           set -Eeuo pipefail
-          test "$(sha256sum ops/agent/xlx026-github-agent.sh | awk '{print $1}')" = "d53a717718f238663cfb0000324ee0fea7d9c6452df22f209ab7c167026cf0d5"
+          test "$(sha256sum ops/agent/xlx026-github-agent.sh | awk '{print $1}')" = "416bae7abf8fd3b5ea263a875a29dd7b4501805a822a0c995be27c7218e394b6"
           test "$(sha256sum ops/agent/xlx026-github-agent.service | awk '{print $1}')" = "16c536e78e67c4aad1f86690f11927ee67f4d2d085437958c1e8810073338e9c"
           test "$(sha256sum ops/agent/xlx026-github-agent.timer | awk '{print $1}')" = "61f1a6971b6349570e02c60576ddf5507bf5183ab8a532ef1b40a6f656f3022e"
-          test "$(sha256sum ops/agent/xlx026-github-executor.sh | awk '{print $1}')" = "ccf80b17e30f193ec8a5306a061a0fad0e3c0e71d7f44e0bf508137a4c5d53e7"
+          test "$(sha256sum ops/agent/xlx026-github-executor.sh | awk '{print $1}')" = "be6b1986f5b552d7c5ad1c45a09cca6921983965ea2905a0b3105726710e27e5"
           test "$(sha256sum ops/agent/xlx026-github-executor.service | awk '{print $1}')" = "3fc5e6f199dcd210aa6ebcc496bd842c523485470003ebc7ae71626c9792580c"
           test "$(sha256sum ops/agent/xlx026-github-executor.path | awk '{print $1}')" = "2b9bf66ae8f43d12b46cf2830e1b8396e07e54234c00613541657c24b3b7e076"
           test "$(sha256sum ops/readonly-smoke.sh | awk '{print $1}')" = "8202f4e6423f0afec815f7bcac307f295cd8c530d3a2ec424012bf907237db6d"
           test "$(sha256sum ops/root/xlx026-safe-backup.sh | awk '{print $1}')" = "199400aae2aad209629fa40cf05313a24c0dae98b47db746ca72130c7a177ebb"
           test "$(sha256sum ops/root/xlx026-golden-lab-v2.sh | awk '{print $1}')" = "5bb49ee755ccd6401603c24cb178db9dd72eefe53c9354eef325468973450182"
+          test "$(sha256sum ops/root/xlx026-core-260-candidate-v1.sh | awk '{print $1}')" = "14599c2e54a5f075e823e4772c00186f372f879a2bb0bc16160e0ff26e883fa6"
 
       - name: Exercise bootstrap download and hash path
         shell: bash
@@ -73,22 +75,35 @@ jobs:
         shell: bash
         run: |
           set -Eeuo pipefail
-          if grep -RniE '(^|[[:space:]])make[[:space:]]+install([[:space:]]|$)' ops/root/xlx026-golden-lab-v2.sh; then
-            echo 'Forbidden make install in Golden/Lab job' >&2
+
+          for f in ops/root/xlx026-golden-lab-v2.sh ops/root/xlx026-core-260-candidate-v1.sh; do
+            if grep -nE '(^|[[:space:]])make[[:space:]]+install([[:space:]]|$)' "$f"; then
+              echo "Forbidden make install in $f" >&2
+              exit 1
+            fi
+          done
+
+          if grep -nE '(cp|mv|install)[^\n]*/xlxd/xlxd([[:space:]]|$)' ops/root/xlx026-golden-lab-v2.sh ops/root/xlx026-core-260-candidate-v1.sh; then
+            echo 'Lab jobs must not replace production /xlxd/xlxd' >&2
             exit 1
           fi
-          if grep -nE '(cp|mv|install).*/xlxd/xlxd' ops/root/xlx026-golden-lab-v2.sh; then
-            echo 'Golden/Lab must not replace production /xlxd/xlxd' >&2
+
+          if grep -nE '(^|[;&|[:space:]])(/root/xlx026-lab/[^[:space:]]*/src/)?xlxd[[:space:]]+XLX' ops/root/xlx026-core-260-candidate-v1.sh; then
+            echo 'Candidate build job must not execute candidate xlxd' >&2
             exit 1
           fi
+
           if grep -RniE 'BEGIN (OPENSSH|RSA|EC|DSA) PRIVATE KEY|ghp_[A-Za-z0-9]+|github_pat_' maintenance ops; then
             echo 'Potential credential/private key detected' >&2
             exit 1
           fi
+
           ! grep -RniE '(^|[[:space:]])sudo([[:space:]]|$)' ops/agent/xlx026-github-agent.sh ops/agent/xlx026-github-executor.sh
 
-      - name: Confirm control plane has no arbitrary shell action
+      - name: Confirm fixed allowlist and no publish action
         shell: bash
         run: |
           set -Eeuo pipefail
+          grep -Fq "candidate_build" ops/agent/xlx026-github-agent.sh
+          grep -Fq "candidate_build" ops/agent/xlx026-github-executor.sh
           ! grep -RniE 'publish_candidate|replace_core|restart_xlxd|shell_command|exec_command' maintenance/control.json ops/agent/xlx026-github-agent.sh ops/agent/xlx026-github-executor.sh
