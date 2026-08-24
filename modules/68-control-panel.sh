@@ -25,8 +25,8 @@ Credenciais:
   - somente password_hash() é persistido;
   - nenhuma senha é gravada no repositório.
 
-Automação opcional:
-  XLX_CONTROL_USERNAME=operador XLX_CONTROL_PASSWORD='senha-forte' sudo -E bash modules/68-control-panel.sh
+Para automação controlada, as variáveis XLX_CONTROL_USERNAME e
+XLX_CONTROL_PASSWORD podem ser fornecidas somente no processo local.
 HELP
       exit 0
       ;;
@@ -61,8 +61,7 @@ validate_sources(){
   bash -n "$SOURCE_HELPER"
   grep -Fq "const CFG = '/etc/xlx-modern-control/config.php';" "$SOURCE_INDEX"
   grep -Fq 'Uso permitido: status|listeners|logs|backups|restart' "$SOURCE_HELPER"
-  ! grep -Fq 'queuspa' "$SOURCE_INDEX"
-  ! grep -Fq 'queuspa' "$SOURCE_HELPER"
+  ! grep -Eq 'xlx026\.net|Controle XLX026|/etc/xlx026-control|/var/lib/xlx026-control' "$SOURCE_INDEX" "$SOURCE_HELPER"
   ok "fontes genéricas e sintaxe aprovadas"
 }
 
