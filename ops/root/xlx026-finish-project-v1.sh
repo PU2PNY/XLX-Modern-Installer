@@ -69,8 +69,8 @@ for path in "${PAGES[@]}"; do
   code="$(curl --fail-with-body --silent --show-error --location --connect-timeout 8 --max-time 25 -o "$body" -w '%{http_code}' "$BASE_URL$path")" || { fail "HTTP final falhou em $path"; exit 44; }
   [[ "$code" == "200" ]] || { fail "HTTP final $code em $path"; exit 45; }
   grep -Fq "$PANEL_MARKER" "$body" || { fail "versão do painel ausente em $path"; exit 46; }
-  grep -Fq "$PANEL_SOURCE_URL" "$body" || { fail "Código do Painel ausente em $path"; exit 47; }
-  grep -Fq "$INSTALLER_URL" "$body" || { fail "Instalador ausente em $path"; exit 48; }
+  grep -Fq "href=\"$PANEL_SOURCE_URL\"" "$body" || { fail "Código do Painel ausente em $path"; exit 47; }
+  grep -Fq "href=\"$INSTALLER_URL\"" "$body" || { fail "Instalador ausente em $path"; exit 48; }
 done
 ok "9 páginas confirmadas externamente"
 
