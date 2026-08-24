@@ -19,7 +19,7 @@ fail(){ echo "[ERRO] $*" >&2; }
 section(){ printf '\n======================================================================\n%s\n======================================================================\n' "$*"; }
 
 [[ "$(id -u)" -eq 0 ]] || { fail "execute como root"; exit 1; }
-for c in awk curl find grep pgrep python3 readlink sha256sum sort ss systemctl tar; do
+for c in awk cp curl cut date df find git grep head pgrep python3 readlink sed sha256sum sort ss systemctl tail tee wc xargs; do
   command -v "$c" >/dev/null 2>&1 || { fail "comando ausente: $c"; exit 2; }
 done
 
@@ -34,6 +34,11 @@ get_kv(){
   awk -F= -v k="$key" '$1==k {sub(/^[^=]*=/,""); print; exit}' "$file"
 }
 
+macro_value(){
+  local file="$1" key="$2"
+  awk -v k="$key" '$1=="#define" && $2==k {$1=""; $2=""; sub(/^[[:space:]]+/,""); sub(/[[:space:]]+\/\/.*/,""); print; exit}' "$file"
+}
+
 section "1/8 — CANDIDATO FINALIZADO"
 COMPLETE="$(find "$BACKUP_ROOT" -maxdepth 2 -type f -name CANDIDATE_COMPLETE -path '*XLX026_CORE_260_CANDIDATE_*/*' -printf '%T@ %p\n' 2>/dev/null | sort -nr | head -1 | cut -d' ' -f2-)"
 [[ -n "$COMPLETE" && -f "$COMPLETE" ]] || { fail "CANDIDATE_COMPLETE não encontrado"; exit 10; }
@@ -44,6 +49,8 @@ CAND_SHA="$(get_kv "$COMPLETE" candidate_sha256)"
 UPSTREAM_SHA="$(get_kv "$COMPLETE" upstream_sha)"
 MARKER_PROD_SHA="$(get_kv "$COMPLETE" production_binary_sha)"
 CAND_TREE="$(get_kv "$COMPLETE" candidate_tree)"
+MARKER_SOURCE_HEAD="$(get_kv "$COMPLETE" current_source_head)"
+MARKER_SOURCE_DIRTY="$(get_kv "$COMPLETE" current_source_dirty_files)"
 
 [[ "$STATUS" == "CANDIDATE_STATIC_OK" ]] || { fail "status do candidato não aprovado: $STATUS"; exit 11; }
 [[ "$UPSTREAM_SHA" == "$EXPECTED_UPSTREAM" ]] || { fail "upstream SHA inesperado: $UPSTREAM_SHA"; exit 12; }
@@ -94,7 +101,7 @@ LISTENER_COUNT="$(wc -l < "$OUT/xlxd-udp-listeners.before.txt")"
 
 tail -n 300 /var/log/xlx.log > "$OUT/xlx.log.tail.before.txt" 2>/dev/null || true
 if grep -Eqi 'Address already in use|bind.*failed|segmentation fault|core dumped' "$OUT/xlx.log.tail.before.txt"; then
-  warn "Há mensagens críticas no recorte de log; revisar relatório antes de publicação"
+  warn "Há mensagens críticas no recorte de log; elas foram registradas para comparação pós-publicação"
 fi
 echo "xml_version=$XML_VERSION"
 echo "xlxd_udp_listener_lines=$LISTENER_COUNT"
@@ -148,23 +155,53 @@ PY
 done
 ok "APIs críticas responderam HTTP 200 e JSON válido"
 
-section "7/8 — WEBROOT, FONTE E RECURSOS"
+section "7/8 — FONTE, CONSTANTES, WEBROOT E RECURSOS"
 [[ -d "$WEBROOT" ]] || { fail "webroot não encontrado: $WEBROOT"; exit 70; }
 [[ -f "$WEBROOT/index.php" ]] || { fail "index.php do painel não encontrado"; exit 71; }
+[[ -d "$PROD_SRC/.git" && -f "$PROD_SRC/src/main.h" ]] || { fail "fonte de produção Git/main.h ausente"; exit 72; }
+[[ -f "$CAND_TREE/src/main.h" ]] || { fail "main.h do candidato ausente"; exit 73; }
+
+CURRENT_SOURCE_HEAD="$(git -C "$PROD_SRC" rev-parse HEAD)"
+CURRENT_SOURCE_DIRTY="$(git -C "$PROD_SRC" status --porcelain | wc -l)"
+echo "current_source_head=$CURRENT_SOURCE_HEAD"
+echo "current_source_dirty_files=$CURRENT_SOURCE_DIRTY"
+[[ -n "$MARKER_SOURCE_HEAD" && "$CURRENT_SOURCE_HEAD" == "$MARKER_SOURCE_HEAD" ]] || { fail "HEAD da fonte mudou desde a finalização"; exit 74; }
+[[ "$MARKER_SOURCE_DIRTY" == "0" && "$CURRENT_SOURCE_DIRTY" == "0" ]] || { fail "fonte de produção possui alterações locais não incorporadas"; exit 75; }
+
+git -C "$PROD_SRC" status --short --branch > "$OUT/production-source-status.before.txt"
+git -C "$CAND_TREE" status --short --branch > "$OUT/candidate-source-status.txt"
+git -C "$CAND_TREE" diff -- src/main.h src/cprotocols.cpp src/creflector.cpp src/makefile > "$OUT/candidate-scope.patch"
+
+CRITICAL_MACROS=(
+  NB_OF_MODULES NB_OF_PROTOCOLS
+  DEXTRA_PORT DPLUS_PORT DCS_PORT XLX_PORT DMRPLUS_PORT DMRMMDVM_PORT YSF_PORT
+  G3_PRESENCE_PORT G3_CONFIG_PORT G3_DV_PORT IMRS_PORT TRANSCODER_PORT JSON_PORT
+  YSF_DEFAULT_NODE_TX_FREQ YSF_DEFAULT_NODE_RX_FREQ YSF_AUTOLINK_ENABLE YSF_AUTOLINK_MODULE
+  DMRIDDB_USE_RLX_SERVER DMRIDDB_PATH YSFNODEDB_USE_RLX_SERVER YSFNODEDB_PATH
+  XML_PATH WHITELIST_PATH BLACKLIST_PATH INTERLINKLIST_PATH TERMINALOPTIONS_PATH
+)
+: > "$OUT/critical-macros.tsv"
+for key in "${CRITICAL_MACROS[@]}"; do
+  old="$(macro_value "$PROD_SRC/src/main.h" "$key")"
+  new="$(macro_value "$CAND_TREE/src/main.h" "$key")"
+  [[ -n "$old" && -n "$new" ]] || { fail "macro crítica ausente: $key"; exit 76; }
+  printf '%s\t%s\t%s\n' "$key" "$old" "$new" >> "$OUT/critical-macros.tsv"
+  [[ "$old" == "$new" ]] || { fail "macro crítica mudou: $key | atual=$old | candidato=$new"; exit 77; }
+done
+ok "Portas, caminhos, módulos e parâmetros críticos preservados"
+
 sha256sum "$WEBROOT/index.php" > "$OUT/web-index.before.sha256"
-
-if [[ -d "$PROD_SRC/.git" ]]; then
-  git -C "$PROD_SRC" rev-parse HEAD > "$OUT/production-source-head.before.txt" 2>/dev/null || true
-  git -C "$PROD_SRC" status --short --branch > "$OUT/production-source-status.before.txt" 2>/dev/null || true
-fi
-
 df -Pk /root "$WEBROOT" > "$OUT/disk.before.txt"
 AVAIL_KB="$(df -Pk /root | awk 'NR==2 {print $4}')"
-[[ "${AVAIL_KB:-0}" -ge 1048576 ]] || { fail "menos de 1 GiB livre em /root"; exit 72; }
+[[ "${AVAIL_KB:-0}" -ge 1048576 ]] || { fail "menos de 1 GiB livre em /root"; exit 78; }
 ok "Webroot, fonte e espaço aprovados"
 
 section "8/8 — MANIFESTO PRE-PUBLISH"
-find "$OUT" -type f ! -name 'PREPUBLISH_COMPLETE' ! -name 'PREPUBLISH-MANIFEST.sha256' -print0 | sort -z | xargs -0 sha256sum > "$OUT/PREPUBLISH-MANIFEST.sha256"
+find "$OUT" -type f \
+  ! -name 'execution.log' \
+  ! -name 'PREPUBLISH_COMPLETE' \
+  ! -name 'PREPUBLISH-MANIFEST.sha256' \
+  -print0 | sort -z | xargs -0 sha256sum > "$OUT/PREPUBLISH-MANIFEST.sha256"
 cat > "$OUT/PREPUBLISH_COMPLETE" <<EOF
 status=PREPUBLISH_OK
 path=$OUT
@@ -175,6 +212,8 @@ candidate_tree=$CAND_TREE
 upstream_sha=$EXPECTED_UPSTREAM
 production_sha=$PROD_SHA
 production_xml_version=$XML_VERSION
+production_source_head=$CURRENT_SOURCE_HEAD
+production_source_dirty_files=$CURRENT_SOURCE_DIRTY
 xlxd_service=xlxd.service
 xlxd_mainpid=$MAINPID
 xlxd_udp_listener_lines=$LISTENER_COUNT
