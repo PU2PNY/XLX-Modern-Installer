@@ -1,6 +1,6 @@
 {
   "schema": 1,
   "enabled": true,
-  "job_id": "smoke-20260823-01",
-  "action": "readonly_smoke"
+  "job_id": "golden-lab-20260823-01",
+  "action": "golden_lab"
 }
