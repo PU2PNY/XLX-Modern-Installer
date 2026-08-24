@@ -68,10 +68,10 @@ jobs:
           test "$(git hash-object ops/root/xlx026-core-260-candidate-finalize-v1.sh)" = "aa707756b6af9ac30ff0a2fefbd62243b3e5f671"
           test "$(git hash-object ops/root/xlx026-core-260-prepublish-v1.sh)" = "07e2956c77269ccd07f46d9b3d5b9f29517362dd"
           test "$(git hash-object ops/root/xlx026-core-260-release-v1.sh)" = "81298c3e64579eac0e6ff4f253762b38b3443d82"
-          test "$(git hash-object ops/root/xlx026-panel-footer-v1.sh)" = "a6fa274530747da9949b8241ba0f9584e605a6cd"
-          test "$(git hash-object ops/root/xlx026-finish-project-v1.sh)" = "b544bca16b74336c479c7ff5cdf89f92c17be0b5"
+          test "$(git hash-object ops/root/xlx026-panel-footer-v1.sh)" = "83fc804783b289b0ee505fa272b61674e2e80205"
+          test "$(git hash-object ops/root/xlx026-finish-project-v1.sh)" = "38b199ad7f18ded263d2d7b937af904a616e61a8"
           test "$(git hash-object ops/agent/upgrade-v6.sh)" = "d74557913b056dd8bf229a23f1f81d4c2dfaf784"
-          test "$(git hash-object ops/agent/upgrade-v7.sh)" = "a5645fd412a8bac7faeab83a7f487e5290bd9ee9"
+          test "$(git hash-object ops/agent/upgrade-v7.sh)" = "68b402e521c5a1c55d99647c669807fcf594bcdd"
 
       - name: Exercise immutable installer verification paths
         shell: bash
@@ -126,6 +126,8 @@ jobs:
           grep -Fq 'EXPECTED_CORE_VERSION="2.6.0"' "$panel"
           grep -Fq 'PANEL_SOURCE_URL="https://github.com/PU2PNY/XLX-Modern-Installer/tree/main/dashboard"' "$panel"
           grep -Fq 'INSTALLER_URL="https://github.com/PU2PNY/XLX-Modern-Installer"' "$panel"
+          grep -Fq 'href=\"$PANEL_SOURCE_URL\"' "$panel"
+          grep -Fq 'href=\"$INSTALLER_URL\"' "$panel"
           grep -Fq 'tar -C /var/www/html -czpf "$OUT/xlxd-novo.before.tar.gz" xlxd-novo' "$panel"
           grep -Fq 'ROLLBACK WEB AUTOMÁTICO' "$panel"
           ! grep -nE 'systemctl[[:space:]]+restart' "$panel"
@@ -139,6 +141,8 @@ jobs:
           grep -Fq 'CORE_RELEASE="/usr/local/sbin/xlx026-core-260-release-v1"' "$finish"
           grep -Fq 'PANEL_RELEASE="/usr/local/sbin/xlx026-panel-footer-v1"' "$finish"
           grep -Fq 'status=PROJECT_COMPLETE' "$finish"
+          grep -Fq 'href=\"$PANEL_SOURCE_URL\"' "$finish"
+          grep -Fq 'href=\"$INSTALLER_URL\"' "$finish"
           ! grep -nE 'systemctl[[:space:]]+restart' "$finish"
           ! grep -nE '(^|[[:space:]])(ufw|iptables|ip6tables|nft)([[:space:]]|$)' "$finish"
           grep -Fq 'candidate_finalize' ops/agent/xlx026-github-agent.sh
@@ -156,8 +160,10 @@ jobs:
         run: |
           set -Eeuo pipefail
           v7=ops/agent/upgrade-v7.sh
-          grep -Fq 'SOURCE_REF="a8fcb9055c7a03bb2db0656b6146f076faf450f9"' "$v7"
+          grep -Fq 'SOURCE_REF="b4f19164471c9af9a196f0f60e78a6fb19651377"' "$v7"
           grep -Fq 'EXPECTED_PROD_SHA="ffd01e4546ba12069f9181c6fe4d6fba620f7188dc39cde94fa572ec06fe4347"' "$v7"
+          grep -Fq 'PANEL_BLOB="83fc804783b289b0ee505fa272b61674e2e80205"' "$v7"
+          grep -Fq 'FINISH_BLOB="38b199ad7f18ded263d2d7b937af904a616e61a8"' "$v7"
           ! grep -nE 'systemctl[[:space:]]+restart[[:space:]]+(xlxd|"?\$SERVICE"?)' "$v7"
           ! grep -nE '(^|[[:space:]])(ufw|iptables|ip6tables|nft)([[:space:]]|$)' "$v7"
 
