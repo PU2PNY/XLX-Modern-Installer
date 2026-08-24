@@ -30,7 +30,7 @@ job=d.get('job_id','')
 action=d.get('action','')
 if not re.fullmatch(r'[A-Za-z0-9._-]{1,80}', job):
     raise SystemExit('invalid job_id')
-allowed={'idle','readonly_smoke','backup_only','golden_lab'}
+allowed={'idle','readonly_smoke','backup_only','golden_lab','candidate_build'}
 if action not in allowed:
     raise SystemExit('action not allowed')
 print('1' if d['enabled'] else '0')
