@@ -28,6 +28,9 @@ run_action() {
     golden_lab)
       /usr/local/sbin/xlx026-golden-lab-v2
       ;;
+    candidate_build)
+      /usr/local/sbin/xlx026-core-260-candidate-v1
+      ;;
     *)
       echo "[ERRO] ação não permitida: $action" >&2
       return 64
@@ -47,7 +50,7 @@ job=d.get('job_id','')
 action=d.get('action','')
 if not re.fullmatch(r'[A-Za-z0-9._-]{1,80}', job):
     raise SystemExit('invalid job_id')
-if action not in {'readonly_smoke','backup_only','golden_lab'}:
+if action not in {'readonly_smoke','backup_only','golden_lab','candidate_build'}:
     raise SystemExit('action not allowed')
 print(job)
 print(action)
@@ -69,7 +72,7 @@ PY
     continue
   fi
 
-  if [[ "$ACTION" == "backup_only" || "$ACTION" == "golden_lab" ]]; then
+  if [[ "$ACTION" == "backup_only" || "$ACTION" == "golden_lab" || "$ACTION" == "candidate_build" ]]; then
     AVAIL_KB="$(df -Pk /root | awk 'NR==2 {print $4}')"
     if [[ "${AVAIL_KB:-0}" -lt 1048576 ]]; then
       echo "[ERRO] menos de 1 GiB livre; ação $ACTION bloqueada" >&2
