@@ -1,0 +1,332 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+export LANG=C
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+
+EXPECTED_SHA="10870cf84d91c936497c95c314a0b1eed79779e73260c7ec306cf6bba17632a7"
+EXPECTED_VERSION="2.6.0"
+SERVICE="xlxd.service"
+BIN="/xlxd/xlxd"
+XML="/var/log/xlxd.xml"
+LOG="/var/log/xlx.log"
+BACKUPS="/root/backups-xlx026"
+
+RADIOID_CSV="/xlxd/users_db/users_base.csv"
+RADIOID_DB="/xlxd/users_db/users.db"
+RADIOID_GENERATOR="/xlxd/users_db/create_user_db.php"
+RADIOID_MANAGER="/xlxd/users_db/reflector_user_manager.sh"
+RADIOID_BACKUPS="$BACKUPS/radioid-control"
+RADIOID_LOCK="/run/lock/xlx026-radioid-control.lock"
+
+version(){ sed -n 's:.*<Version>\([^<]*\)</Version>.*:\1:p' "$XML" 2>/dev/null | head -1; }
+sha(){ sha256sum "$BIN" | awk '{print $1}'; }
+processes(){ pgrep -x xlxd 2>/dev/null | wc -l | tr -d ' '; }
+
+radioid_require(){
+  [[ -f "$RADIOID_CSV" ]] || { echo 'ERRO: users_base.csv não encontrado' >&2; return 70; }
+  [[ -f "$RADIOID_GENERATOR" ]] || { echo 'ERRO: create_user_db.php não encontrado' >&2; return 71; }
+  command -v python3 >/dev/null 2>&1 || { echo 'ERRO: python3 não encontrado' >&2; return 72; }
+  command -v sqlite3 >/dev/null 2>&1 || { echo 'ERRO: sqlite3 não encontrado' >&2; return 73; }
+}
+
+radioid_lock(){
+  install -d -m 0755 /run/lock
+  exec 9>"$RADIOID_LOCK"
+  flock -n 9 || { echo 'ERRO: outra operação RadioID está em andamento' >&2; return 74; }
+}
+
+radioid_backup(){
+  local label="$1" stamp dir
+  stamp="$(date +%Y%m%d_%H%M%S)"
+  dir="$RADIOID_BACKUPS/${stamp}_${label}"
+  install -d -m 0700 "$dir"
+  cp -a "$RADIOID_CSV" "$dir/users_base.csv.before"
+  if [[ -f "$RADIOID_DB" ]]; then
+    cp -a "$RADIOID_DB" "$dir/users.db.before"
+    printf 'yes\n' > "$dir/users.db.existed"
+  else
+    printf 'no\n' > "$dir/users.db.existed"
+  fi
+  sha256sum "$dir/users_base.csv.before" > "$dir/users_base.csv.before.sha256"
+  [[ ! -f "$dir/users.db.before" ]] || sha256sum "$dir/users.db.before" > "$dir/users.db.before.sha256"
+  printf '%s' "$dir"
+}
+
+radioid_restore(){
+  local dir="$1"
+  cp -a "$dir/users_base.csv.before" "$RADIOID_CSV"
+  if [[ "$(cat "$dir/users.db.existed" 2>/dev/null || echo no)" == yes && -f "$dir/users.db.before" ]]; then
+    cp -a "$dir/users.db.before" "$RADIOID_DB"
+  else
+    rm -f "$RADIOID_DB"
+  fi
+}
+
+radioid_rebuild(){
+  local dir="$1" rc integrity
+  set +e
+  (cd "$(dirname "$RADIOID_GENERATOR")" && php "$(basename "$RADIOID_GENERATOR")") >"$dir/rebuild.log" 2>&1
+  rc=$?
+  set -e
+  if [[ "$rc" -ne 0 || ! -f "$RADIOID_DB" ]]; then
+    radioid_restore "$dir"
+    echo "ERRO: reconstrução SQL falhou; rollback executado" >&2
+    return 75
+  fi
+  integrity="$(sqlite3 "$RADIOID_DB" 'PRAGMA integrity_check;' 2>/dev/null || true)"
+  if [[ "$integrity" != ok ]]; then
+    radioid_restore "$dir"
+    echo "ERRO: integridade SQL falhou; rollback executado" >&2
+    return 76
+  fi
+  sha256sum "$RADIOID_CSV" > "$dir/users_base.csv.after.sha256"
+  sha256sum "$RADIOID_DB" > "$dir/users.db.after.sha256"
+  printf 'status=ok\n' > "$dir/RESULT"
+}
+
+validate_text(){
+  local value="$1" max="$2"
+  [[ ${#value} -le "$max" ]] || return 1
+  [[ "$value" != *$'\n'* && "$value" != *$'\r'* && "$value" != *','* ]] || return 1
+}
+
+radioid_status(){
+  radioid_require
+  python3 - "$RADIOID_CSV" "$RADIOID_DB" "$RADIOID_MANAGER" "$RADIOID_GENERATOR" <<'PY'
+import json, os, sqlite3, sys, time
+csv_path, db_path, manager, generator = sys.argv[1:]
+def fmeta(path):
+    if not os.path.exists(path): return {"exists":False,"size":0,"mtime":0,"mtime_text":"—"}
+    st=os.stat(path)
+    return {"exists":True,"size":st.st_size,"mtime":int(st.st_mtime),"mtime_text":time.strftime('%d/%m/%Y %H:%M',time.localtime(st.st_mtime))}
+records=0
+with open(csv_path,'rb') as f:
+    for _ in f: records+=1
+records=max(0,records-1)
+integrity='ausente'
+if os.path.exists(db_path):
+    try:
+        con=sqlite3.connect(f'file:{db_path}?mode=ro',uri=True,timeout=3)
+        integrity=con.execute('PRAGMA integrity_check').fetchone()[0]
+        con.close()
+    except Exception as e:
+        integrity='erro'
+out={"ok":True,"records":records,"csv":fmeta(csv_path),"db":fmeta(db_path),"integrity":integrity,"manager_exists":os.path.isfile(manager),"generator_exists":os.path.isfile(generator)}
+print(json.dumps(out,ensure_ascii=False,separators=(',',':')))
+PY
+}
+
+radioid_search(){
+  radioid_require
+  local field="${1:-}" term="${2:-}"
+  [[ "$field" =~ ^(callsign|dmrid|name|city|country)$ ]] || { echo 'ERRO: filtro inválido' >&2; return 77; }
+  [[ -n "$term" && ${#term} -le 80 ]] || { echo 'ERRO: termo inválido' >&2; return 78; }
+  validate_text "$term" 80 || { echo 'ERRO: termo contém caractere inválido' >&2; return 79; }
+  python3 - "$RADIOID_CSV" "$field" "$term" <<'PY'
+import csv, fnmatch, json, sys
+path, field, term = sys.argv[1:]
+idx={'dmrid':0,'callsign':1,'city':4,'country':6}
+pat=term.casefold()
+rows=[]
+def hit(value):
+    v=value.casefold()
+    return fnmatch.fnmatch(v,pat) if '*' in pat or '?' in pat else pat in v
+with open(path,'r',encoding='utf-8',errors='replace',newline='') as f:
+    r=csv.reader(f)
+    next(r,None)
+    for row in r:
+        if len(row)<7: continue
+        value=(row[2]+' '+row[3]) if field=='name' else row[idx[field]]
+        if hit(value):
+            rows.append({"dmrid":row[0].strip(),"callsign":row[1].strip(),"first_name":row[2].strip(),"last_name":row[3].strip(),"city":row[4].strip(),"state":row[5].strip(),"country":row[6].strip()})
+            if len(rows)>=50: break
+print(json.dumps({"ok":True,"count":len(rows),"limited":len(rows)>=50,"rows":rows},ensure_ascii=False,separators=(',',':')))
+PY
+}
+
+radioid_save(){
+  radioid_require; radioid_lock
+  [[ "$#" -eq 9 ]] || { echo 'ERRO: parâmetros inválidos' >&2; return 80; }
+  local orig_dmr="$1" orig_call="${2^^}" dmr="$3" call="${4^^}" first="$5" last="$6" city="$7" state="$8" country="$9"
+  [[ -z "$orig_dmr" || "$orig_dmr" =~ ^[0-9]{7}$ ]] || { echo 'ERRO: DMRID original inválido' >&2; return 81; }
+  [[ -z "$orig_call" || "$orig_call" =~ ^[A-Z0-9]{1,8}$ ]] || { echo 'ERRO: indicativo original inválido' >&2; return 82; }
+  [[ -z "$dmr" || "$dmr" =~ ^[0-9]{7}$ ]] || { echo 'ERRO: DMRID inválido' >&2; return 83; }
+  [[ "$call" =~ ^[A-Z0-9]{1,8}$ ]] || { echo 'ERRO: indicativo inválido' >&2; return 84; }
+  [[ -n "$first" && -n "$city" && -n "$state" && -n "$country" ]] || { echo 'ERRO: campos obrigatórios ausentes' >&2; return 85; }
+  validate_text "$first" 80 && validate_text "$last" 80 && validate_text "$city" 80 && validate_text "$state" 80 && validate_text "$country" 80 || { echo 'ERRO: texto inválido' >&2; return 86; }
+  local dir rc action
+  dir="$(radioid_backup save)"
+  set +e
+  action="$(python3 - "$RADIOID_CSV" "$orig_dmr" "$orig_call" "$dmr" "$call" "$first" "$last" "$city" "$state" "$country" <<'PY'
+import csv, os, sys, tempfile
+path, od, oc, dmr, call, first, last, city, state, country=sys.argv[1:]
+with open(path,'r',encoding='utf-8',errors='replace',newline='') as f:
+    rows=list(csv.reader(f))
+if not rows: raise SystemExit('base vazia')
+header,data=rows[0],rows[1:]
+match=[]
+if od or oc:
+    for i,row in enumerate(data):
+        if len(row)<7: continue
+        if od and row[0].strip()!=od: continue
+        if oc and row[1].strip().upper()!=oc: continue
+        match.append(i)
+    if len(match)!=1: raise SystemExit('registro original não é único')
+    target=match[0]
+else:
+    target=None
+for i,row in enumerate(data):
+    if len(row)<7 or i==target: continue
+    if dmr and row[0].strip()==dmr: raise SystemExit('DMRID já utilizado')
+    if target is None and row[1].strip().upper()==call: raise SystemExit('indicativo já existe; pesquise e edite')
+new=[dmr,call,first,last,city,state,country]
+if target is None:
+    data.append(new); action='added'
+else:
+    data[target]=new; action='updated'
+st=os.stat(path)
+fd,tmp=tempfile.mkstemp(prefix='.users_base.',dir=os.path.dirname(path),text=True)
+os.close(fd)
+try:
+    with open(tmp,'w',encoding='utf-8',newline='') as f:
+        w=csv.writer(f,lineterminator='\n')
+        w.writerow(header); w.writerows(data)
+    os.chmod(tmp,st.st_mode & 0o7777)
+    os.chown(tmp,st.st_uid,st.st_gid)
+    os.replace(tmp,path)
+finally:
+    if os.path.exists(tmp): os.unlink(tmp)
+print(action)
+PY
+)"
+  rc=$?
+  set -e
+  if [[ "$rc" -ne 0 ]]; then radioid_restore "$dir"; echo 'ERRO: não foi possível salvar; base restaurada' >&2; return 87; fi
+  if ! radioid_rebuild "$dir"; then return $?; fi
+  python3 - "$action" "$dir" "$call" "$dmr" <<'PY'
+import json,sys
+print(json.dumps({"ok":True,"action":sys.argv[1],"backup":sys.argv[2],"callsign":sys.argv[3],"dmrid":sys.argv[4]},ensure_ascii=False,separators=(',',':')))
+PY
+}
+
+radioid_delete(){
+  radioid_require; radioid_lock
+  [[ "$#" -eq 2 ]] || { echo 'ERRO: parâmetros inválidos' >&2; return 88; }
+  local dmr="$1" call="${2^^}"
+  [[ -n "$dmr" || -n "$call" ]] || { echo 'ERRO: identificação ausente' >&2; return 89; }
+  [[ -z "$dmr" || "$dmr" =~ ^[0-9]{7}$ ]] || return 90
+  [[ -z "$call" || "$call" =~ ^[A-Z0-9]{1,8}$ ]] || return 91
+  local dir rc
+  dir="$(radioid_backup delete)"
+  set +e
+  python3 - "$RADIOID_CSV" "$dmr" "$call" <<'PY'
+import csv, os, sys, tempfile
+path,dmr,call=sys.argv[1:]
+with open(path,'r',encoding='utf-8',errors='replace',newline='') as f: rows=list(csv.reader(f))
+if not rows: raise SystemExit(2)
+header,data=rows[0],rows[1:]
+match=[]
+for i,row in enumerate(data):
+    if len(row)<7: continue
+    if dmr and row[0].strip()!=dmr: continue
+    if call and row[1].strip().upper()!=call: continue
+    match.append(i)
+if len(match)!=1: raise SystemExit(3)
+del data[match[0]]
+st=os.stat(path)
+fd,tmp=tempfile.mkstemp(prefix='.users_base.',dir=os.path.dirname(path),text=True); os.close(fd)
+try:
+    with open(tmp,'w',encoding='utf-8',newline='') as f:
+        w=csv.writer(f,lineterminator='\n'); w.writerow(header); w.writerows(data)
+    os.chmod(tmp,st.st_mode & 0o7777); os.chown(tmp,st.st_uid,st.st_gid); os.replace(tmp,path)
+finally:
+    if os.path.exists(tmp): os.unlink(tmp)
+PY
+  rc=$?
+  set -e
+  if [[ "$rc" -ne 0 ]]; then radioid_restore "$dir"; echo 'ERRO: registro não encontrado de forma única; nada alterado' >&2; return 92; fi
+  if ! radioid_rebuild "$dir"; then return $?; fi
+  python3 - "$dir" "$call" "$dmr" <<'PY'
+import json,sys
+print(json.dumps({"ok":True,"action":"deleted","backup":sys.argv[1],"callsign":sys.argv[2],"dmrid":sys.argv[3]},ensure_ascii=False,separators=(',',':')))
+PY
+}
+
+radioid_refresh(){
+  radioid_require; radioid_lock
+  local dir
+  dir="$(radioid_backup refresh)"
+  radioid_rebuild "$dir"
+  python3 - "$dir" <<'PY'
+import json,sys
+print(json.dumps({"ok":True,"action":"refreshed","backup":sys.argv[1]},ensure_ascii=False,separators=(',',':')))
+PY
+}
+
+radioid_check(){
+  radioid_require
+  python3 - "$RADIOID_DB" <<'PY'
+import json,os,sqlite3,sys
+p=sys.argv[1]
+if not os.path.exists(p):
+    print(json.dumps({"ok":False,"integrity":"ausente"})); raise SystemExit(2)
+try:
+    con=sqlite3.connect(f'file:{p}?mode=ro',uri=True,timeout=3)
+    r=con.execute('PRAGMA integrity_check').fetchone()[0]
+    con.close()
+except Exception:
+    r='erro'
+print(json.dumps({"ok":r=='ok',"integrity":r},separators=(',',':')))
+raise SystemExit(0 if r=='ok' else 3)
+PY
+}
+
+case "${1:-}" in
+ status)
+  echo "service=$(systemctl is-active "$SERVICE" 2>/dev/null || true)"
+  echo "version=$(version)"
+  echo "sha=$(sha)"
+  echo "pid=$(systemctl show -p MainPID --value "$SERVICE" 2>/dev/null || true)"
+  echo "processes=$(processes)"
+  echo "active_since=$(systemctl show -p ActiveEnterTimestamp --value "$SERVICE" 2>/dev/null || true)"
+  ;;
+ listeners)
+  ss -H -lunp 2>/dev/null | awk '/xlxd/ {print $4}' | sort -u
+  ;;
+ logs)
+  [[ -r "$LOG" ]] && tail -n 80 "$LOG" || echo "Log indisponível"
+  ;;
+ backups)
+  if [[ -d "$BACKUPS" ]]; then
+   find "$BACKUPS" -maxdepth 2 -mindepth 1 -type d -name 'XLX026_*' -printf '%T@ %TY-%Tm-%Td %TH:%TM  %f\n' 2>/dev/null | sort -nr | head -n 20 | cut -d' ' -f2-
+  else echo "Diretório de backups indisponível"; fi
+  ;;
+ restart)
+  before_sha="$(sha)"; before_version="$(version)"
+  [[ "$before_sha" == "$EXPECTED_SHA" ]] || { echo "ERRO: SHA atual divergente: $before_sha"; exit 20; }
+  [[ "$before_version" == "$EXPECTED_VERSION" ]] || { echo "ERRO: versão atual divergente: $before_version"; exit 21; }
+  systemctl is-active --quiet "$SERVICE" || { echo "ERRO: serviço não estava ativo antes do restart"; exit 22; }
+  echo "restart_started=$(date -Is)"
+  systemctl restart "$SERVICE"
+  ok=0
+  for _ in $(seq 1 30); do
+   if systemctl is-active --quiet "$SERVICE" && [[ "$(processes)" == "1" ]] && [[ "$(version)" == "$EXPECTED_VERSION" ]] && [[ "$(sha)" == "$EXPECTED_SHA" ]]; then ok=1; break; fi
+   sleep 0.5
+  done
+  if [[ "$ok" != "1" ]]; then
+   echo "ERRO: validação pós-restart falhou"
+   echo "service=$(systemctl is-active "$SERVICE" 2>/dev/null || true)"
+   echo "version=$(version)"; echo "sha=$(sha)"; echo "processes=$(processes)"
+   exit 23
+  fi
+  echo "restart_finished=$(date -Is)"
+  echo "service=active"; echo "version=$EXPECTED_VERSION"; echo "sha=$EXPECTED_SHA"; echo "processes=1"
+  ;;
+ radioid-status) shift; [[ "$#" -eq 0 ]] || exit 64; radioid_status ;;
+ radioid-search) shift; [[ "$#" -eq 2 ]] || exit 64; radioid_search "$@" ;;
+ radioid-save) shift; [[ "$#" -eq 9 ]] || exit 64; radioid_save "$@" ;;
+ radioid-delete) shift; [[ "$#" -eq 2 ]] || exit 64; radioid_delete "$@" ;;
+ radioid-refresh) shift; [[ "$#" -eq 0 ]] || exit 64; radioid_refresh ;;
+ radioid-check) shift; [[ "$#" -eq 0 ]] || exit 64; radioid_check ;;
+ *) echo "Uso permitido: status|listeners|logs|backups|restart|radioid-status|radioid-search|radioid-save|radioid-delete|radioid-refresh|radioid-check" >&2; exit 64;;
+esac
