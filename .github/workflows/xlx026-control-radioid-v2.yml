@@ -26,18 +26,20 @@ jobs:
 
       - name: Syntax and security invariants
         run: |
+          set -Eeuo pipefail
           bash -n control/xlx026-control-helper-radioid-v2
           bash -n ops/root/xlx026-control-radioid-v2.sh
           php -l control/xlx026-control-index-radioid-v2.php
-          grep -Fq "const CTRL_VER='1.1.0'" control/xlx026-control-index-radioid-v2.php
-          grep -Fq 'Indicativos &amp; RadioID' control/xlx026-control-index-radioid-v2.php
-          grep -Fq 'radioid-status' control/xlx026-control-helper-radioid-v2
-          grep -Fq 'radioid-search' control/xlx026-control-helper-radioid-v2
-          grep -Fq 'radioid-save' control/xlx026-control-helper-radioid-v2
-          grep -Fq 'radioid-delete' control/xlx026-control-helper-radioid-v2
-          grep -Fq 'radioid-refresh' control/xlx026-control-helper-radioid-v2
-          grep -Fq 'radioid-check' control/xlx026-control-helper-radioid-v2
-          ! grep -Eq 'eval |bash -c|sh -c|NOPASSWD:[[:space:]]*ALL|shell_exec\(|passthru\(|proc_open\(|popen\(' control/xlx026-control-index-radioid-v2.php control/xlx026-control-helper-radioid-v2 ops/root/xlx026-control-radioid-v2.sh
+          for needle in "const CTRL_VER='1.1.0'" 'Indicativos &amp; RadioID'; do
+            grep -Fq "$needle" control/xlx026-control-index-radioid-v2.php || { echo "MISSING INDEX INVARIANT: $needle"; exit 1; }
+          done
+          for action in radioid-status radioid-search radioid-save radioid-delete radioid-refresh radioid-check; do
+            grep -Fq "$action" control/xlx026-control-helper-radioid-v2 || { echo "MISSING HELPER ACTION: $action"; exit 1; }
+          done
+          if grep -En 'eval |bash -c|sh -c|NOPASSWD:[[:space:]]*ALL|shell_exec\(|passthru\(|proc_open\(|popen\(' control/xlx026-control-index-radioid-v2.php control/xlx026-control-helper-radioid-v2 ops/root/xlx026-control-radioid-v2.sh; then
+            echo 'FORBIDDEN SECURITY PATTERN FOUND'
+            exit 1
+          fi
 
       - name: Prepare temporary RadioID database
         run: |
