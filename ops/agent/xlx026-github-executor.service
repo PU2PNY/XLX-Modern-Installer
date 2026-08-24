@@ -1,0 +1,20 @@
+[Unit]
+Description=XLX026 GitHub Maintenance Root Executor
+After=network-online.target
+ConditionPathIsDirectory=/var/lib/xlx026-github-agent/inbox
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+ExecStart=/usr/local/libexec/xlx026-github-agent/xlx026-github-executor.sh
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/xlx026-github-agent /root/backups-xlx026 /root/xlx026-lab
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+LockPersonality=true
+RestrictRealtime=true
+NoNewPrivileges=true
+SystemCallArchitectures=native
