@@ -1,0 +1,57 @@
+name: XLX026 Control RadioID v1.1.1 Updater
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'ops/root/xlx026-control-radioid-v111-fix.sh'
+      - 'control/xlx026-radioid-helper-v111'
+      - 'control/xlx026-control-dispatch-v111'
+      - 'control/patch-xlx026-control-v111.py'
+      - '.github/workflows/xlx026-control-radioid-v111-updater.yml'
+  pull_request:
+    paths:
+      - 'ops/root/xlx026-control-radioid-v111-fix.sh'
+      - 'control/xlx026-radioid-helper-v111'
+      - 'control/xlx026-control-dispatch-v111'
+      - 'control/patch-xlx026-control-v111.py'
+      - '.github/workflows/xlx026-control-radioid-v111-updater.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-updater:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax and pinned artifacts
+        run: |
+          set -Eeuo pipefail
+          bash -n ops/root/xlx026-control-radioid-v111-fix.sh
+          bash -n control/xlx026-radioid-helper-v111
+          bash -n control/xlx026-control-dispatch-v111
+          python3 -m py_compile control/patch-xlx026-control-v111.py
+          test "$(git hash-object control/xlx026-radioid-helper-v111)" = 'efeede5601331788a9f90d7f794d37c9ff584f6d'
+          test "$(git hash-object control/xlx026-control-dispatch-v111)" = '949a9f9deb561fc129062d3762e51198f89b38c7'
+          test "$(git hash-object control/patch-xlx026-control-v111.py)" = '297c3d3e0ddb31bebaef2a5f2f4b6b34a44d9317'
+          grep -Fq 'OLD_INDEX_BLOB="a617b6e359620834ffefc9d71c2632949aa6fe70"' ops/root/xlx026-control-radioid-v111-fix.sh
+          grep -Fq 'OLD_HELPER_BLOB="a40de58d5359d1d2f4250a22fcd884cde59f6477"' ops/root/xlx026-control-radioid-v111-fix.sh
+          grep -Fq 'NEW_INDEX_BLOB="6e7c5a8abf9ae91945ca2481c0f53fb55ad85bfa"' ops/root/xlx026-control-radioid-v111-fix.sh
+          grep -Fq 'RADIO_BLOB="efeede5601331788a9f90d7f794d37c9ff584f6d"' ops/root/xlx026-control-radioid-v111-fix.sh
+          grep -Fq 'DISPATCH_BLOB="949a9f9deb561fc129062d3762e51198f89b38c7"' ops/root/xlx026-control-radioid-v111-fix.sh
+          grep -Fq 'PATCHER_BLOB="297c3d3e0ddb31bebaef2a5f2f4b6b34a44d9317"' ops/root/xlx026-control-radioid-v111-fix.sh
+          grep -Fq 'radioid_mutated_during_install=no' ops/root/xlx026-control-radioid-v111-fix.sh
+          grep -Fq 'XLXD não foi reiniciado.' ops/root/xlx026-control-radioid-v111-fix.sh
+          if grep -Eq 'eval |bash -c|sh -c|NOPASSWD:[[:space:]]*ALL' control/xlx026-radioid-helper-v111 control/xlx026-control-dispatch-v111; then exit 1; fi
+
+      - name: Deterministic UI output
+        run: |
+          set -Eeuo pipefail
+          cp control/xlx026-control-index-radioid-v2.php /tmp/index.php
+          python3 control/patch-xlx026-control-v111.py /tmp/index.php
+          php -l /tmp/index.php
+          test "$(git hash-object /tmp/index.php)" = '6e7c5a8abf9ae91945ca2481c0f53fb55ad85bfa'
+          grep -Fq "const CTRL_VER='1.1.1'" /tmp/index.php
+          grep -Fq 'function helper_reason' /tmp/index.php
+          grep -Fq 'sincronização atômica' /tmp/index.php
