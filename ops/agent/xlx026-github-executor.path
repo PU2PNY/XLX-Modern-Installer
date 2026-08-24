@@ -1,0 +1,9 @@
+[Unit]
+Description=Watch XLX026 GitHub maintenance inbox
+
+[Path]
+PathChanged=/var/lib/xlx026-github-agent/inbox
+Unit=xlx026-github-executor.service
+
+[Install]
+WantedBy=multi-user.target
