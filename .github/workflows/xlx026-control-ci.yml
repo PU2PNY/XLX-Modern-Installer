@@ -1,0 +1,44 @@
+name: XLX026 Control Validation
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'control/**'
+      - 'ops/root/install-xlx026-control-v1.sh'
+      - '.github/workflows/xlx026-control-ci.yml'
+  pull_request:
+    paths:
+      - 'control/**'
+      - 'ops/root/install-xlx026-control-v1.sh'
+      - '.github/workflows/xlx026-control-ci.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bash syntax
+        run: |
+          bash -n control/xlx026-control-helper
+          bash -n ops/root/install-xlx026-control-v1.sh
+      - name: PHP lint
+        run: php -l control/index.php
+      - name: Security invariants
+        run: |
+          grep -Fq "const HELPER='/usr/local/sbin/xlx026-control-helper'" control/index.php
+          grep -Fq "['status','listeners','logs','backups','restart']" control/index.php
+          grep -Fq "password_verify" control/index.php
+          grep -Fq "csrf_ok" control/index.php
+          grep -Fq "X-Robots-Tag: noindex" control/index.php
+          grep -Fq "EXPECTED_SHA=\"10870cf84d91c936497c95c314a0b1eed79779e73260c7ec306cf6bba17632a7\"" control/xlx026-control-helper
+          grep -Fq 'systemctl restart "$SERVICE"' control/xlx026-control-helper
+          ! grep -Eq 'eval |bash -c|sh -c|sudo +ALL|NOPASSWD: *ALL' control/index.php control/xlx026-control-helper ops/root/install-xlx026-control-v1.sh
+      - name: Installer pinning
+        run: |
+          grep -Fq 'INDEX_BLOB="c615cb8068d5d9ce900fc193ea771642f2206e94"' ops/root/install-xlx026-control-v1.sh
+          grep -Fq 'HELPER_BLOB="dc78219b8a8a6fdfe6a364b2d422b5a5340e735c"' ops/root/install-xlx026-control-v1.sh
+          grep -Fq 'EXPECTED_CORE_VERSION="2.6.0"' ops/root/install-xlx026-control-v1.sh
