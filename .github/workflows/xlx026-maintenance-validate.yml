@@ -30,6 +30,7 @@ jobs:
           set -Eeuo pipefail
           bash -n ops/readonly-smoke.sh
           bash -n ops/agent/xlx026-github-agent.sh
+          bash -n ops/agent/xlx026-github-executor.sh
           bash -n ops/agent/bootstrap.sh
           bash -n ops/root/xlx026-safe-backup.sh
           bash -n ops/root/xlx026-golden-lab-v2.sh
@@ -52,9 +53,12 @@ jobs:
         shell: bash
         run: |
           set -Eeuo pipefail
-          test "$(sha256sum ops/agent/xlx026-github-agent.sh | awk '{print $1}')" = "3a2212f75e7ae7355662986ff70543c61739c8a7cad42719076efe8915cbdaee"
-          test "$(sha256sum ops/agent/xlx026-github-agent.service | awk '{print $1}')" = "edb052b52813d7456ffa2f242b09a8b80c16b795e4d624cd5f34309e81f31387"
+          test "$(sha256sum ops/agent/xlx026-github-agent.sh | awk '{print $1}')" = "d53a717718f238663cfb0000324ee0fea7d9c6452df22f209ab7c167026cf0d5"
+          test "$(sha256sum ops/agent/xlx026-github-agent.service | awk '{print $1}')" = "16c536e78e67c4aad1f86690f11927ee67f4d2d085437958c1e8810073338e9c"
           test "$(sha256sum ops/agent/xlx026-github-agent.timer | awk '{print $1}')" = "61f1a6971b6349570e02c60576ddf5507bf5183ab8a532ef1b40a6f656f3022e"
+          test "$(sha256sum ops/agent/xlx026-github-executor.sh | awk '{print $1}')" = "ccf80b17e30f193ec8a5306a061a0fad0e3c0e71d7f44e0bf508137a4c5d53e7"
+          test "$(sha256sum ops/agent/xlx026-github-executor.service | awk '{print $1}')" = "3fc5e6f199dcd210aa6ebcc496bd842c523485470003ebc7ae71626c9792580c"
+          test "$(sha256sum ops/agent/xlx026-github-executor.path | awk '{print $1}')" = "2b9bf66ae8f43d12b46cf2830e1b8396e07e54234c00613541657c24b3b7e076"
           test "$(sha256sum ops/readonly-smoke.sh | awk '{print $1}')" = "8202f4e6423f0afec815f7bcac307f295cd8c530d3a2ec424012bf907237db6d"
           test "$(sha256sum ops/root/xlx026-safe-backup.sh | awk '{print $1}')" = "199400aae2aad209629fa40cf05313a24c0dae98b47db746ca72130c7a177ebb"
           test "$(sha256sum ops/root/xlx026-golden-lab-v2.sh | awk '{print $1}')" = "5bb49ee755ccd6401603c24cb178db9dd72eefe53c9354eef325468973450182"
@@ -81,9 +85,10 @@ jobs:
             echo 'Potential credential/private key detected' >&2
             exit 1
           fi
+          ! grep -RniE '(^|[[:space:]])sudo([[:space:]]|$)' ops/agent/xlx026-github-agent.sh ops/agent/xlx026-github-executor.sh
 
-      - name: Confirm initial control is non-publishing
+      - name: Confirm control plane has no arbitrary shell action
         shell: bash
         run: |
           set -Eeuo pipefail
-          ! grep -RniE 'publish_candidate|replace_core|restart_xlxd' maintenance/control.json ops/agent/xlx026-github-agent.sh
+          ! grep -RniE 'publish_candidate|replace_core|restart_xlxd|shell_command|exec_command' maintenance/control.json ops/agent/xlx026-github-agent.sh ops/agent/xlx026-github-executor.sh
