@@ -28,7 +28,7 @@ jobs:
         shell: bash
         run: |
           set -Eeuo pipefail
-          XLX026_V10_VERIFY_ONLY=1 bash ops/agent/upgrade-v10-final.sh
+          sudo env XLX026_V10_VERIFY_ONLY=1 bash ops/agent/upgrade-v10-final.sh
 
       - name: Verify final invariants
         shell: bash
