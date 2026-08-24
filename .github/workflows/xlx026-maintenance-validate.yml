@@ -59,6 +59,12 @@ jobs:
           test "$(sha256sum ops/root/xlx026-safe-backup.sh | awk '{print $1}')" = "199400aae2aad209629fa40cf05313a24c0dae98b47db746ca72130c7a177ebb"
           test "$(sha256sum ops/root/xlx026-golden-lab-v2.sh | awk '{print $1}')" = "521666c713ea43cec9be784cb2250fdf5df9b0b01e5786048a79642bb6958aa9"
 
+      - name: Exercise bootstrap download and hash path
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          sudo env XLX026_BOOTSTRAP_VERIFY_ONLY=1 bash ops/agent/bootstrap.sh
+
       - name: Guard production boundaries
         shell: bash
         run: |
