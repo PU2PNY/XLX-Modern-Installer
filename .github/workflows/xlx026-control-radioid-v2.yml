@@ -36,8 +36,8 @@ jobs:
           for action in radioid-status radioid-search radioid-save radioid-delete radioid-refresh radioid-check; do
             grep -Fq "$action" control/xlx026-control-helper-radioid-v2 || { echo "MISSING HELPER ACTION: $action"; exit 1; }
           done
-          if grep -En 'eval |bash -c|sh -c|NOPASSWD:[[:space:]]*ALL|shell_exec\(|passthru\(|proc_open\(|popen\(' control/xlx026-control-index-radioid-v2.php control/xlx026-control-helper-radioid-v2 ops/root/xlx026-control-radioid-v2.sh; then
-            echo 'FORBIDDEN SECURITY PATTERN FOUND'
+          if grep -En 'eval |bash -c|sh -c|NOPASSWD:[[:space:]]*ALL|shell_exec\(|passthru\(|proc_open\(|popen\(' control/xlx026-control-index-radioid-v2.php control/xlx026-control-helper-radioid-v2; then
+            echo 'FORBIDDEN SECURITY PATTERN FOUND IN RUNTIME CODE'
             exit 1
           fi
 
@@ -128,4 +128,6 @@ jobs:
           grep -Fq 'OLD_HELPER_BLOB="dc78219b8a8a6fdfe6a364b2d422b5a5340e735c"' ops/root/xlx026-control-radioid-v2.sh
           grep -Fq 'NEW_INDEX_BLOB="a617b6e359620834ffefc9d71c2632949aa6fe70"' ops/root/xlx026-control-radioid-v2.sh
           grep -Fq 'NEW_HELPER_BLOB="2a0b62879ab91d73b746796a478ca5be4d63c2ff"' ops/root/xlx026-control-radioid-v2.sh
+          grep -Fq "! grep -Eq 'eval |bash -c|sh -c|NOPASSWD:[[:space:]]*ALL'" ops/root/xlx026-control-radioid-v2.sh
+          ! grep -Eq 'NOPASSWD:[[:space:]]*ALL' ops/root/xlx026-control-radioid-v2.sh
           grep -Fq 'XLXD não foi reiniciado.' ops/root/xlx026-control-radioid-v2.sh
