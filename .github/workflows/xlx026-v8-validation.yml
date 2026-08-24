@@ -1,0 +1,39 @@
+name: XLX026 V8 MTR Contract Validation
+
+on:
+  push:
+    branches:
+      - feature/xlx026-maint-20260823
+    paths:
+      - 'ops/agent/upgrade-v8.sh'
+      - '.github/workflows/xlx026-v8-validation.yml'
+  pull_request:
+    paths:
+      - 'ops/agent/upgrade-v8.sh'
+      - '.github/workflows/xlx026-v8-validation.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-v8:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Shell syntax
+        run: bash -n ops/agent/upgrade-v8.sh
+
+      - name: Deterministic patch verify-only
+        run: sudo env XLX026_UPGRADE_V8_VERIFY_ONLY=1 bash ops/agent/upgrade-v8.sh
+
+      - name: Guard production boundaries
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          ! grep -nE 'systemctl[[:space:]]+restart[[:space:]]+(xlxd|xlxd\.service)' ops/agent/upgrade-v8.sh
+          ! grep -nE '(cp|mv|install)[^\n]*/xlxd/xlxd([[:space:]]|$)' ops/agent/upgrade-v8.sh
+          ! grep -nE 'make[[:space:]]+install' ops/agent/upgrade-v8.sh
+          grep -Fq 'HTTP 400 + invalid_request' ops/agent/upgrade-v8.sh
+          grep -Fq 'EXPECTED_PROD_SHA="ffd01e4546ba12069f9181c6fe4d6fba620f7188dc39cde94fa572ec06fe4347"' ops/agent/upgrade-v8.sh
