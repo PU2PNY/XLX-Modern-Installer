@@ -31,13 +31,18 @@ jobs:
           php -l control/xlx026-control-index-radioid-v2.php
           grep -Fq "const CTRL_VER='1.1.0'" control/xlx026-control-index-radioid-v2.php
           grep -Fq 'Indicativos &amp; RadioID' control/xlx026-control-index-radioid-v2.php
-          grep -Fq 'radioid-status|radioid-search|radioid-save|radioid-delete|radioid-refresh|radioid-check' control/xlx026-control-helper-radioid-v2
+          grep -Fq 'radioid-status' control/xlx026-control-helper-radioid-v2
+          grep -Fq 'radioid-search' control/xlx026-control-helper-radioid-v2
+          grep -Fq 'radioid-save' control/xlx026-control-helper-radioid-v2
+          grep -Fq 'radioid-delete' control/xlx026-control-helper-radioid-v2
+          grep -Fq 'radioid-refresh' control/xlx026-control-helper-radioid-v2
+          grep -Fq 'radioid-check' control/xlx026-control-helper-radioid-v2
           ! grep -Eq 'eval |bash -c|sh -c|NOPASSWD:[[:space:]]*ALL|shell_exec\(|passthru\(|proc_open\(|popen\(' control/xlx026-control-index-radioid-v2.php control/xlx026-control-helper-radioid-v2 ops/root/xlx026-control-radioid-v2.sh
 
       - name: Prepare temporary RadioID database
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq sqlite3 php-cli
+          sudo apt-get install -y -qq sqlite3 php-cli php-sqlite3
           sudo install -d -m 0777 /xlxd/users_db
           sudo tee /xlxd/users_db/users_base.csv >/dev/null <<'CSV'
           DMRID,CALLSIGN,FIRSTNAME,LASTNAME,CITY,STATE,COUNTRY
