@@ -1,6 +1,6 @@
 {
   "schema": 1,
   "enabled": true,
-  "job_id": "candidate-finalize-20260823-01",
-  "action": "candidate_finalize"
+  "job_id": "idle-final-20260823-01",
+  "action": "idle"
 }
