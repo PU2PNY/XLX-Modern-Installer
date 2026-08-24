@@ -3,8 +3,8 @@ set -Eeuo pipefail
 export LANG=C
 umask 077
 
-BRANCH="feature/xlx026-maint-20260823"
-RAW="https://raw.githubusercontent.com/PU2PNY/XLX-Modern-Installer/${BRANCH}"
+SOURCE_REF="22d97d1425cca5500bc468de0e8096fa4521069c"
+RAW="https://raw.githubusercontent.com/PU2PNY/XLX-Modern-Installer/${SOURCE_REF}"
 TMP="$(mktemp -d /tmp/xlx026-agent-bootstrap.XXXXXX)"
 trap 'rm -rf "$TMP"' EXIT
 
