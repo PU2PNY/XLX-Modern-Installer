@@ -13,8 +13,8 @@ LAB="$LABROOT/XLXD-2.6.0_${STAMP}"
 LOG="$OUT/execution.log"
 
 [[ "$(id -u)" -eq 0 ]] || { echo "[ERRO] execute como root" >&2; exit 1; }
-mkdir -p "$OUT" "$LABROOT"
-chmod 700 "$OUT" "$LABROOT"
+mkdir -p "$OUT" "$LABROOT" "$LAB"
+chmod 700 "$OUT" "$LABROOT" "$LAB"
 exec > >(tee -a "$LOG") 2>&1
 
 fail(){ echo "[ERRO] $*" >&2; }
@@ -32,7 +32,7 @@ for p in "$PROD_BIN" /xlxd "$SRC" "$WEB"; do
   [[ -e "$p" ]] || { fail "ausente: $p"; exit 10; }
   ok "$p"
 done
-for c in tar gzip sha256sum git make g++ curl ss systemctl; do
+for c in tar gzip sha256sum git make g++ curl ss systemctl python3 find xargs file ldd strings nice journalctl; do
   command -v "$c" >/dev/null 2>&1 || { fail "comando obrigatório ausente: $c"; exit 11; }
 done
 PROD_SHA_BEFORE="$(sha256sum "$PROD_BIN" | awk '{print $1}')"
@@ -102,7 +102,9 @@ find "$WEB" -xdev -type f -print0 2>/dev/null | sort -z | xargs -0 -r sha256sum 
 
 section "6/10 — GOLDEN BACKUP"
 make_archive(){
-  local name="$1" path="$2"
+  local name path
+  name="$1"
+  path="$2"
   if [[ -e "$path" ]]; then
     tar --one-file-system --ignore-failed-read -czpf "$OUT/${name}.tar.gz" "$path"
     gzip -t "$OUT/${name}.tar.gz"
