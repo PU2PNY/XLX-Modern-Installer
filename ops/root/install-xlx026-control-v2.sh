@@ -2,6 +2,7 @@
 set -Eeuo pipefail
 export LANG=C
 umask 077
+# CI validation marker: CONTROL_V2_PERMISSION_FIX
 
 V1_COMMIT="e342cb5a48f87bb7018489478774fe706fb040d2"
 V1_BLOB="7430cfc0293fb55335fcdfea298b2a260cda9378"
