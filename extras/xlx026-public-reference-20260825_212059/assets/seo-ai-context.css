@@ -1,0 +1,15 @@
+/* XLX026_SEO_AI_BUSCADORES_V2 — bloco semântico compacto, sem alterar os dados do painel */
+.seo-ai-context-wrap{width:100%;max-width:1500px;margin:18px auto 0;padding:0 16px;box-sizing:border-box}
+.seo-ai-context{border:1px solid rgba(78,197,255,.22);border-radius:14px;background:rgba(4,18,29,.62);overflow:hidden}
+.seo-ai-context>summary{cursor:pointer;list-style:none;padding:12px 14px;font-weight:800;letter-spacing:.01em;color:inherit;display:flex;align-items:center;gap:8px}
+.seo-ai-context>summary::-webkit-details-marker{display:none}
+.seo-ai-context>summary::before{content:'＋';font-weight:900}
+.seo-ai-context[open]>summary::before{content:'−'}
+.seo-ai-context-body{padding:0 16px 16px;line-height:1.58}
+.seo-ai-context-body h2{margin:4px 0 8px;font-size:clamp(1.15rem,2vw,1.45rem)}
+.seo-ai-context-body p{margin:8px 0}
+.seo-ai-context-body ul{margin:8px 0 0;padding-left:1.3rem}
+.seo-ai-context-body li{margin:6px 0}
+.seo-ai-context-machine{font-size:.9rem;opacity:.84}
+.seo-ai-context a{text-underline-offset:3px}
+@media(max-width:720px){.seo-ai-context-wrap{padding:0 10px;margin-top:14px}.seo-ai-context>summary{padding:11px 12px}.seo-ai-context-body{padding:0 12px 13px}}

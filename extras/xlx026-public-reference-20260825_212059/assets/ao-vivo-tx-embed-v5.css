@@ -1,0 +1,1058 @@
+/* ==========================================================
+   XLX026 — MTR EMBED V5
+
+   STANDBY NÃO É ALTERADO.
+
+   Durante TX:
+
+   ┌─────────────────────────────────────┐
+   │ topo TX                             │
+   │                                     │
+   │ operador        MTR                 │
+   │                 Gateway | Prot | TX │
+   │                                     │
+   │ spectrum                            │
+   └─────────────────────────────────────┘
+
+   Nenhuma informação é removida.
+   ========================================================== */
+
+
+/* ==========================================================
+   WRAPPER DA TRANSMISSÃO
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid > .xlx026-tx-stack-v5{
+
+    width:100% !important;
+
+    min-width:0 !important;
+    max-width:100% !important;
+
+    margin:0 !important;
+    padding:0 !important;
+
+    container-type:inline-size;
+
+    box-sizing:border-box !important;
+}
+
+
+/* ==========================================================
+   CARD TX
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-tx-stack-v5
+.tx-card.live.tx-v30{
+
+    display:grid !important;
+
+    grid-template-rows:
+        auto
+        minmax(0,1fr)
+        14px !important;
+
+    width:100% !important;
+
+    min-width:0 !important;
+    max-width:100% !important;
+
+    height:auto !important;
+
+    min-height:178px !important;
+    max-height:none !important;
+
+    margin:0 !important;
+
+    padding:8px 10px !important;
+
+    gap:5px !important;
+
+    overflow:hidden !important;
+
+    box-sizing:border-box !important;
+}
+
+
+/* ==========================================================
+   TOPO
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-tx-stack-v5
+.tx-top{
+
+    display:flex !important;
+
+    align-items:center !important;
+    justify-content:space-between !important;
+
+    width:100% !important;
+
+    min-width:0 !important;
+
+    min-height:21px !important;
+
+    margin:0 !important;
+    padding:0 !important;
+
+    gap:7px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-tx-stack-v5
+.tx-top > div{
+
+    display:flex !important;
+
+    align-items:center !important;
+
+    min-width:0 !important;
+
+    gap:7px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-tx-stack-v5
+.tx-top h3{
+
+    margin:0 !important;
+
+    font-size:
+        clamp(10px,.9vw,13px) !important;
+
+    line-height:1 !important;
+
+    white-space:nowrap !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-tx-stack-v5
+.module-badge{
+
+    padding:3px 6px !important;
+
+    font-size:
+        clamp(6px,.58vw,8px) !important;
+
+    line-height:1 !important;
+
+    white-space:nowrap !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-tx-stack-v5
+.on-air{
+
+    flex:0 0 auto !important;
+
+    font-size:
+        clamp(7px,.62vw,9px) !important;
+
+    line-height:1 !important;
+
+    white-space:nowrap !important;
+}
+
+
+/* ==========================================================
+   CONTEÚDO CENTRAL
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-tx-stack-v5
+.tx-v30-content{
+
+    display:grid !important;
+
+    grid-template-columns:
+        minmax(210px,.72fr)
+        minmax(430px,1.28fr) !important;
+
+    align-items:center !important;
+
+    width:100% !important;
+
+    min-width:0 !important;
+
+    margin:0 !important;
+    padding:0 !important;
+
+    gap:12px !important;
+}
+
+
+/* ==========================================================
+   OPERADOR
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-tx-stack-v5
+.tx-v30-person{
+
+    display:grid !important;
+
+    grid-template-columns:
+        44px
+        minmax(0,1fr) !important;
+
+    align-items:center !important;
+
+    min-width:0 !important;
+
+    gap:8px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-tx-stack-v5
+.operator-visual{
+
+    width:40px !important;
+    height:40px !important;
+
+    min-width:40px !important;
+    min-height:40px !important;
+
+    margin:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-tx-stack-v5
+.operator-visual img{
+
+    width:27px !important;
+    height:27px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-tx-stack-v5
+.tx-v30-person-data{
+
+    min-width:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-tx-stack-v5
+.tx-v30-callsign{
+
+    display:block !important;
+
+    margin:0 !important;
+
+    font-size:
+        clamp(18px,1.65vw,26px) !important;
+
+    line-height:.98 !important;
+
+    white-space:nowrap !important;
+
+    overflow:hidden !important;
+
+    text-overflow:ellipsis !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-tx-stack-v5
+.tx-v30-name{
+
+    display:block !important;
+
+    margin-top:2px !important;
+
+    font-size:
+        clamp(10px,.95vw,13px) !important;
+
+    line-height:1.05 !important;
+
+    white-space:normal !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-tx-stack-v5
+.tx-v30-location,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-tx-stack-v5
+.tx-v30-country{
+
+    margin-top:2px !important;
+
+    font-size:
+        clamp(8px,.78vw,11px) !important;
+
+    line-height:1.05 !important;
+}
+
+
+/* ==========================================================
+   ÁREA TÉCNICA
+   MTR EM CIMA / CAIXAS EMBAIXO
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-tech-v5{
+
+    display:grid !important;
+
+    grid-template-columns:
+        minmax(0,1fr) !important;
+
+    grid-template-rows:
+        auto
+        auto !important;
+
+    align-content:center !important;
+
+    width:100% !important;
+
+    min-width:0 !important;
+
+    gap:5px !important;
+
+    margin:0 !important;
+    padding:0 !important;
+
+    box-sizing:border-box !important;
+}
+
+
+/* ==========================================================
+   MTR EMBUTIDO
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-mtr-embedded-v5{
+
+    display:grid !important;
+
+    grid-template-columns:
+        minmax(0,1fr) !important;
+
+    width:100% !important;
+
+    min-width:0 !important;
+    max-width:100% !important;
+
+    height:auto !important;
+
+    min-height:66px !important;
+    max-height:none !important;
+
+    margin:0 !important;
+
+    padding:5px 6px !important;
+
+    gap:3px !important;
+
+    border-radius:8px !important;
+
+    box-sizing:border-box !important;
+}
+
+
+/* Cabeçalho */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-mtr-embedded-v5
+.mtr-head{
+
+    display:flex !important;
+
+    align-items:center !important;
+
+    width:100% !important;
+
+    min-width:0 !important;
+
+    min-height:16px !important;
+
+    margin:0 !important;
+
+    gap:5px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-mtr-embedded-v5
+.mtr-label{
+
+    padding:2px 5px !important;
+
+    font-size:7px !important;
+
+    line-height:1 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-mtr-embedded-v5
+.mtr-gateway{
+
+    min-width:0 !important;
+
+    font-size:
+        clamp(9px,.85vw,12px) !important;
+
+    line-height:1 !important;
+
+    white-space:nowrap !important;
+
+    overflow:hidden !important;
+
+    text-overflow:ellipsis !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-mtr-embedded-v5
+.mtr-update{
+
+    font-size:6px !important;
+
+    white-space:nowrap !important;
+}
+
+
+/* LAT / PER / JIT */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-mtr-embedded-v5
+.mtr-metrics{
+
+    display:grid !important;
+
+    grid-template-columns:
+        repeat(3,minmax(0,1fr)) !important;
+
+    width:100% !important;
+
+    min-width:0 !important;
+
+    gap:4px !important;
+
+    margin:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-mtr-embedded-v5
+.mtr-metric{
+
+    display:flex !important;
+
+    align-items:center !important;
+    justify-content:space-between !important;
+
+    min-width:0 !important;
+
+    min-height:23px !important;
+
+    height:auto !important;
+    max-height:none !important;
+
+    padding:3px 5px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-mtr-embedded-v5
+.mtr-metric small{
+
+    font-size:6px !important;
+
+    line-height:1 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-mtr-embedded-v5
+.mtr-metric b{
+
+    font-size:
+        clamp(8px,.8vw,11px) !important;
+
+    line-height:1 !important;
+
+    white-space:nowrap !important;
+}
+
+
+/* ==========================================================
+   GRÁFICO + ESTADO
+
+   CONTINUAM VISÍVEIS.
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-mtr-embedded-v5
+.mtr-graph-row{
+
+    display:grid !important;
+
+    grid-template-columns:
+        minmax(0,1fr)
+        auto !important;
+
+    align-items:center !important;
+
+    width:100% !important;
+
+    min-width:0 !important;
+
+    min-height:19px !important;
+
+    height:auto !important;
+
+    margin:0 !important;
+
+    gap:5px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-mtr-embedded-v5
+.mtr-chart{
+
+    display:block !important;
+
+    width:100% !important;
+
+    min-width:0 !important;
+
+    height:18px !important;
+    min-height:18px !important;
+    max-height:18px !important;
+
+    margin:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-mtr-embedded-v5
+.mtr-state-group{
+
+    display:flex !important;
+
+    align-items:center !important;
+
+    min-width:0 !important;
+
+    gap:4px !important;
+
+    white-space:nowrap !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-mtr-embedded-v5
+.mtr-quality,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-mtr-embedded-v5
+.mtr-route{
+
+    font-size:
+        clamp(7px,.62vw,9px) !important;
+
+    line-height:1 !important;
+}
+
+
+/* Motivo / tendência permanecem disponíveis */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-mtr-embedded-v5
+.mtr-reason,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-mtr-embedded-v5
+.mtr-trend{
+
+    display:block !important;
+
+    font-size:6px !important;
+
+    line-height:1 !important;
+
+    margin:0 !important;
+}
+
+
+/* Barra verde/amarela/vermelha */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-mtr-embedded-v5
+.mtr-scale{
+
+    display:block !important;
+
+    width:100% !important;
+
+    height:5px !important;
+    min-height:5px !important;
+
+    margin:1px 0 0 !important;
+}
+
+
+/* ==========================================================
+   TRÊS CAIXAS TÉCNICAS
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-tech-v5
+.tx-v30-details{
+
+    display:grid !important;
+
+    grid-template-columns:
+        repeat(3,minmax(0,1fr)) !important;
+
+    align-items:stretch !important;
+
+    width:100% !important;
+
+    min-width:0 !important;
+
+    gap:5px !important;
+
+    margin:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-tech-v5
+.tx-v30-details > div{
+
+    display:flex !important;
+
+    flex-direction:column !important;
+
+    justify-content:center !important;
+
+    min-width:0 !important;
+
+    min-height:42px !important;
+
+    height:auto !important;
+    max-height:none !important;
+
+    margin:0 !important;
+
+    padding:5px 7px !important;
+
+    overflow:visible !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-tech-v5
+.tx-v30-details small{
+
+    display:block !important;
+
+    margin:0 0 3px !important;
+
+    font-size:
+        clamp(5px,.48vw,7px) !important;
+
+    line-height:1 !important;
+
+    white-space:nowrap !important;
+
+    overflow:hidden !important;
+
+    text-overflow:ellipsis !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-tech-v5
+.tx-v30-details strong{
+
+    display:block !important;
+
+    margin:0 !important;
+
+    font-size:
+        clamp(8px,.76vw,11px) !important;
+
+    line-height:1.05 !important;
+
+    white-space:normal !important;
+
+    overflow:visible !important;
+
+    text-overflow:clip !important;
+
+    overflow-wrap:anywhere !important;
+}
+
+
+/* ==========================================================
+   SPECTRUM
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-tx-stack-v5
+.spectrum{
+
+    display:flex !important;
+
+    align-items:end !important;
+    justify-content:center !important;
+
+    width:100% !important;
+
+    height:14px !important;
+    min-height:14px !important;
+
+    margin:0 !important;
+
+    padding:2px 0 0 !important;
+}
+
+
+/* ==========================================================
+   QUANDO TEM 2 OU 3 TRANSMISSÕES
+
+   Cada coluna fica mais estreita.
+   O operador passa para cima e a área técnica para baixo.
+   Nenhum dado é escondido.
+   ========================================================== */
+
+@container (max-width:650px){
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlx026-tx-stack-v5
+    .tx-card.live.tx-v30{
+
+        min-height:204px !important;
+
+        padding:7px 8px !important;
+
+        gap:4px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlx026-tx-stack-v5
+    .tx-v30-content{
+
+        grid-template-columns:
+            minmax(0,1fr) !important;
+
+        gap:5px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlx026-tx-stack-v5
+    .tx-v30-person{
+
+        grid-template-columns:
+            34px
+            minmax(0,1fr) !important;
+
+        gap:6px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlx026-tx-stack-v5
+    .operator-visual{
+
+        width:32px !important;
+        height:32px !important;
+
+        min-width:32px !important;
+        min-height:32px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlx026-tx-stack-v5
+    .operator-visual img{
+
+        width:21px !important;
+        height:21px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlx026-tx-stack-v5
+    .tx-v30-callsign{
+
+        font-size:
+            clamp(14px,4cqw,20px) !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlx026-tx-stack-v5
+    .tx-v30-name{
+
+        font-size:
+            clamp(8px,2.3cqw,11px) !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlx026-tx-stack-v5
+    .tx-v30-location,
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlx026-tx-stack-v5
+    .tx-v30-country{
+
+        font-size:
+            clamp(7px,1.9cqw,9px) !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlx026-mtr-embedded-v5{
+
+        min-height:61px !important;
+
+        padding:4px 5px !important;
+
+        gap:2px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlx026-mtr-embedded-v5
+    .mtr-chart{
+
+        height:15px !important;
+        min-height:15px !important;
+        max-height:15px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlx026-tech-v5
+    .tx-v30-details{
+
+        gap:3px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlx026-tech-v5
+    .tx-v30-details > div{
+
+        min-height:39px !important;
+
+        padding:4px !important;
+    }
+}
+
+
+/* ==========================================================
+   3 COLUNAS BEM ESTREITAS
+   ========================================================== */
+
+@container (max-width:410px){
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlx026-tx-stack-v5
+    .tx-top{
+
+        gap:4px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlx026-tx-stack-v5
+    .module-badge{
+
+        font-size:6px !important;
+
+        padding:3px 4px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlx026-tx-stack-v5
+    .tx-top h3{
+
+        font-size:8px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlx026-mtr-embedded-v5
+    .mtr-gateway{
+
+        font-size:8px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlx026-mtr-embedded-v5
+    .mtr-quality,
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlx026-mtr-embedded-v5
+    .mtr-route{
+
+        font-size:6px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlx026-tech-v5
+    .tx-v30-details small{
+
+        font-size:5px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlx026-tech-v5
+    .tx-v30-details strong{
+
+        font-size:
+            clamp(7px,2.2cqw,9px) !important;
+    }
+}
+
+
+/* ==========================================================
+   MOBILE
+
+   V3 já coloca uma transmissão por linha.
+   Mantemos leitura total.
+   ========================================================== */
+
+@media (max-width:720px){
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlx026-tx-stack-v5
+    .tx-card.live.tx-v30{
+
+        min-height:0 !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlx026-tx-stack-v5
+    .tx-v30-content{
+
+        grid-template-columns:
+            minmax(0,1fr) !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlx026-tech-v5
+    .tx-v30-details{
+
+        grid-template-columns:
+            repeat(3,minmax(0,1fr)) !important;
+    }
+}
+
+
+/* ==========================================================
+   CELULAR MUITO ESTREITO
+
+   Caixas podem quebrar em linhas para jamais esconder texto.
+   ========================================================== */
+
+@media (max-width:460px){
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlx026-tech-v5
+    .tx-v30-details{
+
+        grid-template-columns:
+            minmax(0,1fr) !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlx026-tech-v5
+    .tx-v30-details > div{
+
+        min-height:34px !important;
+    }
+}

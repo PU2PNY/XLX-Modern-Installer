@@ -1,0 +1,523 @@
+/* ================================================================
+   XLX026_HEADER_BRASIL_REFINO_V3
+
+   Somente acabamento visual sobre a V2 aprovada.
+
+   NÃO altera:
+   - estrutura do menu fixo
+   - JavaScript V2
+   - gatilho do menu
+   - links
+   - APIs
+   - histórico
+   - mobile
+
+   Objetivo:
+   - Brasil claro no estado normal
+   - laser estreito apenas durante a passagem
+   - ida e volta lenta com pausas
+   - linha Brasil mais discreta
+   - melhor alinhamento do header compacto
+   ================================================================ */
+
+
+/* ================================================================
+   DESKTOP — TÍTULO PRINCIPAL
+   ================================================================ */
+
+@media (min-width:821px){
+
+    /*
+     * XLX026 continua sendo a parte tecnológica da marca.
+     */
+    html body
+    section.universal-header
+    .xlx026-title-code{
+
+        color:#00d8ff !important;
+
+        text-shadow:
+            0 0 5px rgba(0,216,255,.28),
+            0 0 15px rgba(0,216,255,.13) !important;
+    }
+
+
+    /*
+     * Brasil deixa de ficar colorido permanentemente.
+     *
+     * Em repouso ele é branco levemente azulado.
+     * As cores nacionais aparecem durante o laser.
+     */
+    html body
+    section.universal-header
+    .xlx026-title-country{
+
+        color:#e7f8ff !important;
+
+        background:none !important;
+
+        -webkit-background-clip:border-box !important;
+        background-clip:border-box !important;
+
+        -webkit-text-fill-color:#e7f8ff !important;
+
+        filter:none !important;
+
+        text-shadow:
+            0 0 5px rgba(90,190,235,.11) !important;
+    }
+
+
+    /*
+     * Mantém o título visualmente limpo quando o efeito descansa.
+     */
+    html body
+    section.universal-header
+    .xlx026-brasil-title{
+
+        text-shadow:
+            0 0 7px rgba(0,216,255,.11) !important;
+    }
+
+
+    /* ============================================================
+       LENTE
+
+       Mais estreita que a V2.
+       É somente um reflexo curto acompanhando o laser.
+       ============================================================ */
+
+    html body
+    section.universal-header
+    .xlx026-brasil-title::before{
+
+        width:18px !important;
+
+        height:132% !important;
+
+        top:50% !important;
+        left:-3% !important;
+
+        border-radius:50% !important;
+
+        background:
+            radial-gradient(
+                ellipse at center,
+
+                rgba(255,255,255,.52) 0%,
+                rgba(255,250,210,.26) 15%,
+                rgba(255,223,0,.13) 27%,
+                rgba(0,196,83,.11) 43%,
+                rgba(46,132,226,.10) 58%,
+
+                transparent 73%
+            ) !important;
+
+        filter:
+            blur(1.8px) !important;
+
+        opacity:0;
+
+        animation:
+            xlx026BrasilLensV3
+            30s
+            ease-in-out
+            infinite !important;
+    }
+
+
+    /* ============================================================
+       LASER
+
+       Faixa com cerca de 10% da largura do título.
+       Ela não deixa o texto colorido permanentemente.
+       ============================================================ */
+
+    html body
+    section.universal-header
+    .xlx026-brasil-title::after{
+
+        content:
+            attr(data-title) !important;
+
+        color:transparent !important;
+
+        background:
+            linear-gradient(
+                90deg,
+
+                #009c3b 0%,
+                #42dc77 19%,
+
+                #ffdf00 39%,
+                #fff3a3 48%,
+
+                #ffffff 53%,
+
+                #74d7ff 62%,
+                #2383d9 79%,
+                #002776 100%
+            ) !important;
+
+        -webkit-background-clip:text !important;
+        background-clip:text !important;
+
+        -webkit-text-fill-color:
+            transparent !important;
+
+        -webkit-text-stroke:
+            .55px rgba(255,255,255,.33) !important;
+
+        filter:
+            drop-shadow(
+                0 0 3px rgba(255,255,255,.30)
+            )
+            drop-shadow(
+                0 0 6px rgba(0,216,255,.09)
+            ) !important;
+
+        /*
+         * Somente aproximadamente 10% do título
+         * fica visível de cada vez.
+         */
+        clip-path:
+            inset(0 90% 0 0);
+
+        opacity:0;
+
+        animation:
+            xlx026BrasilSweepV3
+            30s
+            ease-in-out
+            infinite !important;
+    }
+
+
+    /* ============================================================
+       LINHA BRASIL DO HEADER GRANDE
+
+       A V2 estava um pouco forte.
+       Agora vira somente assinatura.
+       ============================================================ */
+
+    html body
+    section.universal-header::before{
+
+        height:1px !important;
+
+        opacity:.52 !important;
+
+        left:7% !important;
+        right:7% !important;
+
+        background:
+            linear-gradient(
+                90deg,
+
+                transparent 0%,
+
+                rgba(0,156,59,.08) 7%,
+                rgba(0,156,59,.46) 27%,
+
+                rgba(255,223,0,.40) 50%,
+
+                rgba(20,101,194,.48) 73%,
+                rgba(0,86,170,.09) 93%,
+
+                transparent 100%
+            ) !important;
+
+        box-shadow:
+            0 0 5px rgba(0,216,255,.04) !important;
+    }
+
+
+    /*
+     * Linha dos protocolos ainda mais discreta.
+     */
+    html body
+    section.universal-header
+    .access-strip::after{
+
+        opacity:.26 !important;
+
+        left:12% !important;
+        right:12% !important;
+    }
+
+}
+
+
+/* ================================================================
+   ANIMAÇÃO
+
+   30 segundos:
+   - longa pausa
+   - ~5 s indo
+   - nova pausa
+   - ~5 s voltando
+   - longa pausa antes do próximo ciclo
+   ================================================================ */
+
+@keyframes xlx026BrasilSweepV3{
+
+    /* repouso */
+    0%,
+    25%{
+        clip-path:
+            inset(0 90% 0 0);
+
+        opacity:0;
+    }
+
+
+    /* acende à esquerda */
+    26%{
+        clip-path:
+            inset(0 90% 0 0);
+
+        opacity:.68;
+    }
+
+
+    /* aproximadamente 5 segundos até a direita */
+    43%{
+        clip-path:
+            inset(0 0 0 90%);
+
+        opacity:.68;
+    }
+
+
+    /* pausa */
+    45%,
+    67%{
+        clip-path:
+            inset(0 0 0 90%);
+
+        opacity:0;
+    }
+
+
+    /* acende novamente à direita */
+    68%{
+        clip-path:
+            inset(0 0 0 90%);
+
+        opacity:.64;
+    }
+
+
+    /* aproximadamente 5 segundos de volta */
+    85%{
+        clip-path:
+            inset(0 90% 0 0);
+
+        opacity:.64;
+    }
+
+
+    /* desaparece */
+    87%,
+    100%{
+        clip-path:
+            inset(0 90% 0 0);
+
+        opacity:0;
+    }
+}
+
+
+@keyframes xlx026BrasilLensV3{
+
+    0%,
+    25%{
+        left:-3%;
+        opacity:0;
+    }
+
+    26%{
+        left:-3%;
+        opacity:.24;
+    }
+
+    43%{
+        left:103%;
+        opacity:.24;
+    }
+
+    45%,
+    67%{
+        left:103%;
+        opacity:0;
+    }
+
+    68%{
+        left:103%;
+        opacity:.22;
+    }
+
+    85%{
+        left:-3%;
+        opacity:.22;
+    }
+
+    87%,
+    100%{
+        left:-3%;
+        opacity:0;
+    }
+}
+
+
+/* ================================================================
+   MENU FIXO APROVADO
+
+   Estrutura NÃO muda.
+
+   Somente alinhamento e identidade ficam mais refinados.
+   ================================================================ */
+
+@media (min-width:1121px){
+
+    html body
+    .xlx026-fixed-inner-v2{
+
+        /*
+         * Em telas grandes alinha melhor com
+         * o painel/header centralizado.
+         */
+        width:
+            min(
+                1180px,
+                calc(100% - 96px)
+            ) !important;
+    }
+
+}
+
+
+@media (min-width:821px) and (max-width:1120px){
+
+    html body
+    .xlx026-fixed-inner-v2{
+
+        /*
+         * Em desktop mais estreito mantemos
+         * espaço suficiente para todos os links.
+         */
+        width:
+            calc(100% - 32px) !important;
+    }
+
+}
+
+
+@media (min-width:821px){
+
+    /*
+     * Marca do compacto sem gradiente permanente.
+     */
+    html body
+    .xlx026-fixed-code-v2{
+
+        color:#dff9ff !important;
+
+        text-shadow:
+            0 0 6px rgba(0,216,255,.20) !important;
+    }
+
+
+    html body
+    .xlx026-fixed-country-v2{
+
+        color:#e8f8ff !important;
+
+        background:none !important;
+
+        -webkit-background-clip:border-box !important;
+        background-clip:border-box !important;
+
+        -webkit-text-fill-color:
+            #e8f8ff !important;
+
+        text-shadow:
+            0 0 4px rgba(90,190,235,.08) !important;
+    }
+
+
+    /*
+     * Linha inferior da barra compacta:
+     * de 2px/forte para uma assinatura de 1px.
+     */
+    html body
+    .xlx026-fixed-header-v2::after{
+
+        height:1px !important;
+
+        opacity:.42 !important;
+
+        background:
+            linear-gradient(
+                90deg,
+
+                transparent 2%,
+
+                rgba(0,156,59,.60) 21%,
+                rgba(0,156,59,.10) 37%,
+
+                rgba(255,223,0,.52) 50%,
+
+                rgba(35,111,202,.13) 64%,
+                rgba(28,110,205,.64) 80%,
+
+                transparent 98%
+            ) !important;
+
+        box-shadow:
+            0 0 5px rgba(0,216,255,.04) !important;
+    }
+
+}
+
+
+/* ================================================================
+   ACESSIBILIDADE
+   ================================================================ */
+
+@media (prefers-reduced-motion:reduce){
+
+    html body
+    section.universal-header
+    .xlx026-brasil-title::before,
+
+    html body
+    section.universal-header
+    .xlx026-brasil-title::after{
+
+        animation:none !important;
+        opacity:0 !important;
+    }
+
+}
+
+
+.high-contrast
+section.universal-header
+.xlx026-brasil-title::before,
+
+.high-contrast
+section.universal-header
+.xlx026-brasil-title::after{
+
+    display:none !important;
+}
+
+
+/*
+ * MOBILE:
+ * nenhuma regra V3.
+ */
+
+
+/* /XLX026_HEADER_BRASIL_REFINO_V3 */

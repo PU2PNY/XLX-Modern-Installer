@@ -1,0 +1,145 @@
+
+/* ==========================================================
+   XLX026_HEADER_UNIFICADO_V1
+
+   Usa o visual atual do header AO VIVO
+   como padrão para TODAS as páginas.
+
+   Não altera a geometria do header.
+   ========================================================== */
+
+
+/* ----------------------------------------------------------
+   REMOVE O INDICADOR "AO VIVO" SEPARADO DO HEADER
+
+   No Ao Vivo ele já foi removido visualmente.
+   Agora fazemos o mesmo em todas as páginas.
+
+   O elemento continua no DOM para não quebrar app.js.
+   ---------------------------------------------------------- */
+
+body[data-page]
+.universal-header
+.universal-live-pill{
+
+    display:none !important;
+}
+
+
+/* ----------------------------------------------------------
+   BIP UNIVERSAL
+
+   Utiliza exatamente a posição normal dos itens do menu.
+   ---------------------------------------------------------- */
+
+body[data-page]
+.universal-nav
+.xlx026-universal-bip{
+
+    display:inline-flex !important;
+
+    align-items:center !important;
+    justify-content:center !important;
+
+    gap:6px !important;
+
+    min-height:35px;
+
+    padding:7px 10px !important;
+
+    border:1px solid rgba(52,104,130,.72) !important;
+    border-radius:9px !important;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(15,42,57,.94),
+            rgba(7,25,35,.96)
+        ) !important;
+
+    color:#c9e0e9 !important;
+
+    font-family:inherit !important;
+    font-size:11px !important;
+    font-weight:800 !important;
+    line-height:1 !important;
+
+    white-space:nowrap !important;
+
+    cursor:pointer !important;
+
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.035),
+        0 1px 4px rgba(0,0,0,.20) !important;
+
+    transition:
+        color .18s ease,
+        background .18s ease,
+        border-color .18s ease,
+        box-shadow .18s ease !important;
+}
+
+
+/* hover igual aos demais controles */
+
+@media (hover:hover) and (pointer:fine){
+
+    body[data-page]
+    .universal-nav
+    .xlx026-universal-bip:hover{
+
+        color:#ffffff !important;
+
+        border-color:#21eaa0 !important;
+
+        background:
+            linear-gradient(
+                180deg,
+                rgba(33,234,160,.14),
+                rgba(7,42,34,.98)
+            ) !important;
+
+        box-shadow:
+            0 0 5px rgba(33,234,160,.55),
+            0 0 14px rgba(33,234,160,.20) !important;
+    }
+}
+
+
+/* desligado */
+
+body[data-page]
+.universal-nav
+.xlx026-universal-bip.is-off{
+
+    opacity:.72;
+}
+
+
+/* ----------------------------------------------------------
+   MOBILE
+
+   Apenas faz o Bip acompanhar os demais itens.
+   Não altera o funcionamento do menu mobile.
+   ---------------------------------------------------------- */
+
+@media(max-width:820px){
+
+    body[data-page]
+    .universal-nav
+    .xlx026-universal-bip{
+
+        width:100% !important;
+
+        min-height:50px !important;
+
+        justify-content:center !important;
+
+        padding:10px 13px !important;
+
+        font-size:12px !important;
+    }
+}
+
+
+/* FIM XLX026_HEADER_UNIFICADO_V1 */

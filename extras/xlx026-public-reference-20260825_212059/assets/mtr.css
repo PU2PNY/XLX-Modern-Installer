@@ -1,0 +1,960 @@
+/* Widget MTR individual do XLX026 */
+
+.tx-mtr-stack {
+    display: flex;
+    flex-direction: column;
+
+    width: 100%;
+    min-width: 0;
+
+    gap: 6px;
+}
+
+.tx-mtr-stack > .tx-card {
+    width: 100%;
+}
+
+.mtr-mini {
+    --mtr-color: #8a9aa4;
+
+    display: grid;
+
+    grid-template-columns:
+        auto
+        minmax(70px, 1fr)
+        auto
+        auto
+        minmax(55px, 92px)
+        auto;
+
+    align-items: center;
+
+    width: 100%;
+    min-width: 0;
+    min-height: 32px;
+
+    gap: 8px;
+    padding: 5px 9px;
+
+    overflow: hidden;
+
+    border: 1px solid #53636c;
+    border-radius: 9px;
+
+    background: #0c1c24;
+    color: var(--mtr-color);
+
+    font-size: 11px;
+    line-height: 1;
+}
+
+.mtr-mini.mtr-good {
+    --mtr-color: #29d17d;
+
+    border-color: #237c53;
+    background: #0c211a;
+}
+
+.mtr-mini.mtr-warning {
+    --mtr-color: #f2c94c;
+
+    border-color: #89712c;
+    background: #26210f;
+}
+
+.mtr-mini.mtr-bad {
+    --mtr-color: #ff4e60;
+
+    border-color: #8d303b;
+    background: #291217;
+}
+
+.mtr-mini.mtr-unknown {
+    --mtr-color: #8a9aa4;
+
+    border-color: #53636c;
+    background: #0c1c24;
+}
+
+.mtr-label {
+    padding: 3px 5px;
+
+    border: 1px solid currentColor;
+    border-radius: 5px;
+
+    color: var(--mtr-color);
+
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 0.6px;
+}
+
+.mtr-gateway {
+    overflow: hidden;
+
+    color: #f5fbff;
+
+    font-size: 12px;
+    font-weight: 900;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mtr-latency,
+.mtr-loss {
+    color: var(--mtr-color);
+
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+.mtr-sparkline {
+    display: block;
+
+    width: 100%;
+    height: 18px;
+
+    overflow: visible;
+}
+
+.mtr-line {
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+
+    vector-effect:
+        non-scaling-stroke;
+}
+
+.mtr-quality {
+    display: flex;
+    align-items: center;
+
+    gap: 5px;
+
+    color: var(--mtr-color);
+
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.mtr-quality i {
+    width: 7px;
+    height: 7px;
+
+    flex: 0 0 7px;
+
+    border-radius: 50%;
+
+    background: currentColor;
+
+    box-shadow:
+        0 0 8px currentColor;
+}
+
+@media (max-width: 680px) {
+    .mtr-mini {
+        grid-template-columns:
+            auto
+            minmax(62px, 1fr)
+            auto
+            auto
+            minmax(45px, 68px);
+
+        gap: 5px;
+        padding: 5px 6px;
+
+        font-size: 10px;
+    }
+
+    .mtr-quality {
+        display: none;
+    }
+
+    .mtr-gateway {
+        font-size: 11px;
+    }
+
+    .mtr-label {
+        padding: 3px 4px;
+
+        font-size: 8px;
+    }
+}
+
+/* ==========================================================
+   XLX026 MTR — fonte ampliada v2
+   ========================================================== */
+
+.mtr-mini {
+    min-height: 40px;
+
+    gap: 10px;
+    padding: 7px 11px;
+
+    font-size: 13px;
+}
+
+.mtr-label {
+    padding: 4px 6px;
+
+    font-size: 10px;
+    line-height: 1.1;
+}
+
+.mtr-gateway {
+    font-size: 14px;
+    line-height: 1.15;
+}
+
+.mtr-latency,
+.mtr-loss {
+    font-size: 13px;
+    line-height: 1.15;
+}
+
+.mtr-quality {
+    font-size: 12px;
+    line-height: 1.15;
+}
+
+.mtr-quality i {
+    width: 8px;
+    height: 8px;
+
+    flex-basis: 8px;
+}
+
+.mtr-sparkline {
+    height: 21px;
+}
+
+@media (max-width: 680px) {
+    .mtr-mini {
+        min-height: 38px;
+
+        gap: 6px;
+        padding: 6px 7px;
+
+        font-size: 12px;
+    }
+
+    .mtr-label {
+        padding: 4px 5px;
+
+        font-size: 9px;
+    }
+
+    .mtr-gateway {
+        font-size: 13px;
+    }
+
+    .mtr-latency,
+    .mtr-loss {
+        font-size: 12px;
+    }
+
+    .mtr-sparkline {
+        height: 20px;
+    }
+}
+
+/* ==========================================================
+   XLX026 MTR — visual com siglas v3
+   ========================================================== */
+
+.mtr-mini {
+    --mtr-score: 0%;
+
+    position: relative;
+
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+
+    min-height: 62px;
+
+    gap: 8px 13px;
+    padding: 9px 40px 9px 11px;
+
+    font-size: 14px;
+}
+
+.mtr-label {
+    padding: 5px 7px;
+
+    font-size: 11px;
+}
+
+.mtr-gateway {
+    flex: 1 1 110px;
+
+    font-size: 15px;
+}
+
+.mtr-metric {
+    display: inline-flex;
+    align-items: baseline;
+
+    gap: 4px;
+
+    white-space: nowrap;
+}
+
+.mtr-metric small {
+    color: var(--mtr-color);
+
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+}
+
+.mtr-metric b {
+    color: #ffffff;
+
+    font-size: 16px;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.mtr-chart {
+    min-width: 90px;
+
+    flex: 1 1 110px;
+}
+
+.mtr-sparkline {
+    height: 25px;
+}
+
+.mtr-line {
+    stroke-width: 2.4;
+}
+
+.mtr-dot {
+    fill: currentColor;
+    stroke: #ffffff;
+    stroke-width: 1;
+
+    transform-box: fill-box;
+    transform-origin: center;
+
+    animation:
+        xlx026-mtr-dot 1.2s
+        ease-in-out infinite;
+}
+
+.mtr-quality {
+    display: inline-flex;
+
+    font-size: 13px;
+}
+
+.mtr-route {
+    color: #f2c94c;
+
+    font-size: 11px;
+    font-style: normal;
+    font-weight: 900;
+
+    animation:
+        xlx026-mtr-route 1.3s
+        ease-in-out infinite;
+}
+
+.mtr-route[hidden] {
+    display: none;
+}
+
+.mtr-scale {
+    position: relative;
+
+    width: 100%;
+    height: 7px;
+
+    flex: 1 0 100%;
+
+    overflow: visible;
+
+    border-radius: 999px;
+
+    background:
+        linear-gradient(
+            to right,
+            #29d17d 0%,
+            #29d17d 50%,
+            #f2c94c 50%,
+            #f2c94c 75%,
+            #ff4e60 75%,
+            #ff4e60 100%
+        );
+}
+
+.mtr-scale-marker {
+    position: absolute;
+    top: 50%;
+    left: var(--mtr-score);
+
+    width: 12px;
+    height: 12px;
+
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+
+    background: currentColor;
+
+    transform:
+        translate(-50%, -50%);
+
+    transition:
+        left 350ms ease;
+}
+
+.mtr-info-wrap {
+    position: absolute;
+    z-index: 20;
+    top: 5px;
+    right: 5px;
+}
+
+.mtr-info {
+    display: grid;
+    place-items: center;
+
+    width: 25px;
+    height: 25px;
+
+    padding: 0;
+
+    border: 1px solid currentColor;
+    border-radius: 50%;
+
+    background: #152a34;
+    color: #ffffff;
+
+    font-family: Georgia, serif;
+    font-size: 15px;
+    font-weight: 900;
+    line-height: 1;
+
+    cursor: help;
+}
+
+.mtr-info:hover,
+.mtr-info:focus-visible {
+    background: #ffffff;
+    color: #10232c;
+}
+
+.mtr-tooltip {
+    position: absolute;
+    top: 30px;
+    right: 0;
+
+    display: none;
+
+    width: min(310px, 82vw);
+
+    padding: 12px;
+
+    border: 1px solid #80939d;
+    border-radius: 9px;
+
+    background: #08151c;
+    color: #ffffff;
+
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.45;
+    text-align: left;
+
+    white-space: normal;
+
+    box-shadow:
+        0 6px 22px
+        rgba(0, 0, 0, 0.45);
+}
+
+.mtr-tooltip strong {
+    display: block;
+
+    margin-bottom: 6px;
+
+    color: #ffffff;
+    font-size: 14px;
+}
+
+.mtr-tooltip b {
+    color: #f2c94c;
+}
+
+.mtr-info-wrap:hover .mtr-tooltip,
+.mtr-info-wrap:focus-within .mtr-tooltip {
+    display: block;
+}
+
+@keyframes xlx026-mtr-dot {
+    0%,
+    100% {
+        opacity: 0.55;
+        transform: scale(0.8);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.35);
+    }
+}
+
+@keyframes xlx026-mtr-route {
+    0%,
+    100% {
+        opacity: 0.6;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+@media (max-width: 680px) {
+    .mtr-mini {
+        min-height: 78px;
+
+        gap: 7px 10px;
+        padding:
+            8px 36px 8px 8px;
+
+        font-size: 13px;
+    }
+
+    .mtr-gateway {
+        flex-basis: 85px;
+
+        font-size: 14px;
+    }
+
+    .mtr-metric small {
+        font-size: 10px;
+    }
+
+    .mtr-metric b {
+        font-size: 14px;
+    }
+
+    .mtr-chart {
+        min-width: 75px;
+
+        flex-basis: 90px;
+    }
+
+    .mtr-quality {
+        display: inline-flex;
+
+        font-size: 12px;
+    }
+
+    .mtr-tooltip {
+        width: min(290px, 86vw);
+
+        font-size: 12px;
+    }
+}
+
+/* ==========================================================
+   XLX026 MTR — layout organizado v4
+   ========================================================== */
+
+.mtr-mini {
+    --mtr-score: 0%;
+
+    position: relative;
+
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+
+    width: 100%;
+    min-height: 0;
+
+    gap: 8px;
+    padding: 9px 10px;
+
+    font-size: 13px;
+}
+
+.mtr-head {
+    display: grid;
+
+    grid-template-columns:
+        auto
+        minmax(0, 1fr)
+        auto
+        auto;
+
+    align-items: center;
+
+    gap: 8px;
+}
+
+.mtr-label {
+    padding: 4px 6px;
+
+    font-size: 10px;
+}
+
+.mtr-gateway {
+    min-width: 0;
+
+    overflow: hidden;
+
+    font-size: 14px;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mtr-update {
+    color: #a9bac3;
+
+    font-size: 10px;
+    font-weight: 700;
+
+    white-space: nowrap;
+}
+
+.mtr-info-wrap {
+    position: relative;
+    z-index: 30;
+    top: auto;
+    right: auto;
+}
+
+.mtr-info {
+    width: 23px;
+    height: 23px;
+
+    font-size: 14px;
+}
+
+.mtr-metrics {
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            3,
+            minmax(0, 1fr)
+        );
+
+    gap: 6px;
+}
+
+.mtr-metric {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+
+    min-width: 0;
+
+    gap: 5px;
+    padding: 7px 8px;
+
+    border: 1px solid
+        rgba(130, 160, 175, 0.28);
+    border-radius: 7px;
+
+    background:
+        rgba(4, 20, 28, 0.52);
+}
+
+.mtr-metric small {
+    flex: 0 0 auto;
+
+    color: var(--mtr-color);
+
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.4px;
+}
+
+.mtr-metric b {
+    min-width: 0;
+
+    overflow: hidden;
+
+    color: #ffffff;
+
+    font-size: 16px;
+    font-weight: 900;
+    line-height: 1;
+
+    text-align: right;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mtr-graph-row {
+    display: grid;
+
+    grid-template-columns:
+        minmax(90px, 1.35fr)
+        minmax(125px, 0.9fr);
+
+    align-items: center;
+
+    gap: 10px;
+}
+
+.mtr-chart {
+    display: block;
+
+    min-width: 0;
+    width: 100%;
+
+    padding: 3px 2px;
+}
+
+.mtr-sparkline {
+    display: block;
+
+    width: 100%;
+    height: 30px;
+}
+
+.mtr-line {
+    stroke-width: 2.3;
+}
+
+.mtr-dot {
+    fill: currentColor;
+
+    stroke: #ffffff;
+    stroke-width: 0.8;
+
+    transform-box: fill-box;
+    transform-origin: center;
+
+    animation:
+        xlx026-mtr-dot 1.2s
+        ease-in-out infinite;
+}
+
+.mtr-state-group {
+    display: grid;
+
+    grid-template-columns:
+        auto
+        minmax(0, 1fr);
+
+    align-items: center;
+
+    gap: 3px 7px;
+
+    min-width: 0;
+}
+
+.mtr-quality {
+    display: inline-flex;
+    align-items: center;
+
+    gap: 5px;
+
+    color: var(--mtr-color);
+
+    font-size: 12px;
+    font-weight: 900;
+
+    white-space: nowrap;
+}
+
+.mtr-quality i {
+    width: 8px;
+    height: 8px;
+
+    flex: 0 0 8px;
+
+    border-radius: 50%;
+
+    background: currentColor;
+
+    box-shadow:
+        0 0 7px currentColor;
+}
+
+.mtr-reason {
+    min-width: 0;
+
+    overflow: hidden;
+
+    color: #ffffff;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mtr-trend {
+    color: #c4d1d7;
+
+    font-size: 11px;
+    font-weight: 800;
+
+    white-space: nowrap;
+}
+
+.mtr-route {
+    color: #f2c94c;
+
+    font-size: 10px;
+    font-weight: 900;
+
+    white-space: nowrap;
+
+    animation:
+        xlx026-mtr-route 1.3s
+        ease-in-out infinite;
+}
+
+.mtr-route[hidden] {
+    display: none;
+}
+
+.mtr-scale {
+    position: relative;
+
+    display: block;
+
+    width: 100%;
+    height: 6px;
+
+    overflow: visible;
+
+    border-radius: 999px;
+
+    background:
+        linear-gradient(
+            to right,
+            #29d17d 0%,
+            #29d17d 50%,
+            #f2c94c 50%,
+            #f2c94c 75%,
+            #ff4e60 75%,
+            #ff4e60 100%
+        );
+}
+
+.mtr-scale-marker {
+    position: absolute;
+    top: 50%;
+    left: var(--mtr-score);
+
+    width: 11px;
+    height: 11px;
+
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+
+    background: currentColor;
+
+    transform:
+        translate(-50%, -50%);
+
+    transition:
+        left 350ms ease;
+}
+
+.mtr-tooltip {
+    top: 29px;
+    right: 0;
+
+    width: min(310px, 84vw);
+
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+@media (max-width: 680px) {
+    .mtr-mini {
+        gap: 7px;
+        padding: 8px;
+    }
+
+    .mtr-head {
+        grid-template-columns:
+            auto
+            minmax(0, 1fr)
+            auto;
+    }
+
+    .mtr-update {
+        display: none;
+    }
+
+    .mtr-gateway {
+        font-size: 13px;
+    }
+
+    .mtr-metrics {
+        gap: 4px;
+    }
+
+    .mtr-metric {
+        display: grid;
+
+        justify-items: center;
+
+        gap: 3px;
+        padding: 6px 3px;
+    }
+
+    .mtr-metric small {
+        font-size: 9px;
+    }
+
+    .mtr-metric b {
+        width: 100%;
+
+        font-size: 14px;
+        text-align: center;
+    }
+
+    .mtr-graph-row {
+        grid-template-columns:
+            minmax(0, 1fr);
+
+        gap: 5px;
+    }
+
+    .mtr-sparkline {
+        height: 27px;
+    }
+
+    .mtr-state-group {
+        grid-template-columns:
+            auto
+            minmax(0, 1fr)
+            auto;
+    }
+
+    .mtr-quality {
+        font-size: 11px;
+    }
+
+    .mtr-reason {
+        font-size: 10px;
+    }
+
+    .mtr-trend {
+        font-size: 10px;
+    }
+
+    .mtr-route {
+        grid-column:
+            1 / -1;
+
+        font-size: 10px;
+    }
+}

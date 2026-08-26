@@ -1,0 +1,185 @@
+.xlx-cert-special-alert {
+    position: fixed;
+    left: 18px;
+    bottom: 18px;
+    z-index: 1005;
+
+    width: min(430px, calc(100vw - 36px));
+
+    overflow: hidden;
+
+    border: 1px solid rgba(220,181,84,.82);
+    border-radius: 18px;
+
+    background:
+        radial-gradient(
+            circle at 100% 0,
+            rgba(0,216,255,.14),
+            transparent 42%
+        ),
+        linear-gradient(
+            145deg,
+            rgba(5,18,30,.99),
+            rgba(8,45,66,.99)
+        );
+
+    box-shadow:
+        0 22px 70px rgba(0,0,0,.52);
+
+    color: #fff;
+
+    opacity: 0;
+    transform: translateY(20px);
+
+    transition:
+        opacity .3s ease,
+        transform .3s ease;
+}
+
+.xlx-cert-special-alert.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.xlx-cert-special-alert::before {
+    content: "";
+    display: block;
+    height: 4px;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            #c79d43,
+            #efd98e,
+            #c79d43,
+            transparent
+        );
+}
+
+.xlx-cert-special-inner {
+    position: relative;
+    padding: 18px;
+}
+
+.xlx-cert-special-close {
+    position: absolute;
+    top: 9px;
+    right: 9px;
+
+    width: 32px;
+    height: 32px;
+
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 50%;
+
+    background: rgba(255,255,255,.07);
+    color: #fff;
+
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.xlx-cert-special-kicker {
+    display: block;
+    margin: 0 42px 7px 0;
+
+    color: #e6c56f;
+
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: .13em;
+}
+
+.xlx-cert-special-alert h2 {
+    margin: 0 42px 7px 0;
+
+    color: #fff;
+
+    font-size: 20px;
+    line-height: 1.2;
+}
+
+.xlx-cert-special-alert p {
+    margin: 0;
+
+    color: #c5dae4;
+
+    font-size: 12px;
+    line-height: 1.55;
+}
+
+.xlx-cert-special-period {
+    display: inline-block;
+
+    margin-top: 10px;
+    padding: 5px 9px;
+
+    border: 1px solid rgba(230,197,111,.42);
+    border-radius: 999px;
+
+    color: #fff;
+
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.xlx-cert-special-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    margin-top: 14px;
+}
+
+.xlx-cert-special-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 42px;
+
+    padding: 9px 15px;
+
+    border-radius: 9px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #e7c86f,
+            #c89d42
+        );
+
+    color: #071722;
+
+    font-size: 12px;
+    font-weight: 900;
+
+    text-decoration: none;
+}
+
+.xlx-cert-special-note {
+    color: #8faab8;
+
+    font-size: 9px;
+    line-height: 1.3;
+}
+
+@media(max-width:650px) {
+
+    .xlx-cert-special-alert {
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+        width: auto;
+    }
+
+    .xlx-cert-special-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .xlx-cert-special-button {
+        width: 100%;
+    }
+}

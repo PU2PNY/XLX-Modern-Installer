@@ -1,0 +1,574 @@
+/* ================================================================
+   XLX026_HEADER_BRASIL_NEON_STICKY_V1
+
+   Escopo:
+   - desktop moderno >= 821px
+   - header universal existente
+   - nenhuma alteração em tabela, cards ou APIs
+
+   Conceito:
+   - identidade brasileira sutil
+   - luz/lente verde, amarela e azul atravessando XLX026 Brasil
+   - movimento lento de ida e volta, com pausas
+   - header compacto sticky durante rolagem
+   ================================================================ */
+
+
+/*
+ * DESKTOP.
+ *
+ * Mantém o header no fluxo normal e o fixa somente
+ * quando alcança o topo da área de rolagem.
+ */
+@media (min-width:821px){
+
+    html body .universal-header{
+        position:-webkit-sticky !important;
+        position:sticky !important;
+
+        top:0 !important;
+
+        z-index:1200 !important;
+
+        isolation:isolate;
+
+        transition:
+            padding .20s ease,
+            border-radius .20s ease,
+            background-color .20s ease,
+            box-shadow .20s ease;
+    }
+
+
+    /*
+     * Título original continua sendo o conteúdo real.
+     * Efeito é puramente decorativo.
+     */
+    html body .universal-header
+    .xlx026-brasil-title{
+        position:relative;
+
+        display:inline-block;
+
+        isolation:isolate;
+
+        white-space:nowrap;
+
+        text-shadow:
+            0 0 8px rgba(0,216,255,.20),
+            -10px 0 24px rgba(0,156,59,.08),
+            0 0 22px rgba(255,223,0,.05),
+            10px 0 26px rgba(0,39,118,.12);
+    }
+
+
+    /*
+     * Pequena "lente" luminosa.
+     *
+     * Quase imperceptível quando parada.
+     * Aparece somente durante a passagem do laser.
+     */
+    html body .universal-header
+    .xlx026-brasil-title::before{
+        content:"";
+
+        position:absolute;
+
+        z-index:3;
+
+        left:0;
+        top:50%;
+
+        width:24px;
+        height:145%;
+
+        pointer-events:none;
+
+        transform:
+            translate(-50%,-50%);
+
+        opacity:0;
+
+        border-radius:50%;
+
+        background:
+            radial-gradient(
+                ellipse at center,
+                rgba(255,255,255,.34) 0%,
+                rgba(255,223,0,.15) 20%,
+                rgba(0,156,59,.10) 43%,
+                rgba(0,39,118,.09) 63%,
+                transparent 76%
+            );
+
+        filter:blur(3px);
+
+        animation:
+            xlx026BrasilLensV1 26s
+            ease-in-out infinite;
+    }
+
+
+    /*
+     * Linha muito discreta nas cores do Brasil
+     * sob a região do menu.
+     *
+     * Não muda cores funcionais dos botões.
+     */
+    html body .universal-header
+    .universal-nav{
+        background-image:
+            linear-gradient(
+                90deg,
+                rgba(0,156,59,.17),
+                rgba(255,223,0,.12) 49%,
+                rgba(0,39,118,.18)
+            );
+
+        background-repeat:no-repeat;
+
+        background-size:
+            100% 1px;
+
+        background-position:
+            left bottom;
+    }
+
+
+    /*
+     * ==========================================================
+     * HEADER COMPACTO DURANTE ROLAGEM
+     * ==========================================================
+     *
+     * Ficam visíveis:
+     *   XLX026 Brasil + menu
+     *
+     * Saem temporariamente:
+     *   logo
+     *   protocolos
+     *   estado Conectando/Online
+     *
+     * Nada é removido do HTML.
+     */
+    html body
+    .universal-header.xlx026-header-compact{
+        display:grid !important;
+
+        grid-template-columns:
+            max-content minmax(0,1fr) !important;
+
+        align-items:center !important;
+
+        column-gap:16px !important;
+
+        min-height:0 !important;
+
+        margin-top:0 !important;
+
+        padding:
+            8px 12px 9px !important;
+
+        border-radius:
+            0 0 14px 14px !important;
+
+        background-color:
+            rgba(5,20,30,.965) !important;
+
+        -webkit-backdrop-filter:
+            blur(12px);
+
+        backdrop-filter:
+            blur(12px);
+
+        box-shadow:
+            0 10px 30px rgba(0,0,0,.30),
+            0 1px 0 rgba(255,255,255,.025) inset,
+            0 -1px 0 rgba(0,216,255,.08) inset !important;
+    }
+
+
+    html body
+    .universal-header.xlx026-header-compact
+    .universal-header-row{
+        grid-column:1 !important;
+
+        display:flex !important;
+
+        align-items:center !important;
+
+        min-width:max-content !important;
+        min-height:0 !important;
+
+        gap:0 !important;
+
+        margin:0 !important;
+
+        padding:0 !important;
+
+        border:0 !important;
+    }
+
+
+    /*
+     * Logo é escondido somente enquanto compacto.
+     */
+    html body
+    .universal-header.xlx026-header-compact
+    .universal-brand{
+        display:none !important;
+    }
+
+
+    html body
+    .universal-header.xlx026-header-compact
+    .universal-copy{
+        display:block !important;
+
+        min-width:0 !important;
+
+        margin:0 !important;
+        padding:0 !important;
+    }
+
+
+    /*
+     * Protocolos continuam no HTML,
+     * mas não ocupam tela enquanto o header está preso.
+     */
+    html body
+    .universal-header.xlx026-header-compact
+    .access-strip{
+        display:none !important;
+    }
+
+
+    /*
+     * Estado ao vivo continua funcionando no DOM,
+     * mas fica fora da versão compacta.
+     */
+    html body
+    .universal-header.xlx026-header-compact
+    .universal-live-pill{
+        display:none !important;
+    }
+
+
+    html body
+    .universal-header.xlx026-header-compact
+    .universal-copy h1{
+        margin:0 !important;
+
+        padding:0 !important;
+
+        font-size:20px !important;
+
+        line-height:1 !important;
+
+        letter-spacing:
+            -.01em !important;
+
+        white-space:nowrap !important;
+    }
+
+
+    /*
+     * Menu permanece integralmente disponível.
+     *
+     * Em telas desktop menores, pode rolar
+     * horizontalmente em vez de quebrar o layout.
+     */
+    html body
+    .universal-header.xlx026-header-compact
+    .universal-nav{
+        grid-column:2 !important;
+
+        display:flex !important;
+
+        align-items:center !important;
+
+        justify-content:flex-end !important;
+
+        flex-wrap:nowrap !important;
+
+        min-width:0 !important;
+
+        gap:6px !important;
+
+        margin:0 !important;
+
+        padding:
+            0 0 2px !important;
+
+        overflow-x:auto !important;
+        overflow-y:hidden !important;
+
+        scrollbar-width:thin;
+    }
+
+
+    html body
+    .universal-header.xlx026-header-compact
+    .universal-nav a{
+        flex:
+            0 0 auto !important;
+
+        padding:
+            7px 9px !important;
+
+        font-size:
+            12px !important;
+
+        white-space:
+            nowrap !important;
+    }
+
+
+    html body
+    .universal-header.xlx026-header-compact
+    .menu-toggle{
+        display:none !important;
+    }
+
+}
+
+
+/*
+ * ================================================================
+ * LASER SOBRE O CONTORNO / SUPERFÍCIE DAS LETRAS
+ * ================================================================
+ *
+ * Uma cópia visual do texto fica exatamente em cima
+ * do texto original.
+ *
+ * clip-path mostra apenas uma faixa estreita de cada vez.
+ */
+@media (min-width:821px){
+
+@supports (clip-path: inset(0 82% 0 0)) {
+
+    html body .universal-header
+    .xlx026-brasil-title::after{
+        content:
+            attr(data-title);
+
+        position:absolute;
+
+        z-index:2;
+
+        left:0;
+        top:0;
+
+        width:100%;
+        height:100%;
+
+        pointer-events:none;
+
+        white-space:nowrap;
+
+        color:transparent;
+
+        background:
+            linear-gradient(
+                90deg,
+                #009c3b 0%,
+                #37d66d 20%,
+                #ffdf00 48%,
+                #f7f4d1 55%,
+                #1769c2 74%,
+                #002776 100%
+            );
+
+        -webkit-background-clip:text;
+        background-clip:text;
+
+        -webkit-text-fill-color:
+            transparent;
+
+        -webkit-text-stroke:
+            .45px rgba(255,255,255,.24);
+
+        filter:
+            drop-shadow(
+                0 0 4px rgba(255,255,255,.16)
+            );
+
+        clip-path:
+            inset(0 82% 0 0);
+
+        opacity:0;
+
+        animation:
+            xlx026BrasilSweepV1 26s
+            ease-in-out infinite;
+    }
+
+}
+
+}
+
+
+/*
+ * Ida:
+ *   esquerda -> direita
+ *
+ * pausa
+ *
+ * Volta:
+ *   direita -> esquerda
+ *
+ * pausa
+ */
+@keyframes xlx026BrasilSweepV1{
+
+    0%,
+    14%{
+        clip-path:
+            inset(0 82% 0 0);
+
+        opacity:0;
+    }
+
+    18%{
+        clip-path:
+            inset(0 82% 0 0);
+
+        opacity:.40;
+    }
+
+    34%{
+        clip-path:
+            inset(0 0 0 82%);
+
+        opacity:.40;
+    }
+
+    37%,
+    58%{
+        clip-path:
+            inset(0 0 0 82%);
+
+        opacity:0;
+    }
+
+    62%{
+        clip-path:
+            inset(0 0 0 82%);
+
+        opacity:.40;
+    }
+
+    78%{
+        clip-path:
+            inset(0 82% 0 0);
+
+        opacity:.40;
+    }
+
+    81%,
+    100%{
+        clip-path:
+            inset(0 82% 0 0);
+
+        opacity:0;
+    }
+}
+
+
+/*
+ * A pequena lente acompanha exatamente o mesmo ciclo.
+ */
+@keyframes xlx026BrasilLensV1{
+
+    0%,
+    14%{
+        left:0%;
+        opacity:0;
+    }
+
+    18%{
+        left:0%;
+        opacity:.18;
+    }
+
+    34%{
+        left:100%;
+        opacity:.18;
+    }
+
+    37%,
+    58%{
+        left:100%;
+        opacity:0;
+    }
+
+    62%{
+        left:100%;
+        opacity:.18;
+    }
+
+    78%{
+        left:0%;
+        opacity:.18;
+    }
+
+    81%,
+    100%{
+        left:0%;
+        opacity:0;
+    }
+}
+
+
+/*
+ * Acessibilidade.
+ *
+ * Se o sistema pede menos movimento,
+ * o efeito móvel desaparece completamente.
+ */
+@media (prefers-reduced-motion:reduce){
+
+    html body .universal-header
+    .xlx026-brasil-title::before,
+
+    html body .universal-header
+    .xlx026-brasil-title::after{
+        animation:none !important;
+
+        opacity:0 !important;
+    }
+
+}
+
+
+/*
+ * Alto contraste:
+ * decoração desligada para priorizar leitura.
+ */
+html.high-contrast body
+.universal-header
+.xlx026-brasil-title::before,
+
+html.high-contrast body
+.universal-header
+.xlx026-brasil-title::after,
+
+.high-contrast
+.universal-header
+.xlx026-brasil-title::before,
+
+.high-contrast
+.universal-header
+.xlx026-brasil-title::after{
+    display:none !important;
+}
+
+
+/*
+ * MOBILE <= 820px
+ *
+ * Intencionalmente não existe regra visual nova.
+ * Layout mobile atual permanece como está.
+ */
+
+
+/* /XLX026_HEADER_BRASIL_NEON_STICKY_V1 */

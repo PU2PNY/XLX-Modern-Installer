@@ -1,0 +1,412 @@
+/* ==========================================================
+   XLX026 — VISUAL FIX V7
+
+   1 TX:
+   GIF à esquerda, com espaço seguro.
+
+   2 TX:
+   GIF à direita dos dados do operador.
+
+   MTR:
+   popup de informação sempre acima das caixas técnicas.
+
+   Standby:
+   não alterado.
+   ========================================================== */
+
+
+/* ==========================================================
+   UMA TRANSMISSÃO
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlx026-tx-stack-v5:only-child
+.tx-v30-person{
+
+    display:grid !important;
+
+    grid-template-columns:
+        46px
+        minmax(0,1fr) !important;
+
+    align-items:center !important;
+
+    gap:9px !important;
+
+    min-width:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlx026-tx-stack-v5:only-child
+.tx-v30-person
+.operator-visual{
+
+    grid-column:1 !important;
+    grid-row:1 !important;
+
+    justify-self:start !important;
+
+    width:38px !important;
+    height:38px !important;
+
+    min-width:38px !important;
+    min-height:38px !important;
+
+    margin:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlx026-tx-stack-v5:only-child
+.tx-v30-person-data{
+
+    grid-column:2 !important;
+    grid-row:1 !important;
+
+    min-width:0 !important;
+
+    padding-left:0 !important;
+}
+
+
+/* ==========================================================
+   EXATAMENTE DUAS TRANSMISSÕES
+
+   Seletores abaixo funcionam somente quando moduleGrid
+   possui exatamente dois stacks TX.
+   ========================================================== */
+
+
+/* Primeiro card de dois */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
+.tx-v30-person,
+
+/* Segundo card de dois */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
+~ .xlx026-tx-stack-v5
+.tx-v30-person{
+
+    display:grid !important;
+
+    /*
+     * TEXTO | GIF
+     */
+    grid-template-columns:
+        minmax(0,1fr)
+        44px !important;
+
+    align-items:center !important;
+
+    gap:8px !important;
+
+    min-width:0 !important;
+}
+
+
+/* GIF vai para a DIREITA */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
+.tx-v30-person
+.operator-visual,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
+~ .xlx026-tx-stack-v5
+.tx-v30-person
+.operator-visual{
+
+    grid-column:2 !important;
+    grid-row:1 !important;
+
+    justify-self:end !important;
+    align-self:center !important;
+
+    width:30px !important;
+    height:30px !important;
+
+    min-width:30px !important;
+    min-height:30px !important;
+
+    margin:0 4px 0 0 !important;
+}
+
+
+/* GIF interno menor */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
+.tx-v30-person
+.operator-visual img,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
+~ .xlx026-tx-stack-v5
+.tx-v30-person
+.operator-visual img{
+
+    width:21px !important;
+    height:21px !important;
+
+    object-fit:contain !important;
+}
+
+
+/* Dados ocupam toda a área esquerda */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
+.tx-v30-person-data,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
+~ .xlx026-tx-stack-v5
+.tx-v30-person-data{
+
+    grid-column:1 !important;
+    grid-row:1 !important;
+
+    min-width:0 !important;
+
+    width:100% !important;
+
+    padding:0 4px 0 0 !important;
+}
+
+
+/* Indicativo nunca fica embaixo do círculo */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
+.tx-v30-callsign,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
+~ .xlx026-tx-stack-v5
+.tx-v30-callsign{
+
+    display:block !important;
+
+    max-width:100% !important;
+
+    padding:0 !important;
+    margin:0 !important;
+
+    white-space:nowrap !important;
+
+    overflow:hidden !important;
+
+    text-overflow:ellipsis !important;
+}
+
+
+/* ==========================================================
+   MTR — CORREÇÃO DO POPUP DO BOTÃO "i"
+   ========================================================== */
+
+
+/*
+ * Área técnica precisa permitir camadas internas.
+ */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-tech-v5{
+
+    position:relative !important;
+
+    z-index:20 !important;
+
+    overflow:visible !important;
+}
+
+
+/*
+ * O MTR fica acima das caixas Gateway/Protocolo/Tempo.
+ */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-mtr-embedded-v5{
+
+    position:relative !important;
+
+    z-index:100 !important;
+
+    overflow:visible !important;
+}
+
+
+/*
+ * Quando o mouse ou teclado entra no MTR,
+ * ele recebe prioridade máxima dentro do card.
+ */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-mtr-embedded-v5:hover,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-mtr-embedded-v5:focus-within{
+
+    z-index:1000 !important;
+}
+
+
+/*
+ * Cabeçalho onde fica o botão "i".
+ */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-mtr-embedded-v5
+.mtr-head{
+
+    position:relative !important;
+
+    z-index:1100 !important;
+
+    overflow:visible !important;
+}
+
+
+/*
+ * Caixas técnicas ficam em camada inferior.
+ */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-tech-v5
+.tx-v30-details{
+
+    position:relative !important;
+
+    z-index:1 !important;
+}
+
+
+/*
+ * Compatibilidade defensiva com nomes comuns
+ * usados no popup/help do MTR.
+
+ * Não altera posição do elemento.
+ * Somente sua camada.
+ */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-mtr-embedded-v5
+[class*="tooltip"],
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-mtr-embedded-v5
+[class*="popover"],
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-mtr-embedded-v5
+[class*="help"],
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlx026-mtr-embedded-v5
+[class*="info"]{
+
+    z-index:9999 !important;
+}
+
+
+/*
+ * O próprio stack ganha prioridade ao passar o mouse,
+ * evitando que o popup fique atrás do card vizinho.
+ */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlx026-tx-stack-v5{
+
+    position:relative !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlx026-tx-stack-v5:hover{
+
+    z-index:50 !important;
+}
+
+
+/* ==========================================================
+   PROTEÇÃO MOBILE
+
+   No celular a disposição V6 continua soberana.
+   ========================================================== */
+
+@media (max-width:720px){
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    > .xlx026-tx-stack-v5
+    .tx-v30-person{
+
+        grid-template-columns:
+            38px
+            minmax(0,1fr) !important;
+
+        gap:7px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    > .xlx026-tx-stack-v5
+    .tx-v30-person
+    .operator-visual{
+
+        grid-column:1 !important;
+        grid-row:1 !important;
+
+        justify-self:start !important;
+
+        width:34px !important;
+        height:34px !important;
+
+        min-width:34px !important;
+        min-height:34px !important;
+
+        margin:0 !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    > .xlx026-tx-stack-v5
+    .tx-v30-person-data{
+
+        grid-column:2 !important;
+        grid-row:1 !important;
+
+        padding:0 !important;
+    }
+}

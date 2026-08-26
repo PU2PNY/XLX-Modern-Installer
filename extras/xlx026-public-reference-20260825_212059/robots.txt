@@ -1,0 +1,19 @@
+# XLX026 Brasil — política pública de rastreamento
+# robots.txt não é mecanismo de segurança. Áreas privadas devem ser protegidas no servidor.
+
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /login/
+Disallow: /dashboard/
+Disallow: /cgi-bin/
+
+# Descoberta no ChatGPT Search
+User-agent: OAI-SearchBot
+Allow: /
+
+# GPTBot é separado do ChatGPT Search; mantém opt-out de possível treinamento
+User-agent: GPTBot
+Disallow: /
+
+Sitemap: https://xlx026.net/sitemap.xml

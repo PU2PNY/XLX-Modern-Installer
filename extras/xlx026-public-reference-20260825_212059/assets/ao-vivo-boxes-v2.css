@@ -1,0 +1,247 @@
+/*
+ * XLX026 — BOXES V2
+ * Escopo restrito ao Ao Vivo
+ * Objetivo: reformular somente os boxes
+ */
+
+body[data-page="ao-vivo"] #moduleGrid .tx-card{
+    position:relative !important;
+    overflow:hidden !important;
+    isolation:isolate !important;
+    border-radius:16px !important;
+}
+
+/* ============================================================
+   STANDBY — radar/gif no box inteiro
+   ============================================================ */
+
+body[data-page="ao-vivo"] #moduleGrid .tx-card:not(.live){
+    background:
+        linear-gradient(
+            135deg,
+            rgba(6,22,32,.96),
+            rgba(8,28,39,.95)
+        ) !important;
+    border:1px solid rgba(0,216,255,.18) !important;
+    box-shadow:
+        0 0 0 1px rgba(0,216,255,.05) inset,
+        0 10px 30px rgba(0,0,0,.22) !important;
+}
+
+body[data-page="ao-vivo"] #moduleGrid .tx-card:not(.live)::before{
+    content:"" !important;
+    position:absolute !important;
+    inset:0 !important;
+    z-index:0 !important;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(5,14,22,.28),
+            rgba(5,14,22,.52)
+        ),
+        url("talking-radio.gif") center center / cover no-repeat !important;
+
+    opacity:.58 !important;
+    filter:saturate(1.05) contrast(1.02) !important;
+
+    transform:scale(1.03) !important;
+}
+
+body[data-page="ao-vivo"] #moduleGrid .tx-card:not(.live)::after{
+    content:"" !important;
+    position:absolute !important;
+    inset:0 !important;
+    z-index:0 !important;
+
+    background:
+        radial-gradient(
+            circle at 50% 50%,
+            rgba(0,216,255,.10),
+            rgba(0,0,0,0) 58%
+        ) !important;
+
+    pointer-events:none !important;
+}
+
+body[data-page="ao-vivo"] #moduleGrid .tx-card:not(.live) > *{
+    position:relative !important;
+    z-index:1 !important;
+}
+
+body[data-page="ao-vivo"] #moduleGrid .tx-card:not(.live) .tx-title,
+body[data-page="ao-vivo"] #moduleGrid .tx-card:not(.live) .tx-label,
+body[data-page="ao-vivo"] #moduleGrid .tx-card:not(.live) .tx-call,
+body[data-page="ao-vivo"] #moduleGrid .tx-card:not(.live) .tx-subtitle,
+body[data-page="ao-vivo"] #moduleGrid .tx-card:not(.live) h3,
+body[data-page="ao-vivo"] #moduleGrid .tx-card:not(.live) strong{
+    text-shadow:0 1px 12px rgba(0,0,0,.45) !important;
+}
+
+/* ============================================================
+   LIVE — refinamento do box vermelho
+   ============================================================ */
+
+body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30{
+    border:1px solid rgba(255,61,98,.85) !important;
+    box-shadow:
+        0 0 0 1px rgba(255,61,98,.08) inset,
+        0 12px 36px rgba(0,0,0,.22),
+        0 0 22px rgba(255,61,98,.07) !important;
+    background:
+        linear-gradient(
+            135deg,
+            rgba(9,18,32,.98),
+            rgba(6,20,31,.97)
+        ) !important;
+}
+
+body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30::before{
+    content:"" !important;
+    position:absolute !important;
+    inset:0 !important;
+    z-index:0 !important;
+
+    background:
+        linear-gradient(
+            120deg,
+            rgba(255,61,98,.00) 0%,
+            rgba(255,61,98,.08) 38%,
+            rgba(255,61,98,.00) 72%
+        ),
+        radial-gradient(
+            circle at 78% 50%,
+            rgba(255,61,98,.10),
+            rgba(0,0,0,0) 28%
+        ) !important;
+
+    pointer-events:none !important;
+}
+
+body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 > *{
+    position:relative !important;
+    z-index:1 !important;
+}
+
+/* ============================================================
+   PROTOCOLO V2
+   ============================================================ */
+
+body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.live.tx-v30
+.tx-v30-protocol-box-v2{
+    display:flex !important;
+    flex-direction:column !important;
+    justify-content:center !important;
+    align-items:flex-start !important;
+
+    min-width:0 !important;
+
+    border-color:rgba(0,216,255,.44) !important;
+    background:
+        linear-gradient(
+            135deg,
+            rgba(0,216,255,.08),
+            rgba(4,18,28,.96)
+        ) !important;
+}
+
+body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.live.tx-v30
+.tx-v30-protocol-box-v2 > small{
+    color:#87dff0 !important;
+}
+
+body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.live.tx-v30
+.tx-v30-protocol-line-v2{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+
+    width:100% !important;
+    min-width:0 !important;
+
+    margin:0 !important;
+}
+
+body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.live.tx-v30
+.tx-v30-protocol-value-v2{
+    display:inline-flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+
+    width:auto !important;
+    max-width:100% !important;
+    min-width:0 !important;
+
+    margin:0 !important;
+    padding:4px 8px !important;
+
+    border:1px solid rgba(0,216,255,.56) !important;
+    border-radius:999px !important;
+
+    background:rgba(0,216,255,.12) !important;
+
+    color:#c8fbff !important;
+    font-size:clamp(10px,1.05vw,15px) !important;
+    font-weight:950 !important;
+    line-height:1 !important;
+    letter-spacing:.02em !important;
+
+    white-space:nowrap !important;
+    overflow:visible !important;
+    text-overflow:clip !important;
+}
+
+body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.live.tx-v30
+.tx-v30-module-inline{
+    display:none !important;
+}
+
+/* ============================================================
+   PROTECOES DE LAYOUT
+   ============================================================ */
+
+body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-v30-details,
+body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-v30-details > div{
+    min-width:0 !important;
+}
+
+body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-v30-details > div{
+    overflow:hidden !important;
+}
+
+body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-v30-mtr-wrap{
+    box-shadow:
+        0 0 0 1px rgba(0,255,170,.07) inset,
+        0 8px 18px rgba(0,0,0,.18) !important;
+}
+
+/* ============================================================
+   RESPONSIVO
+   ============================================================ */
+
+@media (max-width:700px){
+
+    body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-protocol-value-v2{
+        padding:3px 6px !important;
+        font-size:10px !important;
+    }
+
+    body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card:not(.live)::before{
+        background-size:cover !important;
+    }
+}
