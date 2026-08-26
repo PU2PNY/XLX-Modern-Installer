@@ -77,6 +77,13 @@ require_root() {
     [ "$(id -u)" -eq 0 ] || fatal "Execute como root: sudo bash $0"
 }
 
+validate_options() {
+    case "$DASHBOARD_LANG" in
+        ""|pt-BR|en|es|fr|de|it) ;;
+        *) fatal "Idioma inválido: $DASHBOARD_LANG. Use: pt-BR, en, es, fr, de ou it." ;;
+    esac
+}
+
 validate_os() {
     [ -r /etc/os-release ] || fatal "/etc/os-release não encontrado."
     # shellcheck disable=SC1091
@@ -299,6 +306,7 @@ main() {
     require_root
     validate_os
     validate_commands
+    validate_options
     validate_resources
     validate_network
     detect_existing_installation
