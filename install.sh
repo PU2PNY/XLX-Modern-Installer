@@ -217,11 +217,15 @@ run_check() {
 
 confirm_real_installation() {
     local typed
-    warn "A próxima etapa executará uma instalação REAL."
+    warn "A próxima etapa executará uma instalação REAL / The next step performs a REAL installation."
     warn "Pacotes, Apache, PHP, systemd e firewall poderão ser alterados."
-    printf '\nDigite exatamente:\n%s\n\n> ' "$CONFIRMATION"
+    warn "Packages, Apache, PHP, systemd and firewall may be changed."
+    printf '\nCONFIRMAÇÃO FINAL / FINAL CONFIRMATION\n'
+    printf 'Não digite o número XLX, indicativo ou qualquer outro dado do refletor.\n'
+    printf 'Do not enter the XLX number, callsign, or any reflector information.\n\n'
+    printf 'Digite/cop ie exatamente esta frase / Type or paste exactly this phrase:\n%s\n\n> ' "$CONFIRMATION"
     read -r typed
-    [ "$typed" = "$CONFIRMATION" ] || fatal "Confirmação incorreta. Instalação cancelada."
+    [ "$typed" = "$CONFIRMATION" ] || fatal "Confirmação incorreta. Era esperada a frase de confirmação; instalação cancelada sem alterações."
 }
 
 resolve_aprs_choice() {
