@@ -18,7 +18,7 @@ case "${CERT_MODE,,}" in
   ask)
     if [ -t 0 ]; then
       printf '\n'
-      read -r -p "Deseja instalar também o módulo opcional de Certificados? [s/N]: " answer || answer=""
+      read -r -p "Instalar também o módulo opcional de Certificados? / Install the optional Certificates module too? [s/y/N]: " answer || answer=""
       case "${answer,,}" in
         s|sim|y|yes) CERT_MODE="yes" ;;
         *) CERT_MODE="no" ;;

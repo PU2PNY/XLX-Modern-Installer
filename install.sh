@@ -77,6 +77,13 @@ require_root() {
     [ "$(id -u)" -eq 0 ] || fatal "Execute como root: sudo bash $0"
 }
 
+validate_options() {
+    case "$DASHBOARD_LANG" in
+        ""|pt-BR|en|es|fr|de|it) ;;
+        *) fatal "Idioma inválido: $DASHBOARD_LANG. Use: pt-BR, en, es, fr, de ou it." ;;
+    esac
+}
+
 validate_os() {
     [ -r /etc/os-release ] || fatal "/etc/os-release não encontrado."
     # shellcheck disable=SC1091
@@ -122,7 +129,7 @@ detect_existing_installation() {
 
     if [ -d /xlxd ] || [ -d /usr/src/xlxd ]; then
         warn "Foram encontrados vestígios de instalação anterior."
-        [ "$FORCE_CLEAN" = "yes" ] || fatal "Revise os vestígios ou execute novamente com --force-clean. Nada será removido automaticamente."
+        [ "$FORCE_CLEAN" = "yes" ] || fatal "Vestígios encontrados. Revise-os ou execute novamente com --force-clean; essa opção NÃO remove nem limpa arquivos automaticamente."
     fi
     ok "Nenhuma instalação XLX ativa foi detectada."
 }
@@ -194,6 +201,7 @@ PLAN
 
     if [ -n "$DASHBOARD_LANG" ]; then
         info "Idioma solicitado para o dashboard / requested dashboard language: $DASHBOARD_LANG"
+        info "Esta opção altera somente o idioma do dashboard; as mensagens do instalador permanecem bilíngues. / This option changes only the dashboard language; installer messages remain bilingual."
     fi
 }
 
@@ -217,11 +225,15 @@ run_check() {
 
 confirm_real_installation() {
     local typed
-    warn "A próxima etapa executará uma instalação REAL."
+    warn "A próxima etapa executará uma instalação REAL / The next step performs a REAL installation."
     warn "Pacotes, Apache, PHP, systemd e firewall poderão ser alterados."
-    printf '\nDigite exatamente:\n%s\n\n> ' "$CONFIRMATION"
+    warn "Packages, Apache, PHP, systemd and firewall may be changed."
+    printf '\nCONFIRMAÇÃO FINAL / FINAL CONFIRMATION\n'
+    printf 'Não digite o número XLX, indicativo ou qualquer outro dado do refletor.\n'
+    printf 'Do not enter the XLX number, callsign, or any reflector information.\n\n'
+    printf 'Digite ou copie exatamente esta frase / Type or paste exactly this phrase:\n%s\n\n> ' "$CONFIRMATION"
     read -r typed
-    [ "$typed" = "$CONFIRMATION" ] || fatal "Confirmação incorreta. Instalação cancelada."
+    [ "$typed" = "$CONFIRMATION" ] || fatal "Confirmação incorreta. Era esperada a frase de confirmação; instalação cancelada sem alterações."
 }
 
 resolve_aprs_choice() {
@@ -231,7 +243,7 @@ resolve_aprs_choice() {
         no) return 1 ;;
         ask)
             printf '\n'
-            read -r -p "Deseja instalar também o módulo opcional APRS/D-PRS? [s/N]: " answer
+            read -r -p "Instalar o módulo opcional APRS/D-PRS? / Install the optional APRS/D-PRS module? [s/y/N]: " answer
             case "${answer,,}" in
                 s|sim|y|yes) APRS_DPRS_MODE="yes"; return 0 ;;
                 *) APRS_DPRS_MODE="no"; return 1 ;;
@@ -294,6 +306,7 @@ main() {
     require_root
     validate_os
     validate_commands
+    validate_options
     validate_resources
     validate_network
     detect_existing_installation
