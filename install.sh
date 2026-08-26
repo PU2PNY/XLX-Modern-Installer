@@ -122,7 +122,7 @@ detect_existing_installation() {
 
     if [ -d /xlxd ] || [ -d /usr/src/xlxd ]; then
         warn "Foram encontrados vestígios de instalação anterior."
-        [ "$FORCE_CLEAN" = "yes" ] || fatal "Revise os vestígios ou execute novamente com --force-clean. Nada será removido automaticamente."
+        [ "$FORCE_CLEAN" = "yes" ] || fatal "Vestígios encontrados. Revise-os ou execute novamente com --force-clean; essa opção NÃO remove nem limpa arquivos automaticamente."
     fi
     ok "Nenhuma instalação XLX ativa foi detectada."
 }
@@ -194,6 +194,7 @@ PLAN
 
     if [ -n "$DASHBOARD_LANG" ]; then
         info "Idioma solicitado para o dashboard / requested dashboard language: $DASHBOARD_LANG"
+        info "Esta opção altera somente o idioma do dashboard; as mensagens do instalador permanecem bilíngues. / This option changes only the dashboard language; installer messages remain bilingual."
     fi
 }
 
@@ -223,7 +224,7 @@ confirm_real_installation() {
     printf '\nCONFIRMAÇÃO FINAL / FINAL CONFIRMATION\n'
     printf 'Não digite o número XLX, indicativo ou qualquer outro dado do refletor.\n'
     printf 'Do not enter the XLX number, callsign, or any reflector information.\n\n'
-    printf 'Digite/cop ie exatamente esta frase / Type or paste exactly this phrase:\n%s\n\n> ' "$CONFIRMATION"
+    printf 'Digite ou copie exatamente esta frase / Type or paste exactly this phrase:\n%s\n\n> ' "$CONFIRMATION"
     read -r typed
     [ "$typed" = "$CONFIRMATION" ] || fatal "Confirmação incorreta. Era esperada a frase de confirmação; instalação cancelada sem alterações."
 }
@@ -235,7 +236,7 @@ resolve_aprs_choice() {
         no) return 1 ;;
         ask)
             printf '\n'
-            read -r -p "Deseja instalar também o módulo opcional APRS/D-PRS? [s/N]: " answer
+            read -r -p "Instalar o módulo opcional APRS/D-PRS? / Install the optional APRS/D-PRS module? [s/y/N]: " answer
             case "${answer,,}" in
                 s|sim|y|yes) APRS_DPRS_MODE="yes"; return 0 ;;
                 *) APRS_DPRS_MODE="no"; return 1 ;;
