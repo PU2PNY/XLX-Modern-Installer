@@ -2,6 +2,9 @@
 set -Eeuo pipefail
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 DASH_DEST="${INSTALL_DIR:-/var/www/html/xlx-dashboard}"
+for arg in "$@"; do
+  case "$arg" in --dashboard-dir=*) DASH_DEST="${arg#*=}" ;; esac
+done
 CERT_MODE="${XLX_CERTIFICATES_MODE:-ask}"
 
 bash "$ROOT/dashboard/install/install-dashboard.sh" "$@"
