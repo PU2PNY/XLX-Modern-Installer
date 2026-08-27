@@ -119,6 +119,16 @@ sudo bash modules/60-dashboard-modern.sh
 
 This flow also installs/checks the persistent callsign directory and certificate module.
 
+### Dashboard path
+
+The safe default is `/var/www/html/xlx-dashboard`. A different path is allowed only when it is new or empty:
+
+```bash
+sudo bash modules/60-dashboard-modern.sh --dashboard-dir=/var/www/xlx-dashboard
+```
+
+The installer never moves an existing dashboard or overwrites a non-empty directory. Do not use `/var/www/xlxd` if it already contains the native XLXD interface.
+
 The installer collects values such as:
 
 - reflector identifier, for example `XLX724`;
