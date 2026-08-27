@@ -127,6 +127,7 @@ select_ui_language() {
            UI_LANG="pt-BR"; DASHBOARD_LANG="pt-BR" ;;
     esac
     export XLX_UI_LANG="$UI_LANG"
+    ok "$(msg "Idioma selecionado: Português (Brasil)." "Selected language: English.")"
 }
 
 bootstrap_install_prerequisites() {
@@ -365,11 +366,11 @@ confirm_real_installation() {
     section "$(msg "CONFIRMAÇÃO FINAL" "FINAL CONFIRMATION")"
     warn "$(msg "A próxima etapa inicia uma instalação REAL." "The next step starts a REAL installation.")"
     warn "$(msg "Pacotes, Apache, PHP, systemd e firewall poderão ser alterados." "Packages, Apache, PHP, systemd, and firewall may be changed.")"
-    printf '\n%s\n' "$(msg "Para continuar, digite exatamente a palavra: $CONFIRMATION" "To continue, type exactly the word: $CONFIRMATION")"
+    printf '\n%s\n' "$(msg "Para continuar, digite INSTALL (maiúsculas ou minúsculas)." "To continue, type INSTALL (upper- or lowercase).")"
     printf '%s\n' "$(msg "Para cancelar com segurança, pressione Ctrl+C ou digite qualquer outra coisa." "To cancel safely, press Ctrl+C or type anything else.")"
-    printf '\n%s' "$(msg "Confirmação [digite INSTALL]: " "Confirmation [type INSTALL]: ")"
-    read -r typed
-    [ "$typed" = "$CONFIRMATION" ] || fatal "$(msg "Confirmação não reconhecida. Instalação cancelada antes da etapa real." "Confirmation not recognized. Installation cancelled before the real installation step.")"
+    printf '\n%s' "$(msg "Confirmação [INSTALL]: " "Confirmation [INSTALL]: ")"
+    read -r typed || typed=""
+    [ "${typed^^}" = "$CONFIRMATION" ] || fatal "$(msg "Confirmação não reconhecida. Instalação cancelada antes da etapa real." "Confirmation not recognized. Installation cancelled before the real installation step.")"
     ok "$(msg "Confirmação aceita. Iniciando instalação real." "Confirmation accepted. Starting real installation.")"
 }
 
