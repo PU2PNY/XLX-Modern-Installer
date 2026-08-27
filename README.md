@@ -184,6 +184,7 @@ A identidade configurada é reutilizada pelo painel e pelos certificados. Isso e
 | Nova instalação com dashboard em inglês | `sudo bash install.sh --lang=en` |
 | Instalar/reinstalar somente o dashboard | `sudo bash modules/60-dashboard-modern.sh` |
 | Instalar dashboard em espanhol | `sudo bash modules/60-dashboard-modern.sh --lang=es` |
+| Escolher diretório vazio do painel | `sudo bash modules/60-dashboard-modern.sh --dashboard-dir=/var/www/xlx-dashboard` |
 | Consultar indicativo | `sudo xlx-user-directory lookup INDICATIVO` |
 | Corrigir nome/localização | `sudo xlx-user-directory set INDICATIVO "Nome" "Cidade, Estado"` |
 | Criar alias antigo → novo | `sudo xlx-user-directory alias ANTIGO NOVO` |
