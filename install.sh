@@ -262,6 +262,46 @@ prepare_source() {
     info "SHA-256: $actual_hash"
 }
 
+localize_base_installer() {
+    local source="$SOURCE_DIR/installer.sh"
+    local translated="$SOURCE_DIR/installer.pt-BR.sh"
+    [ "$UI_LANG" = "pt-BR" ] || { printf '%s\n' "$source"; return 0; }
+
+    cp -- "$source" "$translated"
+    # The upstream installer is English-only.  This local, runtime-only copy
+    # translates its interactive workflow; the pinned source itself remains
+    # untouched and its verified SHA-256 is preserved.
+    sed -i \
+        -e 's|XLX MULTIPROTOCOL AMATEUR RADIO REFLECTOR INSTALLER PROGRAM|INSTALADOR DO REFLETOR XLX MULTIPROTOCOLO PARA RADIOAMADOR|' \
+        -e 's|Next, you will be asked some questions\. Answer with the requested information or, if applicable, to accept the suggested value, press \[ENTER\]|A seguir, responda às perguntas. Quando houver um valor sugerido, pressione [ENTER] para aceitá-lo.|' \
+        -e 's|At any prompt, type X and press \[ENTER\] to cancel the installation\.|Em qualquer pergunta, digite X e pressione [ENTER] para cancelar a instalação.|' \
+        -e 's|REFLECTOR DATA INPUT|DADOS DO REFLETOR|' \
+        -e 's|Mandatory|Obrigatório|g' \
+        -e 's|01\. XLX Reflector ID, 3 alphanumeric characters\. (e\.g\., 300, US1, BRA)|01. ID do refletor XLX: 3 caracteres alfanuméricos. (ex.: 724, US1, BRA)|' \
+        -e 's|02\. Dashboard FQDN (fully qualified domain name)\. (e\.g\., xlxbra\.net)|02. Domínio completo (FQDN) do painel. (ex.: xlx724.seudominio.net)|' \
+        -e 's|03\. Sysop e-mail address|03. E-mail do sysop|' \
+        -e 's|04\. Sysop callsign\. Only letters and numbers allowed, max 6 characters\.|04. Indicativo do sysop. Use letras e números, máximo de 6 caracteres.|' \
+        -e 's|05\. Reflector country name\.|05. Nome do país do refletor.|' \
+        -e 's|06\. Local timezone\. Detected:|06. Fuso horário local. Detectado:|' \
+        -e 's|Press ENTER to keep it or type another timezone\.|Pressione ENTER para manter ou informe outro fuso horário.|' \
+        -e 's|06\. What is the local timezone? (e\.g\., America/Sao_Paulo, UTC, GMT-3)|06. Qual é o fuso horário local? (ex.: America/Sao_Paulo, UTC, GMT-3)|' \
+        -e 's|07\. Comment to XLX Reflectors list\.|07. Comentário para a lista de refletores XLX.|' \
+        -e 's|08\. Custom text for the dashboard tab\. (max 25 characters)|08. Texto personalizado para a aba do painel. (máximo: 25 caracteres)|' \
+        -e 's|09\. Custom text on footer of the dashboard webpage\.|09. Texto personalizado no rodapé do painel.|' \
+        -e 's|10\. Create an SSL certificate (https) for the dashboard webpage? (Y/N)|10. Criar certificado SSL (HTTPS) para o painel? (S/N)|' \
+        -e 's|11\. Install Echo Test on module E? (Y/N)|11. Instalar Echo Test no módulo E? (S/N)|' \
+        -e 's|12\. Number of active modules for the DStar Reflector\.|12. Quantidade de módulos ativos para o refletor D-STAR.|' \
+        -e 's|13\. YSF Reflector UDP port number\. (1-65535)|13. Porta UDP do refletor YSF. (1-65535)|' \
+        -e 's|14\. YSF Wires-X frequency\. In Hertz, 9 digits\.|14. Frequência YSF Wires-X, em Hertz, 9 dígitos.|' \
+        -e 's|15\. Auto-link YSF to a module? (Y/N)|15. Vincular YSF automaticamente a um módulo? (S/N)|' \
+        -e 's|16\. Module to Auto-link YSF\.|16. Módulo para vínculo automático do YSF.|' \
+        -e 's|PLEASE REVIEW YOUR SETTINGS:|REVISE AS CONFIGURAÇÕES:|' \
+        -e 's|Settings correct? Press \[ENTER\] to confirm, type a question number to edit it, or \[X\] to cancel the installation\.|Configurações corretas? Pressione [ENTER] para confirmar, informe o número para editar ou [X] para cancelar.|' \
+        "$translated"
+    chmod 700 "$translated"
+    printf '%s\n' "$translated"
+}
+
 show_plan() {
     local dash_lang="${DASHBOARD_LANG:-$(msg "padrão (pt-BR)" "default (pt-BR)")}"
     if [ "$UI_LANG" = "en" ]; then
@@ -399,10 +439,13 @@ execute_installer() {
     section "$(msg "INICIANDO XLX MODERN INSTALLER" "STARTING XLX MODERN INSTALLER")"
     info "$(msg "Log da instalação: $logfile" "Installation log: $logfile")"
     info "$(msg "A próxima tela pertence ao instalador base e solicitará os dados do refletor." "The next screen is the base installer and will ask for reflector information.")"
-    cd "$SOURCE_DIR"; chmod 700 installer.sh
+    local base_installer
+    base_installer="$(localize_base_installer)"
+    cd "$SOURCE_DIR"
+    info "$(msg "Usando o fluxo de perguntas em Português (Brasil)." "Using the English question flow.")"
 
     set +e
-    bash ./installer.sh 2>&1 | tee -a "$logfile"
+    bash "$base_installer" 2>&1 | tee -a "$logfile"
     installer_rc=${PIPESTATUS[0]}
     set -e
     [ "$installer_rc" -eq 0 ] || fatal "$(msg "O instalador base terminou com código $installer_rc. Consulte o log: $logfile" "The base installer exited with code $installer_rc. Check the log: $logfile")"
