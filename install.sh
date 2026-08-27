@@ -272,7 +272,7 @@ localize_base_installer() {
     # controlled upstream source remains untouched and SHA-256 verified; only
     # this runtime copy has its legacy dashboard and TLS section disabled.
     sed -i \
-        '/center_wrap_color \$BLUE_BRIGHT "\$ICON_INFO INSTALLING DASHBOARD\.\.\."/,/^# SSL install$/ { /^# SSL install$/! s/^/# XLX_MODERN_SKIPPED: /; }' \
+        -e '/center_wrap_color \$BLUE_BRIGHT "\$ICON_INFO INSTALLING DASHBOARD\.\.\."/,/^# SSL install$/ { /^# SSL install$/! s/^/# XLX_MODERN_SKIPPED: /; }' \
         -e 's|if \[ "\$INSTALL_SSL" == "Y" \]; then|if false; then # XLX Modern Dashboard configures TLS|' \
         "$translated"
 
