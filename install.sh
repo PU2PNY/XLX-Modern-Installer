@@ -82,6 +82,34 @@ case "$DASHBOARD_LANG" in
     en) UI_LANG="en" ;;
     *) UI_LANG="pt-BR" ;;
 esac
+choose_language() {
+    local answer
+    [ -n "$DASHBOARD_LANG" ] && return 0
+
+    printf '\n============================================================\n'
+    printf ' XLX MODERN INSTALLER — LANGUAGE / IDIOMA\n'
+    printf '============================================================\n'
+    printf '1) Português (Brasil)\n'
+    printf '2) English\n\n'
+    printf 'Escolha o idioma / Choose language [1]: '
+    read -r answer || answer=""
+    case "$answer" in
+        ""|1|pt|pt-BR|PT|PT-BR)
+            UI_LANG="pt-BR"
+            DASHBOARD_LANG="pt-BR"
+            ;;
+        2|en|EN)
+            UI_LANG="en"
+            DASHBOARD_LANG="en"
+            ;;
+        *)
+            printf '\n[ERRO / ERROR] Escolha 1 para Português ou 2 for English.\n\n'
+            choose_language
+            ;;
+    esac
+    export XLX_UI_LANG="$UI_LANG"
+}
+
 export XLX_UI_LANG="$UI_LANG"
 
 RED=$'\033[31m'; YELLOW=$'\033[33m'; GREEN=$'\033[32m'; BLUE=$'\033[34m'; RESET=$'\033[0m'
@@ -395,6 +423,7 @@ execute_installer() {
 
 main() {
     clear
+    choose_language
     section "XLX MODERN INSTALLER — PU2PNY"
     validate_options
     require_root
