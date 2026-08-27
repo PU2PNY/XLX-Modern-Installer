@@ -21,6 +21,7 @@ readonly CONFIRMATION="CONFIRMO_INSTALACAO_REAL_XLX"
 MODE="install"
 FORCE_CLEAN="no"
 DASHBOARD_LANG=""
+DASHBOARD_DIR="${INSTALL_DIR:-/var/www/html/xlx-dashboard}"
 APRS_DPRS_MODE="ask"
 
 for arg in "$@"; do
@@ -28,6 +29,7 @@ for arg in "$@"; do
         --check|--dry-run) MODE="check" ;;
         --force-clean) FORCE_CLEAN="yes" ;;
         --lang=*) DASHBOARD_LANG="${arg#*=}" ;;
+        --dashboard-dir=*) DASHBOARD_DIR="${arg#*=}" ;;
         --with-aprs-dprs) APRS_DPRS_MODE="yes" ;;
         --without-aprs-dprs) APRS_DPRS_MODE="no" ;;
         -h|--help)
@@ -47,6 +49,9 @@ Opções / Options:
                 Allows validation to continue with non-functional remnants.
                 Nenhum arquivo é removido automaticamente.
                 No file is removed automatically.
+  --dashboard-dir=PATH
+                Define um diretório vazio para o dashboard. O padrão seguro é
+                /var/www/html/xlx-dashboard; caminhos existentes não são sobrescritos.
   --lang=CODE   Define o idioma do dashboard moderno.
                 Sets the modern dashboard language.
                 pt-BR | en | es | fr | de | it
@@ -111,6 +116,14 @@ validate_commands() {
     [ "${#missing[@]}" -eq 0 ] || fatal "Comandos ausentes: ${missing[*]}"
 }
 
+validate_dashboard_dir() {
+    case "$DASHBOARD_DIR" in
+        /var/www/*) ;;
+        *) fatal "Diretório do dashboard deve estar sob /var/www/: $DASHBOARD_DIR" ;;
+    esac
+    [[ "$DASHBOARD_DIR" != *"//"* && "$DASHBOARD_DIR" != */. && "$DASHBOARD_DIR" != */.. ]] || fatal "Diretório do dashboard inválido: $DASHBOARD_DIR"
+}
+
 detect_existing_installation() {
     local detected=0
     if [ -x /xlxd/xlxd ]; then warn "Binário XLXD existente: /xlxd/xlxd"; detected=1; fi
@@ -118,7 +131,13 @@ detect_existing_installation() {
     if [ -e /var/www/html/xlxd ] || [ -e /var/www/html/xlx-dashboard ]; then
         warn "Dashboard XLX existente detectado."; detected=1
     fi
-    [ "$detected" -eq 0 ] || fatal "Instalação XLX existente detectada. O instalador não sobrescreve produção."
+    if [ "$detected" -ne 0 ]; then
+        if [ "$MODE" = "check" ]; then
+            ok "Instalação XLX existente detectada: modo de diagnóstico, nenhuma alteração será feita."
+            return
+        fi
+        fatal "Instalação XLX existente detectada. O instalador não sobrescreve produção."
+    fi
 
     if [ -d /xlxd ] || [ -d /usr/src/xlxd ]; then
         warn "Foram encontrados vestígios de instalação anterior."
@@ -212,6 +231,12 @@ run_check() {
         info "APRS/D-PRS não solicitado no modo de pré-validação."
     fi
 
+    info "Diretório padrão/opcional do dashboard: $DASHBOARD_DIR"
+    if [ -e "$DASHBOARD_DIR" ]; then
+        warn "Diretório do dashboard já existe e não será sobrescrito: $DASHBOARD_DIR"
+    else
+        ok "Diretório do dashboard disponível: $DASHBOARD_DIR"
+    fi
     info "Nenhuma instalação foi executada."
 }
 
@@ -258,12 +283,12 @@ execute_installer() {
 
     section "INSTALANDO XLX MODERN DASHBOARD"
     if [ -n "$DASHBOARD_LANG" ]; then
-        bash "$ROOT_DIR/modules/60-dashboard-modern.sh" "--lang=$DASHBOARD_LANG"
+        INSTALL_DIR="$DASHBOARD_DIR" bash "$ROOT_DIR/modules/60-dashboard-modern.sh" "--lang=$DASHBOARD_LANG"
     else
-        bash "$ROOT_DIR/modules/60-dashboard-modern.sh"
+        INSTALL_DIR="$DASHBOARD_DIR" bash "$ROOT_DIR/modules/60-dashboard-modern.sh"
     fi
 
-    dashboard_dest="${INSTALL_DIR:-/var/www/html/xlx-dashboard}"
+    dashboard_dest="$DASHBOARD_DIR"
     if resolve_aprs_choice; then
         section "INSTALANDO APRS/D-PRS OPCIONAL"
         XLX_DASHBOARD_DIR="$dashboard_dest" \
@@ -296,6 +321,7 @@ main() {
     validate_commands
     validate_resources
     validate_network
+    validate_dashboard_dir
     detect_existing_installation
     prepare_source
     show_plan
