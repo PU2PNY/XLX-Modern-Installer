@@ -264,14 +264,22 @@ prepare_source() {
 
 localize_base_installer() {
     local source="$SOURCE_DIR/installer.sh"
-    local translated="$SOURCE_DIR/installer.pt-BR.sh"
-    [ "$UI_LANG" = "pt-BR" ] || { printf '%s\n' "$source"; return 0; }
+    local translated="$SOURCE_DIR/installer.runtime.sh"
 
     cp -- "$source" "$translated"
-    # The upstream installer is English-only.  This local, runtime-only copy
-    # translates its interactive workflow; the pinned source itself remains
-    # untouched and its verified SHA-256 is preserved.
+    # The upstream installer includes its own legacy XLX Dark Dashboard.
+    # This product must install only the bundled XLX Modern Dashboard.  The
+    # controlled upstream source remains untouched and SHA-256 verified; only
+    # this runtime copy has its legacy dashboard and TLS section disabled.
     sed -i \
+        '/center_wrap_color \$BLUE_BRIGHT "\$ICON_INFO INSTALLING DASHBOARD\.\.\."/,/^# SSL install$/ { /^# SSL install$/! s/^/# XLX_MODERN_SKIPPED: /; }' \
+        -e 's|if \[ "\$INSTALL_SSL" == "Y" \]; then|if false; then # XLX Modern Dashboard configures TLS|' \
+        "$translated"
+
+    [ "$UI_LANG" = "pt-BR" ] || { chmod 700 "$translated"; printf '%s\n' "$translated"; return 0; }
+
+    # The upstream installer is English-only. This runtime-only copy
+    # translates its interactive workflow.
         -e 's|XLX MULTIPROTOCOL AMATEUR RADIO REFLECTOR INSTALLER PROGRAM|INSTALADOR DO REFLETOR XLX MULTIPROTOCOLO PARA RADIOAMADOR|' \
         -e 's|Next, you will be asked some questions\. Answer with the requested information or, if applicable, to accept the suggested value, press \[ENTER\]|A seguir, responda às perguntas. Quando houver um valor sugerido, pressione [ENTER] para aceitá-lo.|' \
         -e 's|At any prompt, type X and press \[ENTER\] to cancel the installation\.|Em qualquer pergunta, digite X e pressione [ENTER] para cancelar a instalação.|' \
