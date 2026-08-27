@@ -442,10 +442,10 @@ execute_installer() {
 
 main() {
     clear
-    section "XLX MODERN INSTALLER — PU2PNY"
     validate_options
     require_root
     select_ui_language
+    section "XLX MODERN INSTALLER — PU2PNY"
     validate_os
     bootstrap_install_prerequisites
     validate_commands
