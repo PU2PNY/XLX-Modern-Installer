@@ -18,6 +18,11 @@ XLX Modern Dashboard Installer
 Usage / Uso:
   sudo bash install-dashboard.sh
   sudo bash install-dashboard.sh --lang=en
+  sudo bash install-dashboard.sh --dashboard-dir=/var/www/xlx-dashboard
+
+Supported dashboard directory / Diretório do painel:
+  Default / Padrão: /var/www/html/xlx-dashboard
+  Use only a new or empty directory. Existing content is never overwritten.
 
 Supported dashboard languages / Idiomas suportados:
   pt-BR  Português (Brasil)
@@ -169,6 +174,16 @@ ask() {
 escape() {
     printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e "s/'/\\\\'/g"
 }
+
+case "$DEST" in
+    /var/www/*) ;;
+    *) echo "ERROR / ERRO: dashboard directory must be below /var/www/: $DEST" >&2; exit 2 ;;
+esac
+[[ "$DEST" != *"//"* && "$DEST" != */. && "$DEST" != */.. ]] || { echo "ERROR / ERRO: invalid dashboard directory: $DEST" >&2; exit 2; }
+if [ -e "$DEST" ] && [ -n "$(find "$DEST" -mindepth 1 -maxdepth 1 -print -quit 2>/dev/null)" ]; then
+    echo "ERROR / ERRO: destination exists and is not empty; refusing to overwrite: $DEST" >&2
+    exit 1
+fi
 
 [ "$(id -u)" -eq 0 ] || {
     echo "Run as root / Execute como root." >&2
