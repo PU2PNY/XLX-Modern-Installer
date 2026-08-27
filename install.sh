@@ -107,6 +107,53 @@ require_root() {
     [ "$(id -u)" -eq 0 ] || fatal "$(msg "Execute como root: sudo bash $0" "Run as root: sudo bash $0")"
 }
 
+select_ui_language() {
+    # --lang=CODE is explicit and must never be overridden interactively.
+    [ -n "$DASHBOARD_LANG" ] && return 0
+    [ -t 0 ] || return 0
+
+    section "XLX MODERN INSTALLER — PU2PNY"
+    printf '%s\n' "Selecione o idioma / Select language:"
+    printf '%s\n' "  1) Português (Brasil) [padrão]"
+    printf '%s\n' "  2) English"
+    printf '%s' "Opção / Option [1]: "
+    local choice=""
+    read -r choice || choice=""
+    case "${choice,,}" in
+        2|e|en|english) UI_LANG="en"; DASHBOARD_LANG="en" ;;
+        ""|1|p|pt|pt-br|portugues|português) UI_LANG="pt-BR"; DASHBOARD_LANG="pt-BR" ;;
+        *) warn "Opção inválida; Português (Brasil) será usado. / Invalid option; Portuguese (Brazil) will be used."
+           UI_LANG="pt-BR"; DASHBOARD_LANG="pt-BR" ;;
+    esac
+    export XLX_UI_LANG="$UI_LANG"
+}
+
+bootstrap_install_prerequisites() {
+    # A clean supported Debian host should not fail merely because curl or
+    # certificates have not yet been installed. --check remains read-only.
+    local package
+    local needed=()
+    for package in ca-certificates curl git; do
+        case "$package" in
+            ca-certificates) [ -f /etc/ssl/certs/ca-certificates.crt ] || needed+=("$package") ;;
+            curl|git) command -v "$package" >/dev/null 2>&1 || needed+=("$package") ;;
+        esac
+    done
+    [ "${#needed[@]}" -eq 0 ] && return 0
+
+    if [ "$MODE" = "check" ]; then
+        warn "$(msg "Pré-requisitos ainda não instalados: ${needed[*]}. O modo --check não altera o servidor." "Prerequisites are not installed yet: ${needed[*]}. --check does not change the server.")"
+        return 0
+    fi
+
+    command -v apt-get >/dev/null 2>&1 || fatal "$(msg "apt-get não foi encontrado; não é possível instalar os pré-requisitos." "apt-get was not found; cannot install prerequisites.")"
+    info "$(msg "Instalando pré-requisitos automaticamente: ${needed[*]}" "Installing prerequisites automatically: ${needed[*]}")"
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update
+    apt-get install -y "${needed[@]}"
+    ok "$(msg "Pré-requisitos instalados." "Prerequisites installed.")"
+}
+
 validate_os() {
     [ -r /etc/os-release ] || fatal "$(msg "/etc/os-release não encontrado." "/etc/os-release was not found.")"
     # shellcheck disable=SC1091
@@ -138,7 +185,7 @@ validate_commands() {
     for command_name in bash awk sed grep find stat sha256sum tar systemctl curl getent df git tee; do
         command -v "$command_name" >/dev/null 2>&1 || missing+=("$command_name")
     done
-    [ "${#missing[@]}" -eq 0 ] || fatal "$(msg "Comandos obrigatórios ausentes: ${missing[*]}" "Required commands missing: ${missing[*]}")"
+    [ "${#missing[@]}" -eq 0 ] || fatal "$(msg "Comandos obrigatórios ausentes: ${missing[*]}. Execute a instalação real para instalar os pré-requisitos automaticamente." "Required commands missing: ${missing[*]}. Run the real installation to install prerequisites automatically.")"
 }
 
 detect_existing_installation() {
@@ -398,7 +445,9 @@ main() {
     section "XLX MODERN INSTALLER — PU2PNY"
     validate_options
     require_root
+    select_ui_language
     validate_os
+    bootstrap_install_prerequisites
     validate_commands
     validate_resources
     validate_network
