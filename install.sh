@@ -24,6 +24,7 @@ ALLOW_REMNANTS="no"
 DASHBOARD_LANG=""
 UI_LANG="pt-BR"
 APRS_DPRS_MODE="ask"
+CHECK_READY="yes"
 
 for arg in "$@"; do
     case "$arg" in
@@ -176,6 +177,11 @@ validate_resources() {
 
 validate_network() {
     getent hosts github.com >/dev/null 2>&1 || fatal "$(msg "Falha de DNS: github.com não foi resolvido." "DNS failure: github.com could not be resolved.")"
+    if ! command -v curl >/dev/null 2>&1; then
+        CHECK_READY="no"
+        warn "$(msg "DNS validado, mas curl ainda não está instalado. A instalação real o instalará automaticamente; a verificação HTTPS foi adiada." "DNS validated, but curl is not installed yet. The real installation will install it automatically; the HTTPS check was deferred.")"
+        return 0
+    fi
     curl -fsSI --connect-timeout 10 https://github.com/ >/dev/null || fatal "$(msg "Sem acesso HTTPS ao GitHub." "Cannot reach GitHub over HTTPS.")"
     ok "$(msg "Rede, DNS e HTTPS validados." "Network, DNS, and HTTPS validated.")"
 }
@@ -185,7 +191,14 @@ validate_commands() {
     for command_name in bash awk sed grep find stat sha256sum tar systemctl curl getent df git tee; do
         command -v "$command_name" >/dev/null 2>&1 || missing+=("$command_name")
     done
-    [ "${#missing[@]}" -eq 0 ] || fatal "$(msg "Comandos obrigatórios ausentes: ${missing[*]}. Execute a instalação real para instalar os pré-requisitos automaticamente." "Required commands missing: ${missing[*]}. Run the real installation to install prerequisites automatically.")"
+    if [ "${#missing[@]}" -ne 0 ]; then
+        if [ "$MODE" = "check" ]; then
+            CHECK_READY="no"
+            warn "$(msg "Comandos ainda ausentes: ${missing[*]}. A instalação real instalará os pré-requisitos automaticamente." "Commands still missing: ${missing[*]}. The real installation will install prerequisites automatically.")"
+            return 0
+        fi
+        fatal "$(msg "Comandos obrigatórios ausentes: ${missing[*]}. Execute a instalação real para instalar os pré-requisitos automaticamente." "Required commands missing: ${missing[*]}. Run the real installation to install prerequisites automatically.")"
+    fi
 }
 
 detect_existing_installation() {
@@ -329,7 +342,11 @@ run_check() {
     section "$(msg "RESULTADO DA PRÉ-VALIDAÇÃO" "PRE-INSTALLATION CHECK RESULT")"
     ok "$(msg "Sistema compatível." "Compatible system.")"
     ok "$(msg "Recursos mínimos disponíveis." "Minimum resources available.")"
-    ok "$(msg "Rede funcional." "Network is working.")"
+    if [ "$CHECK_READY" = "yes" ]; then
+        ok "$(msg "Pré-requisitos, rede e HTTPS validados." "Prerequisites, network, and HTTPS validated.")"
+    else
+        warn "$(msg "Servidor compatível, mas faltam pré-requisitos que serão instalados automaticamente na instalação real." "Server is compatible, but prerequisites are missing and will be installed automatically during the real installation.")"
+    fi
     ok "$(msg "Nenhuma instalação ativa será sobrescrita." "No active installation will be overwritten.")"
     ok "$(msg "Commit e SHA-256 confirmados." "Commit and SHA-256 verified.")"
 
