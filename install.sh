@@ -135,10 +135,10 @@ bootstrap_install_prerequisites() {
     # certificates have not yet been installed. --check remains read-only.
     local package
     local needed=()
-    for package in ca-certificates curl git; do
+    for package in ca-certificates curl git rsync sqlite3; do
         case "$package" in
             ca-certificates) [ -f /etc/ssl/certs/ca-certificates.crt ] || needed+=("$package") ;;
-            curl|git) command -v "$package" >/dev/null 2>&1 || needed+=("$package") ;;
+            curl|git|rsync|sqlite3) command -v "$package" >/dev/null 2>&1 || needed+=("$package") ;;
         esac
     done
     [ "${#needed[@]}" -eq 0 ] && return 0
@@ -274,6 +274,7 @@ localize_base_installer() {
     sed -i \
         -e '/center_wrap_color \$BLUE_BRIGHT "\$ICON_INFO INSTALLING DASHBOARD\.\.\."/,/^# SSL install$/ { /^# SSL install$/! s/^/# XLX_MODERN_SKIPPED: /; }' \
         -e 's|if \[ "\$INSTALL_SSL" == "Y" \]; then|if false; then # XLX Modern Dashboard configures TLS|' \
+        -e '/^#  Starting users_db timer$/,/^#  Starting xlx_log service$/ { /^#  Starting xlx_log service$/! s/^/# XLX_MODERN_SKIPPED: /; }' \
         "$translated"
 
     [ "$UI_LANG" = "pt-BR" ] || { chmod 700 "$translated"; printf '%s\n' "$translated"; return 0; }
