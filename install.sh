@@ -20,6 +20,7 @@ readonly CONFIRMATION="INSTALL"
 readonly DEFAULT_DASHBOARD_DIR="/var/www/html/xlx-dashboard"
 
 MODE="install"
+INSTALL_TARGET="choose"
 ALLOW_REMNANTS="no"
 DASHBOARD_LANG=""
 UI_LANG="pt-BR"
@@ -28,6 +29,9 @@ APRS_DPRS_MODE="ask"
 for arg in "$@"; do
     case "$arg" in
         --check|--dry-run) MODE="check" ;;
+        --new-server) INSTALL_TARGET="new-server" ;;
+        --dashboard-only) INSTALL_TARGET="dashboard-only" ;;
+        --update-dashboard) INSTALL_TARGET="update-dashboard" ;;
         --allow-remnants|--force-clean) ALLOW_REMNANTS="yes" ;;
         --lang=*) DASHBOARD_LANG="${arg#*=}" ;;
         --with-aprs-dprs) APRS_DPRS_MODE="yes" ;;
@@ -46,6 +50,18 @@ Opções / Options:
   --check
       Apenas verifica o servidor. Não instala nem altera o XLX.
       Checks the server only. Does not install or change XLX.
+
+  --new-server
+      Instala um novo servidor XLX e o dashboard. Use somente em VPS nova.
+      Installs a new XLX server and dashboard. Use only on a new VPS.
+
+  --dashboard-only
+      Instala o dashboard em um XLXD já existente; não recompila o XLXD.
+      Installs the dashboard on an existing XLXD; does not rebuild XLXD.
+
+  --update-dashboard
+      Atualiza somente o dashboard existente com backup e rollback.
+      Updates only the existing dashboard with backup and rollback.
 
   --lang=CODE
       Define o idioma do dashboard. Com --lang=en, a interface deste
@@ -82,6 +98,95 @@ case "$DASHBOARD_LANG" in
     en) UI_LANG="en" ;;
     *) UI_LANG="pt-BR" ;;
 esac
+choose_language() {
+    local answer
+    [ -n "$DASHBOARD_LANG" ] && return 0
+
+    printf '\n============================================================\n'
+    printf ' XLX MODERN INSTALLER — LANGUAGE / IDIOMA\n'
+    printf '============================================================\n'
+    printf '1) Português (Brasil)\n'
+    printf '2) English\n\n'
+    printf 'Escolha o idioma / Choose language [1]: '
+    read -r answer || answer=""
+    case "$answer" in
+        ""|1|pt|pt-BR|PT|PT-BR)
+            UI_LANG="pt-BR"
+            DASHBOARD_LANG="pt-BR"
+            ;;
+        2|en|EN)
+            UI_LANG="en"
+            DASHBOARD_LANG="en"
+            ;;
+        *)
+            printf '\n[ERRO / ERROR] Escolha 1 para Português ou 2 for English.\n\n'
+            choose_language
+            ;;
+    esac
+    export XLX_UI_LANG="$UI_LANG"
+}
+
+choose_install_target() {
+    local answer has_xlxd="no"
+    [ "$INSTALL_TARGET" != "choose" ] && return
+    [ -x /xlxd/xlxd ] && has_xlxd="yes"
+    systemctl list-unit-files xlxd.service --no-legend 2>/dev/null | grep -q . && has_xlxd="yes"
+
+    section "$(msg "O QUE VOCÊ QUER FAZER?" "WHAT DO YOU WANT TO DO?")"
+    if [ "$has_xlxd" = "yes" ]; then
+        printf '%s\n' "$(msg "XLXD existente detectado. Para sua segurança, a instalação completa está bloqueada." "Existing XLXD detected. For your safety, a full installation is blocked.")"
+        printf '%s\n' "$(msg "1) Instalar painel no XLXD existente" "1) Install dashboard on existing XLXD")"
+        printf '%s\n' "$(msg "2) Atualizar painel existente" "2) Update existing dashboard")"
+        printf '%s' "$(msg "Escolha [1]: " "Choose [1]: ")"
+        read -r answer || answer=""
+        case "$answer" in
+            ""|1) INSTALL_TARGET="dashboard-only" ;;
+            2) INSTALL_TARGET="update-dashboard" ;;
+            *) fatal "$(msg "Opção inválida. Nenhuma alteração foi feita." "Invalid option. No changes were made.")" ;;
+        esac
+    else
+        printf '%s\n' "$(msg "1) Instalar novo servidor XLX + painel" "1) Install new XLX server + dashboard")"
+        printf '%s\n' "$(msg "2) Somente diagnóstico (não altera nada)" "2) Check only (does not change anything)")"
+        printf '%s' "$(msg "Escolha [1]: " "Choose [1]: ")"
+        read -r answer || answer=""
+        case "$answer" in
+            ""|1) INSTALL_TARGET="new-server" ;;
+            2) MODE="check"; INSTALL_TARGET="new-server" ;;
+            *) fatal "$(msg "Opção inválida. Nenhuma alteração foi feita." "Invalid option. No changes were made.")" ;;
+        esac
+    fi
+}
+
+run_dashboard_only() {
+    section "$(msg "PAINEL PARA XLXD EXISTENTE" "DASHBOARD FOR EXISTING XLXD")"
+    validate_os
+    validate_commands
+    validate_resources
+    validate_network
+    [ -x /xlxd/xlxd ] || fatal "$(msg "XLXD não foi encontrado em /xlxd/xlxd. Use a instalação completa somente em VPS nova." "XLXD was not found at /xlxd/xlxd. Use full installation only on a new VPS.")"
+    info "$(msg "O núcleo XLXD, seus serviços e sua configuração serão preservados." "The XLXD core, its services, and its configuration will be preserved.")"
+    if [ "$MODE" = "check" ]; then
+        ok "$(msg "Compatibilidade aprovada. Nenhuma alteração foi feita." "Compatibility approved. No changes were made.")"
+        exit 0
+    fi
+    bash "$ROOT_DIR/modules/60-dashboard-modern.sh" "--lang=$DASHBOARD_LANG"
+}
+
+run_dashboard_update() {
+    section "$(msg "ATUALIZAÇÃO SEGURA DO PAINEL" "SAFE DASHBOARD UPDATE")"
+    validate_os
+    validate_commands
+    validate_resources
+    validate_network
+    info "$(msg "O XLXD não será recompilado nem reiniciado por este fluxo." "XLXD will not be rebuilt or restarted by this flow.")"
+    if [ "$MODE" = "check" ]; then
+        bash "$ROOT_DIR/update.sh" --check
+    else
+        bash "$ROOT_DIR/update.sh" --apply
+    fi
+    exit 0
+}
+
 export XLX_UI_LANG="$UI_LANG"
 
 RED=$'\033[31m'; YELLOW=$'\033[33m'; GREEN=$'\033[32m'; BLUE=$'\033[34m'; RESET=$'\033[0m'
@@ -395,9 +500,13 @@ execute_installer() {
 
 main() {
     clear
+    choose_language
     section "XLX MODERN INSTALLER — PU2PNY"
     validate_options
     require_root
+    choose_install_target
+    if [ "$INSTALL_TARGET" = "dashboard-only" ]; then run_dashboard_only; exit 0; fi
+    if [ "$INSTALL_TARGET" = "update-dashboard" ]; then run_dashboard_update; exit 0; fi
     validate_os
     validate_commands
     validate_resources
