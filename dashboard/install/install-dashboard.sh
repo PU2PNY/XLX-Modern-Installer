@@ -187,6 +187,15 @@ ask COUNTRY country
 ask DOMAIN domain
 ask CONTACT_EMAIL email
 
+while :; do
+    read -r -p "Ativar HTTPS com certificado Let's Encrypt? / Enable HTTPS with a Let's Encrypt certificate? [S/n]: " HTTPS_ANSWER
+    case "${HTTPS_ANSWER,,}" in
+        ""|s|sim|y|yes) ENABLE_HTTPS="yes"; break ;;
+        n|nao|não|no) ENABLE_HTTPS="no"; break ;;
+        *) echo "Resposta inválida / Invalid answer. Use S ou N / Y or N." ;;
+    esac
+done
+
 REFLECTOR_NAME="$(printf '%s' "$REFLECTOR_NAME" | tr '[:lower:]' '[:upper:]')"
 
 if [[ ! "$REFLECTOR_NAME" =~ ^XLX([0-9]{3})$ ]]; then
@@ -198,6 +207,10 @@ REFLECTOR_NUMBER="${BASH_REMATCH[1]}"
 REFLECTOR_SHORT_NUMBER="$((10#$REFLECTOR_NUMBER))"
 
 DOMAIN="$(printf '%s' "$DOMAIN" | sed -E 's#^https?://##; s#/*$##')"
+if [[ ! "$DOMAIN" =~ ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$ ]]; then
+    echo "ERROR / ERRO: domínio inválido: $DOMAIN" >&2
+    exit 2
+fi
 
 while :; do
     read -r -p "YSF reflector ID / ID do refletor YSF: " YSF_ID
@@ -288,6 +301,31 @@ chown -R root:www-data "$DEST"
 chmod 640 "$DEST/config/site.php"
 
 find "$DEST" -type f -name '*.php' -print0 | xargs -0 -r -n1 php -l >/dev/null
+
+VHOST="/etc/apache2/sites-available/$DOMAIN.conf"
+cat > "$VHOST" <<APACHE
+<VirtualHost *:80>
+    ServerName $DOMAIN
+    DocumentRoot $DEST
+    <Directory $DEST>
+        Options -Indexes +FollowSymLinks
+        AllowOverride None
+        Require all granted
+    </Directory>
+    ErrorLog ${APACHE_LOG_DIR}/$DOMAIN-error.log
+    CustomLog ${APACHE_LOG_DIR}/$DOMAIN-access.log combined
+</VirtualHost>
+APACHE
+
+a2ensite "$DOMAIN.conf" >/dev/null
+a2dissite 000-default >/dev/null 2>&1 || true
+apache2ctl configtest
+systemctl enable --now apache2
+
+if [ "$ENABLE_HTTPS" = "yes" ]; then
+    certbot --apache --non-interactive --agree-tos --email "$CONTACT_EMAIL" -d "$DOMAIN" \
+        || { echo "ERROR / ERRO: não foi possível emitir o certificado HTTPS. Confirme que o DNS de $DOMAIN aponta para esta VPS e que as portas 80/443 estão liberadas." >&2; exit 1; }
+fi
 
 printf '\nXLX Modern Dashboard installed / instalado em: %s\n' "$DEST"
 printf 'Language / Idioma: %s (%s)\n' "$(language_name "$DASHBOARD_LANG")" "$DASHBOARD_LANG"
