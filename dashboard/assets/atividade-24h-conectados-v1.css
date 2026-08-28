@@ -416,3 +416,18 @@ body[data-page="ao-vivo"] .gateway-different .gateway-value{
         left:auto !important;
     }
 }
+
+
+/* XLX Modern — tabela 24h: as 11 colunas são obrigatórias em todos os idiomas. */
+@media (min-width:821px){
+  html body[data-page="ao-vivo"] table.home-history thead th:nth-child(9),
+  html body[data-page="ao-vivo"] table.home-history thead th:nth-child(10),
+  html body[data-page="ao-vivo"] table.home-history thead th:nth-child(11),
+  html body[data-page="ao-vivo"] table.home-history tbody td:nth-child(9),
+  html body[data-page="ao-vivo"] table.home-history tbody td:nth-child(10),
+  html body[data-page="ao-vivo"] table.home-history tbody td:nth-child(11){
+    display:table-cell !important;
+    visibility:visible !important;
+    opacity:1 !important;
+  }
+}
