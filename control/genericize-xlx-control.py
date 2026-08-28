@@ -46,7 +46,7 @@ once("'path'=>'/controle/'", "'path'=>$adminPath")
 
 once(
     "$allowed=['status','listeners','logs','backups','restart','radioid-status','radioid-search','radioid-save','radioid-delete','radioid-refresh','radioid-check'];",
-    "$allowed=['status','listeners','logs','backups','restart','radioid-status','radioid-search','radioid-save','radioid-delete','radioid-refresh','radioid-check','access-status','access-add-white','access-delete-white','access-add-black','access-delete-black','access-save-terminal'];"
+    "$allowed=['status','listeners','logs','backups','restart','radioid-status','radioid-search','radioid-save','radioid-delete','radioid-refresh','radioid-check','access-status','access-add-white','access-delete-white','access-add-black','access-delete-black','interlink-status','interlink-save'];"
 )
 
 once(
