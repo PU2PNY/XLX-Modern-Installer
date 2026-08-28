@@ -101,7 +101,118 @@ function country_for_call_sync(string $call): array {
     return ['code'=>'','name'=>'País não identificado','flag'=>'🌐'];
 }
 
-function parse_xml_connections_sync(): array { $p=cfg()['xml_path'];if(!is_readable($p))return []; $raw=@file_get_contents($p);if($raw===false)return []; $out=[];foreach(node_blocks($raw) as $b){$callRaw=tag_value($b,'Callsign');[$call,$suffix]=split_call_suffix($callRaw);if(!$call)continue;$protocol=protocol_label(tag_value($b,'Protocol'));$rawModule=trim(tag_value($b,'LinkedModule'));$module=$rawModule!==''?strtoupper(substr($rawModule,0,1)):'?';if($module==='?'&&$protocol==='DMR')$module='C';$ct=strtotime(tag_value($b,'ConnectTime'))?:0;$lt=strtotime(tag_value($b,'LastHeardTime'))?:0;$u=user_lookup($call);$country=country_for_call_sync($call);$out[]=['callsign'=>$call,'suffix'=>$suffix,'name'=>$u['name'],'location'=>$u['location'],'country'=>$country,'module'=>$module,'protocol'=>$protocol,'connected_at'=>$ct,'last_activity'=>$lt,'qrz'=>qrz_url($call),'via'=>tag_value($b,'Via'),'peer'=>tag_value($b,'Peer'),'ip'=>tag_value($b,'IP')];}usort($out,fn($a,$b)=>$b['connected_at']<=>$a['connected_at']);return $out; }
+function parse_log_connections_sync(): array {
+    $connections = [];
+
+    foreach (history_log_lines(cfg()['log_path']) as $line) {
+        $timestamp = parse_any_time($line);
+
+        if (preg_match(
+            '/New client\\s+([A-Z0-9]+)\\s*([A-Z0-9]*)\\s+at\\s+([^\\s]+)\\s+added with protocol\\s+([A-Za-z0-9+_-]+)(?:\\s+on module\\s+([A-Z]))?/i',
+            $line,
+            $match
+        )) {
+            $callsign = norm_call($match[1]);
+            $suffix = strtoupper(trim($match[2] ?? ''));
+            $protocol = protocol_label($match[4]);
+            $module = strtoupper(trim($match[5] ?? '?'));
+            $key = $callsign . '|' . $suffix . '|' . $protocol;
+            $user = user_lookup($callsign);
+
+            $connections[$key] = [
+                'callsign' => $callsign,
+                'suffix' => $suffix,
+                'name' => $user['name'],
+                'location' => $user['location'],
+                'country' => country_for_call_sync($callsign),
+                'module' => $module,
+                'protocol' => $protocol,
+                'connected_at' => $timestamp,
+                'last_activity' => $timestamp,
+                'qrz' => qrz_url($callsign),
+                'via' => '',
+                'peer' => '',
+                'ip' => trim($match[3]),
+            ];
+            continue;
+        }
+
+        if (preg_match(
+            '/Client\\s+([A-Z0-9]+)\\s*([A-Z0-9]*)\\s+at\\s+[^\\s]+\\s+removed with protocol\\s+([A-Za-z0-9+_-]+)/i',
+            $line,
+            $match
+        )) {
+            $callsign = norm_call($match[1]);
+            $suffix = strtoupper(trim($match[2] ?? ''));
+            $protocol = protocol_label($match[3]);
+            unset($connections[$callsign . '|' . $suffix . '|' . $protocol]);
+        }
+    }
+
+    $out = array_values($connections);
+    usort($out, static fn(array $a, array $b): int =>
+        (int)$b['connected_at'] <=> (int)$a['connected_at']
+    );
+
+    return $out;
+}
+
+function parse_xml_connections_sync(): array {
+    $p = cfg()['xml_path'];
+
+    if (!is_readable($p)) {
+        return parse_log_connections_sync();
+    }
+
+    $raw = @file_get_contents($p);
+
+    if ($raw === false || $raw === '') {
+        return parse_log_connections_sync();
+    }
+
+    $out = [];
+
+    foreach (node_blocks($raw) as $b) {
+        $callRaw = tag_value($b, 'Callsign');
+        [$call, $suffix] = split_call_suffix($callRaw);
+
+        if (!$call) {
+            continue;
+        }
+
+        $protocol = protocol_label(tag_value($b, 'Protocol'));
+        $rawModule = trim(tag_value($b, 'LinkedModule'));
+        $module = $rawModule !== ''
+            ? strtoupper(substr($rawModule, 0, 1))
+            : '?';
+        $ct = strtotime(tag_value($b, 'ConnectTime')) ?: 0;
+        $lt = strtotime(tag_value($b, 'LastHeardTime')) ?: 0;
+        $u = user_lookup($call);
+        $country = country_for_call_sync($call);
+
+        $out[] = [
+            'callsign' => $call,
+            'suffix' => $suffix,
+            'name' => $u['name'],
+            'location' => $u['location'],
+            'country' => $country,
+            'module' => $module,
+            'protocol' => $protocol,
+            'connected_at' => $ct,
+            'last_activity' => $lt,
+            'qrz' => qrz_url($call),
+            'via' => tag_value($b, 'Via'),
+            'peer' => tag_value($b, 'Peer'),
+            'ip' => tag_value($b, 'IP'),
+        ];
+    }
+
+    usort($out, static fn(array $a, array $b): int =>
+        (int)$b['connected_at'] <=> (int)$a['connected_at']
+    );
+
+    return $out !== [] ? $out : parse_log_connections_sync();
+}
 
 function xlx_dstar_station_index_sync(): array {
     $path=cfg()['xml_path'];
