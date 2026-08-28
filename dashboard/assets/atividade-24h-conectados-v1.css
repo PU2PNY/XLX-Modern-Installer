@@ -359,3 +359,60 @@ body[data-page="ao-vivo"] .gateway-different .gateway-value{
         animation:none;
     }
 }
+
+
+/* ==========================================================
+   XLX026_SUBMENU_DIREITA_V1 — PRODUÇÃO APROVADA
+   Mantém todas as células alinhadas e recua somente a
+   primeira célula das transmissões secundárias.
+   ========================================================== */
+
+@media (min-width:821px){
+
+    html body[data-page="ao-vivo"]
+    table.home-history
+    tbody
+    tr.history-previous-row > td{
+        position:relative !important;
+        left:auto !important;
+    }
+
+    html body[data-page="ao-vivo"]
+    table.home-history
+    tbody
+    tr.history-previous-row > td:first-child{
+        padding-left:2.2ch !important;
+        text-align:left !important;
+    }
+
+    html body[data-page="ao-vivo"]
+    table.home-history
+    tbody
+    tr.history-previous-row
+    .history-row-number{
+        display:inline-block !important;
+        opacity:.92 !important;
+        font-weight:850 !important;
+        transform:none !important;
+    }
+
+    html body[data-page="ao-vivo"]
+    table.home-history
+    tbody
+    tr.history-previous-row > td:first-child::before{
+        content:"↳";
+        display:inline-block;
+        margin-right:.55ch;
+        opacity:.65;
+        font-weight:800;
+    }
+}
+
+@media (max-width:820px){
+    html body[data-page="ao-vivo"]
+    table.home-history
+    tbody
+    tr.history-previous-row > td{
+        left:auto !important;
+    }
+}
