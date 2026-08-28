@@ -206,7 +206,7 @@ reuse_or_ask REFLECTOR_NAME reflector
 reuse_or_ask REFLECTOR_TITLE title
 reuse_or_ask REFLECTOR_DESCRIPTION description
 reuse_or_ask SYSOP_CALLSIGN sysop
-ask LOCATION location
+reuse_or_ask LOCATION location
 reuse_or_ask COUNTRY country
 reuse_or_ask DOMAIN domain
 reuse_or_ask CONTACT_EMAIL email
@@ -242,15 +242,21 @@ if [[ ! "$DOMAIN" =~ ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,
     exit 2
 fi
 
-while :; do
-    read -r -p "YSF reflector ID / ID do refletor YSF: " YSF_ID
-
-    if [[ "$YSF_ID" =~ ^[0-9]{1,8}$ ]]; then
-        break
+if [ -n "${YSF_ID:-}" ]; then
+    if [[ ! "$YSF_ID" =~ ^[0-9]{1,8}$ ]]; then
+        echo "ERROR / ERRO: Invalid YSF ID / ID YSF inválido: $YSF_ID" >&2
+        exit 2
     fi
-
-    echo "Invalid YSF ID / ID YSF inválido."
-done
+    printf 'YSF reflector ID / ID do refletor YSF: %s [reaproveitado]\n' "$YSF_ID"
+else
+    while :; do
+        read -r -p "YSF reflector ID / ID do refletor YSF: " YSF_ID
+        if [[ "$YSF_ID" =~ ^[0-9]{1,8}$ ]]; then
+            break
+        fi
+        echo "Invalid YSF ID / ID YSF inválido."
+    done
+fi
 
 # XLXD uses the standard DMR module mapping: A=4001, B=4002,
 # C=4003 and so on. Voice traffic uses TG 6, so no individual TG needs
