@@ -128,45 +128,11 @@ function ensureHistoryDropdownStyles(){
   }`;
  document.head.appendChild(style);
 }
-function historyStatusMarkup(x,callKey,previousIds){
- const badge=onlineBadge(Boolean(x.online));
- if(!previousIds.length){
-  return `<span class="history-status-wrap">${badge}<span class="history-toggle-spacer" aria-hidden="true"></span></span>`;
- }
- const expanded=historyExpandedCalls.has(callKey);
- const label=expanded?'Fechar atividades anteriores':'Abrir atividades anteriores';
- return `<span class="history-status-wrap">${badge}<button type="button" class="history-toggle" data-history-toggle="${esc(callKey)}" aria-expanded="${expanded?'true':'false'}" aria-controls="${esc(previousIds.join(' '))}" aria-label="${label} de ${esc(x.callsign)}" title="${label}"><span aria-hidden="true">▼</span></button></span>`;
-}
-function historyRowMarkup(x,statusHtml,attrs='',position=''){
- const rowNumber=position===''?'↳':esc(position);
- return `<tr ${attrs}><td><span class="history-row-country"><span class="history-row-number" aria-hidden="true">${rowNumber}</span>${flag(x)}</span></td><td>${fmtTime(x.started_at)}</td><td><a target="_blank" href="${esc(x.qrz)}">${esc(x.callsign)}</a></td><td>${esc(x.name)}</td><td><span class="protocol">${esc(x.protocol)}</span></td><td>${esc(x.module)}</td><td>${duration(x.duration)}</td><td>${statusHtml}</td></tr>`;
-}
-function historyMarkup(d){
- const cutoff=Number(d.generated_at||Math.floor(Date.now()/1000))-86400;
- const rows=(d.history||[]).filter(x=>Number(x.started_at||0)>=cutoff);
- if(!rows.length)return `<tr><td colspan="8">Nenhuma transmissão registrada nas últimas 24 horas.</td></tr>`;
- const groups=new Map();
- rows.forEach((x,index)=>{
-  const base=historyCallKey(x);
-  const key=base||`SEM-INDICATIVO-${index}`;
-  if(!groups.has(key))groups.set(key,[]);
-  groups.get(key).push(x);
- });
- return [...groups.entries()].slice(0,40).map(([callKey,items],groupIndex)=>{
-  const latest=items[0];
-  const previous=items.slice(1);
-  const expanded=historyExpandedCalls.has(callKey);
-  const previousIds=previous.map((_,index)=>historyRowId(callKey,index));
-  const mainAttrs=`class="history-primary-row${expanded?' is-expanded':''}" data-history-call="${esc(callKey)}"`;
-  const main=historyRowMarkup(latest,historyStatusMarkup(latest,callKey,previousIds),mainAttrs,groupIndex+1);
-  const older=previous.map((x,index)=>{
-   const hidden=expanded?'':` style="display:none!important"`;
-   const attrs=`id="${esc(previousIds[index])}" class="history-previous-row" data-history-parent="${esc(callKey)}"${hidden}`;
-   return historyRowMarkup(x,onlineBadge(Boolean(x.online)),attrs,`${groupIndex+1}.${index+1}`);
-  }).join('');
-  return main+older;
- }).join('');
-}
+function historyStatusMarkup(x){return onlineBadge(Boolean(x.online));}
+function historyGateway(x){const raw=String(x?.gateway||x?.via||x?.peer||'').trim();return raw?esc(raw):'—';}
+function historyRowMarkup(x,statusHtml,toggleHtml='',attrs='',position=''){const rowNumber=position===''?'↳':esc(position),when=Number(x?.started_at||0),txTime=when?new Date(when*1000).toLocaleTimeString(uiLocale,{hour:'2-digit',minute:'2-digit'}):'—';return `<tr ${attrs}><td class="history-number-cell"><span class="history-number-wrap"><span class="history-row-number" aria-hidden="true">${rowNumber}</span>${toggleHtml}</span></td><td class="history-country-cell">${flag(x)}</td><td class="history-status-cell">${statusHtml}</td><td class="history-callsign-cell"><a target="_blank" href="${esc(x.qrz)}">${esc(x.callsign)}</a></td><td>${esc(x.name||'Não informado')}</td><td class="history-hotspot-cell">${historyGateway(x)}</td><td>${esc(x.location||'Não informada')}</td><td><span class="protocol">${esc(x.protocol)}</span></td><td>${esc(x.module)}</td><td class="history-tx-time" title="${esc(fmtTime(x.started_at))}">${txTime}</td><td class="history-duration-cell">${duration(x.duration)}</td></tr>`;}
+function historyToggleMarkup(x,callKey,previousIds){if(!previousIds.length)return '';const expanded=historyExpandedCalls.has(callKey),label=expanded?'Fechar atividades anteriores':'Abrir atividades anteriores';return `<button type="button" class="history-toggle" data-history-toggle="${esc(callKey)}" aria-expanded="${expanded?'true':'false'}" aria-controls="${esc(previousIds.join(' '))}" aria-label="${label} de ${esc(x.callsign)}" title="${label}"><span aria-hidden="true">▼</span></button>`;}
+function historyMarkup(d){const cutoff=Number(d.generated_at||Math.floor(Date.now()/1000))-86400,rows=(d.history||[]).filter(x=>Number(x.started_at||0)>=cutoff);if(!rows.length)return '<tr><td colspan="11">Nenhuma transmissão registrada nas últimas 24 horas.</td></tr>';const groups=new Map();rows.forEach((x,i)=>{const key=historyCallKey(x)||`SEM-INDICATIVO-${i}`;if(!groups.has(key))groups.set(key,[]);groups.get(key).push(x);});return [...groups.entries()].slice(0,40).map(([callKey,items],g)=>{const latest=items[0],previous=items.slice(1),expanded=historyExpandedCalls.has(callKey),ids=previous.map((_,i)=>historyRowId(callKey,i));const main=historyRowMarkup(latest,historyStatusMarkup(latest),historyToggleMarkup(latest,callKey,ids),`class="history-primary-row${expanded?' is-expanded':''}" data-history-call="${esc(callKey)}"`,g+1);const older=previous.map((x,i)=>historyRowMarkup(x,onlineBadge(Boolean(x.online)),'',`id="${esc(ids[i])}" class="history-previous-row" data-history-parent="${esc(callKey)}"${expanded?'':' style="display:none!important"'}`,`${g+1}.${i+1}`)).join('');return main+older;}).join('');}
 function toggleHistoryGroup(callKey,button){
  const expanded=!historyExpandedCalls.has(callKey);
  if(expanded)historyExpandedCalls.add(callKey);else historyExpandedCalls.delete(callKey);
@@ -185,7 +151,8 @@ function toggleHistoryGroup(callKey,button){
 function moduleInfo(m){const letter=String(m?.module||'?').toUpperCase();return [m?.name||`Módulo ${letter}`,m?.configured_protocol||'D-STAR / DMR / C4FM-YSF',m?.access||`{{REFLECTOR_NAME}}-${letter}`]}
 function renderModules(d){$('#moduleOverview').innerHTML=Object.values(d.modules).map(m=>{const i=moduleInfo(m);return `<article class="module-mini ${m.transmission?'active':''}"><div class="module-mini-top"><span class="module-letter">${esc(m.module)}</span><span class="module-count">${m.connected_count} conectado${m.connected_count===1?'':'s'}</span></div><strong>${esc(i[0])}</strong><small>${esc(i[1])}</small><div class="module-id">${esc(i[2])}</div><div class="module-state">${m.transmission?'<i class="red"></i> Transmitindo agora':'<i></i> Aguardando transmissão'}</div></article>`}).join('');
  const rows=Object.values(d.modules).map((m,idx)=>{const n=idx+1,letter=m.module,info=moduleInfo(m);return `<tr><td><b>${esc(letter)}</b></td><td>${esc(info[1])}</td><td>${m.connected_count}</td><td>REF{{REFLECTOR_NUMBER}}${letter}L</td><td>*{{REFLECTOR_SHORT_NUMBER}}${letter}</td><td>XRF{{REFLECTOR_NUMBER}}${letter}L</td><td>B{{REFLECTOR_SHORT_NUMBER}}${letter}</td><td>DCS{{REFLECTOR_NUMBER}}${letter}L</td><td>D{{REFLECTOR_SHORT_NUMBER}}${letter}</td><td>${4000+n}</td><td>${9+n}</td></tr>`}).join('');$('#moduleReferenceRows').innerHTML=rows; }
-function connectedRows(d,query=''){const q=query.trim().toLowerCase();const rows=d.connections.filter(c=>!q||[c.callsign,c.name,c.location,c.protocol,c.module].some(v=>String(v||'').toLowerCase().includes(q)));return rows.length?rows.map((c,i)=>`<tr><td>${i+1}</td><td>${flag(c)}</td><td><a target="_blank" href="${esc(c.qrz)}">${esc(c.callsign)}${c.suffix?' '+esc(c.suffix):''}</a></td><td>${esc(c.name)}</td><td>${esc(c.location)}</td><td><span class="protocol">${esc(c.protocol)}</span></td><td>${esc(c.module)}</td><td>${fmtTime(c.connected_at)}</td><td data-start="${c.connected_at}">${elapsed(c.connected_at)}</td><td>${fmtTime(c.last_activity)}</td></tr>`).join(''):`<tr><td colspan="10">Nenhuma estação corresponde à pesquisa.</td></tr>`}
+function connectedFilterOptions(d){const modules=[...new Set((d.connections||[]).map(c=>String(c.module||'').trim()).filter(Boolean))].sort(),protocols=[...new Set((d.connections||[]).map(c=>String(c.protocol||'').trim()).filter(Boolean))].sort(),moduleSelect=$('#connectedModuleFilter'),protocolSelect=$('#connectedProtocolFilter');if(moduleSelect){const selected=moduleSelect.value;moduleSelect.innerHTML='<option value="">Todos</option>'+modules.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');moduleSelect.value=modules.includes(selected)?selected:'';}if(protocolSelect){const selected=protocolSelect.value;protocolSelect.innerHTML='<option value="">Todos</option>'+protocols.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');protocolSelect.value=protocols.includes(selected)?selected:'';}}
+function connectedRows(d,query='',module='',protocol=''){const q=query.trim().toLowerCase(),rows=(d.connections||[]).filter(c=>(!q||[c.callsign,c.name,c.location,c.protocol,c.module].some(v=>String(v||'').toLowerCase().includes(q)))&&(!module||String(c.module||'')===module)&&(!protocol||String(c.protocol||'')===protocol));return rows.length?rows.map((c,i)=>`<tr><td>${i+1}</td><td>${flag(c)}</td><td><a target="_blank" href="${esc(c.qrz)}">${esc(c.callsign)}${c.suffix?' '+esc(c.suffix):''}</a></td><td>${esc(c.name)}</td><td>${esc(c.location)}</td><td><span class="protocol">${esc(c.protocol)}</span></td><td>${esc(c.module)}</td><td>${fmtTime(c.connected_at)}</td><td data-start="${c.connected_at}">${elapsed(c.connected_at)}</td><td>${fmtTime(c.last_activity)}</td></tr>`).join(''):'<tr><td colspan="10">Nenhuma estação corresponde aos filtros.</td></tr>';}
 function rankList(items,valueLabel){return items.length?items.map((x,i)=>`<div class="rank-item"><span class="rank-pos">${i+1}</span><div><b>${esc(x.label)}</b><small>${esc(x.sub||'')}</small></div><strong>${esc(valueLabel(x.value))}</strong></div>`).join(''):'<div class="rank-empty">Dados insuficientes no histórico disponível.</div>'}
 function aggregate(arr,keyFn,valFn=()=>1){const m=new Map();arr.forEach(x=>{const k=keyFn(x);if(!k)return;const old=m.get(k)||{label:k,value:0,sub:''};old.value+=valFn(x);m.set(k,old)});return [...m.values()].sort((a,b)=>b.value-a.value)}
 function renderRanking(d){const h=d.history||[],c=d.connections||[];const tx=aggregate(h,x=>x.callsign);tx.forEach(x=>{const y=h.find(z=>z.callsign===x.label);x.sub=y?.name||''});const air=aggregate(h,x=>x.callsign,x=>Number(x.duration||0));air.forEach(x=>{const y=h.find(z=>z.callsign===x.label);x.sub=y?.name||''});const con=[...c].sort((a,b)=>a.connected_at-b.connected_at).slice(0,10).map(x=>({label:x.callsign,sub:x.name,value:Math.max(0,Math.floor(Date.now()/1000-x.connected_at))}));const hrs=aggregate(h,x=>String(new Date(x.started_at*1000).getHours()).padStart(2,'0')+':00');const prot=aggregate(h,x=>x.protocol);const mods=aggregate(h,x=>'Módulo '+x.module);$('#rankTx').innerHTML=rankList(tx.slice(0,10),v=>v+' TX');$('#rankAirtime').innerHTML=rankList(air.slice(0,10),v=>duration(v));$('#rankConnected').innerHTML=rankList(con,v=>elapsed(Math.floor(Date.now()/1000-v)));$('#rankHours').innerHTML=rankList(hrs.slice(0,8),v=>v+' TX');$('#rankProtocols').innerHTML=rankList(prot.slice(0,8),v=>v+' TX');$('#rankModules').innerHTML=rankList(mods.slice(0,8),v=>v+' TX');const topTx=tx[0],topAir=air[0],topHour=hrs[0];$('#rankingHighlights').innerHTML=`<article><small>Mais transmissões</small><b>${esc(topTx?.label||'—')}</b><span>${topTx?topTx.value+' transmissões':'Sem dados'}</span></article><article><small>Maior tempo no ar</small><b>${esc(topAir?.label||'—')}</b><span>${topAir?duration(topAir.value):'Sem dados'}</span></article><article><small>Horário mais ativo</small><b>${esc(topHour?.label||'—')}</b><span>${topHour?topHour.value+' transmissões':'Sem dados'}</span></article><article><small>Conectados agora</small><b>${d.connected_count}</b><span>${d.active_count} transmissão${d.active_count===1?'':'ões'} ativa${d.active_count===1?'':'s'}</span></article>`}
@@ -211,7 +178,7 @@ function render(d){lastData=d;$('#syncState').textContent='Ao vivo';updateTitle(
  $('#historyRows').innerHTML=historyMarkup(d)
  }
  if(page==='modulos')renderModules(d);
- if(page==='conectados'){ $('#connectedLabel').textContent=`${d.connected_count} estação${d.connected_count===1?'':'ões'} conectada${d.connected_count===1?'':'s'}`; $('#connectedCards').innerHTML=Object.values(d.modules).map(m=>`<div class="connected-summary"><b>${m.connected_count}</b><span>Módulo ${esc(m.module)} • ${esc(moduleInfo(m)[0])}</span></div>`).join(''); $('#connectedRows').innerHTML=connectedRows(d,$('#connectedSearch')?.value||'') }
+ if(page==='conectados'){ $('#connectedLabel').textContent=`${d.connected_count} estação${d.connected_count===1?'':'ões'} conectada${d.connected_count===1?'':'s'}`; $('#connectedCards').innerHTML=Object.values(d.modules).map(m=>`<div class="connected-summary"><b>${m.connected_count}</b><span>Módulo ${esc(m.module)} • ${esc(moduleInfo(m)[0])}</span></div>`).join(''); connectedFilterOptions(d); $('#connectedRows').innerHTML=connectedRows(d,$('#connectedSearch')?.value||'',$('#connectedModuleFilter')?.value||'',$('#connectedProtocolFilter')?.value||'') }
  if(page==='ranking')renderRanking(d);
  const nowSet=new Set(d.connections.map(c=>`${c.callsign}|${c.suffix}|${c.protocol}|${c.module}|${c.ip}`));if(previousConnections!==null)d.connections.forEach(c=>{const k=`${c.callsign}|${c.suffix}|${c.protocol}|${c.module}|${c.ip}`;if(!previousConnections.has(k))toast(c)});previousConnections=nowSet; }
 let statusUpdateRunning=false;
@@ -1254,7 +1221,8 @@ $('#historyRows')?.addEventListener('click',event=>{
  event.stopPropagation();
  toggleHistoryGroup(button.dataset.historyToggle||'',button);
 });
-$('#connectedSearch')?.addEventListener('input',e=>{if(lastData)$('#connectedRows').innerHTML=connectedRows(lastData,e.target.value)});
+function refreshConnectedRows(){if(lastData)$('#connectedRows').innerHTML=connectedRows(lastData,$('#connectedSearch')?.value||'',$('#connectedModuleFilter')?.value||'',$('#connectedProtocolFilter')?.value||'');}
+$('#connectedSearch')?.addEventListener('input',refreshConnectedRows);$('#connectedModuleFilter')?.addEventListener('change',refreshConnectedRows);$('#connectedProtocolFilter')?.addEventListener('change',refreshConnectedRows);
 const toggle=document.querySelector('.universal-header .menu-toggle');
 const nav=document.querySelector('.universal-header .universal-nav');
 toggle?.addEventListener('click',()=>{if(!nav)return;const open=nav.classList.toggle('open');toggle.setAttribute('aria-expanded',String(open))});
