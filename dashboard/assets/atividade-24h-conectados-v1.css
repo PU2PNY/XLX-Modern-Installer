@@ -10,8 +10,8 @@
    Conectados usa page-heading h1 = 34px.
    ========================================================== */
 
-body[data-page="ao-vivo"]
-.history-title-connected-size{
+body[data-page="ao-vivo"] .history-title-connected-size,
+body[data-page="ao-vivo"] .section-title.panel-title h2{
     font-size:34px !important;
 }
 
@@ -95,8 +95,8 @@ table.home-history
 
 @media(max-width:720px){
 
-    body[data-page="ao-vivo"]
-    .history-title-connected-size{
+    body[data-page="ao-vivo"] .history-title-connected-size,
+    body[data-page="ao-vivo"] .section-title.panel-title h2{
         font-size:28px !important;
     }
 
