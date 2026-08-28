@@ -85,8 +85,8 @@ body[data-page='ao-vivo'] .home-history th:nth-child(11),body[data-page='ao-vivo
  */
 body[data-page='ao-vivo']
 .home-history th{
-    font-size:9px !important;
-    line-height:1.15 !important;
+    font-size:11px !important;
+    line-height:1.2 !important;
 }
 
 
@@ -95,8 +95,8 @@ body[data-page='ao-vivo']
  */
 body[data-page='ao-vivo']
 .home-history td{
-    font-size:10px !important;
-    line-height:1.25 !important;
+    font-size:13px !important;
+    line-height:1.3 !important;
 }
 
 
