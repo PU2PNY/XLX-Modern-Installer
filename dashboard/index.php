@@ -59,7 +59,7 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}/' . ($page === 'ao-vivo' ? '' : '?pag
 <link rel="stylesheet" href="assets/ao-vivo-clean-v1.css?v=20260807_024051">
 
 <!-- XLX026_HISTORY_SOUND_MENU_V1 CSS -->
-<link rel="stylesheet" href="assets/history-sound-menu-v1.css?v=20260828_11cols">
+<link rel="stylesheet" href="assets/history-sound-menu-v1.css?v=20260828_readable">
 
 <!-- XLX026_HISTORY_MOBILE_FIT_V2 -->
 <link rel="stylesheet" href="assets/history-mobile-fit-v2.css?v=20260807_031008">
