@@ -3,18 +3,18 @@ name: XLX Modern Control CI
 on:
   push:
     paths:
-      - 'control/index.php'
-      - 'control/xlx-modern-control-helper'
-      - 'control/README.md'
+      - 'control/**'
       - 'modules/68-control-panel.sh'
+      - 'modules/69-admin-page.sh'
+      - 'tools/xlx-modern-users-refresh.sh'
       - 'install-control.sh'
       - '.github/workflows/control-generic-ci.yml'
   pull_request:
     paths:
-      - 'control/index.php'
-      - 'control/xlx-modern-control-helper'
-      - 'control/README.md'
+      - 'control/**'
       - 'modules/68-control-panel.sh'
+      - 'modules/69-admin-page.sh'
+      - 'tools/xlx-modern-users-refresh.sh'
       - 'install-control.sh'
       - '.github/workflows/control-generic-ci.yml'
 
@@ -27,41 +27,120 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Bash syntax
+      - name: Bash and Python syntax
+        shell: bash
         run: |
+          set -Eeuo pipefail
           bash -n install-control.sh
           bash -n modules/68-control-panel.sh
+          bash -n modules/69-admin-page.sh
           bash -n control/xlx-modern-control-helper
+          bash -n control/xlx-modern-radioid-helper
+          bash -n control/xlx-modern-access-helper
+          bash -n tools/xlx-modern-users-refresh.sh
+          python3 -m py_compile control/patch-xlx026-control-v111.py control/genericize-xlx-control.py
 
-      - name: PHP syntax
-        run: php -l control/index.php
+      - name: Generate the production Admin candidate
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          cp control/xlx026-control-index-radioid-v2.php /tmp/admin.php
+          python3 control/patch-xlx026-control-v111.py /tmp/admin.php
+          python3 control/genericize-xlx-control.py /tmp/admin.php
+          php -l /tmp/admin.php
+          grep -Fq "const CTRL_VER='1.3.0'" /tmp/admin.php
 
       - name: Generic identity invariants
+        shell: bash
         run: |
-          ! grep -En 'https://xlx026\.net|Controle XLX026|/etc/xlx026-control|/var/lib/xlx026-control|/usr/local/sbin/xlx026-control-helper' control/index.php control/xlx-modern-control-helper install-control.sh
-          ! grep -En '^(CONTROL_USERNAME|USERNAME|DOMAIN|BASE_URL)=.*(queuspa|xlx026)' modules/68-control-panel.sh
-          grep -Fq "/etc/xlx-modern-control/config.php" control/index.php
-          grep -Fq "/usr/local/sbin/xlx-modern-control-helper" control/index.php
-          grep -Fq 'TITLE="Controle $REFLECTOR_NAME"' modules/68-control-panel.sh
+          set -Eeuo pipefail
+          ! grep -En 'https://xlx026\.net|Controle XLX026|/etc/xlx026-control|/var/lib/xlx026-control|/usr/local/sbin/xlx026-control-helper' /tmp/admin.php control/xlx-modern-control-helper control/xlx-modern-radioid-helper control/xlx-modern-access-helper modules/68-control-panel.sh modules/69-admin-page.sh
+          grep -Fq "/etc/xlx-modern-control/config.php" /tmp/admin.php
+          grep -Fq "/usr/local/sbin/xlx-modern-control-helper" /tmp/admin.php
+          grep -Fq 'TITLE="Admin $REFLECTOR_NAME"' modules/68-control-panel.sh
+
+      - name: Hidden route and crawler invariants
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          grep -Fq 'X-Robots-Tag: noindex, nofollow, noarchive, nosnippet' /tmp/admin.php
+          grep -Fq 'noimageindex' /tmp/admin.php
+          grep -Fq 'googlebot|bingbot' /tmp/admin.php
+          grep -Fq 'http_response_code(404)' /tmp/admin.php
+          grep -Fq 'session.use_strict_mode' /tmp/admin.php
+          grep -Fq "'samesite'=>'Strict'" /tmp/admin.php
+          grep -Fq 'fail_login' /tmp/admin.php
+          grep -Fq 'csrf_ok' /tmp/admin.php
+          ! grep -Fq 'xlx-admin-menu-link' modules/69-admin-page.sh
+          grep -Fq 'ADMIN_PUBLIC_NAV=HIDDEN' modules/69-admin-page.sh
+          grep -Fq 'Rota Admin ainda aparece no menu público' modules/69-admin-page.sh
+
+      - name: XLX026 feature parity invariants
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          grep -Fq "if(\$a==='radioid_search')" /tmp/admin.php
+          grep -Fq "if(\$a==='radioid_save')" /tmp/admin.php
+          grep -Fq "if(\$a==='radioid_delete')" /tmp/admin.php
+          grep -Fq "if(\$a==='radioid_refresh')" /tmp/admin.php
+          grep -Fq "if(\$a==='radioid_check')" /tmp/admin.php
+          grep -Fq 'Controle de Acesso XLXD' /tmp/admin.php
+          grep -Fq 'access-add-white' /tmp/admin.php
+          grep -Fq 'access-delete-white' /tmp/admin.php
+          grep -Fq 'access-add-black' /tmp/admin.php
+          grep -Fq 'access-delete-black' /tmp/admin.php
+          grep -Fq 'access-save-terminal' /tmp/admin.php
+          grep -Fq 'Links rápidos' /tmp/admin.php
+          grep -Fq 'Executar testes gerais' /tmp/admin.php
+          grep -Fq 'Reiniciar XLXD' /tmp/admin.php
 
       - name: Credential safety invariants
+        shell: bash
         run: |
+          set -Eeuo pipefail
           grep -Fq 'password_hash($p,PASSWORD_DEFAULT)' modules/68-control-panel.sh
-          grep -Fq 'password_verify' control/index.php
+          grep -Fq 'password_verify' /tmp/admin.php
           grep -Fq 'Repita a senha:' modules/68-control-panel.sh
           grep -Fq 'senha não será exibida nem persistida em texto puro' modules/68-control-panel.sh
           ! grep -En '^PASSWORD=["'"'][^$][^"'"']+["'"']$' modules/68-control-panel.sh
 
-      - name: Filesystem and sudo invariants
+      - name: Privilege boundary invariants
+        shell: bash
         run: |
+          set -Eeuo pipefail
           grep -Fq 'install -d -o root -g www-data -m 0755 "$CONTROL_DIR"' modules/68-control-panel.sh
           grep -Fq 'install -o root -g root -m 0600 "$TMP/helper.conf" "$HELPER_CONF"' modules/68-control-panel.sh
           grep -Fq 'NOPASSWD: $HELPER status' modules/68-control-panel.sh
           grep -Fq 'NOPASSWD: $HELPER restart' modules/68-control-panel.sh
-          ! grep -Eq 'NOPASSWD:[[:space:]]+ALL' modules/68-control-panel.sh
+          grep -Fq 'NOPASSWD: $HELPER radioid-save *' modules/68-control-panel.sh
+          grep -Fq 'NOPASSWD: $HELPER access-add-black *' modules/68-control-panel.sh
+          ! grep -Eq 'NOPASSWD:[[:space:]]+ALL' modules/68-control-panel.sh modules/69-admin-page.sh
+          grep -Fq 'Uso permitido: status|listeners|logs|backups|restart|radioid-*|access-*' control/xlx-modern-control-helper
+          ! grep -En '\$_(GET|POST|REQUEST).*cmd|shell_exec\(|passthru\(|proc_open\(|popen\(' /tmp/admin.php
 
-      - name: No arbitrary web shell surface
+      - name: Access-list safety invariants
+        shell: bash
         run: |
-          ! grep -En '\$_(GET|POST|REQUEST).*cmd|shell_exec\(|passthru\(|proc_open\(|popen\(' control/index.php
-          grep -Fq "['status', 'listeners', 'logs', 'backups', 'restart']" control/index.php
-          grep -Fq 'Uso permitido: status|listeners|logs|backups|restart' control/xlx-modern-control-helper
+          set -Eeuo pipefail
+          grep -Fq 'flock -n 9' control/xlx-modern-access-helper
+          grep -Fq 'backup_files' control/xlx-modern-access-helper
+          grep -Fq 'audit' control/xlx-modern-access-helper
+          grep -Fq 'save-terminal' control/xlx-modern-access-helper
+          grep -Fq 'add-white|delete-white|add-black|delete-black' control/xlx-modern-access-helper
+
+      - name: RadioID persistence invariants
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          grep -Fq 'radioid-local.db' control/xlx-modern-radioid-helper
+          grep -Fq 'persistent' control/xlx-modern-radioid-helper
+          grep -Fq 'XLX_RADIOID_PATCH_DB' tools/xlx-modern-users-refresh.sh
+          grep -Fq 'reapplied local Admin records=' tools/xlx-modern-users-refresh.sh
+          grep -Fq 'local_records' tools/xlx-modern-users-refresh.sh
+          grep -Fq 'local_deletions' tools/xlx-modern-users-refresh.sh
+
+      - name: Module self-check
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          sudo bash modules/68-control-panel.sh --check
