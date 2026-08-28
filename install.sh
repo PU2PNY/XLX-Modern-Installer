@@ -444,7 +444,7 @@ resolve_aprs_choice() {
 }
 
 execute_installer() {
-    local stamp logfile installer_rc failures service dashboard_dest
+    local stamp logfile installer_rc failures service dashboard_dest state_file
     stamp="$(date +%Y%m%d_%H%M%S)"
     mkdir -p "$LOG_ROOT"; chmod 700 "$LOG_ROOT"
     logfile="${LOG_ROOT}/install_${stamp}.log"
@@ -455,18 +455,22 @@ execute_installer() {
     base_installer="$(localize_base_installer)"
     cd "$SOURCE_DIR"
     info "$(msg "Usando o fluxo de perguntas em Português (Brasil)." "Using the English question flow.")"
+    state_file="${WORK_ROOT}/runtime/install-input.env"
+    install -d -m 0700 "$(dirname "$state_file")"
+    : > "$state_file"
+    chmod 0600 "$state_file"
 
     set +e
-    bash "$base_installer" 2>&1 | tee -a "$logfile"
+    XLX_MODERN_STATE_FILE="$state_file" bash "$base_installer" 2>&1 | tee -a "$logfile"
     installer_rc=${PIPESTATUS[0]}
     set -e
     [ "$installer_rc" -eq 0 ] || fatal "$(msg "O instalador base terminou com código $installer_rc. Consulte o log: $logfile" "The base installer exited with code $installer_rc. Check the log: $logfile")"
 
     section "$(msg "INSTALANDO XLX MODERN DASHBOARD" "INSTALLING XLX MODERN DASHBOARD")"
     if [ -n "$DASHBOARD_LANG" ]; then
-        bash "$ROOT_DIR/modules/60-dashboard-modern.sh" "--lang=$DASHBOARD_LANG"
+        XLX_INSTALL_STATE_FILE="$state_file" bash "$ROOT_DIR/modules/60-dashboard-modern.sh" "--lang=$DASHBOARD_LANG"
     else
-        bash "$ROOT_DIR/modules/60-dashboard-modern.sh"
+        XLX_INSTALL_STATE_FILE="$state_file" bash "$ROOT_DIR/modules/60-dashboard-modern.sh"
     fi
 
     dashboard_dest="${INSTALL_DIR:-$DEFAULT_DASHBOARD_DIR}"
