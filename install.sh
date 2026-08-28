@@ -333,6 +333,478 @@ HOOK
     printf '%s\n' "$translated"
 }
 
+
+verify_modern_dashboard() {
+    local dashboard_dir="$1" state_file="$2" domain="" https_mode="" body=""
+    [ -d "$dashboard_dir" ] || fatal "$(msg "Painel moderno ausente: $dashboard_dir. A instalação foi interrompida antes de concluir o painel." "Modern dashboard is missing: $dashboard_dir. Installation stopped before the dashboard was completed.")"
+    [ -f "$dashboard_dir/index.php" ] || fatal "$(msg "Arquivo principal do painel ausente: $dashboard_dir/index.php" "Dashboard entry file is missing: $dashboard_dir/index.php")"
+    [ -f "$dashboard_dir/config/site.php" ] || fatal "$(msg "Configuração do painel ausente: $dashboard_dir/config/site.php" "Dashboard configuration is missing: $dashboard_dir/config/site.php")"
+
+    domain="$(php -r '$config = include $argv[1]; echo $config["reflector"]["domain"] ?? "";' "$dashboard_dir/config/site.php" 2>/dev/null || true)"
+    [ -n "$domain" ] || fatal "$(msg "O painel foi copiado, mas não contém domínio válido." "Dashboard files were copied, but no valid domain was configured.")"
+    [ -f "/etc/apache2/sites-enabled/$domain.conf" ] || fatal "$(msg "VirtualHost Apache ausente para $domain." "Apache VirtualHost is missing for $domain.")"
+    grep -Fq "DocumentRoot $dashboard_dir" "/etc/apache2/sites-enabled/$domain.conf" || fatal "$(msg "VirtualHost Apache não aponta para o painel moderno." "Apache VirtualHost does not point to the modern dashboard.")"
+    apache2ctl configtest >/dev/null 2>&1 || fatal "$(msg "Configuração Apache inválida após instalar o painel." "Apache configuration is invalid after dashboard installation.")"
+    systemctl is-active --quiet apache2 || fatal "$(msg "Apache não está ativo após instalar o painel." "Apache is not active after dashboard installation.")"
+
+    body="$(curl -fsS --connect-timeout 5 -H "Host: $domain" http://127.0.0.1/ 2>/dev/null || true)"
+    [ -n "$body" ] || fatal "$(msg "O painel não respondeu localmente pelo Apache." "Dashboard did not respond locally through Apache.")"
+
+    https_mode="$(php -r '$config = include $argv[1]; echo $config["reflector"]["domain"] ?? "";' "$dashboard_dir/config/site.php" 2>/dev/null || true)"
+    if grep -q '^ENABLE_HTTPS=' "$state_file" 2>/dev/null && grep -Eq '^ENABLE_HTTPS=(Y|y|yes|YES|s|sim)    local dash_lang="${DASHBOARD_LANG:-$(msg "padrão (pt-BR)" "default (pt-BR)")}"
+    if [ "$UI_LANG" = "en" ]; then
+        cat <<PLAN
+
+REAL INSTALLATION PLAN
+----------------------
+Before starting, have these details ready:
+- XLX reflector ID (3 characters, e.g. 139)
+- dashboard domain/FQDN
+- sysop e-mail address
+- sysop callsign
+- country and timezone
+
+The installer will then:
+1. Collect reflector information.
+2. Install Debian dependencies.
+3. Build and install XLXD.
+4. Install systemd services.
+5. Install XLX Echo when selected.
+6. Install the modern dashboard.
+7. Configure Apache and HTTPS when selected.
+8. Prepare XLX databases.
+9. Start and validate services.
+10. Offer APRS/D-PRS when configured to ask.
+
+Current choices:
+- Mode: $MODE
+- Dashboard language: $dash_lang
+- Dashboard directory: $DEFAULT_DASHBOARD_DIR
+- APRS/D-PRS: $APRS_DPRS_MODE
+
+Technical base: PP5PK/XLX_Installer
+Original author: Daniel K. — PP5PK
+Modified version: Dario — PU2PNY
+PLAN
+    else
+        cat <<PLAN
+
+PLANO DA INSTALAÇÃO REAL
+-------------------------
+Antes de começar, tenha estes dados em mãos:
+- ID do refletor XLX (3 caracteres, ex.: 026)
+- domínio/FQDN do dashboard
+- e-mail do sysop
+- indicativo do sysop
+- país e fuso horário
+
+Depois o instalador irá:
+1. Coletar os dados do refletor.
+2. Instalar dependências Debian.
+3. Compilar e instalar o XLXD.
+4. Instalar serviços systemd.
+5. Instalar XLX Echo quando selecionado.
+6. Instalar o dashboard moderno.
+7. Configurar Apache e HTTPS quando selecionado.
+8. Preparar as bases do XLX.
+9. Iniciar e validar os serviços.
+10. Oferecer APRS/D-PRS quando configurado para perguntar.
+
+Escolhas atuais:
+- Modo: $MODE
+- Idioma do dashboard: $dash_lang
+- Diretório do dashboard: $DEFAULT_DASHBOARD_DIR
+- APRS/D-PRS: $APRS_DPRS_MODE
+
+Base técnica: PP5PK/XLX_Installer
+Autor original: Daniel K. — PP5PK
+Versão modificada: Dario — PU2PNY
+PLAN
+    fi
+
+    if [ -n "$DASHBOARD_LANG" ] && [ "$DASHBOARD_LANG" != "en" ] && [ "$DASHBOARD_LANG" != "pt-BR" ]; then
+        info "$(msg "O dashboard usará $DASHBOARD_LANG. As mensagens do instalador permanecem em português; use --lang=en para interface do instalador em inglês." "The dashboard will use $DASHBOARD_LANG. Installer messages remain in Portuguese; use --lang=en for English installer UI.")"
+    fi
+}
+
+run_check() {
+    section "$(msg "RESULTADO DA PRÉ-VALIDAÇÃO" "PRE-INSTALLATION CHECK RESULT")"
+    ok "$(msg "Sistema compatível." "Compatible system.")"
+    ok "$(msg "Recursos mínimos disponíveis." "Minimum resources available.")"
+    if [ "$CHECK_READY" = "yes" ]; then
+        ok "$(msg "Pré-requisitos, rede e HTTPS validados." "Prerequisites, network, and HTTPS validated.")"
+    else
+        warn "$(msg "Servidor compatível, mas faltam pré-requisitos que serão instalados automaticamente na instalação real." "Server is compatible, but prerequisites are missing and will be installed automatically during the real installation.")"
+    fi
+    ok "$(msg "Nenhuma instalação ativa será sobrescrita." "No active installation will be overwritten.")"
+    ok "$(msg "Commit e SHA-256 confirmados." "Commit and SHA-256 verified.")"
+
+    if [ "$APRS_DPRS_MODE" = "yes" ]; then
+        section "$(msg "PRÉ-VALIDAÇÃO APRS/D-PRS" "APRS/D-PRS PRE-CHECK")"
+        bash "$ROOT_DIR/modules/67-aprs-dprs.sh" --check
+    else
+        info "$(msg "APRS/D-PRS não solicitado no modo de pré-validação." "APRS/D-PRS was not requested for this pre-check.")"
+    fi
+
+    info "$(msg "Nenhuma instalação foi executada." "No installation was performed.")"
+}
+
+confirm_real_installation() {
+    local typed
+    section "$(msg "CONFIRMAÇÃO FINAL" "FINAL CONFIRMATION")"
+    warn "$(msg "A próxima etapa inicia uma instalação REAL." "The next step starts a REAL installation.")"
+    warn "$(msg "Pacotes, Apache, PHP, systemd e firewall poderão ser alterados." "Packages, Apache, PHP, systemd, and firewall may be changed.")"
+    printf '\n%s\n' "$(msg "Para continuar, digite INSTALL (maiúsculas ou minúsculas)." "To continue, type INSTALL (upper- or lowercase).")"
+    printf '%s\n' "$(msg "Para cancelar com segurança, pressione Ctrl+C ou digite qualquer outra coisa." "To cancel safely, press Ctrl+C or type anything else.")"
+    printf '\n%s' "$(msg "Confirmação [INSTALL]: " "Confirmation [INSTALL]: ")"
+    read -r typed || typed=""
+    [ "${typed^^}" = "$CONFIRMATION" ] || fatal "$(msg "Confirmação não reconhecida. Instalação cancelada antes da etapa real." "Confirmation not recognized. Installation cancelled before the real installation step.")"
+    ok "$(msg "Confirmação aceita. Iniciando instalação real." "Confirmation accepted. Starting real installation.")"
+}
+
+resolve_aprs_choice() {
+    local answer
+    case "$APRS_DPRS_MODE" in
+        yes) return 0 ;;
+        no) return 1 ;;
+        ask)
+            printf '\n%s' "$(msg "Instalar também o módulo opcional APRS/D-PRS? [s/N]: " "Install the optional APRS/D-PRS module too? [y/N]: ")"
+            read -r answer
+            case "${answer,,}" in
+                s|sim|y|yes) APRS_DPRS_MODE="yes"; return 0 ;;
+                *) APRS_DPRS_MODE="no"; return 1 ;;
+            esac
+            ;;
+        *) fatal "$(msg "Estado APRS/D-PRS inválido: $APRS_DPRS_MODE" "Invalid APRS/D-PRS state: $APRS_DPRS_MODE")" ;;
+    esac
+}
+
+execute_installer() {
+    local stamp logfile installer_rc failures service dashboard_dest state_file
+    stamp="$(date +%Y%m%d_%H%M%S)"
+    mkdir -p "$LOG_ROOT"; chmod 700 "$LOG_ROOT"
+    logfile="${LOG_ROOT}/install_${stamp}.log"
+    section "$(msg "INICIANDO XLX MODERN INSTALLER" "STARTING XLX MODERN INSTALLER")"
+    info "$(msg "Log da instalação: $logfile" "Installation log: $logfile")"
+    info "$(msg "A próxima tela pertence ao instalador base e solicitará os dados do refletor." "The next screen is the base installer and will ask for reflector information.")"
+    local base_installer
+    base_installer="$(localize_base_installer)"
+    cd "$SOURCE_DIR"
+    info "$(msg "Usando o fluxo de perguntas em Português (Brasil)." "Using the English question flow.")"
+    state_file="${WORK_ROOT}/runtime/install-input.env"
+    install -d -m 0700 "$(dirname "$state_file")"
+    : > "$state_file"
+    chmod 0600 "$state_file"
+
+    set +e
+    XLX_MODERN_STATE_FILE="$state_file" bash "$base_installer" 2>&1 | tee -a "$logfile"
+    installer_rc=${PIPESTATUS[0]}
+    set -e
+    [ "$installer_rc" -eq 0 ] || fatal "$(msg "O instalador base terminou com código $installer_rc. Consulte o log: $logfile" "The base installer exited with code $installer_rc. Check the log: $logfile")"
+
+    section "$(msg "INSTALANDO XLX MODERN DASHBOARD" "INSTALLING XLX MODERN DASHBOARD")"
+    if [ -n "$DASHBOARD_LANG" ]; then
+        XLX_INSTALL_STATE_FILE="$state_file" bash "$ROOT_DIR/modules/60-dashboard-modern.sh" "--lang=$DASHBOARD_LANG"
+    else
+        XLX_INSTALL_STATE_FILE="$state_file" bash "$ROOT_DIR/modules/60-dashboard-modern.sh"
+    fi
+
+    dashboard_dest="${INSTALL_DIR:-$DEFAULT_DASHBOARD_DIR}"
+    verify_modern_dashboard "$dashboard_dest" "$state_file"
+    if resolve_aprs_choice; then
+        section "$(msg "INSTALANDO APRS/D-PRS OPCIONAL" "INSTALLING OPTIONAL APRS/D-PRS")"
+        XLX_DASHBOARD_DIR="$dashboard_dest" bash "$ROOT_DIR/modules/67-aprs-dprs.sh" "--dashboard-dir=$dashboard_dest"
+    else
+        info "$(msg "APRS/D-PRS não instalado. Ele poderá ser instalado separadamente depois." "APRS/D-PRS was not installed. It can be installed separately later.")"
+    fi
+
+    section "$(msg "VALIDAÇÃO PÓS-INSTALAÇÃO" "POST-INSTALLATION VALIDATION")"
+    failures=0
+    for service in apache2 xlxd; do
+        if systemctl is-active --quiet "$service"; then
+            ok "$(msg "Serviço $service ativo." "$service service is active.")"
+        else
+            warn "$(msg "Serviço $service não está ativo." "$service service is not active.")"
+            failures=$((failures + 1))
+        fi
+    done
+    if systemctl list-unit-files xlxecho.service --no-legend 2>/dev/null | grep -q .; then
+        if systemctl is-active --quiet xlxecho; then
+            ok "$(msg "Serviço xlxecho ativo." "xlxecho service is active.")"
+        else
+            warn "$(msg "XLX Echo foi instalado, mas o serviço está inativo." "XLX Echo is installed, but its service is inactive.")"
+            failures=$((failures + 1))
+        fi
+    fi
+    if apache2ctl configtest >/dev/null 2>&1; then
+        ok "$(msg "Configuração do Apache válida." "Apache configuration is valid.")"
+    else
+        warn "$(msg "A validação da configuração do Apache falhou." "Apache configuration validation failed.")"
+        failures=$((failures + 1))
+    fi
+    [ -x /xlxd/xlxd ] || { warn "$(msg "Binário /xlxd/xlxd ausente." "Binary /xlxd/xlxd is missing.")"; failures=$((failures + 1)); }
+
+    if [ "$failures" -ne 0 ]; then
+        fatal "$(msg "A instalação terminou, mas $failures validação(ões) falharam. Não considere o servidor pronto. Consulte: $logfile" "Installation finished, but $failures validation check(s) failed. Do not consider the server ready. Check: $logfile")"
+    fi
+
+    section "$(msg "INSTALAÇÃO CONCLUÍDA" "INSTALLATION COMPLETE")"
+    ok "$(msg "XLX instalado e validações essenciais aprovadas." "XLX installed and essential validation checks passed.")"
+    info "$(msg "Dashboard: $dashboard_dest" "Dashboard: $dashboard_dest")"
+    info "$(msg "Log: $logfile" "Log: $logfile")"
+}
+
+main() {
+    clear
+    validate_options
+    require_root
+    select_ui_language
+    section "XLX MODERN INSTALLER — PU2PNY"
+    validate_os
+    bootstrap_install_prerequisites
+    validate_commands
+    validate_resources
+    validate_network
+    detect_existing_installation
+    prepare_source
+    show_plan
+    if [ "$MODE" = "check" ]; then run_check; exit 0; fi
+    create_inventory_and_backup
+    confirm_real_installation
+    execute_installer
+}
+
+main "$@"
+ "$state_file"; then
+        ss -ltn | awk '{print $4}' | grep -Eq '(:|\.)443    local dash_lang="${DASHBOARD_LANG:-$(msg "padrão (pt-BR)" "default (pt-BR)")}"
+    if [ "$UI_LANG" = "en" ]; then
+        cat <<PLAN
+
+REAL INSTALLATION PLAN
+----------------------
+Before starting, have these details ready:
+- XLX reflector ID (3 characters, e.g. 139)
+- dashboard domain/FQDN
+- sysop e-mail address
+- sysop callsign
+- country and timezone
+
+The installer will then:
+1. Collect reflector information.
+2. Install Debian dependencies.
+3. Build and install XLXD.
+4. Install systemd services.
+5. Install XLX Echo when selected.
+6. Install the modern dashboard.
+7. Configure Apache and HTTPS when selected.
+8. Prepare XLX databases.
+9. Start and validate services.
+10. Offer APRS/D-PRS when configured to ask.
+
+Current choices:
+- Mode: $MODE
+- Dashboard language: $dash_lang
+- Dashboard directory: $DEFAULT_DASHBOARD_DIR
+- APRS/D-PRS: $APRS_DPRS_MODE
+
+Technical base: PP5PK/XLX_Installer
+Original author: Daniel K. — PP5PK
+Modified version: Dario — PU2PNY
+PLAN
+    else
+        cat <<PLAN
+
+PLANO DA INSTALAÇÃO REAL
+-------------------------
+Antes de começar, tenha estes dados em mãos:
+- ID do refletor XLX (3 caracteres, ex.: 026)
+- domínio/FQDN do dashboard
+- e-mail do sysop
+- indicativo do sysop
+- país e fuso horário
+
+Depois o instalador irá:
+1. Coletar os dados do refletor.
+2. Instalar dependências Debian.
+3. Compilar e instalar o XLXD.
+4. Instalar serviços systemd.
+5. Instalar XLX Echo quando selecionado.
+6. Instalar o dashboard moderno.
+7. Configurar Apache e HTTPS quando selecionado.
+8. Preparar as bases do XLX.
+9. Iniciar e validar os serviços.
+10. Oferecer APRS/D-PRS quando configurado para perguntar.
+
+Escolhas atuais:
+- Modo: $MODE
+- Idioma do dashboard: $dash_lang
+- Diretório do dashboard: $DEFAULT_DASHBOARD_DIR
+- APRS/D-PRS: $APRS_DPRS_MODE
+
+Base técnica: PP5PK/XLX_Installer
+Autor original: Daniel K. — PP5PK
+Versão modificada: Dario — PU2PNY
+PLAN
+    fi
+
+    if [ -n "$DASHBOARD_LANG" ] && [ "$DASHBOARD_LANG" != "en" ] && [ "$DASHBOARD_LANG" != "pt-BR" ]; then
+        info "$(msg "O dashboard usará $DASHBOARD_LANG. As mensagens do instalador permanecem em português; use --lang=en para interface do instalador em inglês." "The dashboard will use $DASHBOARD_LANG. Installer messages remain in Portuguese; use --lang=en for English installer UI.")"
+    fi
+}
+
+run_check() {
+    section "$(msg "RESULTADO DA PRÉ-VALIDAÇÃO" "PRE-INSTALLATION CHECK RESULT")"
+    ok "$(msg "Sistema compatível." "Compatible system.")"
+    ok "$(msg "Recursos mínimos disponíveis." "Minimum resources available.")"
+    if [ "$CHECK_READY" = "yes" ]; then
+        ok "$(msg "Pré-requisitos, rede e HTTPS validados." "Prerequisites, network, and HTTPS validated.")"
+    else
+        warn "$(msg "Servidor compatível, mas faltam pré-requisitos que serão instalados automaticamente na instalação real." "Server is compatible, but prerequisites are missing and will be installed automatically during the real installation.")"
+    fi
+    ok "$(msg "Nenhuma instalação ativa será sobrescrita." "No active installation will be overwritten.")"
+    ok "$(msg "Commit e SHA-256 confirmados." "Commit and SHA-256 verified.")"
+
+    if [ "$APRS_DPRS_MODE" = "yes" ]; then
+        section "$(msg "PRÉ-VALIDAÇÃO APRS/D-PRS" "APRS/D-PRS PRE-CHECK")"
+        bash "$ROOT_DIR/modules/67-aprs-dprs.sh" --check
+    else
+        info "$(msg "APRS/D-PRS não solicitado no modo de pré-validação." "APRS/D-PRS was not requested for this pre-check.")"
+    fi
+
+    info "$(msg "Nenhuma instalação foi executada." "No installation was performed.")"
+}
+
+confirm_real_installation() {
+    local typed
+    section "$(msg "CONFIRMAÇÃO FINAL" "FINAL CONFIRMATION")"
+    warn "$(msg "A próxima etapa inicia uma instalação REAL." "The next step starts a REAL installation.")"
+    warn "$(msg "Pacotes, Apache, PHP, systemd e firewall poderão ser alterados." "Packages, Apache, PHP, systemd, and firewall may be changed.")"
+    printf '\n%s\n' "$(msg "Para continuar, digite INSTALL (maiúsculas ou minúsculas)." "To continue, type INSTALL (upper- or lowercase).")"
+    printf '%s\n' "$(msg "Para cancelar com segurança, pressione Ctrl+C ou digite qualquer outra coisa." "To cancel safely, press Ctrl+C or type anything else.")"
+    printf '\n%s' "$(msg "Confirmação [INSTALL]: " "Confirmation [INSTALL]: ")"
+    read -r typed || typed=""
+    [ "${typed^^}" = "$CONFIRMATION" ] || fatal "$(msg "Confirmação não reconhecida. Instalação cancelada antes da etapa real." "Confirmation not recognized. Installation cancelled before the real installation step.")"
+    ok "$(msg "Confirmação aceita. Iniciando instalação real." "Confirmation accepted. Starting real installation.")"
+}
+
+resolve_aprs_choice() {
+    local answer
+    case "$APRS_DPRS_MODE" in
+        yes) return 0 ;;
+        no) return 1 ;;
+        ask)
+            printf '\n%s' "$(msg "Instalar também o módulo opcional APRS/D-PRS? [s/N]: " "Install the optional APRS/D-PRS module too? [y/N]: ")"
+            read -r answer
+            case "${answer,,}" in
+                s|sim|y|yes) APRS_DPRS_MODE="yes"; return 0 ;;
+                *) APRS_DPRS_MODE="no"; return 1 ;;
+            esac
+            ;;
+        *) fatal "$(msg "Estado APRS/D-PRS inválido: $APRS_DPRS_MODE" "Invalid APRS/D-PRS state: $APRS_DPRS_MODE")" ;;
+    esac
+}
+
+execute_installer() {
+    local stamp logfile installer_rc failures service dashboard_dest state_file
+    stamp="$(date +%Y%m%d_%H%M%S)"
+    mkdir -p "$LOG_ROOT"; chmod 700 "$LOG_ROOT"
+    logfile="${LOG_ROOT}/install_${stamp}.log"
+    section "$(msg "INICIANDO XLX MODERN INSTALLER" "STARTING XLX MODERN INSTALLER")"
+    info "$(msg "Log da instalação: $logfile" "Installation log: $logfile")"
+    info "$(msg "A próxima tela pertence ao instalador base e solicitará os dados do refletor." "The next screen is the base installer and will ask for reflector information.")"
+    local base_installer
+    base_installer="$(localize_base_installer)"
+    cd "$SOURCE_DIR"
+    info "$(msg "Usando o fluxo de perguntas em Português (Brasil)." "Using the English question flow.")"
+    state_file="${WORK_ROOT}/runtime/install-input.env"
+    install -d -m 0700 "$(dirname "$state_file")"
+    : > "$state_file"
+    chmod 0600 "$state_file"
+
+    set +e
+    XLX_MODERN_STATE_FILE="$state_file" bash "$base_installer" 2>&1 | tee -a "$logfile"
+    installer_rc=${PIPESTATUS[0]}
+    set -e
+    [ "$installer_rc" -eq 0 ] || fatal "$(msg "O instalador base terminou com código $installer_rc. Consulte o log: $logfile" "The base installer exited with code $installer_rc. Check the log: $logfile")"
+
+    section "$(msg "INSTALANDO XLX MODERN DASHBOARD" "INSTALLING XLX MODERN DASHBOARD")"
+    if [ -n "$DASHBOARD_LANG" ]; then
+        XLX_INSTALL_STATE_FILE="$state_file" bash "$ROOT_DIR/modules/60-dashboard-modern.sh" "--lang=$DASHBOARD_LANG"
+    else
+        XLX_INSTALL_STATE_FILE="$state_file" bash "$ROOT_DIR/modules/60-dashboard-modern.sh"
+    fi
+
+    dashboard_dest="${INSTALL_DIR:-$DEFAULT_DASHBOARD_DIR}"
+    if resolve_aprs_choice; then
+        section "$(msg "INSTALANDO APRS/D-PRS OPCIONAL" "INSTALLING OPTIONAL APRS/D-PRS")"
+        XLX_DASHBOARD_DIR="$dashboard_dest" bash "$ROOT_DIR/modules/67-aprs-dprs.sh" "--dashboard-dir=$dashboard_dest"
+    else
+        info "$(msg "APRS/D-PRS não instalado. Ele poderá ser instalado separadamente depois." "APRS/D-PRS was not installed. It can be installed separately later.")"
+    fi
+
+    section "$(msg "VALIDAÇÃO PÓS-INSTALAÇÃO" "POST-INSTALLATION VALIDATION")"
+    failures=0
+    for service in apache2 xlxd; do
+        if systemctl is-active --quiet "$service"; then
+            ok "$(msg "Serviço $service ativo." "$service service is active.")"
+        else
+            warn "$(msg "Serviço $service não está ativo." "$service service is not active.")"
+            failures=$((failures + 1))
+        fi
+    done
+    if systemctl list-unit-files xlxecho.service --no-legend 2>/dev/null | grep -q .; then
+        if systemctl is-active --quiet xlxecho; then
+            ok "$(msg "Serviço xlxecho ativo." "xlxecho service is active.")"
+        else
+            warn "$(msg "XLX Echo foi instalado, mas o serviço está inativo." "XLX Echo is installed, but its service is inactive.")"
+            failures=$((failures + 1))
+        fi
+    fi
+    if apache2ctl configtest >/dev/null 2>&1; then
+        ok "$(msg "Configuração do Apache válida." "Apache configuration is valid.")"
+    else
+        warn "$(msg "A validação da configuração do Apache falhou." "Apache configuration validation failed.")"
+        failures=$((failures + 1))
+    fi
+    [ -x /xlxd/xlxd ] || { warn "$(msg "Binário /xlxd/xlxd ausente." "Binary /xlxd/xlxd is missing.")"; failures=$((failures + 1)); }
+
+    if [ "$failures" -ne 0 ]; then
+        fatal "$(msg "A instalação terminou, mas $failures validação(ões) falharam. Não considere o servidor pronto. Consulte: $logfile" "Installation finished, but $failures validation check(s) failed. Do not consider the server ready. Check: $logfile")"
+    fi
+
+    section "$(msg "INSTALAÇÃO CONCLUÍDA" "INSTALLATION COMPLETE")"
+    ok "$(msg "XLX instalado e validações essenciais aprovadas." "XLX installed and essential validation checks passed.")"
+    info "$(msg "Dashboard: $dashboard_dest" "Dashboard: $dashboard_dest")"
+    info "$(msg "Log: $logfile" "Log: $logfile")"
+}
+
+main() {
+    clear
+    validate_options
+    require_root
+    select_ui_language
+    section "XLX MODERN INSTALLER — PU2PNY"
+    validate_os
+    bootstrap_install_prerequisites
+    validate_commands
+    validate_resources
+    validate_network
+    detect_existing_installation
+    prepare_source
+    show_plan
+    if [ "$MODE" = "check" ]; then run_check; exit 0; fi
+    create_inventory_and_backup
+    confirm_real_installation
+    execute_installer
+}
+
+main "$@"
+ || fatal "$(msg "HTTPS foi solicitado, mas nenhuma porta 443 está ouvindo." "HTTPS was requested, but no process is listening on port 443.")"
+        curl -kfsS --connect-timeout 8 --resolve "$domain:443:127.0.0.1" "https://$domain/" >/dev/null || fatal "$(msg "O painel não respondeu localmente por HTTPS." "Dashboard did not respond locally through HTTPS.")"
+    fi
+    ok "$(msg "Painel moderno, Apache e acesso local validados." "Modern dashboard, Apache, and local access validated.")"
+}
+
 show_plan() {
     local dash_lang="${DASHBOARD_LANG:-$(msg "padrão (pt-BR)" "default (pt-BR)")}"
     if [ "$UI_LANG" = "en" ]; then
