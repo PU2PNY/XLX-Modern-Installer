@@ -22,8 +22,8 @@ printf '%s\n' '--- Forbidden or high-risk tracked file types ---'
 for file in "${tracked[@]}"; do
     lower="${file,,}"
 
-    # git ls-files também lista arquivos rastreados que foram
-    # removidos no working tree e aguardam commit da exclusão.
+    # git ls-files also lists tracked files that were removed in the working
+    # tree and are waiting for the deletion commit.
     if [ ! -e "$file" ]; then
         case "$lower" in
             *.key|*.pem|*.p12|*.pfx|*.jks|*.keystore|*.sqlite|*.sqlite3|*.db|*.bak|*.dump|*.sql|*.tar|*.tgz|*.tar.gz|*.zip|*.7z|*.rar|*.env)
@@ -95,6 +95,27 @@ for pattern in '141\.11\.128\.63' 'xlx026\.net' '/root/backups-xlx026' 'Telegram
     fi
     rm -f /tmp/xlx-public-audit-prod-history.$$ || true
 done
+
+printf '\n%s\n' '--- Generic fixed-header identity ---'
+fixed_header='dashboard/assets/header-brasil-neon-fixed-v2.js'
+if [ ! -f "$fixed_header" ]; then
+    fail "Missing fixed header component: $fixed_header"
+else
+    if grep -Fq 'XLX026 Brasil' "$fixed_header" \
+        || grep -Eq "code\.textContent[[:space:]]*=[[:space:]]*['\"]XLX026['\"]" "$fixed_header" \
+        || grep -Eq "country\.textContent[[:space:]]*=[[:space:]]*['\"]Brasil['\"]" "$fixed_header"; then
+        fail 'Fixed header contains a hard-coded reflector/country identity.'
+    else
+        ok 'Fixed header has no hard-coded XLX026/Brazil visible identity.'
+    fi
+
+    if grep -Fq 'meta[property="og:site_name"]' "$fixed_header" \
+        && grep -Fq '.universal-copy h1' "$fixed_header"; then
+        ok 'Fixed header derives reflector identity from the rendered dashboard.'
+    else
+        fail 'Fixed header does not prove dynamic reflector identity lookup.'
+    fi
+fi
 
 printf '\n%s\n' '--- Required public-project files ---'
 for file in README.md README.en.md LICENSE SECURITY.md CONTRIBUTING.md THIRD_PARTY_NOTICES.md SUPPORT.md CHANGELOG.md .gitignore; do
