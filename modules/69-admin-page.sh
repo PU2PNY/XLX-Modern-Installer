@@ -241,6 +241,19 @@ grep -Fq 'Controle de Acesso XLXD' "$ADMIN_DIR/index.php"
 grep -Fq 'radioid_save' "$ADMIN_DIR/index.php"
 grep -Fq 'Links rápidos' "$ADMIN_DIR/index.php"
 
+# Quando o HTTPS já está disponível, confirme a rota nova antes de declarar
+# sucesso. Isso impede concluir uma atualização que criou os arquivos, mas
+# deixou /admin/ (ou o nome escolhido) respondendo 404. Em uma instalação
+# nova sem certificado ainda, a validação final do instalador cobre HTTPS.
+if curl --silent --show-error --insecure --resolve "$DOMAIN:443:127.0.0.1" \
+  --connect-timeout 5 --max-time 12 "$BASE_URL/$slug/" -o "$WORK/admin-web.html" 2>/dev/null; then
+  grep -Fq "$TITLE" "$WORK/admin-web.html" || fail "$(say 'A rota Admin respondeu, mas não entregou a tela privada correta.' 'Admin route responded but did not deliver the correct private page.')"
+  grep -Fq 'Acesso restrito' "$WORK/admin-web.html" || fail "$(say 'A rota Admin não entregou a tela de autenticação.' 'Admin route did not deliver the authentication page.')"
+  ok "$(say 'Rota privada do Admin validada localmente.' 'Private Admin route validated locally.')"
+else
+  warn "$(say 'HTTPS local ainda indisponível; arquivos, credencial e rota foram validados e o teste web será repetido ao fim da instalação.' 'Local HTTPS is not available yet; files, credentials and route were validated and the web test will run at the end of installation.')"
+fi
+
 SUCCESS=1
 MUTATED=0
 trap - EXIT
