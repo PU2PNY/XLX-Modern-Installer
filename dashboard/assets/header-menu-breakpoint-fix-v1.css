@@ -1,0 +1,196 @@
+/* ================================================================
+   XLX026_MENU_BREAKPOINT_FIX_V1
+
+   Problema corrigido:
+   Em algumas larguras intermediárias o menu caía para lista vertical,
+   mas o botão de abrir/fechar continuava oculto.
+
+   Estratégia:
+   - >= 1181px: menu horizontal normal
+   - 821px até 1180px: botão aparece e menu fecha por padrão
+   - <= 820px: comportamento atual preservado
+   ================================================================ */
+
+
+/* ================================================================
+   FAIXA INTERMEDIÁRIA
+   ================================================================ */
+
+@media (min-width:821px) and (max-width:1180px){
+
+    /*
+     * Botão do menu volta a aparecer.
+     */
+    html body
+    section.universal-header
+    > .menu-toggle{
+
+        display:flex !important;
+
+        align-items:center !important;
+        justify-content:center !important;
+        gap:.5ch !important;
+
+        width:min(1080px,100%) !important;
+        min-height:36px !important;
+
+        margin:8px auto 0 !important;
+        padding:8px 12px !important;
+
+        border:1px solid rgba(63,120,152,.70) !important;
+        border-radius:10px !important;
+
+        background:
+            linear-gradient(
+                180deg,
+                rgba(10,35,52,.95),
+                rgba(7,25,38,.96)
+            ) !important;
+
+        color:#e9f8ff !important;
+
+        font-weight:800 !important;
+        line-height:1 !important;
+
+        box-shadow:
+            0 0 0 1px rgba(0,216,255,.06) inset,
+            0 6px 14px rgba(0,0,0,.18) !important;
+    }
+
+    html body
+    section.universal-header
+    > .menu-toggle:hover{
+
+        border-color:rgba(92,182,222,.92) !important;
+    }
+
+    /*
+     * Menu fica escondido por padrão nessa faixa.
+     */
+    html body
+    section.universal-header
+    > .universal-nav{
+
+        display:none !important;
+
+        width:min(1080px,100%) !important;
+        margin:8px auto 0 !important;
+        padding:0 !important;
+
+        flex-direction:column !important;
+        gap:6px !important;
+
+        border-top:none !important;
+    }
+
+    /*
+     * Abrir menu:
+     * cobrimos os estados mais prováveis já usados pelo painel.
+     */
+    html body.menu-open
+    section.universal-header
+    > .universal-nav,
+
+    html body
+    section.universal-header.menu-open
+    > .universal-nav,
+
+    html body
+    section.universal-header.is-menu-open
+    > .universal-nav,
+
+    html body
+    section.universal-header[data-menu-open="1"]
+    > .universal-nav,
+
+    html body
+    section.universal-header
+    > .menu-toggle[aria-expanded="true"]
+    + .universal-nav{
+
+        display:flex !important;
+    }
+
+    /*
+     * Links empilhados corretamente.
+     */
+    html body
+    section.universal-header
+    > .universal-nav a{
+
+        width:100% !important;
+        min-height:34px !important;
+
+        padding:8px 12px !important;
+
+        text-align:center !important;
+        justify-content:center !important;
+
+        border-radius:10px !important;
+    }
+
+    /*
+     * Evita que o topo continue gastando altura à toa.
+     */
+    html body
+    section.universal-header{
+
+        padding-bottom:10px !important;
+    }
+
+    /*
+     * Protocolos ainda podem quebrar dentro da área deles
+     * sem destruir a faixa superior.
+     */
+    html body
+    section.universal-header
+    .universal-copy
+    > .access-strip{
+
+        flex-wrap:wrap !important;
+        justify-content:flex-end !important;
+        row-gap:0 !important;
+    }
+
+    html body
+    section.universal-header
+    .access-strip
+    > span{
+
+        min-height:30px !important;
+        padding:5px 7px !important;
+    }
+
+}
+
+
+/* ================================================================
+   DESKTOP LARGO
+   ================================================================ */
+
+@media (min-width:1181px){
+
+    html body
+    section.universal-header
+    > .menu-toggle{
+
+        display:none !important;
+    }
+
+    html body
+    section.universal-header
+    > .universal-nav{
+
+        display:flex !important;
+    }
+
+}
+
+
+/* ================================================================
+   MOBILE
+   Não interferimos no comportamento já aprovado.
+   ================================================================ */
+
+
+/* /XLX026_MENU_BREAKPOINT_FIX_V1 */
