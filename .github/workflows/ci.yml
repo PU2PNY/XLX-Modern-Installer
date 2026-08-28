@@ -40,6 +40,10 @@ jobs:
           set -Eeuo pipefail
           node --version
           while IFS= read -r -d '' file; do
+            if grep -Eq '\{\{[A-Z0-9_]+\}\}' "$file"; then
+              echo "template JavaScript deferred until rendered build: $file"
+              continue
+            fi
             echo "node --check $file"
             node --check "$file"
           done < <(find dashboard/assets extras -type f -name '*.js' -print0)
@@ -113,6 +117,10 @@ jobs:
             while IFS= read -r -d '' file; do
               php -l "$file" >/dev/null
             done < <(find "$target" -type f -name '*.php' -print0)
+            while IFS= read -r -d '' file; do
+              echo "node --check rendered $file"
+              node --check "$file"
+            done < <(find "$target/assets" -type f -name '*.js' -print0)
             rm -rf "$target"
           done
 
@@ -173,10 +181,14 @@ jobs:
         shell: bash
         run: |
           set -Eeuo pipefail
+          grep -F '64-runtime-data.sh' modules/60-dashboard-modern.sh
           grep -F 'install-dashboard.sh" "$@"' modules/60-dashboard-modern.sh
           grep -F 'post-install.sh' modules/60-dashboard-modern.sh
           grep -F '65-callsign-directory.sh' modules/60-dashboard-modern.sh
           grep -F '66-certificates.sh' modules/60-dashboard-modern.sh
+          grep -F 'xlx-modern-users-refresh' modules/64-runtime-data.sh
+          grep -F 'update_XLX_db.timer' modules/64-runtime-data.sh
+          grep -F 'xlx_log.service' modules/64-runtime-data.sh
           grep -F -- '--lang=*)' dashboard/install/install-dashboard.sh
           grep -F '"--lang=$DASHBOARD_LANG"' install.sh
           grep -F '$ROOT/install/render-placeholders.php' dashboard/install/install-dashboard.sh
@@ -188,7 +200,10 @@ jobs:
           grep -F 'user-directory.php' dashboard/api/status.php
           bash -n dashboard/install/post-install.sh
           bash -n tools/xlx-user-directory.sh
+          bash -n tools/xlx-modern-users-refresh.sh
+          bash -n modules/64-runtime-data.sh
           bash -n extras/certificados/install.sh
+          php -l tools/create-user-db.php >/dev/null
           php -l dashboard/install/render-template.php >/dev/null
           php -l dashboard/install/render-placeholders.php >/dev/null
           php -l dashboard/api/ranking-v2.php >/dev/null
