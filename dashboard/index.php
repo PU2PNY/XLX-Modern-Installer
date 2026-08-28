@@ -1,8 +1,10 @@
 <?php
 $page = $_GET['page'] ?? 'ao-vivo';
-$allowed = ['ao-vivo','modulos','conectados','ranking','refletores'];
+// Módulos fazem parte da página Conectados; o endereço antigo continua válido.
+if ($page === 'modulos') $page = 'conectados';
+$allowed = ['ao-vivo','conectados','ranking','refletores'];
 if (!in_array($page, $allowed, true)) $page = 'ao-vivo';
-$authorizedPage = in_array($page, ['ao-vivo','modulos','conectados','ranking'], true);
+$authorizedPage = in_array($page, ['ao-vivo','conectados','ranking'], true);
 $site = is_file(__DIR__ . '/config/site.php') ? require __DIR__ . '/config/site.php' : [];
 $moduleCount = max(1, min(26, (int)($site['radio']['module_count'] ?? 5)));
 $moduleRange = 'A–' . chr(64 + $moduleCount);
@@ -12,7 +14,6 @@ function render_nav(string $page): string {
   $items = [
     'ao-vivo' => 'Ao vivo',
     'conectados' => 'Conectados',
-    'modulos' => 'Módulos ' . $moduleRange,
     'ranking' => 'Ranking',
     'refletores' => 'Lista de refletores XLX',
   ];
@@ -133,7 +134,14 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}/' . ($page === 'ao-vivo' ? '' : '?pag
  <section id="moduleOverview" class="module-overview-grid module-page-grid"></section>
  <section class="panel module-reference"><h2>Identificações de acesso</h2><div class="table-wrap"><table class="module-access-table"><thead><tr><th rowspan="2">Módulo</th><th rowspan="2">Protocolo / função</th><th rowspan="2">Estações conectadas</th><th colspan="2">DPlus (REF)</th><th colspan="2">DExtra (XRF)</th><th colspan="2">DCS (DCS/XLX)</th><th rowspan="2">DMR</th><th rowspan="2">YSF DG-ID</th></tr><tr><th>URCALL</th><th>DTMF</th><th>URCALL</th><th>DTMF</th><th>URCALL</th><th>DTMF</th></tr></thead><tbody id="moduleReferenceRows"></tbody></table></div></section>
 <?php elseif ($page === 'conectados'): ?>
- <section class="page-heading heading-with-tools"><div><p class="eyebrow">REDE ATIVA</p><h1>Estações conectadas</h1><p id="connectedLabel">Carregando conexões...</p></div><div class="connected-filter-tools" aria-label="Filtros das estações conectadas"><label class="search-box connected-filter-search"><span>Pesquisar</span><input id="connectedSearch" type="search" placeholder="Indicativo, nome ou região" autocomplete="off"></label><label class="search-box connected-filter-select"><span>Módulo</span><select id="connectedModuleFilter"><option value="">Todos</option></select></label><label class="search-box connected-filter-select"><span>Protocolo</span><select id="connectedProtocolFilter"><option value="">Todos</option></select></label></div></section>
+ <section class="page-heading connected-modules-heading">
+  <p class="eyebrow">ESTRUTURA DO REFLETOR</p>
+  <h1>Módulos <?=htmlspecialchars($moduleRange, ENT_QUOTES, 'UTF-8')?></h1>
+  <p>Identificação, função, protocolo, acesso e quantidade de estações conectadas em cada módulo.</p>
+ </section>
+ <section id="moduleOverview" class="module-overview-grid module-page-grid"></section>
+ <section class="panel module-reference"><h2>Identificações de acesso</h2><div class="table-wrap"><table class="module-access-table"><thead><tr><th rowspan="2">Módulo</th><th rowspan="2">Protocolo / função</th><th rowspan="2">Estações conectadas</th><th colspan="2">DPlus (REF)</th><th colspan="2">DExtra (XRF)</th><th colspan="2">DCS (DCS/XLX)</th><th rowspan="2">DMR</th><th rowspan="2">YSF DG-ID</th></tr><tr><th>URCALL</th><th>DTMF</th><th>URCALL</th><th>DTMF</th><th>URCALL</th><th>DTMF</th></tr></thead><tbody id="moduleReferenceRows"></tbody></table></div></section>
+ <section class="page-heading heading-with-tools connected-stations-heading"><div><p class="eyebrow">REDE ATIVA</p><h2 class="connected-section-title">Estações conectadas</h2><p id="connectedLabel">Carregando conexões...</p></div><div class="connected-filter-tools" aria-label="Filtros das estações conectadas"><label class="search-box connected-filter-search"><span>Pesquisar</span><input id="connectedSearch" type="search" placeholder="Indicativo, nome ou região" autocomplete="off"></label><label class="search-box connected-filter-select"><span>Módulo</span><select id="connectedModuleFilter"><option value="">Todos</option></select></label><label class="search-box connected-filter-select"><span>Protocolo</span><select id="connectedProtocolFilter"><option value="">Todos</option></select></label></div></section>
  <section id="connectedCards" class="connected-cards"></section>
  <section class="panel connected-table-panel"><div class="table-wrap"><table class="connected-table"><thead><tr><th>#</th><th>País</th><th>Indicativo</th><th>Nome</th><th>Localização</th><th>Protocolo</th><th>Módulo</th><th>Conectado às</th><th>Tempo conectado</th><th>Última atividade</th></tr></thead><tbody id="connectedRows"></tbody></table></div></section>
 <?php elseif ($page === 'ranking'): ?>
