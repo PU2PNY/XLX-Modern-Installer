@@ -272,7 +272,7 @@ localize_base_installer() {
     # controlled upstream source remains untouched and SHA-256 verified; only
     # this runtime copy has its legacy dashboard and TLS section disabled.
     local state_hook="$SOURCE_DIR/.xlx-modern-state-hook"
-    cat > "$state_hook" <<\'HOOK\'
+    cat > "$state_hook" <<'HOOK'
 if [ -n "${XLX_MODERN_STATE_FILE:-}" ]; then
     {
         printf "REFLECTOR_NAME=%q\\n" "$XRFNUM"
