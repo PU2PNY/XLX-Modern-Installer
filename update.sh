@@ -121,6 +121,13 @@ validate_source(){
 
     if command -v node >/dev/null 2>&1; then
         while IFS= read -r -d '' file; do
+            # Template JavaScript may contain installation placeholders that
+            # are deliberately not valid identifier text before rendering.
+            # The fully rendered candidate is validated with node --check in
+            # build_candidate(), so raw template files are deferred here.
+            if grep -Eq '\{\{[A-Z0-9_]+\}\}' "$file"; then
+                continue
+            fi
             node --check "$file" >/dev/null
         done < <(find "$ROOT_DIR/dashboard/assets" -type f -name '*.js' -print0)
     fi
