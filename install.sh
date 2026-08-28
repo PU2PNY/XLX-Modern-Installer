@@ -504,7 +504,12 @@ execute_installer() {
     XLX_MODERN_STATE_FILE="$state_file" XLX_MODERN_LOCATION="$DASHBOARD_LOCATION" XLX_MODERN_YSF_ID="$DASHBOARD_YSF_ID" bash "$base_installer" 2>&1 | tee -a "$logfile"
     installer_rc=${PIPESTATUS[0]}
     set -e
-    [ "$installer_rc" -eq 0 ] || fatal "$(msg "O instalador base terminou com código $installer_rc. Consulte o log: $logfile" "The base installer exited with code $installer_rc. Check the log: $logfile")"
+    [ "$installer_rc" -eq 0 ] || fatal "$(msg "O instalador base terminou com código $logfile" "The base installer exited with code $installer_rc. Check the log: $logfile")"
+
+    # State is produced by the verified root-owned base-installer runtime.
+    # shellcheck disable=SC1090
+    source "$state_file"
+    [ -n "${DOMAIN:-}" ] || fatal "$(msg "O instalador base não gravou o domínio para validação final." "The base installer did not save the domain for final validation.")"
 
     section "$(msg "INSTALANDO XLX MODERN DASHBOARD" "INSTALLING XLX MODERN DASHBOARD")"
     if [ -n "$DASHBOARD_LANG" ]; then
@@ -546,6 +551,48 @@ execute_installer() {
         failures=$((failures + 1))
     fi
     [ -x /xlxd/xlxd ] || { warn "$(msg "Binário /xlxd/xlxd ausente." "Binary /xlxd/xlxd is missing.")"; failures=$((failures + 1)); }
+
+    # The modern dashboard is mandatory. Verify deployed files, VirtualHost,
+    # local HTTP(S) response and the public-directory registration timer.
+    for required_file in "$dashboard_dest/index.php" "$dashboard_dest/config/site.php" "$dashboard_dest/api/status.php" "$dashboard_dest/api/live.php"; do
+        if [ -s "$required_file" ]; then
+            ok "$(msg "Arquivo obrigatório do painel encontrado: $required_file" "Required dashboard file found: $required_file")"
+        else
+            warn "$(msg "Arquivo obrigatório do painel ausente: $required_file" "Required dashboard file missing: $required_file")"
+            failures=$((failures + 1))
+        fi
+    done
+    if [ -f "/etc/apache2/sites-enabled/$DOMAIN.conf" ] && grep -Fq "DocumentRoot $dashboard_dest" "/etc/apache2/sites-enabled/$DOMAIN.conf"; then
+        ok "$(msg "VirtualHost do painel moderno confirmado." "Modern dashboard VirtualHost confirmed.")"
+    else
+        warn "$(msg "VirtualHost do painel moderno não aponta para $dashboard_dest." "Modern dashboard VirtualHost does not point to $dashboard_dest.")"
+        failures=$((failures + 1))
+    fi
+    if systemctl is-active --quiet xlx-callinghome.timer; then
+        ok "$(msg "Timer CallingHome ativo." "CallingHome timer is active.")"
+    else
+        warn "$(msg "Timer CallingHome inativo." "CallingHome timer is inactive.")"
+        failures=$((failures + 1))
+    fi
+
+    local dashboard_scheme="http"
+    case "${ENABLE_HTTPS:-}" in Y|y|yes|YES) dashboard_scheme="https" ;; esac
+    if [ "$dashboard_scheme" = "https" ]; then
+        if [ -s "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ] && [ -s "/etc/letsencrypt/live/$DOMAIN/privkey.pem" ]; then
+            ok "$(msg "Certificado HTTPS encontrado para $DOMAIN." "HTTPS certificate found for $DOMAIN.")"
+        else
+            warn "$(msg "Certificado HTTPS ausente para $DOMAIN." "HTTPS certificate missing for $DOMAIN.")"
+            failures=$((failures + 1))
+        fi
+    fi
+    local dashboard_port="80"
+    [ "$dashboard_scheme" = "https" ] && dashboard_port="443"
+    if curl --noproxy '*' -fsS --max-time 15 --resolve "$DOMAIN:$dashboard_port:127.0.0.1" "$dashboard_scheme://$DOMAIN/" >/dev/null; then
+        ok "$(msg "Painel respondeu localmente por $dashboard_scheme." "Dashboard responded locally over $dashboard_scheme.")"
+    else
+        warn "$(msg "O painel não respondeu localmente por $dashboard_scheme." "Dashboard did not respond locally over $dashboard_scheme.")"
+        failures=$((failures + 1))
+    fi
 
     if [ "$failures" -ne 0 ]; then
         fatal "$(msg "A instalação terminou, mas $failures validação(ões) falharam. Não considere o servidor pronto. Consulte: $logfile" "Installation finished, but $failures validation check(s) failed. Do not consider the server ready. Check: $logfile")"
