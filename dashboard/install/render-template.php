@@ -130,6 +130,55 @@ if (is_dir($assets) && !is_file($expectedLogo)) {
     }
 }
 
+/*
+ * Version local CSS/JS references by the actual file content.
+ *
+ * This makes dashboard updates immediately visible without requiring users
+ * to clear browser caches or press Ctrl+F5. Only local assets already carrying
+ * a ?v= query in index.php are rewritten; no external URL is touched.
+ */
+$indexFile = rtrim($target, DIRECTORY_SEPARATOR) . '/index.php';
+if (is_file($indexFile)) {
+    $indexContents = file_get_contents($indexFile);
+    if ($indexContents === false) {
+        fwrite(STDERR, "ERROR: cannot read {$indexFile}\n");
+        exit(7);
+    }
+
+    $versioned = preg_replace_callback(
+        '~(?P<prefix>(?:href|src)=["\'])(?P<asset>assets/[^"\'?]+\.(?:css|js))\?v=[^"\']+(?P<suffix>["\'])~i',
+        static function (array $match) use ($target): string {
+            $relative = $match['asset'];
+            $assetFile = rtrim($target, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relative);
+
+            if (!is_file($assetFile)) {
+                return $match[0];
+            }
+
+            $hash = hash_file('sha256', $assetFile);
+            if ($hash === false || $hash === '') {
+                return $match[0];
+            }
+
+            return $match['prefix'] . $relative . '?v=' . substr($hash, 0, 12) . $match['suffix'];
+        },
+        $indexContents
+    );
+
+    if ($versioned === null) {
+        fwrite(STDERR, "ERROR: asset cache version rendering failed.\n");
+        exit(7);
+    }
+
+    if ($versioned !== $indexContents) {
+        if (file_put_contents($indexFile, $versioned) === false) {
+            fwrite(STDERR, "ERROR: cannot write {$indexFile}\n");
+            exit(7);
+        }
+        $changed++;
+    }
+}
+
 // Refuse deployment when unresolved installation placeholders remain in the
 // main dashboard source. This prevents publishing a half-rendered template.
 $unresolved = [];
