@@ -25,6 +25,8 @@ DASHBOARD_LANG=""
 UI_LANG="pt-BR"
 APRS_DPRS_MODE="ask"
 CHECK_READY="yes"
+DASHBOARD_LOCATION=""
+DASHBOARD_YSF_ID=""
 
 for arg in "$@"; do
     case "$arg" in
@@ -106,6 +108,22 @@ validate_options() {
 
 require_root() {
     [ "$(id -u)" -eq 0 ] || fatal "$(msg "Execute como root: sudo bash $0" "Run as root: sudo bash $0")"
+}
+
+collect_dashboard_inputs() {
+    [ "$MODE" = "install" ] || return 0
+    [ -t 0 ] || return 0
+    section "$(msg "DADOS ADICIONAIS DO PAINEL" "ADDITIONAL DASHBOARD DETAILS")"
+    while [ -z "$DASHBOARD_LOCATION" ]; do
+        printf '%s' "$(msg "Cidade e estado/região: " "City and state/region: ")"
+        read -r DASHBOARD_LOCATION || DASHBOARD_LOCATION=""
+    done
+    while :; do
+        printf '%s' "$(msg "ID do refletor YSF exibido no painel: " "YSF reflector ID shown on the dashboard: ")"
+        read -r DASHBOARD_YSF_ID || DASHBOARD_YSF_ID=""
+        [[ "$DASHBOARD_YSF_ID" =~ ^[0-9]{1,8}$ ]] && break
+        warn "$(msg "ID YSF inválido. Use de 1 a 8 dígitos." "Invalid YSF ID. Use 1 to 8 digits.")"
+    done
 }
 
 select_ui_language() {
@@ -282,6 +300,8 @@ if [ -n "${XLX_MODERN_STATE_FILE:-}" ]; then
         printf "COUNTRY=%q\\n" "$COUNTRY"
         printf "DOMAIN=%q\\n" "$XLXDOMAIN"
         printf "CONTACT_EMAIL=%q\\n" "$EMAIL"
+        printf "LOCATION=%q\\n" "${XLX_MODERN_LOCATION:-}"
+        printf "YSF_ID=%q\\n" "${XLX_MODERN_YSF_ID:-}"
         printf "ENABLE_HTTPS=%q\\n" "$INSTALL_SSL"
     } > "$XLX_MODERN_STATE_FILE"
     chmod 0600 "$XLX_MODERN_STATE_FILE"
@@ -480,7 +500,7 @@ execute_installer() {
     chmod 0600 "$state_file"
 
     set +e
-    XLX_MODERN_STATE_FILE="$state_file" bash "$base_installer" 2>&1 | tee -a "$logfile"
+    XLX_MODERN_STATE_FILE="$state_file" XLX_MODERN_LOCATION="$DASHBOARD_LOCATION" XLX_MODERN_YSF_ID="$DASHBOARD_YSF_ID" bash "$base_installer" 2>&1 | tee -a "$logfile"
     installer_rc=${PIPESTATUS[0]}
     set -e
     [ "$installer_rc" -eq 0 ] || fatal "$(msg "O instalador base terminou com código $installer_rc. Consulte o log: $logfile" "The base installer exited with code $installer_rc. Check the log: $logfile")"
@@ -548,6 +568,7 @@ main() {
     validate_resources
     validate_network
     detect_existing_installation
+    collect_dashboard_inputs
     prepare_source
     show_plan
     if [ "$MODE" = "check" ]; then run_check; exit 0; fi
