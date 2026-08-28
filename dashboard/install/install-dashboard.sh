@@ -406,6 +406,13 @@ APACHE
 
 a2ensite "$DOMAIN.conf" >/dev/null
 a2dissite 000-default >/dev/null 2>&1 || true
+
+# Set Apache's global identity as well as the virtual host identity. This avoids
+# AH00558 on clean Debian installations without modifying Debian's defaults.
+SERVERNAME_CONF="/etc/apache2/conf-available/xlx-modern-servername.conf"
+printf 'ServerName %s\n' "$DOMAIN" > "$SERVERNAME_CONF"
+a2enconf xlx-modern-servername >/dev/null
+
 apache2ctl configtest
 systemctl enable --now apache2
 
