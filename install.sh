@@ -302,6 +302,7 @@ if [ -n "${XLX_MODERN_STATE_FILE:-}" ]; then
         printf "CONTACT_EMAIL=%q\\n" "$EMAIL"
         printf "LOCATION=%q\\n" "${XLX_MODERN_LOCATION:-}"
         printf "YSF_ID=%q\\n" "${XLX_MODERN_YSF_ID:-}"
+        printf "MODULE_COUNT=%q\\n" "$MODQTD"
         printf "ENABLE_HTTPS=%q\\n" "$INSTALL_SSL"
     } > "$XLX_MODERN_STATE_FILE"
     chmod 0600 "$XLX_MODERN_STATE_FILE"
