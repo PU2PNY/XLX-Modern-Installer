@@ -9,6 +9,8 @@ ok(){ printf '%s[OK]%s %s\n' "$GREEN" "$RESET" "$*"; }
 warn(){ printf '%s[ATENÇÃO]%s %s\n' "$YELLOW" "$RESET" "$*"; }
 fatal(){ printf '%s[ERRO]%s %s\n' "$RED" "$RESET" "$*" >&2; exit 1; }
 
+readonly PROJECT_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+readonly CERT_HOOK_SCRIPT="$PROJECT_ROOT/dashboard/install/ensure-certificate-hook.py"
 readonly CERT_REPOSITORY="PU2PNY/XLX-Certificate-Generator"
 readonly CERT_COMMIT="30722407eb2bd98adab7a67a7bb74ae83859e0e9"
 readonly CERT_INSTALLER_SHA256="7a1e3d6420a590ce24be5774e92cb115dbdf150fb6d0bc53690379360c9363a8"
@@ -23,10 +25,15 @@ SECRET_FILE="${XLX_CERT_SECRET_FILE:-}"
 CAMPAIGN_PACK="${XLX_CERT_CAMPAIGN_PACK:-auto}"
 SOURCE=""
 TEMP_DIR=""
+HOOK_BACKUP=""
+HOOK_CHANGED=0
 
 cleanup(){
     if [ -n "$TEMP_DIR" ] && [ -d "$TEMP_DIR" ]; then
         rm -rf -- "$TEMP_DIR"
+    fi
+    if [ -n "$HOOK_BACKUP" ] && [ -f "$HOOK_BACKUP" ]; then
+        rm -f -- "$HOOK_BACKUP"
     fi
 }
 trap cleanup EXIT
@@ -170,11 +177,48 @@ fi
 [ -f "$DASHBOARD/index.php" ] || fatal "Dashboard incompatível: index.php ausente."
 [ -n "$SITE_CONFIG" ] || SITE_CONFIG="$DASHBOARD/config/site.php"
 [ -f "$SITE_CONFIG" ] || fatal "Configuração universal ausente: $SITE_CONFIG"
+[ -f "$CERT_HOOK_SCRIPT" ] || fatal "Instalador da âncora segura de Certificados ausente: $CERT_HOOK_SCRIPT"
+command -v python3 >/dev/null 2>&1 || fatal "Python 3 é obrigatório para preparar a integração segura de Certificados."
+command -v php >/dev/null 2>&1 || fatal "PHP é obrigatório para validar a integração segura de Certificados."
+
+# The public dashboard intentionally ships without the certificate runtime.
+# Before handing control to the pinned external installer, add a dormant,
+# conditional hook. It changes nothing until certificado-view.php/assets are
+# installed, and it gives the external installer a stable compatibility
+# contract. Restore index.php automatically if the optional install fails.
+HOOK_BACKUP="$(mktemp /var/tmp/xlx-cert-index.before.XXXXXX)"
+cp -a "$DASHBOARD/index.php" "$HOOK_BACKUP"
+index_before="$(sha256sum "$DASHBOARD/index.php" | awk '{print $1}')"
+python3 "$CERT_HOOK_SCRIPT" "$DASHBOARD/index.php"
+php -l "$DASHBOARD/index.php" >/dev/null
+index_after="$(sha256sum "$DASHBOARD/index.php" | awk '{print $1}')"
+if [ "$index_before" != "$index_after" ]; then
+    HOOK_CHANGED=1
+    ok "Âncora opcional de Certificados adicionada ao dashboard."
+else
+    info "Âncora opcional de Certificados já estava presente."
+fi
 
 a=(--apply "--dashboard-dir=$DASHBOARD" "--site-config=$SITE_CONFIG" "--campaign-pack=$CAMPAIGN_PACK" --trusted-parent)
 [ -z "$DATA_DIR" ] || a+=("--data-dir=$DATA_DIR")
 [ -z "$SECRET_FILE" ] || a+=("--secret-file=$SECRET_FILE")
 
 info "Iniciando instalador independente XLX Certificate Generator."
+set +e
 XLX_CERTIFICATES_TRUSTED_PARENT=1 bash "$SOURCE/install.sh" "${a[@]}"
+rc=$?
+set -e
+if [ "$rc" -ne 0 ]; then
+    if [ "$HOOK_CHANGED" -eq 1 ] && [ -f "$HOOK_BACKUP" ]; then
+        cp -a "$HOOK_BACKUP" "$DASHBOARD/index.php"
+        php -l "$DASHBOARD/index.php" >/dev/null 2>&1 || true
+        warn "Âncora do dashboard restaurada após falha do módulo opcional."
+    fi
+    fatal "XLX Certificate Generator falhou (rc=$rc)."
+fi
+
+php -l "$DASHBOARD/index.php" >/dev/null
+grep -Fq 'XLX_CERTIFICATES_OPTIONAL_HOOK_V1' "$DASHBOARD/index.php" || fatal "Âncora de Certificados desapareceu após a instalação."
+grep -Fq "\$allowed[] = 'certificado';" "$DASHBOARD/index.php" || fatal "Rota de Certificados não ficou integrada."
+grep -Fq "require __DIR__.'/certificado-view.php';" "$DASHBOARD/index.php" || fatal "View de Certificados não ficou integrada."
 ok "Integração do XLX Certificate Generator concluída."
