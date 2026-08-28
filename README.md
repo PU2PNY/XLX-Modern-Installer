@@ -39,9 +39,9 @@ The installer is generic. A new deployment uses the identity supplied by the ins
 | Pre-flight validation | ✅ | Validates Debian, architecture, resources, network and existing installs |
 | Dashboard-only installation | ✅ | Installs/reinstalls the dashboard separately |
 | Live monitor | ✅ | Live transmission monitor and server status |
-| 24-hour activity | ✅ | Recent activity covering the last 24 hours, up to 40 callsigns |
+| 24-hour activity | ✅ | All activity available from the last 24 hours |
 | Connected stations | ✅ | Callsign, protocol, module, location and activity data |
-| Modules A–E | ✅ | Module structure and access identifiers |
+| Modules A–Z | ✅ | Select the number of active modules during installation |
 | Activity ranking | ✅ | Ranking based on server data sources |
 | Six dashboard languages | ✅ | `pt-BR`, `en`, `es`, `fr`, `de`, `it` |
 | Persistent callsign directory | ✅ | Local corrections separated from the upstream/main user database |
@@ -64,8 +64,15 @@ sudo apt install -y git
 cd /usr/src
 sudo git clone https://github.com/PU2PNY/XLX-Modern-Installer.git
 cd XLX-Modern-Installer
-sudo bash install.sh --check
 sudo bash install.sh
+```
+
+The normal command performs the complete pre-flight validation automatically. If it passes, it continues to the final confirmation before making real changes.
+
+Use `--check` only when you want a read-only diagnostic that intentionally stops after the validation:
+
+```bash
+sudo bash install.sh --check
 ```
 
 Install with a predefined dashboard language:
@@ -130,7 +137,7 @@ The installer collects values such as:
 - domain;
 - contact email;
 - YSF ID;
-- DMR TG;
+- DMR module mapping and voice TG;
 - dashboard language;
 - server timezone;
 - optional reflector anniversary for certificate campaigns.
