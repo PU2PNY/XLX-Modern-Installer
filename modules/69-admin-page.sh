@@ -174,6 +174,11 @@ install -d -o root -g www-data -m 0750 "$CFG_DIR"
 printf '%s\n' "$slug" > "$ROUTE_FILE"
 chown root:root "$ROUTE_FILE"; chmod 0600 "$ROUTE_FILE"
 
+# Invariantes da rota privada: sem pasta, arquivo e slug gravado não há sucesso.
+[[ -d "$ADMIN_DIR" ]] || fail "$(say "Diretório da rota Admin não foi criado: $ADMIN_DIR" "Admin route directory was not created: $ADMIN_DIR")"
+[[ -f "$ADMIN_DIR/index.php" ]] || fail "$(say "Tela Admin não foi instalada: $ADMIN_DIR/index.php" "Admin page was not installed: $ADMIN_DIR/index.php")"
+[[ "$(tr -d '\\r\\n' < "$ROUTE_FILE")" == "$slug" ]] || fail "$(say "Slug administrativo não foi gravado corretamente." "Administrative slug was not saved correctly.")"
+
 SITE_CFG="$DASHBOARD_DIR/config/site.php"
 REFLECTOR_NAME='XLX Modern'
 if [[ -f "$SITE_CFG" ]]; then
@@ -181,6 +186,8 @@ if [[ -f "$SITE_CFG" ]]; then
 fi
 DOMAIN="$(php -r '$c=require $argv[1]; echo (string)($c["reflector"]["domain"]??"");' "$SITE_CFG")"
 DOMAIN="$(printf '%s' "$DOMAIN" | sed -E 's#^https?://##; s#/*$##')"
+[[ -n "$DOMAIN" ]] || fail "$(say 'Domínio do dashboard não encontrado.' 'Dashboard domain not found.')"
+DOMAIN="${DOMAIN:-}"
 [[ -n "$DOMAIN" ]] || fail "$(say 'Domínio do dashboard não encontrado.' 'Dashboard domain not found.')"
 BASE_URL="https://$DOMAIN"
 TITLE="Admin $REFLECTOR_NAME"
@@ -253,6 +260,7 @@ grep -Fq 'Links rápidos' "$ADMIN_DIR/index.php"
 if curl --silent --show-error --insecure --resolve "$DOMAIN:443:127.0.0.1" \
   --connect-timeout 5 --max-time 12 "$BASE_URL/$slug/" -o "$WORK/admin-web.html" 2>/dev/null; then
   grep -Fq "$TITLE" "$WORK/admin-web.html" || fail "$(say 'A rota Admin respondeu, mas não entregou a tela privada correta.' 'Admin route responded but did not deliver the correct private page.')"
+  [[ -s "$WORK/admin-web.html" ]] || fail "$(say 'A rota Admin retornou resposta vazia.' 'Admin route returned an empty response.')"
   grep -Fq 'Acesso restrito' "$WORK/admin-web.html" || fail "$(say 'A rota Admin não entregou a tela de autenticação.' 'Admin route did not deliver the authentication page.')"
   ok "$(say 'Rota privada do Admin validada localmente.' 'Private Admin route validated locally.')"
 else
