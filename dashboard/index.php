@@ -59,7 +59,7 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}/' . ($page === 'ao-vivo' ? '' : '?pag
 <link rel="stylesheet" href="assets/ao-vivo-clean-v1.css?v=20260807_024051">
 
 <!-- XLX026_HISTORY_SOUND_MENU_V1 CSS -->
-<link rel="stylesheet" href="assets/history-sound-menu-v1.css?v=20260807_025428">
+<link rel="stylesheet" href="assets/history-sound-menu-v1.css?v=20260828_11cols">
 
 <!-- XLX026_HISTORY_MOBILE_FIT_V2 -->
 <link rel="stylesheet" href="assets/history-mobile-fit-v2.css?v=20260807_031008">
@@ -170,7 +170,7 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}/' . ($page === 'ao-vivo' ? '' : '?pag
 <?php else: ?>
 <footer><div><a class="brand footer-brand" href="<?=page_url('ao-vivo')?>"><img class="brand-logo" src="assets/logo-{{REFLECTOR_NAME}}.svg" alt="Logotipo {{REFLECTOR_NAME}}"><span><b>{{REFLECTOR_NAME}}</b></span></a><p> para a comunidade radioamadora.</p></div><div class="footer-links"><a href="<?=page_url('ao-vivo')?>">Ao vivo</a><a href="<?=page_url('conectados')?>">Conectados</a><a href="<?=page_url('ranking')?>">Ranking</a></div><small>{{REFLECTOR_NAME}} • D-STAR {{REFLECTOR_NAME}}-D • DMR: TG 6 (voz), A=4001, B=4002, C=4003… • C4FM/YSF {{YSF_ID}}</small></footer>
 <?php endif; ?>
-<div id="toastStack" class="toast-stack"></div><script src="assets/mtr.js?v=5"></script><script src="assets/app.js?v=69"></script>
+<div id="toastStack" class="toast-stack"></div><script src="assets/mtr.js?v=5"></script><script src="assets/app.js?v=70"></script>
 <?php if ($page === 'ao-vivo'): ?>
 <script src="assets/ao-vivo-authorized-sync-v1.js?v=1"></script>
 <script src="assets/ao-vivo-tx-embed-v5.js?v=1" defer></script>
