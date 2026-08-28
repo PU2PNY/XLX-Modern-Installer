@@ -14,6 +14,11 @@ const flag=x=>{
  return `<span class="flag" title="${esc(name)}"><img src="/flags/${esc(code)}.png" alt="Bandeira de ${esc(name)}" width="24" height="16" loading="lazy" decoding="async" style="display:inline-block;width:24px;height:16px;object-fit:cover;vertical-align:middle;border-radius:2px"></span>`;
 };
 const onlineBadge = online => `<span class="state-pill ${online?'online':'offline'}">${online?'Online':'Offline'}</span>`;
+function operatorDisplay(x){
+ const unresolved=x?.operator_identity==='unresolved'&&String(x?.protocol||'').toUpperCase().startsWith('D-STAR/');
+ if(unresolved)return {callsign:'Operador não identificado',name:'Aguardando identificação pelo gateway',qrz:''};
+ return {callsign:String(x?.operator_callsign||x?.callsign||'Não informado'),name:String(x?.name||x?.callsign||'Operador não identificado'),qrz:String(x?.qrz||'')};
+}
 function operatorVisual(){return `<div class="operator-visual"><img src="assets/talking-radio.gif" alt="Indicador de transmissão"><span class="signal-ring"></span></div>`}
 function txCard(m){
 /* {{REFLECTOR_NAME}}_TXCARD_CALLSIGN_SEM_SUFFIX_V13 */
@@ -21,7 +26,9 @@ function txCard(m){
  const tx=m.transmission;
  const countryName=tx.country?.name||'País não informado';
  const gatewayHtml=hotspotRepeaterMarkup(tx);
- const callsign=esc(tx.callsign);
+ const operator=operatorDisplay(tx);
+ const callsign=esc(operator.callsign);
+ const operatorLink=operator.qrz?`<a class="tx-v30-callsign" target="_blank" rel="noopener" href="${esc(operator.qrz)}">${callsign}</a>`:`<strong class="tx-v30-callsign">${callsign}</strong>`;
 
  return `<article class="tx-card live compact-tx tx-v30">
   <div class="tx-top">
@@ -36,8 +43,8 @@ function txCard(m){
    <div class="tx-v30-person">
     ${operatorVisual()}
     <div class="tx-v30-person-data">
-     <a class="tx-v30-callsign" target="_blank" rel="noopener" href="${esc(tx.qrz)}">${callsign}</a>
-     <strong class="tx-v30-name">${esc(tx.name||tx.callsign)}</strong>
+     ${operatorLink}
+     <strong class="tx-v30-name">${esc(operator.name)}</strong>
      <span class="tx-v30-location">${esc(tx.location||'Localização não informada')}</span>
      <span class="tx-v30-country">${flag(tx)} ${esc(countryName)}</span>
     </div>
@@ -69,12 +76,13 @@ function txCard(m){
 
 function standbyCard(m,newest){
  const last=newest||m.last_transmission;
- const callsign=last
-  ? `${esc(last.callsign)}${last.suffix?' '+esc(last.suffix):''}`
+ const lastOperator=last?operatorDisplay(last):null;
+ const callsign=lastOperator
+  ? `${esc(lastOperator.callsign)}${last.suffix?' '+esc(last.suffix):''}`
   : 'Sem transmissão recente';
 
- const name=last
-  ? esc(last.name||'Operador não identificado')
+ const name=lastOperator
+  ? esc(lastOperator.name)
   : 'Aguardando a próxima transmissão';
 
  return `<article class="tx-card standby compact-tx standby-v30">
@@ -201,6 +209,9 @@ function historyRowMarkup(x, options={}){
   position=''
  }=options;
  const rowNumber=position===''?'↳':esc(position);
+ const operator=operatorDisplay(x);
+ const operatorCall=esc(operator.callsign);
+ const operatorHtml=operator.qrz?`<a target="_blank" rel="noopener" href="${esc(operator.qrz)}">${operatorCall}</a>`:`<span class="operator-unresolved" title="O gateway ainda não informou o operador">${operatorCall}</span>`;
 
  return `<tr ${attrs}>
 
@@ -220,10 +231,10 @@ function historyRowMarkup(x, options={}){
   </td>
 
   <td class="history-callsign-cell">
-   <a target="_blank" href="${esc(x.qrz)}">${esc(x.callsign)}</a>
+   ${operatorHtml}
   </td>
 
-  <td>${esc(x.name)}</td>
+  <td>${esc(operator.name)}</td>
 
   <td class="history-hotspot-cell">
    ${hotspotRepeaterMarkup(x)}
@@ -2609,5 +2620,4 @@ window.XLX026AudioControl={
  }
 
 };
-
 
