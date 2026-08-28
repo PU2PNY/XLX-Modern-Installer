@@ -3790,3 +3790,15 @@ footer .footer-final-line{
 }
 
 /* XLX_MODULOS_RESPONSIVO_V1_END */
+
+
+/* XLX_MODERN_CONNECTED_FILTERS_V1 — layout proveniente do painel XLX026, sem módulos fixos */
+body[data-page="conectados"] .connected-filter-tools{display:grid;grid-template-columns:minmax(260px,1fr) 140px 190px;gap:12px;align-items:end;width:720px;max-width:100%}
+body[data-page="conectados"] .connected-filter-tools .search-box{min-width:0}
+body[data-page="conectados"] .connected-filter-select select{width:100%;min-height:44px;background:#071923;border:1px solid #285164;color:#fff;border-radius:10px;padding:12px 14px;font:inherit;outline:none}
+body[data-page="conectados"] .connected-filter-select select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,216,255,.1)}
+body[data-page="ao-vivo"] .home-history .history-number-cell,body[data-page="ao-vivo"] .home-history .history-country-cell,body[data-page="ao-vivo"] .home-history .history-status-cell,body[data-page="ao-vivo"] .home-history .history-tx-time,body[data-page="ao-vivo"] .home-history .history-duration-cell{text-align:center;white-space:nowrap}
+body[data-page="ao-vivo"] .home-history .history-hotspot-cell{min-width:132px;white-space:nowrap}
+body[data-page="ao-vivo"] .home-history .history-number-wrap{display:inline-flex;align-items:center;gap:5px}
+@media(max-width:1050px){body[data-page="conectados"] .heading-with-tools{align-items:stretch;flex-direction:column}body[data-page="conectados"] .connected-filter-tools{grid-template-columns:1fr 1fr;width:100%}body[data-page="conectados"] .connected-filter-search{grid-column:1/-1}}
+@media(max-width:720px){body[data-page="conectados"] .connected-filter-tools{grid-template-columns:1fr}body[data-page="conectados"] .connected-filter-search{grid-column:auto}body[data-page="conectados"] .connected-filter-tools select{min-height:46px}}
