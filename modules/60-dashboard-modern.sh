@@ -9,6 +9,11 @@ say() {
   if [ "$UI_LANG" = "en" ]; then printf '%s' "$2"; else printf '%s' "$1"; fi
 }
 
+# Runtime data is intentionally independent from the legacy dashboard.
+# This repairs/installs the callsign database, its daily timer and the
+# TX/RX journal bridge before publishing the dashboard itself.
+bash "$ROOT/modules/64-runtime-data.sh"
+
 bash "$ROOT/dashboard/install/install-dashboard.sh" "$@"
 INSTALL_DIR="$DASH_DEST" bash "$ROOT/dashboard/install/post-install.sh"
 bash "$ROOT/modules/65-callsign-directory.sh"
