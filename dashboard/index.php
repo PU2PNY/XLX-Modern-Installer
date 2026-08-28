@@ -69,6 +69,10 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}/' . ($page === 'ao-vivo' ? '' : '?pag
 
 <!-- XLX026_HEADER_UNIFICADO_V1 CSS -->
 <link rel="stylesheet" href="assets/header-unificado-v1.css?v=20260807_032449">
+<link rel="stylesheet" href="assets/header-brasil-neon-fixed-v2.css?v=1">
+<link rel="stylesheet" href="assets/header-brasil-refino-v3.css?v=1">
+<link rel="stylesheet" href="assets/header-horizontal-responsivo-v4.css?v=1">
+<link rel="stylesheet" href="assets/header-menu-breakpoint-fix-v1.css?v=1">
 
 <?php if ($authorizedPage): ?>
 <link rel="stylesheet" href="assets/authorized-pages-v1.css?v=1">
