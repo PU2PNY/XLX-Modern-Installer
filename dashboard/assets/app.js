@@ -658,13 +658,13 @@ function chooseConnectedVoice(){
    voices.find(
     voice=>
      String(voice.lang||'')
-      .toLowerCase()==='pt-br'
+      .toLowerCase()===(uiEnglish?'en-us':'pt-br')
    )||
    voices.find(
     voice=>
      String(voice.lang||'')
       .toLowerCase()
-      .startsWith('pt')
+      .startsWith(uiEnglish?'en':'pt')
    )||
    null
   );
@@ -675,6 +675,15 @@ function chooseConnectedVoice(){
 }
 
 
+const uiLocale=document.documentElement.lang||'pt-BR';
+const uiEnglish=/^en(?:-|$)/i.test(uiLocale);
+function reflectorVoiceName(){
+ const digits=String('{{REFLECTOR_NUMBER}}').replace(/\D/g,'').split('');
+ if(!digits.length)return '{{REFLECTOR_NAME}}';
+ if(uiEnglish)return 'XLX '+digits.join(' ');
+ const words=['zero','um','dois','três','quatro','cinco','seis','sete','oito','nove'];
+ return 'XLX '+digits.map(d=>words[Number(d)]).join(' ');
+}
 function connectedVoiceValue(total){
  return Math.max(
   0,
@@ -786,10 +795,10 @@ function speakConnectedCount(total,reason='event'){
 
   const utterance=
    new SpeechSynthesisUtterance(
-    `XLX zero vinte e seis com ${value} estações conectados.`
+    uiEnglish?`${reflectorVoiceName()} with ${value} connected stations.`:`${reflectorVoiceName()} com ${value} estações conectadas.`
    );
 
-  utterance.lang='pt-BR';
+  utterance.lang=uiEnglish?'en-US':'pt-BR';
 
   /*
    * Rapida e mais animada.
