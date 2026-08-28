@@ -193,4 +193,21 @@ fi
 
 info "Iniciando instalador independente APRS/D-PRS."
 bash "$SOURCE/install.sh" "${args[@]}"
+
+# Integrate the optional page into the existing public menu without replacing
+# any other navigation entry (including the private Admin link).
+php -r '
+$f=$argv[1];
+$s=file_get_contents($f); if($s===false) exit(2);
+$s=preg_replace("~\\n?<!-- XLX_MODERN_APRS_NAV_START -->.*?<!-- XLX_MODERN_APRS_NAV_END -->\\n?~s","\n",$s);
+$needle="  <a href=\"#acessibilidade\" class=\"xlx-a11y-menu-icon\"";
+$block="  <!-- XLX_MODERN_APRS_NAV_START -->\n  <a class=\"xlx-aprs-menu-link\" href=\"/aprs-dprs/\">APRS / D-PRS</a>\n  <!-- XLX_MODERN_APRS_NAV_END -->\n";
+if(strpos($s,$needle)===false) exit(3);
+$s=str_replace($needle,$block.$needle,$s,$count);
+if($count!==1) exit(4);
+file_put_contents($f,$s);
+' "$DASHBOARD/index.php" || fatal "Falha ao integrar APRS/D-PRS ao menu do dashboard."
+php -l "$DASHBOARD/index.php" >/dev/null
+grep -Fq 'href="/aprs-dprs/"' "$DASHBOARD/index.php" || fatal "Link APRS/D-PRS não foi publicado no menu."
+
 ok "Integração APRS/D-PRS concluída."
