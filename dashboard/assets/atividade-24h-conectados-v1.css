@@ -111,3 +111,251 @@ table.home-history
         min-width:31px !important;
     }
 }
+
+
+/*
+ * ==========================================================
+ * XLX026 — TABELA FINAL 24H / 11 COLUNAS
+ *
+ * Mantém a apresentação desktop aprovada do XLX026 sem
+ * rolagem horizontal e preserva a ordem final:
+ * Nº | País | Status | Indicativo | Nome | Hotspot/Repetidora |
+ * Cidade | Protocolo | Módulo | Horário TX | Tempo de TX
+ * ==========================================================
+ */
+
+@media (min-width:821px){
+
+    html body[data-page="ao-vivo"]
+    .dashboard-main .table-wrap{
+        width:100% !important;
+        max-width:100% !important;
+        overflow-x:hidden !important;
+    }
+
+    html body[data-page="ao-vivo"]
+    table.home-history{
+        width:100% !important;
+        max-width:100% !important;
+        min-width:0 !important;
+        table-layout:fixed !important;
+    }
+
+    html body[data-page="ao-vivo"]
+    table.home-history th,
+    html body[data-page="ao-vivo"]
+    table.home-history td{
+        box-sizing:border-box !important;
+        padding-left:6px !important;
+        padding-right:6px !important;
+        min-width:0 !important;
+    }
+
+    /* Nº */
+    html body[data-page="ao-vivo"] table.home-history th:nth-child(1),
+    html body[data-page="ao-vivo"] table.home-history td:nth-child(1){
+        width:5% !important;
+        text-align:center !important;
+    }
+
+    /* País */
+    html body[data-page="ao-vivo"] table.home-history th:nth-child(2),
+    html body[data-page="ao-vivo"] table.home-history td:nth-child(2){
+        width:4.5% !important;
+        text-align:center !important;
+    }
+
+    /* Status */
+    html body[data-page="ao-vivo"] table.home-history th:nth-child(3),
+    html body[data-page="ao-vivo"] table.home-history td:nth-child(3){
+        width:7% !important;
+        text-align:center !important;
+    }
+
+    /* Indicativo */
+    html body[data-page="ao-vivo"] table.home-history th:nth-child(4),
+    html body[data-page="ao-vivo"] table.home-history td:nth-child(4){
+        width:8% !important;
+    }
+
+    /* Nome */
+    html body[data-page="ao-vivo"] table.home-history th:nth-child(5),
+    html body[data-page="ao-vivo"] table.home-history td:nth-child(5){
+        width:14.5% !important;
+    }
+
+    /* Hotspot / Repetidora */
+    html body[data-page="ao-vivo"] table.home-history th:nth-child(6),
+    html body[data-page="ao-vivo"] table.home-history td:nth-child(6){
+        width:13% !important;
+    }
+
+    /* Cidade */
+    html body[data-page="ao-vivo"] table.home-history th:nth-child(7),
+    html body[data-page="ao-vivo"] table.home-history td:nth-child(7){
+        width:14% !important;
+    }
+
+    /* Protocolo */
+    html body[data-page="ao-vivo"] table.home-history th:nth-child(8),
+    html body[data-page="ao-vivo"] table.home-history td:nth-child(8){
+        width:10% !important;
+    }
+
+    /* Módulo */
+    html body[data-page="ao-vivo"] table.home-history th:nth-child(9),
+    html body[data-page="ao-vivo"] table.home-history td:nth-child(9){
+        width:5.5% !important;
+        text-align:center !important;
+    }
+
+    /* Horário TX */
+    html body[data-page="ao-vivo"] table.home-history th:nth-child(10),
+    html body[data-page="ao-vivo"] table.home-history td:nth-child(10){
+        width:8% !important;
+    }
+
+    /* Tempo de TX */
+    html body[data-page="ao-vivo"] table.home-history th:nth-child(11),
+    html body[data-page="ao-vivo"] table.home-history td:nth-child(11){
+        width:10.5% !important;
+    }
+
+    html body[data-page="ao-vivo"] table.home-history th:nth-child(10),
+    html body[data-page="ao-vivo"] table.home-history td:nth-child(10),
+    html body[data-page="ao-vivo"] table.home-history th:nth-child(11),
+    html body[data-page="ao-vivo"] table.home-history td:nth-child(11){
+        white-space:nowrap !important;
+        text-align:center !important;
+        font-variant-numeric:tabular-nums;
+    }
+
+    html body[data-page="ao-vivo"] table.home-history td:nth-child(4),
+    html body[data-page="ao-vivo"] table.home-history td:nth-child(5),
+    html body[data-page="ao-vivo"] table.home-history td:nth-child(6),
+    html body[data-page="ao-vivo"] table.home-history td:nth-child(7){
+        overflow:hidden;
+        text-overflow:ellipsis;
+        white-space:nowrap;
+    }
+}
+
+
+/* ==========================================================
+   SUBMENU / NUMERAÇÃO — MESMO COMPORTAMENTO DO XLX026
+   ========================================================== */
+
+body[data-page="ao-vivo"] .history-number-wrap{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:3px;
+    white-space:nowrap;
+    width:100%;
+}
+
+body[data-page="ao-vivo"] .history-number-wrap .history-row-number{
+    min-width:17px !important;
+    width:auto;
+    text-align:center !important;
+}
+
+body[data-page="ao-vivo"] .history-toggle{
+    display:inline-grid;
+    place-items:center;
+    flex:0 0 17px;
+    width:17px;
+    min-width:17px;
+    height:17px;
+    padding:0;
+    border:1px solid #285164;
+    border-radius:999px;
+    background:#071923;
+    color:#00d8ff;
+    font:inherit;
+    font-size:7px;
+    font-weight:900;
+    line-height:1;
+    cursor:pointer;
+    transition:border-color .16s ease,box-shadow .16s ease,transform .16s ease;
+}
+
+body[data-page="ao-vivo"] .history-toggle:hover,
+body[data-page="ao-vivo"] .history-toggle:focus-visible,
+body[data-page="ao-vivo"] .history-toggle[aria-expanded="true"]{
+    border-color:#00d8ff;
+    box-shadow:0 0 12px rgba(0,216,255,.22);
+    outline:none;
+}
+
+body[data-page="ao-vivo"] .history-toggle[aria-expanded="true"]{
+    transform:rotate(180deg);
+}
+
+body[data-page="ao-vivo"] .history-previous-row > td{
+    background:rgba(0,216,255,.035) !important;
+    color:#b9d5df !important;
+}
+
+body[data-page="ao-vivo"] .history-previous-row > td:first-child{
+    box-shadow:inset 3px 0 0 rgba(0,216,255,.32);
+}
+
+body[data-page="ao-vivo"] .history-primary-row.is-expanded > td{
+    background:rgba(0,216,255,.055);
+}
+
+
+/* ==========================================================
+   HOTSPOT / REPETIDORA — ALERTA NEON AMARELO
+   Acende somente quando o indicativo-base do gateway é
+   diferente do indicativo-base do operador.
+   ========================================================== */
+
+body[data-page="ao-vivo"] .gateway-display{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    min-width:0;
+    max-width:100%;
+}
+
+body[data-page="ao-vivo"] .gateway-value{
+    display:inline-block;
+    min-width:0;
+    max-width:100%;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    vertical-align:middle;
+}
+
+body[data-page="ao-vivo"] .gateway-neon{
+    display:inline-block;
+    flex:0 0 7px;
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    background:#ffc857;
+    box-shadow:
+        0 0 0 1px rgba(255,200,87,.28),
+        0 0 8px rgba(255,200,87,.95),
+        0 0 16px rgba(255,200,87,.55);
+    animation:xlxGatewayPulse 1.6s ease-in-out infinite;
+}
+
+body[data-page="ao-vivo"] .gateway-different .gateway-value{
+    color:#ffe59b;
+    font-weight:800;
+}
+
+@keyframes xlxGatewayPulse{
+    0%,100%{opacity:1;transform:scale(1)}
+    50%{opacity:.48;transform:scale(.82)}
+}
+
+@media (prefers-reduced-motion:reduce){
+    body[data-page="ao-vivo"] .gateway-neon{
+        animation:none;
+    }
+}
