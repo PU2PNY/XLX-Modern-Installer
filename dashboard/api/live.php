@@ -27,6 +27,7 @@ if (!is_readable($logFile)) {
  * Não consulta o banco de 20 MB nesta rota rápida.
  */
 $connections = [];
+$statusSnapshot = [];
 
 if (is_readable($statusCache)) {
     $cached = json_decode(
@@ -34,12 +35,15 @@ if (is_readable($statusCache)) {
         true
     );
 
-    if (
-        is_array($cached)
-        && isset($cached['connections'])
-        && is_array($cached['connections'])
-    ) {
-        $connections = $cached['connections'];
+    if (is_array($cached)) {
+        $statusSnapshot = $cached;
+
+        if (
+            isset($cached['connections'])
+            && is_array($cached['connections'])
+        ) {
+            $connections = $cached['connections'];
+        }
     }
 }
 
@@ -85,6 +89,7 @@ $active = [];
 $recentProtocols = [];
 $lines = preg_split('/\R/', $raw) ?: [];
 
+/* XLXMODERN_LOG260_COMPAT_V2: parser compatível XLXD 2.5/2.6 */
 foreach ($lines as $line) {
     if (
         preg_match(
@@ -111,7 +116,10 @@ foreach ($lines as $line) {
     if (
         preg_match(
             '/Opening stream on module\s+([A-Z])\s+' .
-            'for client\s+([A-Z0-9]+)\s*([A-Z0-9]+)?\s+' .
+            'for\s+(?:client\s+)?([A-Z0-9\/\-]+)' .
+            '(?:\s+((?!(?:on|via)\b)[A-Z0-9]+))?' .
+            '(?:\s*\/\s*[A-Z0-9+_-]+)?' .
+            '(?:\s+(?:on|via)\s+[A-Z0-9\/\-]+(?:\s+[A-Z0-9]+)?)?\s+' .
             'with sid\s+(\d+)/i',
             $line,
             $match
@@ -306,6 +314,404 @@ foreach ($active as $module => $transmission) {
         unset($active[$module]);
     }
 }
+
+
+/* XLXMODERN_LIVE_OPERATOR_BRIDGE_V12 START */
+
+/*
+ * O stream_id é usado quando existe nos dois lados.
+ *
+ * Se o status.json não possuir stream_id, o match
+ * seguro passa a ser:
+ *
+ *   módulo
+ * + gateway/network_callsign
+ * + started_at ±3 segundos
+ * + identity_source xlxd-station-*
+ *
+ * Se os DOIS lados possuírem stream_id e eles forem
+ * diferentes, a identidade é rejeitada.
+ */
+
+$xlxmodernBaseCallV12 = static function (
+    $value
+): string {
+    $value = strtoupper(
+        trim((string)$value)
+    );
+
+    if ($value === '') {
+        return '';
+    }
+
+    $parts = preg_split(
+        '/\s+/',
+        $value
+    ) ?: [];
+
+    return trim(
+        (string)(
+            $parts[0]
+            ?? ''
+        )
+    );
+};
+
+$xlxmodernGatewayPartsV12 = static function (
+    $value
+) use (
+    $xlxmodernBaseCallV12
+): array {
+    $raw = strtoupper(
+        trim((string)$value)
+    );
+
+    if (
+        $raw === ''
+        || $raw === 'NÃO IDENTIFICADO'
+        || $raw === 'GATEWAY NÃO IDENTIFICADO'
+    ) {
+        return ['', ''];
+    }
+
+    $parts = preg_split(
+        '/\s+/',
+        $raw
+    ) ?: [];
+
+    $call = $xlxmodernBaseCallV12(
+        $raw
+    );
+
+    $suffix = '';
+
+    if (count($parts) >= 2) {
+        $candidate = strtoupper(
+            trim(
+                (string)$parts[1]
+            )
+        );
+
+        if (
+            preg_match(
+                '/^[A-Z0-9]$/',
+                $candidate
+            )
+        ) {
+            $suffix = $candidate;
+        }
+    }
+
+    return [
+        $call,
+        $suffix
+    ];
+};
+
+foreach (
+    $active as $module => $transmission
+) {
+    /*
+     * Primeiro normaliza o gateway bruto:
+     *
+     * PY4RWC B -> PY4RWC + suffix B
+     * PU2PNY B -> PU2PNY + suffix B
+     */
+
+    [
+        $liveGatewayBase,
+        $liveGatewaySuffix
+    ] = $xlxmodernGatewayPartsV12(
+        $transmission['gateway']
+        ?? ''
+    );
+
+    $liveClientBase =
+        $xlxmodernBaseCallV12(
+            $transmission['callsign']
+            ?? ''
+        );
+
+    if ($liveGatewayBase !== '') {
+        $active[$module]['gateway'] =
+            $liveGatewayBase;
+
+        if (
+            trim(
+                (string)(
+                    $active[$module][
+                        'gateway_suffix'
+                    ]
+                    ?? ''
+                )
+            ) === ''
+            && $liveGatewaySuffix !== ''
+        ) {
+            $active[$module][
+                'gateway_suffix'
+            ] = $liveGatewaySuffix;
+        }
+    }
+
+    if (
+        $liveClientBase !== ''
+        && trim(
+            (string)(
+                $active[$module][
+                    'network_callsign'
+                ]
+                ?? ''
+            )
+        ) === ''
+    ) {
+        $active[$module][
+            'network_callsign'
+        ] = $liveClientBase;
+    }
+
+    /*
+     * Identidade STATION disponível no cache?
+     */
+
+    $cachedTransmission =
+        $statusSnapshot['modules']
+            [$module]['transmission']
+        ?? null;
+
+    if (!is_array($cachedTransmission)) {
+        continue;
+    }
+
+    $source = trim(
+        (string)(
+            $cachedTransmission[
+                'identity_source'
+            ]
+            ?? ''
+        )
+    );
+
+    if (
+        $source === ''
+        || strpos(
+            $source,
+            'xlxd-station'
+        ) !== 0
+    ) {
+        continue;
+    }
+
+    /*
+     * Mesmo módulo.
+     */
+
+    $liveModule = strtoupper(
+        trim(
+            (string)(
+                $transmission['module']
+                ?? $module
+            )
+        )
+    );
+
+    $cacheModule = strtoupper(
+        trim(
+            (string)(
+                $cachedTransmission['module']
+                ?? $module
+            )
+        )
+    );
+
+    if (
+        $liveModule === ''
+        || $liveModule !== $cacheModule
+    ) {
+        continue;
+    }
+
+    /*
+     * Gateway/repetidora precisa bater.
+     *
+     * O client cru do live normalmente é:
+     *   PY4RWC
+     *
+     * E no STATION:
+     *   gateway/network_callsign = PY4RWC
+     */
+
+    $cacheGateway =
+        $xlxmodernBaseCallV12(
+            $cachedTransmission[
+                'gateway'
+            ]
+            ?? ''
+        );
+
+    $cacheNetwork =
+        $xlxmodernBaseCallV12(
+            $cachedTransmission[
+                'network_callsign'
+            ]
+            ?? ''
+        );
+
+    $gatewayMatch =
+        $liveClientBase !== ''
+        && (
+            (
+                $cacheGateway !== ''
+                && $liveClientBase ===
+                   $cacheGateway
+            )
+            ||
+            (
+                $cacheNetwork !== ''
+                && $liveClientBase ===
+                   $cacheNetwork
+            )
+            ||
+            (
+                $liveGatewayBase !== ''
+                && $cacheGateway !== ''
+                && $liveGatewayBase ===
+                   $cacheGateway
+            )
+        );
+
+    if (!$gatewayMatch) {
+        continue;
+    }
+
+    /*
+     * Horário é obrigatório.
+     */
+
+    $liveStart = (int)(
+        $transmission['started_at']
+        ?? 0
+    );
+
+    $cacheStart = (int)(
+        $cachedTransmission['started_at']
+        ?? 0
+    );
+
+    if (
+        $liveStart <= 0
+        || $cacheStart <= 0
+        || abs(
+            $liveStart
+            - $cacheStart
+        ) > 3
+    ) {
+        continue;
+    }
+
+    /*
+     * Stream ID:
+     *
+     * - se existe nos dois lados: TEM que ser igual;
+     * - se está ausente em um lado: gateway+hora
+     *   continua sendo suficiente.
+     */
+
+    $liveStream = (int)(
+        $transmission['stream_id']
+        ?? 0
+    );
+
+    $cacheStream = (int)(
+        $cachedTransmission['stream_id']
+        ?? 0
+    );
+
+    if (
+        $liveStream > 0
+        && $cacheStream > 0
+        && $liveStream !== $cacheStream
+    ) {
+        continue;
+    }
+
+    /*
+     * Mesma transmissão comprovada.
+     */
+
+    foreach ([
+        'callsign',
+        'suffix',
+        'name',
+        'location',
+        'country',
+        'protocol',
+        'qrz',
+        'gateway',
+        'gateway_suffix',
+        'network_callsign',
+        'identity_source',
+        'origin_match',
+    ] as $field) {
+        if (
+            array_key_exists(
+                $field,
+                $cachedTransmission
+            )
+        ) {
+            $active[$module][$field] =
+                $cachedTransmission[$field];
+        }
+    }
+
+    /*
+     * Normaliza novamente após copiar.
+     */
+
+    [
+        $finalGateway,
+        $finalSuffix
+    ] = $xlxmodernGatewayPartsV12(
+        $active[$module]['gateway']
+        ?? ''
+    );
+
+    if ($finalGateway !== '') {
+        $active[$module]['gateway'] =
+            $finalGateway;
+    }
+
+    if (
+        trim(
+            (string)(
+                $active[$module][
+                    'gateway_suffix'
+                ]
+                ?? ''
+            )
+        ) === ''
+        && $finalSuffix !== ''
+    ) {
+        $active[$module][
+            'gateway_suffix'
+        ] = $finalSuffix;
+    }
+
+    /*
+     * Campo diagnóstico.
+     * O frontend pode ignorar.
+     */
+
+    $active[$module][
+        'identity_match'
+    ] = (
+        $liveStream > 0
+        && $cacheStream > 0
+    )
+        ? 'station-stream-time-gateway'
+        : 'station-time-gateway';
+}
+
+/* XLXMODERN_LIVE_OPERATOR_BRIDGE_V12 END */
 
 echo json_encode(
     [
