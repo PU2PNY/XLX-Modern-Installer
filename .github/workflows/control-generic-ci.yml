@@ -54,7 +54,10 @@ jobs:
         shell: bash
         run: |
           set -Eeuo pipefail
-          ! grep -En 'https://xlx026\.net|Controle XLX026|/etc/xlx026-control|/var/lib/xlx026-control|/usr/local/sbin/xlx026-control-helper' /tmp/admin.php control/xlx-modern-control-helper control/xlx-modern-radioid-helper control/xlx-modern-access-helper modules/68-control-panel.sh modules/69-admin-page.sh
+          if grep -En 'https://xlx026\.net|Controle XLX026|/etc/xlx026-control|/var/lib/xlx026-control|/usr/local/sbin/xlx026-control-helper' /tmp/admin.php control/xlx-modern-control-helper control/xlx-modern-radioid-helper control/xlx-modern-access-helper; then
+            echo 'Production identity leaked into generated generic Admin.' >&2
+            exit 1
+          fi
           grep -Fq "/etc/xlx-modern-control/config.php" /tmp/admin.php
           grep -Fq "/usr/local/sbin/xlx-modern-control-helper" /tmp/admin.php
           grep -Fq 'TITLE="Admin $REFLECTOR_NAME"' modules/68-control-panel.sh
@@ -71,9 +74,15 @@ jobs:
           grep -Fq "'samesite'=>'Strict'" /tmp/admin.php
           grep -Fq 'fail_login' /tmp/admin.php
           grep -Fq 'csrf_ok' /tmp/admin.php
-          ! grep -Fq 'xlx-admin-menu-link' modules/69-admin-page.sh
+          if grep -Fq 'xlx-admin-menu-link' modules/69-admin-page.sh; then
+            echo 'Legacy public Admin-link injector still present.' >&2
+            exit 1
+          fi
           grep -Fq 'ADMIN_PUBLIC_NAV=HIDDEN' modules/69-admin-page.sh
-          grep -Fq 'Rota Admin ainda aparece no menu público' modules/69-admin-page.sh
+          grep -Fq 'rota Admin ainda aparece no menu público' modules/69-admin-page.sh
+          grep -Fq 'sitemap.xml' modules/69-admin-page.sh
+          grep -Fq 'robots.txt' modules/69-admin-page.sh
+          grep -Fq 'ai-context.json' modules/69-admin-page.sh
 
       - name: XLX026 feature parity invariants
         shell: bash
@@ -102,7 +111,10 @@ jobs:
           grep -Fq 'password_verify' /tmp/admin.php
           grep -Fq 'Repita a senha:' modules/68-control-panel.sh
           grep -Fq 'senha não será exibida nem persistida em texto puro' modules/68-control-panel.sh
-          ! grep -En '^PASSWORD=["'"'][^$][^"'"']+["'"']$' modules/68-control-panel.sh
+          if grep -En '^PASSWORD=["'"'][^$][^"'"']+["'"']$' modules/68-control-panel.sh; then
+            echo 'Literal password assignment detected.' >&2
+            exit 1
+          fi
 
       - name: Privilege boundary invariants
         shell: bash
@@ -114,9 +126,15 @@ jobs:
           grep -Fq 'NOPASSWD: $HELPER restart' modules/68-control-panel.sh
           grep -Fq 'NOPASSWD: $HELPER radioid-save *' modules/68-control-panel.sh
           grep -Fq 'NOPASSWD: $HELPER access-add-black *' modules/68-control-panel.sh
-          ! grep -Eq 'NOPASSWD:[[:space:]]+ALL' modules/68-control-panel.sh modules/69-admin-page.sh
+          if grep -Eq 'NOPASSWD:[[:space:]]+ALL' modules/68-control-panel.sh modules/69-admin-page.sh; then
+            echo 'Unrestricted sudo rule detected.' >&2
+            exit 1
+          fi
           grep -Fq 'Uso permitido: status|listeners|logs|backups|restart|radioid-*|access-*' control/xlx-modern-control-helper
-          ! grep -En '\$_(GET|POST|REQUEST).*cmd|shell_exec\(|passthru\(|proc_open\(|popen\(' /tmp/admin.php
+          if grep -En '\$_(GET|POST|REQUEST).*cmd|shell_exec\(|passthru\(|proc_open\(|popen\(' /tmp/admin.php; then
+            echo 'Unsafe web-command execution pattern detected.' >&2
+            exit 1
+          fi
 
       - name: Access-list safety invariants
         shell: bash
