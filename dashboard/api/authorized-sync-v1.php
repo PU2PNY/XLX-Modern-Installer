@@ -138,6 +138,22 @@ function parse_log_connections_sync(): array {
         }
 
         if (preg_match(
+            '/DMRmmdvm client\\s+([A-Z0-9]+)\\s*([A-Z0-9]*)\\s+linking on module\\s+([A-Z])/i',
+            $line,
+            $match
+        )) {
+            $callsign = norm_call($match[1]);
+            $suffix = strtoupper(trim($match[2] ?? ''));
+            $key = $callsign . '|' . $suffix . '|DMR';
+
+            if (isset($connections[$key])) {
+                $connections[$key]['module'] = strtoupper($match[3]);
+                $connections[$key]['last_activity'] = $timestamp;
+            }
+            continue;
+        }
+
+        if (preg_match(
             '/Client\\s+([A-Z0-9]+)\\s*([A-Z0-9]*)\\s+at\\s+[^\\s]+\\s+removed with protocol\\s+([A-Za-z0-9+_-]+)/i',
             $line,
             $match
