@@ -200,7 +200,15 @@ escape() {
 
 choose_language
 load_install_state
-printf 'Dashboard language / Idioma do painel: %s (%s)\n\n' "$(language_name "$DASHBOARD_LANG")" "$DASHBOARD_LANG"
+
+MODULE_COUNT="${MODULE_COUNT:-5}"
+if [[ ! "$MODULE_COUNT" =~ ^[0-9]+$ ]] || [ "$MODULE_COUNT" -lt 1 ] || [ "$MODULE_COUNT" -gt 26 ]; then
+    echo "ERROR / ERRO: invalid XLXD module count / quantidade de módulos XLXD inválida: $MODULE_COUNT" >&2
+    exit 2
+fi
+
+printf 'Dashboard language / Idioma do painel: %s (%s)\n' "$(language_name "$DASHBOARD_LANG")" "$DASHBOARD_LANG"
+printf 'XLXD modules / Módulos XLXD: A-%s (%s)\n\n' "$(printf "\\$(printf '%03o' "$((64 + MODULE_COUNT))")")" "$MODULE_COUNT"
 
 reuse_or_ask REFLECTOR_NAME reflector
 reuse_or_ask REFLECTOR_TITLE title
@@ -301,6 +309,7 @@ return [
  'radio'=>[
   'reflector_number'=>'$(escape "$REFLECTOR_NUMBER")',
   'reflector_short_number'=>'$(escape "$REFLECTOR_SHORT_NUMBER")',
+  'module_count'=>$(escape "$MODULE_COUNT"),
   'ysf_id'=>'$(escape "$YSF_ID")',
   'dmr_tg'=>'$(escape "$DMR_TG")',
  ],
