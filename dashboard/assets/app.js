@@ -1,6 +1,9 @@
 const $=s=>document.querySelector(s);let previousConnections=null,lastData=null;const page=document.body.dataset.page||'ao-vivo';
 const historyExpandedCalls=new Set();
-const fmtTime=ts=>ts?new Date(ts*1000).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}):'—';
+const uiLocale=document.documentElement.lang||'pt-BR';
+const uiEnglish=uiLocale.toLowerCase().startsWith('en');
+const uiText=(pt,en)=>uiEnglish?en:pt;
+const fmtTime=ts=>ts?new Date(ts*1000).toLocaleTimeString(uiLocale,{hour:'2-digit',minute:'2-digit',second:'2-digit'}):'—';
 const elapsed=ts=>{if(!ts)return'—';let s=Math.max(0,Math.floor(Date.now()/1000-ts)),d=Math.floor(s/86400);s%=86400;let h=Math.floor(s/3600);s%=3600;let m=Math.floor(s/60);s%=60;return(d?d+'d ':'')+String(h).padStart(2,'0')+'h '+String(m).padStart(2,'0')+'m '+String(s).padStart(2,'0')+'s'};
 const duration=s=>{s=Number(s||0);const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;return(h?h+'h ':'')+String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0')};
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -325,13 +328,13 @@ function chooseConnectedVoice(){
    voices.find(
     voice=>
      String(voice.lang||'')
-      .toLowerCase()==='pt-br'
+      .toLowerCase()===(uiEnglish?'en-us':'pt-br')
    )||
    voices.find(
     voice=>
      String(voice.lang||'')
       .toLowerCase()
-      .startsWith('pt')
+      .startsWith(uiEnglish?'en':'pt')
    )||
    null
   );
@@ -438,7 +441,7 @@ function connectedVoiceReflectorSpeech(){
  const reflector='{{REFLECTOR_NAME}}';
  const match=/^XLX(\d{3})$/i.exec(reflector);
  if(!match)return reflector;
- const words=['zero','um','dois','três','quatro','cinco','seis','sete','oito','nove'];
+ const words=uiEnglish?['zero','one','two','three','four','five','six','seven','eight','nine']:['zero','um','dois','três','quatro','cinco','seis','sete','oito','nove'];
  return `XLX ${match[1].split('').map(d=>words[Number(d)]||d).join(' ')}`;
 }
 
@@ -461,10 +464,12 @@ function speakConnectedCount(total,reason='event'){
 
   const utterance=
    new SpeechSynthesisUtterance(
-    `${connectedVoiceReflectorSpeech()} com ${value} estações conectadas.`
+    uiEnglish
+     ? `${connectedVoiceReflectorSpeech()} with ${value} connected stations.`
+     : `${connectedVoiceReflectorSpeech()} com ${value} estações conectadas.`
    );
 
-  utterance.lang='pt-BR';
+  utterance.lang=uiEnglish?'en-US':'pt-BR';
 
   /*
    * Rapida e mais animada.
