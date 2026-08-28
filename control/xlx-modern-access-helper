@@ -8,12 +8,12 @@ STATE="${XLX_CONTROL_STATE:-/var/lib/xlx-modern-control}"
 BACKROOT="${XLX_ACCESS_BACKUPS:-/var/backups/xlx-reflector/control-access}"
 WL="${XLX_WHITELIST:-/xlxd/xlxd.whitelist}"
 BL="${XLX_BLACKLIST:-/xlxd/xlxd.blacklist}"
-TERM="${XLX_TERMINAL:-/xlxd/xlxd.terminal}"
+IL="${XLX_INTERLINK:-/xlxd/xlxd.interlink}"
 LOCK="${XLX_ACCESS_LOCK:-/run/lock/xlx-modern-control-access.lock}"
 
 fail(){ printf 'ERRO: %s\n' "$*" >&2; exit 64; }
 need(){
-  for f in "$WL" "$BL" "$TERM"; do [[ -f "$f" ]] || fail "arquivo ausente: $f"; done
+  for f in "$WL" "$BL" "$IL"; do [[ -f "$f" ]] || fail "arquivo ausente: $f"; done
   command -v flock >/dev/null 2>&1 || fail 'flock ausente'
   command -v python3 >/dev/null 2>&1 || fail 'python3 ausente'
 }
@@ -50,21 +50,15 @@ status(){
     first=0
     printf '%s' "$(printf '%s' "$x" | json_string)"
   done < <(read_rules "$BL")
-  local address modules
-  address="$(awk '$1=="address"{print $2;exit}' "$TERM" 2>/dev/null || true)"
-  modules="$(awk '$1=="modules"{print $2;exit}' "$TERM" 2>/dev/null || true)"
-  [[ -n "$modules" ]] || modules='*'
-  printf '],"terminal":{"address":%s,"modules":%s}}\n' \
-    "$(printf '%s' "$address" | json_string)" \
-    "$(printf '%s' "$modules" | json_string)"
+  printf '],"interlink":%s}\n' "$(python3 -c 'import json,sys; print(json.dumps([x.split() for x in open(sys.argv[1]) if x.strip() and not x.lstrip().startswith("#")]))' "$IL")"
 }
 backup_files(){
   local stamp dir
   stamp="$(date -u +%Y%m%d_%H%M%S)"
   dir="$BACKROOT/$stamp"
   install -d -m 0700 "$dir"
-  cp -a "$WL" "$BL" "$TERM" "$dir/"
-  sha256sum "$dir/$(basename "$WL")" "$dir/$(basename "$BL")" "$dir/$(basename "$TERM")" > "$dir/SHA256_BEFORE.txt"
+  cp -a "$WL" "$BL" "$IL" "$dir/"
+  sha256sum "$dir/$(basename "$WL")" "$dir/$(basename "$BL")" "$dir/$(basename "$IL")" > "$dir/SHA256_BEFORE.txt"
   printf '%s' "$dir"
 }
 write_rules(){
@@ -82,28 +76,6 @@ write_rules(){
   chown --reference="$file" "$tmp" 2>/dev/null || chown www-data:www-data "$tmp"
   chmod --reference="$file" "$tmp" 2>/dev/null || chmod 0644 "$tmp"
   mv -f "$tmp" "$file"
-}
-valid_address(){
-  local a="$1"
-  [[ -z "$a" ]] && return 0
-  [[ "$a" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] && return 0
-  [[ "$a" =~ ^[0-9A-Fa-f:]+$ ]] && return 0
-  [[ "$a" =~ ^[A-Za-z0-9.-]{1,253}$ ]] && return 0
-  return 1
-}
-save_terminal(){
-  local address="$1" modules="${2^^}" tmp
-  valid_address "$address" || fail 'endereço terminal inválido'
-  [[ "$modules" == '*' || "$modules" =~ ^[A-Z]{1,26}$ ]] || fail 'módulos inválidos'
-  tmp="$(mktemp "${TERM}.new.XXXXXX")"
-  {
-    grep -E '^[[:space:]]*#|^[[:space:]]*$' "$TERM" || true
-    [[ -z "$address" ]] || printf 'address %s\n' "$address"
-    printf 'modules %s\n' "$modules"
-  } > "$tmp"
-  chown --reference="$TERM" "$tmp" 2>/dev/null || chown www-data:www-data "$tmp"
-  chmod --reference="$TERM" "$tmp" 2>/dev/null || chmod 0644 "$tmp"
-  mv -f "$tmp" "$TERM"
 }
 audit(){
   install -d -m 0770 -o root -g www-data "$STATE"
@@ -130,14 +102,6 @@ case "${1:-}" in
       delete-black) write_rules "$BL" "$rule" delete ;;
     esac
     audit "$1" "$rule" "$backup"
-    status
-    ;;
-  save-terminal)
-    [[ "$#" -eq 3 ]] || fail 'uso inválido'
-    lock_access
-    backup="$(backup_files)"
-    save_terminal "$2" "$3"
-    audit 'save-terminal' "address=$2 modules=${3^^}" "$backup"
     status
     ;;
   *)
