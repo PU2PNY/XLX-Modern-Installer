@@ -42,8 +42,9 @@ return [
 
     'history.eyebrow' => 'LATEST ACTIVITY',
     'history.title' => 'Activity from the last 24 hours',
-    'history.limit' => 'Up to 40 callsigns',
+    'history.limit' => 'All callsigns',
 
+    'table.number' => 'No.',
     'table.country' => 'Country',
     'table.time' => 'Time',
     'table.callsign' => 'Callsign',
@@ -54,6 +55,10 @@ return [
     'table.status' => 'Status',
     'table.name' => 'Name',
     'table.location' => 'Location',
+    'table.gateway' => 'Hotspot / Repeater',
+    'table.city' => 'City',
+    'table.tx_time' => 'TX time',
+    'table.tx_duration' => 'TX duration',
     'table.connected_at' => 'Connected at',
     'table.connected_time' => 'Connected time',
     'table.last_activity' => 'Last activity',
