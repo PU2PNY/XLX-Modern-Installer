@@ -504,7 +504,7 @@ execute_installer() {
     XLX_MODERN_STATE_FILE="$state_file" XLX_MODERN_LOCATION="$DASHBOARD_LOCATION" XLX_MODERN_YSF_ID="$DASHBOARD_YSF_ID" bash "$base_installer" 2>&1 | tee -a "$logfile"
     installer_rc=${PIPESTATUS[0]}
     set -e
-    [ "$installer_rc" -eq 0 ] || fatal "$(msg "O instalador base terminou com código $logfile" "The base installer exited with code $installer_rc. Check the log: $logfile")"
+    [ "$installer_rc" -eq 0 ] || fatal "$(msg "O instalador base terminou com código $installer_rc. Consulte o log: $logfile" "The base installer exited with code $installer_rc. Check the log: $logfile")"
 
     # State is produced by the verified root-owned base-installer runtime.
     # shellcheck disable=SC1090
