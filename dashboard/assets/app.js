@@ -193,13 +193,13 @@ function historyToggleMarkup(x,callKey,previousIds){
 }
 
 /* {{REFLECTOR_NAME}}_HORARIO_TX_24H_V1 */
-function historyRowMarkup(
- x,
- statusHtml,
- toggleHtml='',
- attrs='',
- position=''
-){
+function historyRowMarkup(x, options={}){
+ const {
+  statusHtml='',
+  toggleHtml='',
+  attrs='',
+  position=''
+ }=options;
  const rowNumber=position===''?'↳':esc(position);
 
  return `<tr ${attrs}>
@@ -287,17 +287,16 @@ function historyMarkup(d){
    const mainAttrs=
     `class="history-primary-row${expanded?' is-expanded':''}" data-history-call="${esc(callKey)}"`;
 
-   const main=historyRowMarkup(
-    latest,
-    historyStatusMarkup(latest),
-    historyToggleMarkup(
+   const main=historyRowMarkup(latest,{
+    statusHtml:historyStatusMarkup(latest),
+    toggleHtml:historyToggleMarkup(
      latest,
      callKey,
      previousIds
     ),
-    mainAttrs,
-    groupIndex+1
-   );
+    attrs:mainAttrs,
+    position:groupIndex+1
+   });
 
    const older=previous.map((x,index)=>{
     const hidden=expanded
@@ -307,13 +306,11 @@ function historyMarkup(d){
     const attrs=
      `id="${esc(previousIds[index])}" class="history-previous-row" data-history-parent="${esc(callKey)}"${hidden}`;
 
-    return historyRowMarkup(
-     x,
-     historyStatusMarkup(x),
-     '',
+    return historyRowMarkup(x,{
+     statusHtml:historyStatusMarkup(x),
      attrs,
-     `${groupIndex+1}.${index+1}`
-    );
+     position:`${groupIndex+1}.${index+1}`
+    });
    }).join('');
 
    return main+older;
