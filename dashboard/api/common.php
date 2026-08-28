@@ -401,13 +401,16 @@ function xlxmodern_find_dstar_station(
             ))
         );
 
-        if(
+        /*
+         * O sufixo pertence ao gateway remoto e pode representar o
+         * módulo dele, não o módulo local do XLX. Uma divergência não
+         * pode descartar o operador; ela só serve de desempate.
+         */
+        $suffixPenalty=(
             $gatewaySuffix!==''
             && $xmlSuffix!==''
             && $gatewaySuffix!==$xmlSuffix
-        ){
-            continue;
-        }
+        ) ? 5 : 0;
 
         $heard=(int)($station['heard_at']??0);
 
@@ -429,7 +432,8 @@ function xlxmodern_find_dstar_station(
 
         $score=
             ($outside*100000)
-            +abs($heard-$endedAt);
+            +abs($heard-$endedAt)
+            +$suffixPenalty;
 
         if($score<$bestScore){
             $bestScore=$score;
@@ -590,6 +594,8 @@ function xlxmodern_apply_dstar_station(
 
     $tx['callsign']=$call;
     $tx['suffix']='';
+    $tx['operator_callsign']=$call;
+    $tx['operator_identity']='station';
     $tx['name']=$user['name'];
     $tx['location']=$user['location'];
     $tx['country']=country_for_call($call);
@@ -763,6 +769,15 @@ function active_and_history(array $connections, ?int $historyLimit = null, ?int 
                 'qrz'=>qrz_url($call),
                 'state'=>'transmitting'
             ],$origin);
+
+            /*
+             * Em D-STAR o "client" do log pode ser a repetidora. Só
+             * apresentamos um operador quando o XML STATION o confirma.
+             */
+            if(strpos($protocol,'D-STAR/')===0){
+                $active[$mod]['operator_callsign']='';
+                $active[$mod]['operator_identity']='unresolved';
+            }
         }
 
         if(preg_match('/Closing stream of module\s+([A-Z])/i',$line,$m)){
