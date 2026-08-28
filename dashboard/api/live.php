@@ -649,6 +649,8 @@ foreach (
         'gateway',
         'gateway_suffix',
         'network_callsign',
+        'operator_callsign',
+        'operator_identity',
         'identity_source',
         'origin_match',
     ] as $field) {
