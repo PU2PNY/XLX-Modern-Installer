@@ -22,6 +22,16 @@ fail(){ printf '\033[0;31m[ERRO]\033[0m %s\n' "$*" >&2; exit 1; }
 [[ -f "$DASHBOARD_DIR/index.php" ]] || fail "$(say 'index.php do dashboard ausente.' 'Dashboard index.php not found.')"
 [[ -f "$ROOT/modules/68-control-panel.sh" ]] || fail "$(say 'Módulo administrativo base ausente.' 'Base admin module not found.')"
 
+# The hardened base control uses sudo/visudo only for a fixed allowlist helper.
+# A minimal Debian installation may not have sudo yet, so install it here when
+# the Admin component is being created for the first time.
+if [[ ! -f "$CONTROL_CFG" ]] && { ! command -v sudo >/dev/null 2>&1 || ! command -v visudo >/dev/null 2>&1; }; then
+  command -v apt-get >/dev/null 2>&1 || fail "$(say 'sudo/visudo ausentes e apt-get indisponível.' 'sudo/visudo missing and apt-get unavailable.')"
+  export DEBIAN_FRONTEND=noninteractive
+  apt-get update
+  apt-get install -y sudo
+fi
+
 reserved='^(ao-vivo|conectados|ranking|refletores|assets|api|config|flags|install|controle|certificado|digital-lab|aprs|aprs-dprs)$'
 validate_slug(){
   local value="$1"
@@ -97,10 +107,16 @@ printf '%s\n' "$slug" > "$ROUTE_FILE"
 chown root:root "$ROUTE_FILE"
 chmod 0600 "$ROUTE_FILE"
 
+SITE_CFG="$DASHBOARD_DIR/config/site.php"
+REFLECTOR_NAME="XLX Modern"
+if [[ -f "$SITE_CFG" ]]; then
+  REFLECTOR_NAME="$(php -r '$c=require $argv[1]; echo (string)($c["reflector"]["name"]??"XLX Modern");' "$SITE_CFG")"
+fi
+
 # Keep the private control tests aligned with the public installer routes.
 php -r '
-$f=$argv[1];$slug=$argv[2];$c=require $f;
-$c["title"]="Admin ".preg_replace("~[^A-Za-z0-9_-]~","",(string)($c["title"]??"XLX Modern"));
+$f=$argv[1];$slug=$argv[2];$reflector=$argv[3];$c=require $f;
+$c["title"]="Admin ".$reflector;
 $c["admin_slug"]=$slug;
 $c["test_paths"]=[
  ["/ao-vivo",200,"html"],
@@ -112,7 +128,7 @@ $c["test_paths"]=[
  ["/api/mtr.php",400,"json"],
 ];
 file_put_contents($f,"<?php\ndeclare(strict_types=1);\nreturn ".var_export($c,true).";\n");
-' "$CONTROL_CFG" "$slug"
+' "$CONTROL_CFG" "$slug" "$REFLECTOR_NAME"
 chown root:www-data "$CONTROL_CFG"
 chmod 0640 "$CONTROL_CFG"
 php -l "$CONTROL_CFG" >/dev/null
@@ -134,8 +150,7 @@ php -l "$DASHBOARD_DIR/index.php" >/dev/null
 
 # Validation: route, auth config and menu must all agree.
 grep -Fq "href=\"/$slug/\"" "$DASHBOARD_DIR/index.php" || fail "$(say 'Link Admin não encontrado no menu.' 'Admin menu link not found.')"
-grep -Fq "'path' => '/$slug/'" "$ADMIN_DIR/index.php" || true
-php -r '$c=require $argv[1]; exit((!empty($c["username"])&&!empty($c["password_hash"])&&password_get_info($c["password_hash"])["algo"]!==null)?0:1);' "$CONTROL_CFG" || fail "$(say 'Credencial administrativa inválida.' 'Invalid administrative credential.')"
+php -r '$c=require $argv[1]; $i=password_get_info((string)($c["password_hash"]??"")); exit((!empty($c["username"])&&!empty($c["password_hash"])&&!empty($i["algoName"])&&$i["algoName"]!=="unknown")?0:1);' "$CONTROL_CFG" || fail "$(say 'Credencial administrativa inválida.' 'Invalid administrative credential.')"
 
 ok "$(say "Página administrativa pronta: /$slug/" "Administrative page ready: /$slug/")"
 ok "$(say 'Usuário e senha protegidos; senha armazenada somente como hash.' 'Username/password protected; password stored only as a hash.')"
