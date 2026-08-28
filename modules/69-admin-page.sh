@@ -15,7 +15,11 @@ RADIO_HELPER="/usr/local/sbin/xlx-modern-radioid-helper"
 ACCESS_HELPER="/usr/local/sbin/xlx-modern-access-helper"
 SUDOERS="/etc/sudoers.d/xlx-modern-control"
 BACKUP_ROOT="/var/backups/xlx-reflector/admin"
-UI_LANG="${XLX_UI_LANG:-pt-BR}"
+UI_LANG="${XLX_UI_LANG:-}"
+if [[ -z "$UI_LANG" && -f "$DASHBOARD_DIR/config/site.php" ]]; then
+  UI_LANG="$(php -r '$c=require $argv[1];echo (string)($c["locale"]["default"]??"");' "$DASHBOARD_DIR/config/site.php" 2>/dev/null || true)"
+fi
+UI_LANG="${UI_LANG:-pt-BR}"
 WEBUSER="www-data"
 
 say(){ if [[ "$UI_LANG" == en ]]; then printf '%s' "$2"; else printf '%s' "$1"; fi; }
@@ -153,7 +157,6 @@ $WEBUSER ALL=(root) NOPASSWD: $HELPER access-add-white *
 $WEBUSER ALL=(root) NOPASSWD: $HELPER access-delete-white *
 $WEBUSER ALL=(root) NOPASSWD: $HELPER access-add-black *
 $WEBUSER ALL=(root) NOPASSWD: $HELPER access-delete-black *
-$WEBUSER ALL=(root) NOPASSWD: $HELPER access-save-terminal *
 EOF
 chmod 0440 "$SUDOERS"
 visudo -cf "$SUDOERS" >/dev/null
@@ -273,7 +276,7 @@ trap - EXIT
 cleanup
 ok "$(say 'Admin privado instalado sem link no painel público.' 'Private Admin installed with no public dashboard link.')"
 ok "$(say 'Bots conhecidos recebem 404; mecanismos de busca também recebem noindex/nofollow/noarchive.' 'Known crawlers receive 404; search engines also receive noindex/nofollow/noarchive.')"
-ok "$(say 'RadioID, whitelist, blacklist, terminal, logs, backups, testes e reinício protegido disponíveis.' 'RadioID, whitelist, blacklist, terminal, logs, backups, tests and protected restart are available.')"
+ok "$(say 'RadioID, whitelist, blacklist, logs, backups, testes e reinício protegido disponíveis.' 'RadioID, whitelist, blacklist, logs, backups, tests and protected restart are available.')"
 echo "ADMIN_ROUTE=/$slug/"
 echo 'ADMIN_PUBLIC_NAV=HIDDEN'
 echo 'ADMIN_BOT_POLICY=404+NOINDEX'
