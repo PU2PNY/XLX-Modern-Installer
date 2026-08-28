@@ -275,6 +275,7 @@ localize_base_installer() {
         -e '/center_wrap_color \$BLUE_BRIGHT "\$ICON_INFO INSTALLING DASHBOARD\.\.\."/,/^# SSL install$/ { /^# SSL install$/! s/^/# XLX_MODERN_SKIPPED: /; }' \
         -e 's|if \[ "\$INSTALL_SSL" == "Y" \]; then|if false; then # XLX Modern Dashboard configures TLS|' \
         -e '/^#  Starting users_db timer$/,/^#  Starting xlx_log service$/ { /^#  Starting xlx_log service$/! s/^/# XLX_MODERN_SKIPPED: /; }' \
+        -e '/^# Check if update_db.sh file exist$/,/^# Check if echo service is running/ { /^# Check if echo service is running/! s/^/# XLX_MODERN_SKIPPED: /; }' \
         -e 's|\$XLXCONFIG|/xlxd/xlxd.cfg|g' \
         "$translated"
 
