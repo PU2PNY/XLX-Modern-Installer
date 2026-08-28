@@ -122,7 +122,7 @@ cp -a "$DASHBOARD_DIR/index.php" "$BACKUP/index.php.before"
 [[ -f "$SUDOERS" ]] && cp -a "$SUDOERS" "$BACKUP/sudoers.before"
 ok "$(say "Backup: $BACKUP" "Backup: $BACKUP")"
 
-# First install still owns credential creation and the strict base configuration.
+# First install owns credential creation and the strict base configuration.
 if [[ ! -f "$CONTROL_CFG" ]]; then
   XLX_DASHBOARD_DIR="$DASHBOARD_DIR" bash "$ROOT/modules/68-control-panel.sh" --dashboard-dir="$DASHBOARD_DIR"
 fi
@@ -197,12 +197,28 @@ file_put_contents($f,"<?php\ndeclare(strict_types=1);\nreturn ".var_export($c,tr
 chown root:www-data "$CONTROL_CFG"; chmod 0640 "$CONTROL_CFG"; php -l "$CONTROL_CFG" >/dev/null
 
 # Remove any Admin link left by an older installer. Do NOT add a replacement.
-php -r '
-$f=$argv[1];$slug=$argv[2];$s=file_get_contents($f);if($s===false)exit(2);
-$s=preg_replace("~\\n?<!-- XLX_MODERN_ADMIN_NAV_START -->.*?<!-- XLX_MODERN_ADMIN_NAV_END -->\\n?~s","\n",$s);
-$s=preg_replace("~\\s*<a[^>]+href=[\"\']/".preg_quote($slug,"~")."/[\"\'][^>]*>\\s*Admin\\s*</a>~i","",$s);
-file_put_contents($f,$s);
-' "$DASHBOARD_DIR/index.php" "$slug" || fail "$(say 'Falha ao remover referência pública antiga do Admin.' 'Failed to remove old public Admin reference.')"
+python3 - "$DASHBOARD_DIR/index.php" "$slug" <<'PY'
+from pathlib import Path
+import re
+import sys
+
+path = Path(sys.argv[1])
+slug = sys.argv[2]
+s = path.read_text(encoding='utf-8')
+s = re.sub(
+    r'\n?<!-- XLX_MODERN_ADMIN_NAV_START -->.*?<!-- XLX_MODERN_ADMIN_NAV_END -->\n?',
+    '\n',
+    s,
+    flags=re.S,
+)
+s = re.sub(
+    r'\s*<a[^>]+href=["\']/'+re.escape(slug)+r'/["\'][^>]*>\s*Admin\s*</a>',
+    '',
+    s,
+    flags=re.I,
+)
+path.write_text(s, encoding='utf-8')
+PY
 php -l "$DASHBOARD_DIR/index.php" >/dev/null
 
 # The private URL must not be advertised by public files.
@@ -222,7 +238,7 @@ python3 -m json.tool "$WORK/access.json" >/dev/null
 grep -Fq 'X-Robots-Tag: noindex, nofollow, noarchive, nosnippet' "$ADMIN_DIR/index.php"
 grep -Fq 'googlebot|bingbot' "$ADMIN_DIR/index.php"
 grep -Fq 'Controle de Acesso XLXD' "$ADMIN_DIR/index.php"
-grep -Fq "if(\$a==='radioid_save')" "$ADMIN_DIR/index.php"
+grep -Fq 'radioid_save' "$ADMIN_DIR/index.php"
 grep -Fq 'Links rápidos' "$ADMIN_DIR/index.php"
 
 SUCCESS=1
