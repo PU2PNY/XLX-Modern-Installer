@@ -195,6 +195,45 @@ load_install_state() {
     printf 'Dados já informados serão reaproveitados.\n\n'
 }
 
+dashboard_site_value() {
+    local key="$1"
+
+    php -r '
+        $site = require $argv[1];
+        $value = $site;
+        foreach (explode(".", $argv[2]) as $part) {
+            if (!is_array($value) || !array_key_exists($part, $value)) {
+                exit(0);
+            }
+            $value = $value[$part];
+        }
+        if (is_scalar($value)) {
+            echo (string) $value;
+        }
+    ' "$DEST/config/site.php" "$key"
+}
+
+load_existing_dashboard_values() {
+    [ -f "$DEST/config/site.php" ] || return 0
+
+    [ -n "${REFLECTOR_NAME:-}" ] || REFLECTOR_NAME="$(dashboard_site_value reflector.name)"
+    [ -n "${REFLECTOR_TITLE:-}" ] || REFLECTOR_TITLE="$(dashboard_site_value reflector.title)"
+    [ -n "${REFLECTOR_DESCRIPTION:-}" ] || REFLECTOR_DESCRIPTION="$(dashboard_site_value reflector.description)"
+    [ -n "${SYSOP_CALLSIGN:-}" ] || SYSOP_CALLSIGN="$(dashboard_site_value reflector.sysop_callsign)"
+    [ -n "${LOCATION:-}" ] || LOCATION="$(dashboard_site_value reflector.location)"
+    [ -n "${COUNTRY:-}" ] || COUNTRY="$(dashboard_site_value reflector.country)"
+    [ -n "${DOMAIN:-}" ] || DOMAIN="$(dashboard_site_value reflector.domain)"
+    [ -n "${CONTACT_EMAIL:-}" ] || CONTACT_EMAIL="$(dashboard_site_value reflector.contact_email)"
+    [ -n "${YSF_ID:-}" ] || YSF_ID="$(dashboard_site_value radio.ysf_id)"
+    [ -n "${MODULE_COUNT:-}" ] || MODULE_COUNT="$(dashboard_site_value radio.module_count)"
+    [ -n "${DASHBOARD_LANG:-}" ] || DASHBOARD_LANG="$(dashboard_site_value locale.default)"
+
+    if [ -z "${ENABLE_HTTPS:-}" ] && [ -n "${DOMAIN:-}" ] \
+        && [ -s "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ]; then
+        ENABLE_HTTPS="yes"
+    fi
+}
+
 escape() {
     printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e "s/'/\\\\'/g"
 }
@@ -204,8 +243,9 @@ escape() {
     exit 1
 }
 
-choose_language
 load_install_state
+load_existing_dashboard_values
+choose_language
 
 MODULE_COUNT="${MODULE_COUNT:-5}"
 if [[ ! "$MODULE_COUNT" =~ ^[0-9]+$ ]] || [ "$MODULE_COUNT" -lt 1 ] || [ "$MODULE_COUNT" -gt 26 ]; then
