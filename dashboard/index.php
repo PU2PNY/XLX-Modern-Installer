@@ -44,11 +44,11 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}/' . ($page === 'ao-vivo' ? '' : '?pag
 <meta property="og:url" content="<?=htmlspecialchars($canonical, ENT_QUOTES, 'UTF-8')?>"><meta property="og:image" content="https://{{REFLECTOR_DOMAIN}}/assets/logo-{{REFLECTOR_NAME}}.svg">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="<?=htmlspecialchars($meta['title'], ENT_QUOTES, 'UTF-8')?>"><meta name="twitter:description" content="<?=htmlspecialchars($meta['description'], ENT_QUOTES, 'UTF-8')?>"><meta name="twitter:image" content="https://{{REFLECTOR_DOMAIN}}/assets/logo-{{REFLECTOR_NAME}}.svg">
 <link rel="icon" href="favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png"><link rel="manifest" href="site.webmanifest">
-<title><?=htmlspecialchars($meta['title'], ENT_QUOTES, 'UTF-8')?></title><link rel="stylesheet" href="assets/app.css?v=20260828-xlx026-mirror-3">
+<title><?=htmlspecialchars($meta['title'], ENT_QUOTES, 'UTF-8')?></title><link rel="stylesheet" href="assets/app.css?v=20260828-xlx026-mirror-4">
 <link rel="stylesheet" href="assets/ao-vivo-boxes-v2.css?v=1">
 <link rel="stylesheet" href="assets/ao-vivo-boxes-v31-radar.css?v=1">
 <link rel="stylesheet" href="assets/ao-vivo-cirurgico-v1.css?v=1">
-<link rel="stylesheet" href="assets/atividade-24h-conectados-v1.css?v=1">
+<link rel="stylesheet" href="assets/atividade-24h-conectados-v1.css?v=2">
 <link rel="stylesheet" href="assets/refletores-completo-v2.css?v=1">
 <link rel="stylesheet" href="assets/standby-mensagens-v3.css?v=1"><link rel="stylesheet" href="assets/header-hotfix.css?v=1"><link rel="stylesheet" href="assets/mtr.css?v=5">
 <script type="application/ld+json"><?=json_encode(['@context'=>'https://schema.org','@type'=>'WebSite','name'=>'{{REFLECTOR_NAME}}','url'=>'https://{{REFLECTOR_DOMAIN}}/','description'=>' para radioamadores com D-STAR, DMR e C4FM/YSF.','inLanguage'=>'pt-BR','image'=>'https://{{REFLECTOR_DOMAIN}}/assets/logo-{{REFLECTOR_NAME}}.svg'], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)?></script><link rel="stylesheet" href="assets/install-app.css?v=33"><link rel="stylesheet" href="assets/offline-neon.css?v=20260806_103404"> <link rel="stylesheet" href="assets/ham-weather-widget.css?v=3">
@@ -170,7 +170,7 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}/' . ($page === 'ao-vivo' ? '' : '?pag
 <?php else: ?>
 <footer><div><a class="brand footer-brand" href="<?=page_url('ao-vivo')?>"><img class="brand-logo" src="assets/logo-{{REFLECTOR_NAME}}.svg" alt="Logotipo {{REFLECTOR_NAME}}"><span><b>{{REFLECTOR_NAME}}</b></span></a><p> para a comunidade radioamadora.</p></div><div class="footer-links"><a href="<?=page_url('ao-vivo')?>">Ao vivo</a><a href="<?=page_url('conectados')?>">Conectados</a><a href="<?=page_url('ranking')?>">Ranking</a></div><small>{{REFLECTOR_NAME}} • D-STAR {{REFLECTOR_NAME}}-D • DMR: TG 6 (voz), A=4001, B=4002, C=4003… • C4FM/YSF {{YSF_ID}}</small></footer>
 <?php endif; ?>
-<div id="toastStack" class="toast-stack"></div><script src="assets/mtr.js?v=5"></script><script src="assets/app.js?v=67"></script>
+<div id="toastStack" class="toast-stack"></div><script src="assets/mtr.js?v=5"></script><script src="assets/app.js?v=68"></script>
 <?php if ($page === 'ao-vivo'): ?>
 <script src="assets/ao-vivo-authorized-sync-v1.js?v=1"></script>
 <script src="assets/ao-vivo-tx-embed-v5.js?v=1" defer></script>
