@@ -370,8 +370,13 @@ apache2ctl configtest
 systemctl enable --now apache2
 
 if [ "$ENABLE_HTTPS" = "yes" ]; then
-    certbot --apache --non-interactive --agree-tos --email "$CONTACT_EMAIL" -d "$DOMAIN" \
-        || { echo "ERROR / ERRO: não foi possível emitir o certificado HTTPS. Confirme que o DNS de $DOMAIN aponta para esta VPS e que as portas 80/443 estão liberadas." >&2; exit 1; }
+    if [ -s "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ] \
+        && [ -s "/etc/letsencrypt/live/$DOMAIN/privkey.pem" ]; then
+        printf 'HTTPS certificate already present / certificado HTTPS já existente: %s\n' "$DOMAIN"
+    else
+        certbot --apache --non-interactive --agree-tos --email "$CONTACT_EMAIL" -d "$DOMAIN" \
+            || { echo "ERROR / ERRO: não foi possível emitir o certificado HTTPS. Confirme que o DNS de $DOMAIN aponta para esta VPS e que as portas 80/443 estão liberadas." >&2; exit 1; }
+    fi
 fi
 
 printf '\nXLX Modern Dashboard installed / instalado em: %s\n' "$DEST"
