@@ -4,6 +4,8 @@ export LANG=C
 PATH=/usr/sbin:/usr/bin:/sbin:/bin
 
 CONF="/etc/xlx-modern-control/helper.conf"
+RADIO_HELPER="/usr/local/sbin/xlx-modern-radioid-helper"
+ACCESS_HELPER="/usr/local/sbin/xlx-modern-access-helper"
 [[ -r "$CONF" ]] || { echo "ERRO: helper.conf ausente" >&2; exit 2; }
 # shellcheck disable=SC1090
 source "$CONF"
@@ -22,6 +24,7 @@ processes(){ pgrep -x xlxd 2>/dev/null | wc -l | tr -d ' '; }
 
 case "${1:-}" in
   status)
+    [[ "$#" -eq 1 ]] || exit 64
     echo "service=$(systemctl is-active "$SERVICE" 2>/dev/null || true)"
     echo "version=$(version)"
     echo "sha=$(sha)"
@@ -30,20 +33,24 @@ case "${1:-}" in
     echo "active_since=$(systemctl show -p ActiveEnterTimestamp --value "$SERVICE" 2>/dev/null || true)"
     ;;
   listeners)
+    [[ "$#" -eq 1 ]] || exit 64
     ss -H -lunp 2>/dev/null | awk '/xlxd/ {print $4}' | sort -u
     ;;
   logs)
+    [[ "$#" -eq 1 ]] || exit 64
     [[ -r "$LOG" ]] && tail -n 80 "$LOG" || echo "Log indisponível"
     ;;
   backups)
+    [[ "$#" -eq 1 ]] || exit 64
     if [[ -d "$BACKUPS" ]]; then
-      find "$BACKUPS" -maxdepth 2 -mindepth 1 -type d -printf '%T@ %TY-%Tm-%Td %TH:%TM  %p\n' 2>/dev/null \
-        | sort -nr | head -n 20 | cut -d' ' -f2-
+      find "$BACKUPS" -maxdepth 3 -mindepth 1 -type d -printf '%T@ %TY-%Tm-%Td %TH:%TM  %p\n' 2>/dev/null \
+        | sort -nr | head -n 30 | cut -d' ' -f2-
     else
       echo "Diretório de backups indisponível"
     fi
     ;;
   restart)
+    [[ "$#" -eq 1 ]] || exit 64
     before_sha="$(sha)"
     before_version="$(version)"
     [[ "$before_sha" == "$EXPECTED_SHA" ]] || { echo "ERRO: SHA atual divergente: $before_sha"; exit 20; }
@@ -76,8 +83,56 @@ case "${1:-}" in
     echo "sha=$EXPECTED_SHA"
     echo "processes=1"
     ;;
+
+  radioid-status)
+    [[ "$#" -eq 1 ]] || exit 64
+    [[ -x "$RADIO_HELPER" ]] || { echo 'ERRO: helper RadioID indisponível' >&2; exit 71; }
+    exec "$RADIO_HELPER" status
+    ;;
+  radioid-check)
+    [[ "$#" -eq 1 ]] || exit 64
+    [[ -x "$RADIO_HELPER" ]] || { echo 'ERRO: helper RadioID indisponível' >&2; exit 71; }
+    exec "$RADIO_HELPER" check
+    ;;
+  radioid-refresh)
+    [[ "$#" -eq 1 ]] || exit 64
+    [[ -x "$RADIO_HELPER" ]] || { echo 'ERRO: helper RadioID indisponível' >&2; exit 71; }
+    exec "$RADIO_HELPER" refresh
+    ;;
+  radioid-search)
+    [[ "$#" -eq 3 ]] || exit 64
+    [[ -x "$RADIO_HELPER" ]] || { echo 'ERRO: helper RadioID indisponível' >&2; exit 71; }
+    exec "$RADIO_HELPER" search "$2" "$3"
+    ;;
+  radioid-save)
+    [[ "$#" -eq 10 ]] || exit 64
+    [[ -x "$RADIO_HELPER" ]] || { echo 'ERRO: helper RadioID indisponível' >&2; exit 71; }
+    exec "$RADIO_HELPER" save "${@:2}"
+    ;;
+  radioid-delete)
+    [[ "$#" -eq 3 ]] || exit 64
+    [[ -x "$RADIO_HELPER" ]] || { echo 'ERRO: helper RadioID indisponível' >&2; exit 71; }
+    exec "$RADIO_HELPER" delete "$2" "$3"
+    ;;
+
+  access-status)
+    [[ "$#" -eq 1 ]] || exit 64
+    [[ -x "$ACCESS_HELPER" ]] || { echo 'ERRO: helper de acesso indisponível' >&2; exit 72; }
+    exec "$ACCESS_HELPER" status
+    ;;
+  access-add-white|access-delete-white|access-add-black|access-delete-black)
+    [[ "$#" -eq 2 ]] || exit 64
+    [[ -x "$ACCESS_HELPER" ]] || { echo 'ERRO: helper de acesso indisponível' >&2; exit 72; }
+    exec "$ACCESS_HELPER" "${1#access-}" "$2"
+    ;;
+  access-save-terminal)
+    [[ "$#" -eq 3 ]] || exit 64
+    [[ -x "$ACCESS_HELPER" ]] || { echo 'ERRO: helper de acesso indisponível' >&2; exit 72; }
+    exec "$ACCESS_HELPER" save-terminal "$2" "$3"
+    ;;
+
   *)
-    echo "Uso permitido: status|listeners|logs|backups|restart" >&2
+    echo "Uso permitido: status|listeners|logs|backups|restart|radioid-*|access-*" >&2
     exit 64
     ;;
 esac
