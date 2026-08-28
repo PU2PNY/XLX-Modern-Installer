@@ -129,3 +129,9 @@ for forbidden in ('xlx026.net', '/etc/xlx026-control', '/var/lib/xlx026-control'
         raise SystemExit(f'identidade/caminho de produção remanescente: {forbidden}')
 
 p.write_text(s, encoding='utf-8')
+
+# XLX724 Admin: replace the legacy terminal label with Interlink.
+s = s.replace('Terminal XLXD', 'XLX Interlink')
+s = s.replace('Configuração do terminal', 'XLX Interlink configuration')
+s = s.replace('Salvar terminal', 'Save Interlink')
+s = s.replace('Terminal', 'Interlink')
