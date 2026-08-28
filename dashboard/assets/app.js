@@ -1372,7 +1372,7 @@ function renderLiveTxRxOnly(live){
     .map(txCard)
     .join('');
 
-   window.{{REFLECTOR_NAME}}MTR?.sync(
+   window.XLX026MTR?.sync(
     active.slice(0,3)
    );
   }else{
@@ -1387,7 +1387,7 @@ function renderLiveTxRxOnly(live){
      standbyCard(standbyModule,newest);
    }
 
-   window.{{REFLECTOR_NAME}}MTR?.sync([]);
+   window.XLX026MTR?.sync([]);
   }
 
   lastLiveVisualSignature=visualSignature;
@@ -2414,7 +2414,7 @@ function xlx026StopWebAudio(){
 }
 
 
-window.{{REFLECTOR_NAME}}AudioControl={
+window.XLX026AudioControl={
 
  state:function(){
 
