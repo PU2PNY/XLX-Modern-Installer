@@ -166,6 +166,26 @@ ask() {
     printf -v "$var_name" '%s' "$value"
 }
 
+reuse_or_ask() {
+    local var_name="$1" label_key="$2" value="${!var_name:-}"
+    if [ -n "$value" ]; then
+        printf '%s: %s [reaproveitado]\n' "$(prompt_text "$label_key")" "$value"
+    else
+        ask "$var_name" "$label_key"
+    fi
+}
+
+load_install_state() {
+    local file="${XLX_INSTALL_STATE_FILE:-}"
+    [ -n "$file" ] || return 0
+    [ -f "$file" ] || { echo "ERROR / ERRO: dados iniciais não encontrados: $file" >&2; exit 1; }
+    # This file is created by the root-owned base installer using printf %q.
+    # It is read only by this same root installation process.
+    # shellcheck disable=SC1090
+    source "$file"
+    printf 'Dados já informados serão reaproveitados.\n\n'
+}
+
 escape() {
     printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e "s/'/\\\\'/g"
 }
@@ -176,25 +196,32 @@ escape() {
 }
 
 choose_language
+load_install_state
 printf 'Dashboard language / Idioma do painel: %s (%s)\n\n' "$(language_name "$DASHBOARD_LANG")" "$DASHBOARD_LANG"
 
-ask REFLECTOR_NAME reflector
-ask REFLECTOR_TITLE title
-ask REFLECTOR_DESCRIPTION description
-ask SYSOP_CALLSIGN sysop
+reuse_or_ask REFLECTOR_NAME reflector
+reuse_or_ask REFLECTOR_TITLE title
+reuse_or_ask REFLECTOR_DESCRIPTION description
+reuse_or_ask SYSOP_CALLSIGN sysop
 ask LOCATION location
-ask COUNTRY country
-ask DOMAIN domain
-ask CONTACT_EMAIL email
+reuse_or_ask COUNTRY country
+reuse_or_ask DOMAIN domain
+reuse_or_ask CONTACT_EMAIL email
 
-while :; do
-    read -r -p "Ativar HTTPS com certificado Let's Encrypt? / Enable HTTPS with a Let's Encrypt certificate? [S/n]: " HTTPS_ANSWER
-    case "${HTTPS_ANSWER,,}" in
-        ""|s|sim|y|yes) ENABLE_HTTPS="yes"; break ;;
-        n|nao|não|no) ENABLE_HTTPS="no"; break ;;
-        *) echo "Resposta inválida / Invalid answer. Use S ou N / Y or N." ;;
-    esac
-done
+case "${ENABLE_HTTPS:-}" in
+    Y|y|yes|YES|s|sim) ENABLE_HTTPS="yes"; printf 'HTTPS: ativado [reaproveitado]\n' ;;
+    N|n|no|NO|nao|não) ENABLE_HTTPS="no"; printf 'HTTPS: não ativado [reaproveitado]\n' ;;
+    *)
+        while :; do
+            read -r -p "Ativar HTTPS com certificado Let's Encrypt? / Enable HTTPS with a Let's Encrypt certificate? [S/n]: " HTTPS_ANSWER
+            case "${HTTPS_ANSWER,,}" in
+                ""|s|sim|y|yes) ENABLE_HTTPS="yes"; break ;;
+                n|nao|não|no) ENABLE_HTTPS="no"; break ;;
+                *) echo "Resposta inválida / Invalid answer. Use S ou N / Y or N." ;;
+            esac
+        done
+        ;;
+esac
 
 REFLECTOR_NAME="$(printf '%s' "$REFLECTOR_NAME" | tr '[:lower:]' '[:upper:]')"
 
@@ -206,7 +233,7 @@ fi
 REFLECTOR_NUMBER="${BASH_REMATCH[1]}"
 REFLECTOR_SHORT_NUMBER="$((10#$REFLECTOR_NUMBER))"
 
-DOMAIN="$(printf '%s' "$DOMAIN" | sed -E 's#^https?://##; s#/*$##')"
+DOMAIN="$(printf '%s' "$DOMAIN" | tr '[:upper:]' '[:lower:]' | sed -E 's#^https?://##; s#/*$##')"
 if [[ ! "$DOMAIN" =~ ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$ ]]; then
     echo "ERROR / ERRO: domínio inválido: $DOMAIN" >&2
     exit 2
