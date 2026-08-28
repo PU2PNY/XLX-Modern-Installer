@@ -178,6 +178,12 @@ reuse_or_ask() {
     fi
 }
 
+module_last_letter() {
+    local code
+    printf -v code '%03o' "$((64 + $1))"
+    printf '%b' "\\$code"
+}
+
 load_install_state() {
     local file="${XLX_INSTALL_STATE_FILE:-}"
     [ -n "$file" ] || return 0
@@ -208,7 +214,7 @@ if [[ ! "$MODULE_COUNT" =~ ^[0-9]+$ ]] || [ "$MODULE_COUNT" -lt 1 ] || [ "$MODUL
 fi
 
 printf 'Dashboard language / Idioma do painel: %s (%s)\n' "$(language_name "$DASHBOARD_LANG")" "$DASHBOARD_LANG"
-printf 'XLXD modules / Módulos XLXD: A-%s (%s)\n\n' "$(printf "\\$(printf '%03o' "$((64 + MODULE_COUNT))")")" "$MODULE_COUNT"
+printf 'XLXD modules / Módulos XLXD: A-%s (%s)\n\n' "$(module_last_letter "$MODULE_COUNT")" "$MODULE_COUNT"
 
 reuse_or_ask REFLECTOR_NAME reflector
 reuse_or_ask REFLECTOR_TITLE title
