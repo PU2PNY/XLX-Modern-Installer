@@ -1,0 +1,15 @@
+[Unit]
+Description=XLX Modern dashboard live log bridge
+After=xlxd.service
+Requires=xlxd.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/sbin/xlx-modern-log-bridge
+Restart=always
+RestartSec=2
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target
