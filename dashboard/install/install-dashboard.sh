@@ -332,6 +332,7 @@ chmod 640 "$DEST/config/site.php"
 
 find "$DEST" -type f -name '*.php' -print0 | xargs -0 -r -n1 php -l >/dev/null
 
+APACHE_LOG_DIR="${APACHE_LOG_DIR:-/var/log/apache2}"
 VHOST="/etc/apache2/sites-available/$DOMAIN.conf"
 cat > "$VHOST" <<APACHE
 <VirtualHost *:80>
