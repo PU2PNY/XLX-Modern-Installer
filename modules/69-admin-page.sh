@@ -177,7 +177,7 @@ chown root:root "$ROUTE_FILE"; chmod 0600 "$ROUTE_FILE"
 # Invariantes da rota privada: sem pasta, arquivo e slug gravado não há sucesso.
 [[ -d "$ADMIN_DIR" ]] || fail "$(say "Diretório da rota Admin não foi criado: $ADMIN_DIR" "Admin route directory was not created: $ADMIN_DIR")"
 [[ -f "$ADMIN_DIR/index.php" ]] || fail "$(say "Tela Admin não foi instalada: $ADMIN_DIR/index.php" "Admin page was not installed: $ADMIN_DIR/index.php")"
-[[ "$(tr -d '\\r\\n' < "$ROUTE_FILE")" == "$slug" ]] || fail "$(say "Slug administrativo não foi gravado corretamente." "Administrative slug was not saved correctly.")"
+[[ "$(head -n 1 "$ROUTE_FILE")" == "$slug" ]] || fail "$(say "Slug administrativo não foi gravado corretamente." "Administrative slug was not saved correctly.")"
 
 SITE_CFG="$DASHBOARD_DIR/config/site.php"
 REFLECTOR_NAME='XLX Modern'
