@@ -161,4 +161,8 @@ jobs:
         shell: bash
         run: |
           set -Eeuo pipefail
+          ci_root="$(mktemp -d /tmp/xlx-control-ci.XXXXXX)"
+          sudo cp -a . "$ci_root/repo"
+          sudo chown -R root:root "$ci_root/repo"
+          cd "$ci_root/repo"
           sudo bash modules/68-control-panel.sh --check
