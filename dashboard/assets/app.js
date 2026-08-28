@@ -1,9 +1,6 @@
 const $=s=>document.querySelector(s);let previousConnections=null,lastData=null;const page=document.body.dataset.page||'ao-vivo';
 const historyExpandedCalls=new Set();
-const uiLocale=document.documentElement.lang||'pt-BR';
-const uiEnglish=uiLocale.toLowerCase().startsWith('en');
-const uiText=(pt,en)=>uiEnglish?en:pt;
-const fmtTime=ts=>ts?new Date(ts*1000).toLocaleTimeString(uiLocale,{hour:'2-digit',minute:'2-digit',second:'2-digit'}):'—';
+const fmtTime=ts=>ts?new Date(ts*1000).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}):'—';
 const elapsed=ts=>{if(!ts)return'—';let s=Math.max(0,Math.floor(Date.now()/1000-ts)),d=Math.floor(s/86400);s%=86400;let h=Math.floor(s/3600);s%=3600;let m=Math.floor(s/60);s%=60;return(d?d+'d ':'')+String(h).padStart(2,'0')+'h '+String(m).padStart(2,'0')+'m '+String(s).padStart(2,'0')+'s'};
 const duration=s=>{s=Number(s||0);const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;return(h?h+'h ':'')+String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0')};
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -19,10 +16,12 @@ const flag=x=>{
 const onlineBadge = online => `<span class="state-pill ${online?'online':'offline'}">${online?'Online':'Offline'}</span>`;
 function operatorVisual(){return `<div class="operator-visual"><img src="assets/talking-radio.gif" alt="Indicador de transmissão"><span class="signal-ring"></span></div>`}
 function txCard(m){
+/* {{REFLECTOR_NAME}}_TXCARD_CALLSIGN_SEM_SUFFIX_V13 */
+
  const tx=m.transmission;
  const countryName=tx.country?.name||'País não informado';
- const gateway=tx.gateway||'Gateway não identificado';
- const callsign=`${esc(tx.callsign)}${tx.suffix?' '+esc(tx.suffix):''}`;
+ const gatewayHtml=hotspotRepeaterMarkup(tx);
+ const callsign=esc(tx.callsign);
 
  return `<article class="tx-card live compact-tx tx-v30">
   <div class="tx-top">
@@ -46,8 +45,8 @@ function txCard(m){
 
    <div class="tx-v30-details">
     <div>
-     <small>Gateway / repetidor</small>
-     <strong>${esc(gateway)}</strong>
+     <small>Hotspot / Repetidora</small>
+     <strong class="tx-hotspot-repeater">${gatewayHtml}</strong>
     </div>
 
     <div class="tx-v30-protocol-box tx-v30-protocol-box-v2">
@@ -97,6 +96,7 @@ function standbyCard(m,newest){
     <strong>${callsign}</strong>
     <span>${name}</span>
    </div>
+
   </div>
  </article>`
 }
@@ -128,11 +128,198 @@ function ensureHistoryDropdownStyles(){
   }`;
  document.head.appendChild(style);
 }
-function historyStatusMarkup(x){return onlineBadge(Boolean(x.online));}
-function historyGateway(x){const raw=String(x?.gateway||x?.via||x?.peer||'').trim();return raw?esc(raw):'—';}
-function historyRowMarkup(x,statusHtml,toggleHtml='',attrs='',position=''){const rowNumber=position===''?'↳':esc(position),when=Number(x?.started_at||0),txTime=when?new Date(when*1000).toLocaleTimeString(uiLocale,{hour:'2-digit',minute:'2-digit'}):'—';return `<tr ${attrs}><td class="history-number-cell"><span class="history-number-wrap"><span class="history-row-number" aria-hidden="true">${rowNumber}</span>${toggleHtml}</span></td><td class="history-country-cell">${flag(x)}</td><td class="history-status-cell">${statusHtml}</td><td class="history-callsign-cell"><a target="_blank" href="${esc(x.qrz)}">${esc(x.callsign)}</a></td><td>${esc(x.name||'Não informado')}</td><td class="history-hotspot-cell">${historyGateway(x)}</td><td>${esc(x.location||'Não informada')}</td><td><span class="protocol">${esc(x.protocol)}</span></td><td>${esc(x.module)}</td><td class="history-tx-time" title="${esc(fmtTime(x.started_at))}">${txTime}</td><td class="history-duration-cell">${duration(x.duration)}</td></tr>`;}
-function historyToggleMarkup(x,callKey,previousIds){if(!previousIds.length)return '';const expanded=historyExpandedCalls.has(callKey),label=expanded?'Fechar atividades anteriores':'Abrir atividades anteriores';return `<button type="button" class="history-toggle" data-history-toggle="${esc(callKey)}" aria-expanded="${expanded?'true':'false'}" aria-controls="${esc(previousIds.join(' '))}" aria-label="${label} de ${esc(x.callsign)}" title="${label}"><span aria-hidden="true">▼</span></button>`;}
-function historyMarkup(d){const cutoff=Number(d.generated_at||Math.floor(Date.now()/1000))-86400,rows=(d.history||[]).filter(x=>Number(x.started_at||0)>=cutoff);if(!rows.length)return '<tr><td colspan="11">Nenhuma transmissão registrada nas últimas 24 horas.</td></tr>';const groups=new Map();rows.forEach((x,i)=>{const key=historyCallKey(x)||`SEM-INDICATIVO-${i}`;if(!groups.has(key))groups.set(key,[]);groups.get(key).push(x);});return [...groups.entries()].slice(0,40).map(([callKey,items],g)=>{const latest=items[0],previous=items.slice(1),expanded=historyExpandedCalls.has(callKey),ids=previous.map((_,i)=>historyRowId(callKey,i));const main=historyRowMarkup(latest,historyStatusMarkup(latest),historyToggleMarkup(latest,callKey,ids),`class="history-primary-row${expanded?' is-expanded':''}" data-history-call="${esc(callKey)}"`,g+1);const older=previous.map((x,i)=>historyRowMarkup(x,onlineBadge(Boolean(x.online)),'',`id="${esc(ids[i])}" class="history-previous-row" data-history-parent="${esc(callKey)}"${expanded?'':' style="display:none!important"'}`,`${g+1}.${i+1}`)).join('');return main+older;}).join('');}
+function hotspotRepeaterMarkup(x){
+ const callsign=
+  xlx026BaseCall(
+   (x&&x.callsign)||''
+  );
+
+ const raw=
+  String(
+   (x&&x.gateway)||''
+  ).trim();
+
+ const normalized=
+  raw.toUpperCase();
+
+ const gatewayCall=
+  xlx026BaseCall(raw);
+
+ const unknown=
+  !raw
+  || normalized==='NÃO IDENTIFICADO'
+  || normalized==='GATEWAY NÃO IDENTIFICADO'
+  || normalized==='HOTSPOT / REPETIDORA NÃO IDENTIFICADO';
+
+ if(unknown){
+  return `<span class="hotspot-repeater-empty">—</span>`;
+ }
+
+ /*
+  * A comparação é feita pelo indicativo-base.
+  *
+  * PU2PNY B = PU2PNY
+  * PY4RWC B = PY4RWC
+  */
+ const different=
+  callsign!=='' &&
+  gatewayCall!=='' &&
+  gatewayCall!==callsign;
+
+ const neon=different
+  ? `<span class="gateway-neon" role="img" aria-label="Usando hotspot ou repetidora diferente do indicativo" title="Usando hotspot ou repetidora diferente do indicativo"></span>`
+  : '';
+
+ const displayed=
+  gatewayCall||raw;
+
+ return `<span class="gateway-display${different?' gateway-different':''}">${neon}<span class="gateway-value">${esc(displayed)}</span></span>`;
+}
+
+function historyStatusMarkup(x){
+ return onlineBadge(Boolean(x.online));
+}
+
+function historyToggleMarkup(x,callKey,previousIds){
+ if(!previousIds.length)return '';
+
+ const expanded=historyExpandedCalls.has(callKey);
+
+ const label=expanded
+  ? 'Fechar atividades anteriores'
+  : 'Abrir atividades anteriores';
+
+ return `<button type="button" class="history-toggle" data-history-toggle="${esc(callKey)}" aria-expanded="${expanded?'true':'false'}" aria-controls="${esc(previousIds.join(' '))}" aria-label="${label} de ${esc(x.callsign)}" title="${label}"><span aria-hidden="true">▼</span></button>`;
+}
+
+/* {{REFLECTOR_NAME}}_HORARIO_TX_24H_V1 */
+function historyRowMarkup(
+ x,
+ statusHtml,
+ toggleHtml='',
+ attrs='',
+ position=''
+){
+ const rowNumber=position===''?'↳':esc(position);
+
+ return `<tr ${attrs}>
+
+  <td class="history-number-cell">
+   <span class="history-number-wrap">
+    <span class="history-row-number" aria-hidden="true">${rowNumber}</span>
+    ${toggleHtml}
+   </span>
+  </td>
+
+  <td class="history-country-cell">
+   <span class="history-country-final">${flag(x)}</span>
+  </td>
+
+  <td class="history-status-cell">
+   ${statusHtml}
+  </td>
+
+  <td class="history-callsign-cell">
+   <a target="_blank" href="${esc(x.qrz)}">${esc(x.callsign)}</a>
+  </td>
+
+  <td>${esc(x.name)}</td>
+
+  <td class="history-hotspot-cell">
+   ${hotspotRepeaterMarkup(x)}
+  </td>
+
+  <td>${esc(x.location||'Não informada')}</td>
+
+  <td>
+   <span class="protocol">${esc(x.protocol)}</span>
+  </td>
+
+  <td>${esc(x.module)}</td>
+
+  <td class="history-tx-time" data-label="Horário TX" title="${esc(fmtTime(x.started_at))}">${x.started_at?new Date(Number(x.started_at)*1000).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'—'}</td><td class="history-duration-cell">
+   <span class="history-duration-value">${duration(x.duration)}</span>
+  </td>
+
+ </tr>`;
+}
+
+function historyMarkup(d){
+ const cutoff=
+  Number(
+   d.generated_at||
+   Math.floor(Date.now()/1000)
+  )-86400;
+
+ const rows=(d.history||[])
+  .filter(
+   x=>Number(x.started_at||0)>=cutoff
+  );
+
+ if(!rows.length){
+  return `<tr><td colspan="10">Nenhuma transmissão registrada nas últimas 24 horas.</td></tr>`;
+ }
+
+ const groups=new Map();
+
+ rows.forEach((x,index)=>{
+  const base=historyCallKey(x);
+  const key=base||`SEM-INDICATIVO-${index}`;
+
+  if(!groups.has(key)){
+   groups.set(key,[]);
+  }
+
+  groups.get(key).push(x);
+ });
+
+ return [...groups.entries()]
+  
+  .map(([callKey,items],groupIndex)=>{
+   const latest=items[0];
+   const previous=items.slice(1);
+   const expanded=historyExpandedCalls.has(callKey);
+
+   const previousIds=previous.map(
+    (_,index)=>historyRowId(callKey,index)
+   );
+
+   const mainAttrs=
+    `class="history-primary-row${expanded?' is-expanded':''}" data-history-call="${esc(callKey)}"`;
+
+   const main=historyRowMarkup(
+    latest,
+    historyStatusMarkup(latest),
+    historyToggleMarkup(
+     latest,
+     callKey,
+     previousIds
+    ),
+    mainAttrs,
+    groupIndex+1
+   );
+
+   const older=previous.map((x,index)=>{
+    const hidden=expanded
+     ? ''
+     : ` style="display:none!important"`;
+
+    const attrs=
+     `id="${esc(previousIds[index])}" class="history-previous-row" data-history-parent="${esc(callKey)}"${hidden}`;
+
+    return historyRowMarkup(
+     x,
+     historyStatusMarkup(x),
+     '',
+     attrs,
+     `${groupIndex+1}.${index+1}`
+    );
+   }).join('');
+
+   return main+older;
+  }).join('');
+}
+
 function toggleHistoryGroup(callKey,button){
  const expanded=!historyExpandedCalls.has(callKey);
  if(expanded)historyExpandedCalls.add(callKey);else historyExpandedCalls.delete(callKey);
@@ -148,15 +335,140 @@ function toggleHistoryGroup(callKey,button){
   else row.style.setProperty('display','none','important');
  });
 }
-function moduleInfo(m){const letter=String(m?.module||'?').toUpperCase();return [m?.name||`Módulo ${letter}`,m?.configured_protocol||'D-STAR / DMR / C4FM-YSF',m?.access||`{{REFLECTOR_NAME}}-${letter}`]}
+function moduleInfo(m){const defs={A:['Envio de imagens D-STAR','Módulo A • imagens digitais','{{REFLECTOR_NAME}}-A'],B:['APRS / D-PRS','Dados digitais','{{REFLECTOR_NAME}}-B'],C:['C4FM/YSF e DMR','YSF {{YSF_ID}} • DMR TG 4003','{{REFLECTOR_NAME}}-C'],D:['D-STAR','{{REFLECTOR_NAME}}-D / XRF{{REFLECTOR_NUMBER}}-D','{{REFLECTOR_NAME}}-D'],E:['D-STAR Echo','Teste de áudio','{{REFLECTOR_NAME}}-E']};return defs[m.module]||[m.configured_protocol,m.access,'{{REFLECTOR_NAME}}-'+m.module]}
 function renderModules(d){$('#moduleOverview').innerHTML=Object.values(d.modules).map(m=>{const i=moduleInfo(m);return `<article class="module-mini ${m.transmission?'active':''}"><div class="module-mini-top"><span class="module-letter">${esc(m.module)}</span><span class="module-count">${m.connected_count} conectado${m.connected_count===1?'':'s'}</span></div><strong>${esc(i[0])}</strong><small>${esc(i[1])}</small><div class="module-id">${esc(i[2])}</div><div class="module-state">${m.transmission?'<i class="red"></i> Transmitindo agora':'<i></i> Aguardando transmissão'}</div></article>`}).join('');
- const rows=Object.values(d.modules).map((m,idx)=>{const n=idx+1,letter=m.module,info=moduleInfo(m);return `<tr><td><b>${esc(letter)}</b></td><td>${esc(info[1])}</td><td>${m.connected_count}</td><td>REF{{REFLECTOR_NUMBER}}${letter}L</td><td>*{{REFLECTOR_SHORT_NUMBER}}${letter}</td><td>XRF{{REFLECTOR_NUMBER}}${letter}L</td><td>B{{REFLECTOR_SHORT_NUMBER}}${letter}</td><td>DCS{{REFLECTOR_NUMBER}}${letter}L</td><td>D{{REFLECTOR_SHORT_NUMBER}}${letter}</td><td>${4000+n}</td><td>${9+n}</td></tr>`}).join('');$('#moduleReferenceRows').innerHTML=rows; }
-function connectedFilterOptions(d){const modules=[...new Set((d.connections||[]).map(c=>String(c.module||'').trim()).filter(Boolean))].sort(),protocols=[...new Set((d.connections||[]).map(c=>String(c.protocol||'').trim()).filter(Boolean))].sort(),moduleSelect=$('#connectedModuleFilter'),protocolSelect=$('#connectedProtocolFilter');if(moduleSelect){const selected=moduleSelect.value;moduleSelect.innerHTML='<option value="">Todos</option>'+modules.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');moduleSelect.value=modules.includes(selected)?selected:'';}if(protocolSelect){const selected=protocolSelect.value;protocolSelect.innerHTML='<option value="">Todos</option>'+protocols.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');protocolSelect.value=protocols.includes(selected)?selected:'';}}
-function connectedRows(d,query='',module='',protocol=''){const q=query.trim().toLowerCase(),rows=(d.connections||[]).filter(c=>(!q||[c.callsign,c.name,c.location,c.protocol,c.module].some(v=>String(v||'').toLowerCase().includes(q)))&&(!module||String(c.module||'')===module)&&(!protocol||String(c.protocol||'')===protocol));return rows.length?rows.map((c,i)=>`<tr><td>${i+1}</td><td>${flag(c)}</td><td><a target="_blank" href="${esc(c.qrz)}">${esc(c.callsign)}${c.suffix?' '+esc(c.suffix):''}</a></td><td>${esc(c.name)}</td><td>${esc(c.location)}</td><td><span class="protocol">${esc(c.protocol)}</span></td><td>${esc(c.module)}</td><td>${fmtTime(c.connected_at)}</td><td data-start="${c.connected_at}">${elapsed(c.connected_at)}</td><td>${fmtTime(c.last_activity)}</td></tr>`).join(''):'<tr><td colspan="10">Nenhuma estação corresponde aos filtros.</td></tr>';}
+ const functions={A:'Imagens D-STAR',B:'APRS / D-PRS',C:'C4FM/YSF/DMR',D:'D-STAR',E:'Echo / teste'};
+ const rows=Object.values(d.modules).map((m,idx)=>{const n=idx+1,letter=m.module;return `<tr><td><b>${esc(letter)}</b></td><td>${esc(functions[letter]||m.configured_protocol)}</td><td>${m.connected_count}</td><td>REF{{REFLECTOR_NUMBER}}${letter}L</td><td>*26${letter}</td><td>XRF{{REFLECTOR_NUMBER}}${letter}L</td><td>B{{REFLECTOR_SHORT_NUMBER}}${letter}</td><td>DCS{{REFLECTOR_NUMBER}}${letter}L</td><td>D{{REFLECTOR_SHORT_NUMBER}}${letter}</td><td>${4000+n}</td><td>${9+n}</td></tr>`}).join('');$('#moduleReferenceRows').innerHTML=rows; }
+/* {{REFLECTOR_NAME}}_CONECTADOS_UNIFICADO_V1 */
+function filterConnectedRows(d,query='',moduleFilter='',protocolFilter=''){
+ const q=String(query||'').trim().toLowerCase();
+ const moduleValue=String(moduleFilter||'').trim().toUpperCase();
+ const protocolValue=String(protocolFilter||'').trim().toLowerCase();
+
+ return (d.connections||[]).filter(c=>{
+  const queryMatch=!q||[c.callsign,c.name,c.location,c.protocol,c.module]
+   .some(v=>String(v||'').toLowerCase().includes(q));
+  const moduleMatch=!moduleValue||
+   String(c.module||'').trim().toUpperCase()===moduleValue;
+  const protocolMatch=!protocolValue||
+   String(c.protocol||'').trim().toLowerCase()===protocolValue;
+  return queryMatch&&moduleMatch&&protocolMatch;
+ });
+}
+
+function connectedRows(d,query='',moduleFilter='',protocolFilter=''){
+ const rows=filterConnectedRows(d,query,moduleFilter,protocolFilter);
+ return rows.length
+  ?rows.map((c,i)=>`<tr><td>${i+1}</td><td>${flag(c)}</td><td><a target="_blank" href="${esc(c.qrz)}">${esc(c.callsign)}${c.suffix?' '+esc(c.suffix):''}</a></td><td>${esc(c.name)}</td><td>${esc(c.location)}</td><td><span class="protocol">${esc(c.protocol)}</span></td><td>${esc(c.module)}</td><td>${fmtTime(c.connected_at)}</td><td data-start="${c.connected_at}">${elapsed(c.connected_at)}</td><td>${fmtTime(c.last_activity)}</td></tr>`).join('')
+  :`<tr><td colspan="10">Nenhuma estação corresponde aos filtros.</td></tr>`;
+}
+
+function syncConnectedProtocolFilter(d){
+ const select=$('#connectedProtocolFilter');
+ if(!select)return;
+ const current=select.value;
+ const protocols=[...new Set((d.connections||[])
+  .map(c=>String(c.protocol||'').trim()).filter(Boolean))];
+ if(current&&!protocols.includes(current))protocols.push(current);
+ protocols.sort();
+
+ const signature=protocols.join('|');
+ if(select.dataset.signature===signature)return;
+
+ select.innerHTML='<option value="">Todos</option>'+
+  protocols.map(p=>`<option value="${esc(p)}">${esc(p)}</option>`).join('');
+ if(current)select.value=current;
+ select.dataset.signature=signature;
+}
+
+function renderConnectedTable(d){
+ const query=$('#connectedSearch')?.value||'';
+ const moduleFilter=$('#connectedModuleFilter')?.value||'';
+ const protocolFilter=$('#connectedProtocolFilter')?.value||'';
+ const visible=filterConnectedRows(d,query,moduleFilter,protocolFilter).length;
+ const total=Number(d.connected_count!=null?d.connected_count:(d.connections||[]).length);
+
+ const label=$('#connectedLabel');
+ if(label){
+  const base=`${total} estação${total===1?'':'ões'} conectada${total===1?'':'s'}`;
+  label.textContent=visible===total
+   ?base
+   :`${base} • ${visible} exibida${visible===1?'':'s'}`;
+ }
+
+ $('#connectedRows').innerHTML=
+  connectedRows(d,query,moduleFilter,protocolFilter);
+}
+
+function renderConnected(d){
+ renderModules(d);
+ syncConnectedProtocolFilter(d);
+ renderConnectedTable(d);
+}
+
 function rankList(items,valueLabel){return items.length?items.map((x,i)=>`<div class="rank-item"><span class="rank-pos">${i+1}</span><div><b>${esc(x.label)}</b><small>${esc(x.sub||'')}</small></div><strong>${esc(valueLabel(x.value))}</strong></div>`).join(''):'<div class="rank-empty">Dados insuficientes no histórico disponível.</div>'}
 function aggregate(arr,keyFn,valFn=()=>1){const m=new Map();arr.forEach(x=>{const k=keyFn(x);if(!k)return;const old=m.get(k)||{label:k,value:0,sub:''};old.value+=valFn(x);m.set(k,old)});return [...m.values()].sort((a,b)=>b.value-a.value)}
 function renderRanking(d){const h=d.history||[],c=d.connections||[];const tx=aggregate(h,x=>x.callsign);tx.forEach(x=>{const y=h.find(z=>z.callsign===x.label);x.sub=y?.name||''});const air=aggregate(h,x=>x.callsign,x=>Number(x.duration||0));air.forEach(x=>{const y=h.find(z=>z.callsign===x.label);x.sub=y?.name||''});const con=[...c].sort((a,b)=>a.connected_at-b.connected_at).slice(0,10).map(x=>({label:x.callsign,sub:x.name,value:Math.max(0,Math.floor(Date.now()/1000-x.connected_at))}));const hrs=aggregate(h,x=>String(new Date(x.started_at*1000).getHours()).padStart(2,'0')+':00');const prot=aggregate(h,x=>x.protocol);const mods=aggregate(h,x=>'Módulo '+x.module);$('#rankTx').innerHTML=rankList(tx.slice(0,10),v=>v+' TX');$('#rankAirtime').innerHTML=rankList(air.slice(0,10),v=>duration(v));$('#rankConnected').innerHTML=rankList(con,v=>elapsed(Math.floor(Date.now()/1000-v)));$('#rankHours').innerHTML=rankList(hrs.slice(0,8),v=>v+' TX');$('#rankProtocols').innerHTML=rankList(prot.slice(0,8),v=>v+' TX');$('#rankModules').innerHTML=rankList(mods.slice(0,8),v=>v+' TX');const topTx=tx[0],topAir=air[0],topHour=hrs[0];$('#rankingHighlights').innerHTML=`<article><small>Mais transmissões</small><b>${esc(topTx?.label||'—')}</b><span>${topTx?topTx.value+' transmissões':'Sem dados'}</span></article><article><small>Maior tempo no ar</small><b>${esc(topAir?.label||'—')}</b><span>${topAir?duration(topAir.value):'Sem dados'}</span></article><article><small>Horário mais ativo</small><b>${esc(topHour?.label||'—')}</b><span>${topHour?topHour.value+' transmissões':'Sem dados'}</span></article><article><small>Conectados agora</small><b>${d.connected_count}</b><span>${d.active_count} transmissão${d.active_count===1?'':'ões'} ativa${d.active_count===1?'':'s'}</span></article>`}
-function renderReflectors(data){ const rows = (data.reflectors||[]).slice(0,300); $('#reflectorRows').innerHTML = rows.length ? rows.map((r,i)=>`<tr><td>${i+1}</td><td>${r.dashboardurl?`<a target="_blank" rel="noopener" href="${esc(r.dashboardurl)}">${esc(r.name)}</a>`:esc(r.name)}</td><td>${esc(r.country||'—')}</td><td>${onlineBadge((r.status||'').toLowerCase()==='online')}</td><td>${esc(r.comment||'—')}</td></tr>`).join('') : '<tr><td colspan="5">Não foi possível carregar a lista de refletores neste momento.</td></tr>'; }
+/* {{REFLECTOR_NAME}}_REFLETORES_COMPLETO_V2B */
+let reflectorAllRows=[];
+let reflectorSort={key:'name',dir:'asc'};
+let reflectorBound=false;
+let reflectorSearchTimer=null;
+function reflectorNorm(v){return String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim().toLowerCase()}
+function reflectorState(r){return reflectorNorm(r?.status)==='online'?'online':'offline'}
+function reflectorUrl(v){try{const u=new URL(String(v||''),location.origin);return /^(https?):$/.test(u.protocol)?u.href:''}catch(e){return ''}}
+function ensureReflectorUi(){
+ const panel=document.querySelector('body[data-page="refletores"] .embedded-panel');
+ if(!panel)return false;
+ if(panel.dataset.reflectorV2==='1')return true;
+ panel.dataset.reflectorV2='1';
+ panel.innerHTML=`
+  <div class="reflector-tools">
+   <div class="reflector-tools-title"><b>Refletores registrados</b><span id="reflectorSummary">Carregando lista mundial...</span></div>
+   <div class="reflector-controls">
+    <label><span>Pesquisar</span><input id="reflectorSearch" type="search" placeholder="{{REFLECTOR_NAME}}, país ou descrição" autocomplete="off"></label>
+    <label><span>Status</span><select id="reflectorStatus"><option value="">Todos</option><option value="online">Online</option><option value="offline">Offline</option></select></label>
+    <label><span>País</span><select id="reflectorCountry"><option value="">Todos os países</option></select></label>
+   </div>
+  </div>
+  <div class="reflector-stats"><article><small>Total</small><b id="reflectorTotal">—</b></article><article><small>Online</small><b id="reflectorOnline">—</b></article><article><small>Offline</small><b id="reflectorOffline">—</b></article><article><small>Exibidos</small><b id="reflectorVisible">—</b></article></div>
+  <div class="reflector-note">Todos os registros retornados pela rede são exibidos nesta página.</div>
+  <div class="table-wrap reflector-table-wrap"><table class="reflectors-table"><thead><tr><th>#</th><th data-rsort-col="name" aria-sort="ascending"><button class="reflector-sort" type="button" data-rsort="name">Refletor <i>↑</i></button></th><th data-rsort-col="country" aria-sort="none"><button class="reflector-sort" type="button" data-rsort="country">País <i>↕</i></button></th><th data-rsort-col="status" aria-sort="none"><button class="reflector-sort" type="button" data-rsort="status">Status <i>↕</i></button></th><th>Descrição</th></tr></thead><tbody id="reflectorRows"><tr><td colspan="5">Carregando lista de refletores...</td></tr></tbody></table></div>`;
+ return true;
+}
+function reflectorCountries(){
+ const s=$('#reflectorCountry'); if(!s)return;
+ const countries=[...new Set(reflectorAllRows.map(r=>String(r?.country||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR',{sensitivity:'base'}));
+ s.innerHTML='<option value="">Todos os países</option>'+countries.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+}
+function reflectorSortUi(){document.querySelectorAll('[data-rsort-col]').forEach(th=>{const active=th.dataset.rsortCol===reflectorSort.key;th.setAttribute('aria-sort',active?(reflectorSort.dir==='asc'?'ascending':'descending'):'none');const i=th.querySelector('i');if(i)i.textContent=active?(reflectorSort.dir==='asc'?'↑':'↓'):'↕'})}
+function renderReflectorView(){
+ const tb=$('#reflectorRows'); if(!tb)return;
+ const q=reflectorNorm($('#reflectorSearch')?.value||''),sf=reflectorNorm($('#reflectorStatus')?.value||''),cf=reflectorNorm($('#reflectorCountry')?.value||'');
+ const total=reflectorAllRows.length,online=reflectorAllRows.filter(r=>reflectorState(r)==='online').length,offline=total-online;
+ const rows=reflectorAllRows.filter(r=>(!sf||reflectorState(r)===sf)&&(!cf||reflectorNorm(r?.country)===cf)&&(!q||[r?.name,r?.country,r?.status,r?.comment].some(v=>reflectorNorm(v).includes(q))));
+ const dir=reflectorSort.dir==='desc'?-1:1;
+ rows.sort((a,b)=>{const av=reflectorSort.key==='status'?reflectorState(a):String(a?.[reflectorSort.key]||''),bv=reflectorSort.key==='status'?reflectorState(b):String(b?.[reflectorSort.key]||'');return av.localeCompare(bv,'pt-BR',{numeric:true,sensitivity:'base'})*dir});
+ $('#reflectorTotal').textContent=total.toLocaleString('pt-BR'); $('#reflectorOnline').textContent=online.toLocaleString('pt-BR'); $('#reflectorOffline').textContent=offline.toLocaleString('pt-BR'); $('#reflectorVisible').textContent=rows.length.toLocaleString('pt-BR'); $('#reflectorSummary').textContent=`${total.toLocaleString('pt-BR')} refletores • ${online.toLocaleString('pt-BR')} online • ${offline.toLocaleString('pt-BR')} offline`;
+ reflectorSortUi();
+ tb.innerHTML=rows.length?rows.map((r,i)=>{const name=String(r?.name||'—'),self=name.trim().toUpperCase()==='{{REFLECTOR_NAME}}',url=reflectorUrl(r?.dashboardurl),nameHtml=url?`<a target="_blank" rel="noopener noreferrer" href="${esc(url)}">${esc(name)}</a>`:esc(name);return `<tr class="${self?'reflector-self':''}"><td data-label="#">${i+1}</td><td data-label="Refletor"><span class="reflector-name">${nameHtml}${self?'<em>Este servidor</em>':''}</span></td><td data-label="País">${esc(r?.country||'—')}</td><td data-label="Status">${onlineBadge(reflectorState(r)==='online')}</td><td data-label="Descrição">${esc(r?.comment||'—')}</td></tr>`}).join(''):'<tr class="reflector-empty"><td colspan="5">Nenhum refletor corresponde aos filtros.</td></tr>';
+}
+function bindReflectorUi(){
+ if(reflectorBound)return;
+ $('#reflectorSearch')?.addEventListener('input',()=>{clearTimeout(reflectorSearchTimer);reflectorSearchTimer=setTimeout(renderReflectorView,100)});
+ $('#reflectorStatus')?.addEventListener('change',renderReflectorView); $('#reflectorCountry')?.addEventListener('change',renderReflectorView);
+ document.querySelectorAll('[data-rsort]').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.rsort||'name';if(reflectorSort.key===k)reflectorSort.dir=reflectorSort.dir==='asc'?'desc':'asc';else reflectorSort={key:k,dir:'asc'};renderReflectorView()}));
+ reflectorBound=true;
+}
+function renderReflectors(data){
+ if(!ensureReflectorUi())return;
+ reflectorAllRows=data&&Array.isArray(data.reflectors)?data.reflectors.slice():[];
+ reflectorCountries(); bindReflectorUi(); renderReflectorView();
+}
+/* /{{REFLECTOR_NAME}}_REFLETORES_COMPLETO_V2B */
+
+let xlx026HistorySignature='';
+let xlx026HistoryRenderedAt=0;
 function render(d){lastData=d;$('#syncState').textContent='Ao vivo';updateTitle(d);trackConnectedCountVoice(d);
  if(page==='ao-vivo'){ $('#headerConnected').textContent=d.connected_count; $('#headerActive').textContent=d.active_count; $('#widgetCount').textContent=d.active_count?`${d.active_count} no ar`:'Standby'; const active=Object.values(d.modules).filter(m=>m.transmission); const newest=[...d.history].sort((a,b)=>b.started_at-a.started_at)[0]||null; const standModule=Object.values(d.modules)[0];
 
@@ -175,10 +487,15 @@ function render(d){lastData=d;$('#syncState').textContent='Ao vivo';updateTitle(
  }
 
  ensureHistoryDropdownStyles();
- $('#historyRows').innerHTML=historyMarkup(d)
+ const historySignature=(d.history||[]).map(x=>[x.callsign||'',x.suffix||'',x.module||'',x.protocol||'',x.started_at||'',x.ended_at||'',x.gateway||''].join('|')).join('~');
+ const now=Date.now();
+ if(historySignature!==xlx026HistorySignature||now-xlx026HistoryRenderedAt>=15000){
+  $('#historyRows').innerHTML=historyMarkup(d);
+  xlx026HistorySignature=historySignature;
+  xlx026HistoryRenderedAt=now;
  }
- if(page==='modulos')renderModules(d);
- if(page==='conectados'){ $('#connectedLabel').textContent=`${d.connected_count} estação${d.connected_count===1?'':'ões'} conectada${d.connected_count===1?'':'s'}`; $('#connectedCards').innerHTML=Object.values(d.modules).map(m=>`<div class="connected-summary"><b>${m.connected_count}</b><span>Módulo ${esc(m.module)} • ${esc(moduleInfo(m)[0])}</span></div>`).join(''); connectedFilterOptions(d); $('#connectedRows').innerHTML=connectedRows(d,$('#connectedSearch')?.value||'',$('#connectedModuleFilter')?.value||'',$('#connectedProtocolFilter')?.value||'') }
+ }
+ if(page==='conectados')renderConnected(d);
  if(page==='ranking')renderRanking(d);
  const nowSet=new Set(d.connections.map(c=>`${c.callsign}|${c.suffix}|${c.protocol}|${c.module}|${c.ip}`));if(previousConnections!==null)d.connections.forEach(c=>{const k=`${c.callsign}|${c.suffix}|${c.protocol}|${c.module}|${c.ip}`;if(!previousConnections.has(k))toast(c)});previousConnections=nowSet; }
 let statusUpdateRunning=false;
@@ -218,10 +535,56 @@ let txRxAudioUnlocked=false;
 let txRxSoundEnabled=
  localStorage.getItem('xlx026TxRxSound')!=='disabled';
 
+/* {{REFLECTOR_NAME}}_AUDIO_CONTROL_V5E */
+
+function xlx026AudioStored(key,fallback){
+ try{
+  const value=localStorage.getItem(key);
+
+  if(value===null){
+   return fallback;
+  }
+
+  return value!=='disabled';
+
+ }catch(error){
+  return fallback;
+ }
+}
+
+function xlx026PanelAudioEnabled(){
+ return xlx026AudioStored(
+  'xlx026PanelAudio',
+  true
+ );
+}
+
+function xlx026ConnectedVoiceEnabled(){
+ return (
+  xlx026PanelAudioEnabled() &&
+  xlx026AudioStored(
+   'xlx026ConnectedVoice',
+   true
+  )
+ );
+}
+
+function xlx026TxBeepsEnabled(){
+ return (
+  xlx026PanelAudioEnabled() &&
+  xlx026AudioStored(
+   'xlx026TxBeeps',
+   txRxSoundEnabled
+  )
+ );
+}
+
+
+
 
 /*
  * ==========================================================
- * XLX026_CONNECTED_COUNT_VOICE_V1
+ * {{REFLECTOR_NAME}}_CONNECTED_COUNT_VOICE_V1
  *
  * Fala somente o total já recebido pelo status.php.
  *
@@ -241,7 +604,7 @@ let txRxSoundEnabled=
  */
 
 /*
- * XLX026_CONNECTED_COUNT_VOICE_V103_NO_TX
+ * {{REFLECTOR_NAME}}_CONNECTED_COUNT_VOICE_V103_NO_TX
  *
  * - conexao/desconexao: 3 segundos apos a ultima mudanca
  * - varias mudancas: somente o total final
@@ -295,13 +658,13 @@ function chooseConnectedVoice(){
    voices.find(
     voice=>
      String(voice.lang||'')
-      .toLowerCase()===(uiEnglish?'en-us':'pt-br')
+      .toLowerCase()==='pt-br'
    )||
    voices.find(
     voice=>
      String(voice.lang||'')
       .toLowerCase()
-      .startsWith(uiEnglish?'en':'pt')
+      .startsWith('pt')
    )||
    null
   );
@@ -404,18 +767,10 @@ function connectedVoiceBuildSignature(data){
 }
 
 
-function connectedVoiceReflectorSpeech(){
- const reflector='{{REFLECTOR_NAME}}';
- const match=/^XLX(\d{3})$/i.exec(reflector);
- if(!match)return reflector;
- const words=uiEnglish?['zero','one','two','three','four','five','six','seven','eight','nine']:['zero','um','dois','três','quatro','cinco','seis','sete','oito','nove'];
- return `XLX ${match[1].split('').map(d=>words[Number(d)]||d).join(' ')}`;
-}
-
 function speakConnectedCount(total,reason='event'){
  if(
   page!=='ao-vivo'||
-  !txRxSoundEnabled||
+  !xlx026ConnectedVoiceEnabled()||
   !connectedVoiceUserActivated||
   !connectedVoiceSupported()||
   connectedVoiceTxActive()
@@ -431,12 +786,10 @@ function speakConnectedCount(total,reason='event'){
 
   const utterance=
    new SpeechSynthesisUtterance(
-    uiEnglish
-     ? `${connectedVoiceReflectorSpeech()} with ${value} connected stations.`
-     : `${connectedVoiceReflectorSpeech()} com ${value} estações conectadas.`
+    `XLX zero vinte e seis com ${value} estações conectados.`
    );
 
-  utterance.lang=uiEnglish?'en-US':'pt-BR';
+  utterance.lang='pt-BR';
 
   /*
    * Rapida e mais animada.
@@ -501,7 +854,7 @@ function scheduleConnectedVoiceEvent(){
   page!=='ao-vivo'||
   connectedVoiceCurrentTotal===null||
   !connectedVoicePendingEvent||
-  !txRxSoundEnabled||
+  !xlx026ConnectedVoiceEnabled()||
   !connectedVoiceUserActivated||
   !connectedVoiceSupported()||
   connectedVoiceTxActive()
@@ -678,7 +1031,7 @@ if(page==='ao-vivo'){
 }
 
 
-/* /XLX026_CONNECTED_COUNT_VOICE_V101 */
+/* /{{REFLECTOR_NAME}}_CONNECTED_COUNT_VOICE_V101 */
 
 
 function updateTxRxSoundButton(){
@@ -749,7 +1102,7 @@ function ensureTxRxSoundButton(){
 
 
 async function unlockTxRxAudio(playConfirmation=false){
- if(!txRxSoundEnabled)return false;
+ if(!txRxSoundEnabled||!xlx026PanelAudioEnabled()||!xlx026TxBeepsEnabled())return false;
 
  const AudioContextClass=
   window.AudioContext||window.webkitAudioContext;
@@ -854,11 +1207,11 @@ document.addEventListener(
 );
 
 /*
- * XLX026_TXRX_SOUND_STRONG_V1
+ * {{REFLECTOR_NAME}}_TXRX_SOUND_STRONG_V1
  * Sinais TX/RX mais fortes e distintos.
  */
 function playTxRxTone(frequency,duration,delay){
- if(!txRxSoundEnabled)return;
+ if(!txRxSoundEnabled||!xlx026PanelAudioEnabled()||!xlx026TxBeepsEnabled())return;
 
  const AudioContextClass=
   window.AudioContext||window.webkitAudioContext;
@@ -880,12 +1233,12 @@ function playTxRxTone(frequency,duration,delay){
  const oscillator=txRxAudioContext.createOscillator();
  const gain=txRxAudioContext.createGain();
 
- oscillator.type='triangle';
+ oscillator.type='square';
  oscillator.frequency.setValueAtTime(frequency,start);
 
  gain.gain.setValueAtTime(0.0001,start);
  gain.gain.exponentialRampToValueAtTime(
-  0.32,
+  0.60,
   start+0.008
  );
  gain.gain.exponentialRampToValueAtTime(
@@ -904,19 +1257,19 @@ function playTxRxTone(frequency,duration,delay){
  * Início: bip único, mais agudo e forte.
  */
 function playTxStartedSound(){
- playTxRxTone(1120,150,0);
+ playTxRxTone(2700,115,0);
 }
 
 /*
  * Final: dois bips descendentes.
  */
 /*
- * XLX026_TXRX_END_DOUBLE_BEEP_V1
+ * {{REFLECTOR_NAME}}_TXRX_END_DOUBLE_BEEP_V1
  * Fim de TX com dois bips mais separados e nítidos.
  */
 function playTxEndedSound(){
- playTxRxTone(760,95,0);
- playTxRxTone(520,95,230);
+ playTxRxTone(2350,95,0);
+ playTxRxTone(2350,95,155);
 }
 
 function detectTxRxSound(active){
@@ -1019,7 +1372,7 @@ function renderLiveTxRxOnly(live){
     .map(txCard)
     .join('');
 
-   window.XLX026MTR?.sync(
+   window.{{REFLECTOR_NAME}}MTR?.sync(
     active.slice(0,3)
    );
   }else{
@@ -1034,7 +1387,7 @@ function renderLiveTxRxOnly(live){
      standbyCard(standbyModule,newest);
    }
 
-   window.XLX026MTR?.sync([]);
+   window.{{REFLECTOR_NAME}}MTR?.sync([]);
   }
 
   lastLiveVisualSignature=visualSignature;
@@ -1043,6 +1396,133 @@ function renderLiveTxRxOnly(live){
  updateTitle(lastData);
  ensureTxRxSoundButton();
 }
+
+
+/* ==========================================================
+   {{REFLECTOR_NAME}}_LIVE_IDENTITY_MERGE_V10
+
+   A API live.php continua responsável pela velocidade.
+
+   A identidade do operador é preservada do status.php
+   quando módulo/stream/horário comprovam que se trata
+   da mesma transmissão.
+   ========================================================== */
+
+let xlx026LastIdentityRefreshKey='';
+
+function xlx026BaseCall(value){
+ return String(value||'')
+  .replace(/\s+/g,' ')
+  .trim()
+  .toUpperCase()
+  .split(' ')[0]||'';
+}
+
+function xlx026LiveIdentityKey(tx){
+ if(!tx)return '';
+
+ return String(
+  tx.key||
+  [
+   tx.module||'',
+   tx.stream_id||'',
+   tx.started_at||''
+  ].join(':')
+ );
+}
+
+function xlx026SameTransmission(a,b){
+ if(!a||!b)return false;
+
+ const sidA=Number(a.stream_id||0);
+ const sidB=Number(b.stream_id||0);
+
+ const startA=Number(a.started_at||0);
+ const startB=Number(b.started_at||0);
+
+ return (
+  sidA>0 &&
+  sidB>0 &&
+  sidA===sidB &&
+  startA>0 &&
+  startB>0 &&
+  Math.abs(startA-startB)<=2
+ );
+}
+
+function xlx026HasStationIdentity(tx){
+ return Boolean(
+  tx &&
+  String(tx.identity_source||'')
+   .indexOf('xlxd-station')===0
+ );
+}
+
+function xlx026MergeLiveIdentity(
+ liveTx,
+ statusTx
+){
+ if(
+  !xlx026SameTransmission(
+   liveTx,
+   statusTx
+  ) ||
+  !xlx026HasStationIdentity(statusTx)
+ ){
+  return liveTx;
+ }
+
+ const merged=Object.assign(
+  {},
+  liveTx
+ );
+
+ [
+  'callsign',
+  'suffix',
+  'name',
+  'location',
+  'country',
+  'protocol',
+  'qrz',
+  'gateway',
+  'gateway_suffix',
+  'network_callsign',
+  'identity_source',
+  'origin_match'
+ ].forEach(field=>{
+  if(
+   Object.prototype.hasOwnProperty.call(
+    statusTx,
+    field
+   )
+  ){
+   merged[field]=statusTx[field];
+  }
+ });
+
+ return merged;
+}
+
+function xlx026LiveIdentityLooksAmbiguous(tx){
+ if(!tx)return false;
+
+ const call=
+  xlx026BaseCall(tx.callsign);
+
+ const gateway=
+  xlx026BaseCall(tx.gateway);
+
+ return Boolean(
+  call &&
+  gateway &&
+  call===gateway &&
+  !xlx026HasStationIdentity(tx)
+ );
+}
+
+/* /{{REFLECTOR_NAME}}_LIVE_IDENTITY_MERGE_V10 */
+
 
 async function updateLiveTxRx(){
  if(
@@ -1075,10 +1555,63 @@ async function updateLiveTxRx(){
 
   detectTxRxSound(live.active);
 
+  let requestIdentityRefresh=false;
+
   Object.values(lastData.modules).forEach(module=>{
-   module.transmission=
+   const liveTx=
     live.active[module.module]||null;
+
+   const statusTx=
+    module.transmission||null;
+
+   if(!liveTx){
+    module.transmission=null;
+    return;
+   }
+
+   const merged=
+    xlx026MergeLiveIdentity(
+     liveTx,
+     statusTx
+    );
+
+   module.transmission=merged;
+
+   /*
+    * Uma transmissão nova chegou pela API rápida,
+    * mas ainda não temos identidade STATION para ela.
+    *
+    * Solicita imediatamente UMA atualização da API
+    * completa para esta stream, em vez de esperar
+    * o ciclo normal de 5 segundos.
+    */
+   if(
+    merged===liveTx &&
+    xlx026LiveIdentityLooksAmbiguous(
+     liveTx
+    )
+   ){
+    const refreshKey=
+     xlx026LiveIdentityKey(liveTx);
+
+    if(
+     refreshKey &&
+     refreshKey!==
+      xlx026LastIdentityRefreshKey
+    ){
+     xlx026LastIdentityRefreshKey=
+      refreshKey;
+
+     requestIdentityRefresh=true;
+    }
+   }
   });
+
+  if(requestIdentityRefresh){
+   Promise.resolve().then(()=>{
+    update();
+   });
+  }
 
   lastData.active_count=live.active_count;
   lastData.generated_at=live.generated_at;
@@ -1221,14 +1754,18 @@ $('#historyRows')?.addEventListener('click',event=>{
  event.stopPropagation();
  toggleHistoryGroup(button.dataset.historyToggle||'',button);
 });
-function refreshConnectedRows(){if(lastData)$('#connectedRows').innerHTML=connectedRows(lastData,$('#connectedSearch')?.value||'',$('#connectedModuleFilter')?.value||'',$('#connectedProtocolFilter')?.value||'');}
-$('#connectedSearch')?.addEventListener('input',refreshConnectedRows);$('#connectedModuleFilter')?.addEventListener('change',refreshConnectedRows);$('#connectedProtocolFilter')?.addEventListener('change',refreshConnectedRows);
+function refreshConnectedFilters(){
+ if(lastData&&page==='conectados')renderConnectedTable(lastData);
+}
+$('#connectedSearch')?.addEventListener('input',refreshConnectedFilters);
+$('#connectedModuleFilter')?.addEventListener('change',refreshConnectedFilters);
+$('#connectedProtocolFilter')?.addEventListener('change',refreshConnectedFilters);
 const toggle=document.querySelector('.universal-header .menu-toggle');
 const nav=document.querySelector('.universal-header .universal-nav');
 toggle?.addEventListener('click',()=>{if(!nav)return;const open=nav.classList.toggle('open');toggle.setAttribute('aria-expanded',String(open))});
 
 /* ==========================================================
-   XLX026 V39 — tabelas móveis estáveis, sem piscar
+   {{REFLECTOR_NAME}} V39 — tabelas móveis estáveis, sem piscar
    ========================================================== */
 (() => {
     'use strict';
@@ -1573,14 +2110,14 @@ toggle?.addEventListener('click',()=>{if(!nav)return;const open=nav.classList.to
 })();
 
 /* ==========================================================
-   XLX026_TX_CALLSIGN_FIX_V2
+   {{REFLECTOR_NAME}}_TX_CALLSIGN_FIX_V2
    OTIMIZADO
    ========================================================== */
 (function () {
   'use strict';
 
-  if (window.__XLX026_TX_CALLSIGN_FIX_V2__) return;
-  window.__XLX026_TX_CALLSIGN_FIX_V2__ = true;
+  if (window.__{{REFLECTOR_NAME}}_TX_CALLSIGN_FIX_V2__) return;
+  window.__{{REFLECTOR_NAME}}_TX_CALLSIGN_FIX_V2__ = true;
 
   function normalizeLiveCallsign(raw) {
     const txt = String(raw || '')
@@ -1717,7 +2254,7 @@ toggle?.addEventListener('click',()=>{if(!nav)return;const open=nav.classList.to
 
 })();
 
-/* FIM XLX026_TX_CALLSIGN_FIX_V2 */
+/* FIM {{REFLECTOR_NAME}}_TX_CALLSIGN_FIX_V2 */
 
 
 
@@ -1726,7 +2263,7 @@ toggle?.addEventListener('click',()=>{if(!nav)return;const open=nav.classList.to
 
 
 /* ==========================================================
-   XLX026_MENU_MOBILE_FECHADO_V3
+   {{REFLECTOR_NAME}}_MENU_MOBILE_FECHADO_V3
    Controle do menu mobile
    ========================================================== */
 
@@ -1735,7 +2272,7 @@ toggle?.addEventListener('click',()=>{if(!nav)return;const open=nav.classList.to
 
     const MOBILE_QUERY = '(max-width: 820px)';
 
-    function initXLX026MobileMenuV3(){
+    function init{{REFLECTOR_NAME}}MobileMenuV3(){
 
         const header = document.querySelector('.universal-header');
         if (!header) return;
@@ -1763,11 +2300,7 @@ toggle?.addEventListener('click',()=>{if(!nav)return;const open=nav.classList.to
         }
 
         if (!wrap.parentNode){
-            if (nav.parentNode === row) {
-                row.insertBefore(wrap, nav);
-            } else {
-                row.appendChild(wrap);
-            }
+            row.insertBefore(wrap, nav);
         }
 
         const isMobile = () => window.matchMedia(MOBILE_QUERY).matches;
@@ -1843,11 +2376,232 @@ toggle?.addEventListener('click',()=>{if(!nav)return;const open=nav.classList.to
     }
 
     if (document.readyState === 'loading'){
-        document.addEventListener('DOMContentLoaded', initXLX026MobileMenuV3, { once:true });
+        document.addEventListener('DOMContentLoaded', init{{REFLECTOR_NAME}}MobileMenuV3, { once:true });
     } else {
-        initXLX026MobileMenuV3();
+        init{{REFLECTOR_NAME}}MobileMenuV3();
     }
 
 })();
 
-/* FIM XLX026_MENU_MOBILE_FECHADO_V3 */
+/* FIM {{REFLECTOR_NAME}}_MENU_MOBILE_FECHADO_V3 */
+
+
+/* {{REFLECTOR_NAME}}_AUDIO_API_V5E */
+
+function xlx026StopWebAudio(){
+
+ try{
+
+  if(txRxAudioContext){
+
+   if(
+    typeof txRxAudioContext.close==='function'
+   ){
+    txRxAudioContext.close();
+
+   }else if(
+    txRxAudioContext.state==='running' &&
+    typeof txRxAudioContext.suspend==='function'
+   ){
+    txRxAudioContext.suspend();
+   }
+  }
+
+ }catch(error){}
+
+ txRxAudioContext=null;
+ txRxAudioUnlocked=false;
+}
+
+
+window.{{REFLECTOR_NAME}}AudioControl={
+
+ state:function(){
+
+  return {
+
+   master:
+    xlx026AudioStored(
+     'xlx026PanelAudio',
+     true
+    ),
+
+   voice:
+    xlx026AudioStored(
+     'xlx026ConnectedVoice',
+     true
+    ),
+
+   beeps:
+    xlx026AudioStored(
+     'xlx026TxBeeps',
+     txRxSoundEnabled
+    )
+
+  };
+ },
+
+
+ setMaster:function(enabled){
+
+  enabled=!!enabled;
+
+  try{
+   localStorage.setItem(
+    'xlx026PanelAudio',
+    enabled?'enabled':'disabled'
+   );
+  }catch(error){}
+
+  if(!enabled){
+
+   try{
+    clearConnectedVoiceTimer();
+   }catch(error){}
+
+   try{
+    if('speechSynthesis' in window){
+     window.speechSynthesis.cancel();
+    }
+   }catch(error){}
+
+   xlx026StopWebAudio();
+
+   return true;
+  }
+
+  if(
+   txRxSoundEnabled &&
+   xlx026TxBeepsEnabled()
+  ){
+   try{
+    unlockTxRxAudio(false);
+   }catch(error){}
+  }
+
+  return true;
+ },
+
+
+ setVoice:function(enabled){
+
+  enabled=!!enabled;
+
+  try{
+   localStorage.setItem(
+    'xlx026ConnectedVoice',
+    enabled?'enabled':'disabled'
+   );
+  }catch(error){}
+
+  if(!enabled){
+
+   try{
+    clearConnectedVoiceTimer();
+   }catch(error){}
+
+   try{
+    if('speechSynthesis' in window){
+     window.speechSynthesis.cancel();
+    }
+   }catch(error){}
+  }
+
+  return true;
+ },
+
+
+ setBeeps:function(enabled){
+
+  enabled=!!enabled;
+
+  txRxSoundEnabled=enabled;
+
+  try{
+
+   localStorage.setItem(
+    'xlx026TxBeeps',
+    enabled?'enabled':'disabled'
+   );
+
+   localStorage.setItem(
+    'xlx026TxRxSound',
+    enabled?'enabled':'disabled'
+   );
+
+  }catch(error){}
+
+  try{
+   updateTxRxSoundButton();
+  }catch(error){}
+
+  if(!enabled){
+
+   xlx026StopWebAudio();
+
+   return true;
+  }
+
+  if(xlx026PanelAudioEnabled()){
+
+   try{
+    unlockTxRxAudio(false);
+   }catch(error){}
+  }
+
+  return true;
+ },
+
+
+ testBeep:function(){
+
+  if(
+   !xlx026PanelAudioEnabled() ||
+   !xlx026TxBeepsEnabled()
+  ){
+   return false;
+  }
+
+  txRxSoundEnabled=true;
+
+  try{
+
+   unlockTxRxAudio(false).then(
+    function(ok){
+
+     if(ok){
+      playTxRxTone(
+       2700,
+       100,
+       0
+      );
+     }
+    }
+   );
+
+  }catch(error){}
+
+  return true;
+ },
+
+
+ stopAll:function(){
+
+  try{
+   clearConnectedVoiceTimer();
+  }catch(error){}
+
+  try{
+   if('speechSynthesis' in window){
+    window.speechSynthesis.cancel();
+   }
+  }catch(error){}
+
+  xlx026StopWebAudio();
+
+  return true;
+ }
+
+};
+
+
