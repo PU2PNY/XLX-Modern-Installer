@@ -73,6 +73,8 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}/' . ($page === 'ao-vivo' ? '' : '?pag
 <link rel="stylesheet" href="assets/header-brasil-refino-v3.css?v=1">
 <link rel="stylesheet" href="assets/header-horizontal-responsivo-v4.css?v=1">
 <link rel="stylesheet" href="assets/header-menu-breakpoint-fix-v1.css?v=1">
+<link rel="stylesheet" href="assets/xlx026-accessibility.css?v=1">
+<link rel="stylesheet" href="assets/xlx026-accessibility-compact-v1.css?v=1">
 
 <?php if ($authorizedPage): ?>
 <link rel="stylesheet" href="assets/authorized-pages-v1.css?v=1">
@@ -116,13 +118,14 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}/' . ($page === 'ao-vivo' ? '' : '?pag
 
  <nav class="universal-nav" aria-label="Menu principal">
   <?=render_nav($page)?>
+  <a href="#acessibilidade" class="xlx-a11y-menu-icon" aria-label="Abrir acessibilidade" title="Acessibilidade">♿</a>
  </nav>
-
+ <button class="xlx-a11y-mobile-icon" type="button" aria-label="Abrir acessibilidade" title="Acessibilidade">♿</button>
  <button class="menu-toggle" type="button" aria-label="Abrir menu" aria-expanded="false">☰</button>
 </section>
 <?php if ($page === 'ao-vivo'): ?>
  <section class="dashboard-layout">
-  <aside class="live-widget"><div class="widget-heading"><div><p class="eyebrow">MONITOR AO VIVO</p><h2>Transmissões</h2></div><span id="widgetCount">Standby</span></div><div id="moduleGrid" class="module-grid widget-grid"></div><div id="opsWidget" class="ops-widget"><span class="status-dot"></span><div><b>Servidor operacional</b><small id="serverLine">Lendo estado...</small></div><div class="ops-numbers"><span><b id="headerConnected">0</b> conectados</span><span><b id="headerActive">0</b> TX ativa</span></div></div></aside>
+  <aside class="live-widget"><div class="widget-heading"><div><p class="eyebrow">MONITOR AO VIVO</p><h2>Transmissões</h2></div><span id="widgetCount">Standby</span></div><div class="live-summary-bar" aria-label="Resumo do monitor ao vivo"><span class="live-summary-item live-summary-connected"><b id="headerConnected">0</b><small>conectados</small></span><span class="live-summary-item live-summary-active"><b id="headerActive">0</b><small>TX ativa</small></span></div><div id="moduleGrid" class="module-grid widget-grid"></div></aside>
   <div class="dashboard-main panel compact-panel">
    <div class="section-title panel-title"><div><p class="eyebrow">ÚLTIMAS ATIVIDADES</p><h2>Atividade das últimas 24 horas</h2></div><span class="table-note">Todos os indicativos</span></div>
    <div class="table-wrap"><table class="home-history"><thead><tr><th>Nº</th><th>País</th><th>Status</th><th>Indicativo</th><th>Nome</th><th>Hotspot / Repetidora</th><th>Cidade</th><th>Protocolo</th><th>Módulo</th><th>Horário TX</th><th>Tempo de TX</th></tr></thead><tbody id="historyRows"></tbody></table></div>
@@ -167,7 +170,7 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}/' . ($page === 'ao-vivo' ? '' : '?pag
 <?php else: ?>
 <footer><div><a class="brand footer-brand" href="<?=page_url('ao-vivo')?>"><img class="brand-logo" src="assets/logo-{{REFLECTOR_NAME}}.svg" alt="Logotipo {{REFLECTOR_NAME}}"><span><b>{{REFLECTOR_NAME}}</b></span></a><p> para a comunidade radioamadora.</p></div><div class="footer-links"><a href="<?=page_url('ao-vivo')?>">Ao vivo</a><a href="<?=page_url('conectados')?>">Conectados</a><a href="<?=page_url('ranking')?>">Ranking</a></div><small>{{REFLECTOR_NAME}} • D-STAR {{REFLECTOR_NAME}}-D • DMR: TG 6 (voz), A=4001, B=4002, C=4003… • C4FM/YSF {{YSF_ID}}</small></footer>
 <?php endif; ?>
-<div id="toastStack" class="toast-stack"></div><script src="assets/mtr.js?v=5"></script><script src="assets/app.js?v=64"></script>
+<div id="toastStack" class="toast-stack"></div><script src="assets/mtr.js?v=5"></script><script src="assets/app.js?v=65"></script>
 <?php if ($page === 'ao-vivo'): ?>
 <script src="assets/ao-vivo-authorized-sync-v1.js?v=1"></script>
 <script src="assets/ao-vivo-tx-embed-v5.js?v=1" defer></script>
@@ -248,4 +251,6 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}/' . ($page === 'ao-vivo' ? '' : '?pag
 
 <!-- XLX026_HEADER_UNIFICADO_V1 JS -->
 <script src="assets/header-unificado-v1.js?v=20260807_032449"></script>
+<script src="assets/header-brasil-neon-fixed-v2.js?v=1"></script>
+<script src="assets/xlx026-accessibility.js?v=1" defer></script>
 </body></html>
