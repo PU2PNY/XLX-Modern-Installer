@@ -252,15 +252,10 @@ while :; do
     echo "Invalid YSF ID / ID YSF inválido."
 done
 
-while :; do
-    read -r -p "DMR TalkGroup / TG DMR: " DMR_TG
-
-    if [[ "$DMR_TG" =~ ^[0-9]{1,8}$ ]]; then
-        break
-    fi
-
-    echo "Invalid DMR TG / TG DMR inválido."
-done
+# XLXD uses the standard DMR module mapping: A=4001, B=4002,
+# C=4003 and so on. Voice traffic uses TG 6, so no individual TG needs
+# to be requested from the sysop for the dashboard.
+DMR_TG="6"
 
 if [ -e "$DEST" ]; then
     stamp="$(date +%Y%m%d_%H%M%S)"
