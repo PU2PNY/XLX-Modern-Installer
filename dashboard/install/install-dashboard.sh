@@ -167,7 +167,10 @@ ask() {
 }
 
 reuse_or_ask() {
-    local var_name="$1" label_key="$2" value="${!var_name:-}"
+    local var_name label_key value
+    var_name="$1"
+    label_key="$2"
+    value="${!var_name:-}"
     if [ -n "$value" ]; then
         printf '%s: %s [reaproveitado]\n' "$(prompt_text "$label_key")" "$value"
     else
