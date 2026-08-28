@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-exec bash "$ROOT/modules/68-control-panel.sh" "$@"
+exec bash "$ROOT/modules/69-admin-page.sh" "$@"
