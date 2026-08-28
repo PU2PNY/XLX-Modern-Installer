@@ -61,6 +61,17 @@ else
     rmdir "$BACKUP" 2>/dev/null || true
 fi
 
+# O dashboard roda como www-data. O diretório /xlxd em algumas instalações
+# upstream é privado para root; nesse caso, mesmo users.db=root:www-data 0640
+# fica inacessível porque o Apache não consegue atravessar /xlxd.
+# Acrescentamos somente o bit de travessia para outros usuários; não concedemos
+# leitura/listagem nem escrita sobre /xlxd.
+if ! runuser -u www-data -- test -x /xlxd; then
+    chmod o+x /xlxd
+    warn 'Ajustada apenas a permissão de travessia de /xlxd para permitir leitura controlada da base pelo Apache.'
+fi
+runuser -u www-data -- test -x /xlxd || fatal 'www-data não consegue atravessar /xlxd.'
+
 install -d -m 0755 -o root -g www-data "$USERS_DIR"
 install -m 0644 -o root -g www-data "$ROOT/tools/create-user-db.php" "$USERS_DIR/create_user_db.php"
 install -m 0750 -o root -g root "$ROOT/tools/xlx-modern-users-refresh.sh" /usr/local/sbin/xlx-modern-users-refresh
@@ -80,6 +91,20 @@ rows="$(sqlite3 "$USERS_DIR/users.db" 'SELECT COUNT(*) FROM users;' 2>/dev/null 
 [[ "$rows" =~ ^[0-9]+$ ]] || rows=0
 [ "$rows" -ge 1000 ] || fatal "users.db possui poucos registros: $rows"
 ok "Base de indicativos pronta: $rows registros."
+
+# Validação end-to-end com o mesmo usuário do Apache/PHP. Não basta o arquivo
+# existir: o dashboard precisa realmente conseguir abrir o SQLite.
+www_rows="$(runuser -u www-data -- php -r '
+try {
+    $db = new SQLite3($argv[1], SQLITE3_OPEN_READONLY);
+    echo (string)$db->querySingle("SELECT COUNT(*) FROM users;");
+} catch (Throwable $e) {
+    exit(2);
+}
+' "$USERS_DIR/users.db" 2>/dev/null || true)"
+[[ "$www_rows" =~ ^[0-9]+$ ]] || www_rows=0
+[ "$www_rows" -ge 1000 ] || fatal 'Apache/PHP (www-data) não consegue consultar users.db.'
+ok "Apache/PHP confirmou leitura da base: $www_rows registros."
 
 systemctl enable --now update_XLX_db.timer >/dev/null
 systemctl is-active --quiet update_XLX_db.timer || fatal 'update_XLX_db.timer não ficou ativo.'
@@ -102,6 +127,7 @@ sudo_read="$(runuser -u www-data -- test -r /var/log/xlx.log && echo yes || echo
 ok 'Ponte de log TX/RX ativa; XLXD não foi reiniciado.'
 
 printf 'USERS_DB_ROWS=%s\n' "$rows"
+printf 'USERS_DB_APACHE_ROWS=%s\n' "$www_rows"
 printf 'USERS_TIMER=ACTIVE\n'
 printf 'XLX_LOG_SERVICE=ACTIVE\n'
 printf 'STATUS=RUNTIME_DATA_OK\n'
