@@ -3,13 +3,16 @@ $page = $_GET['page'] ?? 'ao-vivo';
 $allowed = ['ao-vivo','modulos','conectados','ranking','refletores'];
 if (!in_array($page, $allowed, true)) $page = 'ao-vivo';
 $authorizedPage = in_array($page, ['ao-vivo','modulos','conectados','ranking'], true);
+$site = is_file(__DIR__ . '/config/site.php') ? require __DIR__ . '/config/site.php' : [];
+$moduleCount = max(1, min(26, (int)($site['radio']['module_count'] ?? 5)));
+$moduleRange = 'A–' . chr(64 + $moduleCount);
 function nav_class(string $p, string $current): string { return $p === $current ? ' class="active"' : ''; }
 function page_url(string $p): string { return '?page=' . rawurlencode($p); }
 function render_nav(string $page): string {
   $items = [
     'ao-vivo' => 'Ao vivo',
     'conectados' => 'Conectados',
-    'modulos' => 'Módulos A–E',
+    'modulos' => 'Módulos ' . $moduleRange,
     'ranking' => 'Ranking',
     'refletores' => 'Lista de refletores XLX',
   ];
@@ -22,7 +25,7 @@ function render_nav(string $page): string {
 }
 $seo = [
  'ao-vivo'=>['title'=>'{{REFLECTOR_NAME}} — Painel ao vivo D-STAR, DMR e C4FM','description'=>'Acompanhe ao vivo transmissões, estações conectadas e módulos do refletor multiprotocolo {{REFLECTOR_NAME}}.'],
- 'modulos'=>['title'=>'Módulos A–E — {{REFLECTOR_NAME}}','description'=>'Consulte funções, protocolos e identificações de acesso dos módulos A a E do refletor {{REFLECTOR_NAME}}.'],
+ 'modulos'=>['title'=>'Módulos ' . $moduleRange . ' — {{REFLECTOR_NAME}}','description'=>'Consulte funções, protocolos e identificações de acesso dos módulos habilitados do refletor {{REFLECTOR_NAME}}.'],
  'conectados'=>['title'=>'Estações conectadas — {{REFLECTOR_NAME}}','description'=>'Veja em tempo real as estações conectadas ao {{REFLECTOR_NAME}}, com indicativo, protocolo, módulo e tempo de conexão.'],
  'ranking'=>['title'=>'Ranking de atividade — {{REFLECTOR_NAME}}','description'=>'Ranking recente do {{REFLECTOR_NAME}} por transmissões, tempo no ar, permanência, horários, protocolos e módulos.'],
  'refletores'=>['title'=>'Lista de refletores XLX — {{REFLECTOR_NAME}}','description'=>'Lista atualizada de refletores XLX registrados, com país, status e descrição.']
@@ -120,7 +123,7 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}/' . ($page === 'ao-vivo' ? '' : '?pag
  </section>
 <!-- /XLX026 HAM WEATHER WIDGET V1 -->
 <?php elseif ($page === 'modulos'): ?>
- <section class="page-heading"><p class="eyebrow">ESTRUTURA DO REFLETOR</p><h1>Módulos A–E</h1><p>Identificação, função, protocolo, acesso e quantidade de estações conectadas em cada módulo.</p></section>
+ <section class="page-heading"><p class="eyebrow">ESTRUTURA DO REFLETOR</p><h1>Módulos <?=htmlspecialchars($moduleRange, ENT_QUOTES, 'UTF-8')?></h1><p>Identificação, protocolo, acesso e quantidade de estações conectadas em cada módulo habilitado.</p></section>
  <section id="moduleOverview" class="module-overview-grid module-page-grid"></section>
  <section class="panel module-reference"><h2>Identificações de acesso</h2><div class="table-wrap"><table class="module-access-table"><thead><tr><th rowspan="2">Módulo</th><th rowspan="2">Protocolo / função</th><th rowspan="2">Estações conectadas</th><th colspan="2">DPlus (REF)</th><th colspan="2">DExtra (XRF)</th><th colspan="2">DCS (DCS/XLX)</th><th rowspan="2">DMR</th><th rowspan="2">YSF DG-ID</th></tr><tr><th>URCALL</th><th>DTMF</th><th>URCALL</th><th>DTMF</th><th>URCALL</th><th>DTMF</th></tr></thead><tbody id="moduleReferenceRows"></tbody></table></div></section>
 <?php elseif ($page === 'conectados'): ?>
@@ -146,7 +149,7 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}/' . ($page === 'ao-vivo' ? '' : '?pag
 <?php else: ?>
 <footer><div><a class="brand footer-brand" href="<?=page_url('ao-vivo')?>"><img class="brand-logo" src="assets/logo-{{REFLECTOR_NAME}}.jpeg" alt="Logotipo {{REFLECTOR_NAME}}"><span><b>{{REFLECTOR_NAME}}</b></span></a><p> para a comunidade radioamadora.</p></div><div class="footer-links"><a href="<?=page_url('ao-vivo')?>">Ao vivo</a><a href="<?=page_url('modulos')?>">Módulos</a><a href="<?=page_url('conectados')?>">Conectados</a><a href="<?=page_url('ranking')?>">Ranking</a></div><small>{{REFLECTOR_NAME}} • D-STAR {{REFLECTOR_NAME}}-D • DMR: TG 6 (voz), A=4001, B=4002, C=4003… • C4FM/YSF {{YSF_ID}}</small></footer>
 <?php endif; ?>
-<div id="toastStack" class="toast-stack"></div><script src="assets/mtr.js?v=4"></script><script src="assets/app.js?v=57"></script>
+<div id="toastStack" class="toast-stack"></div><script src="assets/mtr.js?v=4"></script><script src="assets/app.js?v=58"></script>
 <?php if ($page === 'ao-vivo'): ?>
 <script src="assets/ao-vivo-authorized-sync-v1.js?v=1"></script>
 <script src="assets/ao-vivo-tx-embed-v5.js?v=1" defer></script>
