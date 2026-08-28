@@ -221,7 +221,7 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}/' . ($page === 'ao-vivo' ? '' : '?pag
     </div>
 </div>
 <!-- /XLX026 INSTALL APP V33 -->
-<script src="assets/install-app.js?v=33"></script><script src="assets/ham-weather-widget.js?v=4" defer></script>
+<script src="assets/install-app.js?v=33"></script><script src="assets/ham-weather-widget.js?v=5" defer></script>
 <!-- XLX026_MOBILE_MENU_V4_JS -->
 <script src="assets/mobile-menu-v4.js?v=20260807_022733"></script>
 
