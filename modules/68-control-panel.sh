@@ -146,16 +146,32 @@ fi
 
 PASSWORD="${XLX_CONTROL_PASSWORD:-}"
 if [[ -z "$PASSWORD" ]]; then
-  printf 'Senha do Admin (mínimo 10 caracteres): ' >&2
-  IFS= read -r -s PASSWORD
-  printf '\n' >&2
-  printf 'Repita a senha: ' >&2
-  IFS= read -r -s PASSWORD2
-  printf '\n' >&2
-  [[ "$PASSWORD" == "$PASSWORD2" ]] || { fail 'as senhas não coincidem'; exit 21; }
-  unset PASSWORD2
+  # An interactive typo must never end the full XLX installation. Keep the
+  # operator in this credential step until the password is long enough and
+  # the confirmation matches; no password is printed or persisted here.
+  while :; do
+    printf 'Senha do Admin (mínimo 10 caracteres): ' >&2
+    IFS= read -r -s PASSWORD
+    printf '\n' >&2
+    printf 'Repita a senha: ' >&2
+    IFS= read -r -s PASSWORD2
+    printf '\n' >&2
+
+    if [[ ${#PASSWORD} -lt 10 ]]; then
+      warn 'senha deve ter ao menos 10 caracteres; tente novamente.'
+      unset PASSWORD PASSWORD2
+      continue
+    fi
+    if [[ "$PASSWORD" != "$PASSWORD2" ]]; then
+      warn 'as senhas não coincidem; tente novamente.'
+      unset PASSWORD PASSWORD2
+      continue
+    fi
+    unset PASSWORD2
+    break
+  done
 fi
-[[ ${#PASSWORD} -ge 10 ]] || { fail 'senha deve ter ao menos 10 caracteres'; exit 22; }
+[[ ${#PASSWORD} -ge 10 ]] || { fail 'senha fornecida sem interação deve ter ao menos 10 caracteres'; exit 22; }
 PASSWORD_HASH="$(printf '%s' "$PASSWORD" | php -r '$p=stream_get_contents(STDIN); echo password_hash($p,PASSWORD_DEFAULT);')"
 [[ -n "$PASSWORD_HASH" ]] || { fail 'falha ao gerar hash'; exit 23; }
 ok 'credencial recebida localmente; senha não será exibida nem persistida em texto puro'
