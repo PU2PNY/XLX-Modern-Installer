@@ -3792,13 +3792,157 @@ footer .footer-final-line{
 /* XLX_MODULOS_RESPONSIVO_V1_END */
 
 
-/* XLX_MODERN_CONNECTED_FILTERS_V1 — layout proveniente do painel XLX026, sem módulos fixos */
-body[data-page="conectados"] .connected-filter-tools{display:grid;grid-template-columns:minmax(260px,1fr) 140px 190px;gap:12px;align-items:end;width:720px;max-width:100%}
+
+/* XLX026_CONECTADOS_UNIFICADO_V1 */
+body[data-page="conectados"] .connected-stations-heading{margin-top:28px}
+body[data-page="conectados"] .connected-filter-tools{
+ display:grid;grid-template-columns:minmax(260px,1fr) 140px 190px;
+ gap:12px;align-items:end;width:720px;max-width:100%
+}
 body[data-page="conectados"] .connected-filter-tools .search-box{min-width:0}
-body[data-page="conectados"] .connected-filter-select select{width:100%;min-height:44px;background:#071923;border:1px solid #285164;color:#fff;border-radius:10px;padding:12px 14px;font:inherit;outline:none}
-body[data-page="conectados"] .connected-filter-select select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,216,255,.1)}
-body[data-page="ao-vivo"] .home-history .history-number-cell,body[data-page="ao-vivo"] .home-history .history-country-cell,body[data-page="ao-vivo"] .home-history .history-status-cell,body[data-page="ao-vivo"] .home-history .history-tx-time,body[data-page="ao-vivo"] .home-history .history-duration-cell{text-align:center;white-space:nowrap}
-body[data-page="ao-vivo"] .home-history .history-hotspot-cell{min-width:132px;white-space:nowrap}
-body[data-page="ao-vivo"] .home-history .history-number-wrap{display:inline-flex;align-items:center;gap:5px}
-@media(max-width:1050px){body[data-page="conectados"] .heading-with-tools{align-items:stretch;flex-direction:column}body[data-page="conectados"] .connected-filter-tools{grid-template-columns:1fr 1fr;width:100%}body[data-page="conectados"] .connected-filter-search{grid-column:1/-1}}
-@media(max-width:720px){body[data-page="conectados"] .connected-filter-tools{grid-template-columns:1fr}body[data-page="conectados"] .connected-filter-search{grid-column:auto}body[data-page="conectados"] .connected-filter-tools select{min-height:46px}}
+body[data-page="conectados"] .connected-filter-select select{
+ width:100%;background:#071923;border:1px solid #285164;color:white;
+ border-radius:10px;padding:12px 14px;font:inherit;outline:none
+}
+body[data-page="conectados"] .connected-filter-select select:focus{
+ border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,216,255,.1)
+}
+body[data-page="conectados"] .connected-section-title{margin:0;font-size:32px}
+@media(max-width:1050px){
+ body[data-page="conectados"] .heading-with-tools{align-items:stretch;flex-direction:column}
+ body[data-page="conectados"] .connected-filter-tools{grid-template-columns:1fr 1fr;width:100%}
+ body[data-page="conectados"] .connected-filter-search{grid-column:1/-1}
+}
+@media(max-width:720px){
+ body[data-page="conectados"] .connected-filter-tools{grid-template-columns:1fr}
+ body[data-page="conectados"] .connected-filter-search{grid-column:auto}
+ body[data-page="conectados"] .connected-section-title{font-size:28px}
+}
+/* /XLX026_CONECTADOS_UNIFICADO_V1 */
+
+
+/* ==================================================================
+   XLX026_CONECTADOS_LEGIBILIDADE_V2
+   Escopo: SOMENTE body[data-page="conectados"]
+   ================================================================== */
+
+/* Filtros: maior presença sem mudar a estrutura */
+body[data-page="conectados"] .connected-filter-tools{
+  grid-template-columns:minmax(280px,1fr) 150px 200px;
+  width:760px;
+  gap:12px;
+}
+
+body[data-page="conectados"] .connected-filter-tools .search-box > span{
+  font-weight:700;
+  letter-spacing:.04em;
+}
+
+body[data-page="conectados"] .connected-filter-tools input,
+body[data-page="conectados"] .connected-filter-tools select{
+  min-height:44px;
+}
+
+/* Tabela principal: leitura mais confortável */
+body[data-page="conectados"] .connected-table{
+  width:100%;
+}
+
+body[data-page="conectados"] .connected-table th{
+  line-height:1.25;
+  vertical-align:bottom;
+}
+
+body[data-page="conectados"] .connected-table td{
+  line-height:1.4;
+}
+
+body[data-page="conectados"] .connected-table th,
+body[data-page="conectados"] .connected-table td{
+  padding-top:10px;
+  padding-bottom:10px;
+}
+
+/* Cabeçalho fixo somente no desktop */
+@media (min-width:1001px){
+  body[data-page="conectados"] .connected-table-panel{
+    overflow:visible;
+  }
+
+  body[data-page="conectados"] .connected-table-panel > .table-wrap{
+    overflow:visible;
+  }
+
+  body[data-page="conectados"] .connected-table thead th{
+    position:sticky;
+    top:0;
+    z-index:20;
+    background:#0b2230;
+    box-shadow:
+      0 1px 0 rgba(0,216,255,.24),
+      0 8px 16px rgba(0,0,0,.16);
+  }
+}
+
+/* Tablets: filtros e tabelas sem compressão */
+@media (max-width:1000px){
+  body[data-page="conectados"] .connected-filter-tools{
+    width:100%;
+    grid-template-columns:1fr 1fr;
+  }
+
+  body[data-page="conectados"] .connected-filter-search{
+    grid-column:1/-1;
+  }
+
+  body[data-page="conectados"] .module-reference .table-wrap,
+  body[data-page="conectados"] .connected-table-panel .table-wrap{
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  body[data-page="conectados"] .module-access-table{
+    min-width:900px;
+  }
+
+  body[data-page="conectados"] .connected-table{
+    min-width:980px;
+  }
+}
+
+/* Celular: um filtro por linha e áreas de toque confortáveis */
+@media (max-width:720px){
+  body[data-page="conectados"] .connected-filter-tools{
+    grid-template-columns:1fr;
+    gap:10px;
+  }
+
+  body[data-page="conectados"] .connected-filter-search{
+    grid-column:auto;
+  }
+
+  body[data-page="conectados"] .connected-filter-tools input,
+  body[data-page="conectados"] .connected-filter-tools select{
+    min-height:46px;
+  }
+
+  body[data-page="conectados"] .module-reference{
+    padding-left:14px;
+    padding-right:14px;
+  }
+
+  body[data-page="conectados"] .connected-table-panel{
+    padding-left:10px;
+    padding-right:10px;
+  }
+
+  body[data-page="conectados"] .module-access-table{
+    min-width:860px;
+  }
+
+  body[data-page="conectados"] .connected-table{
+    min-width:940px;
+  }
+}
+
+/* /XLX026_CONECTADOS_LEGIBILIDADE_V2 */
