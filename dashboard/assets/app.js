@@ -257,7 +257,7 @@ function historyMarkup(d){
   );
 
  if(!rows.length){
-  return `<tr><td colspan="10">Nenhuma transmissão registrada nas últimas 24 horas.</td></tr>`;
+  return `<tr><td colspan="11">Nenhuma transmissão registrada nas últimas 24 horas.</td></tr>`;
  }
 
  const groups=new Map();
