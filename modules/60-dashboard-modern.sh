@@ -2,7 +2,7 @@
 set -Eeuo pipefail
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 DASH_DEST="${INSTALL_DIR:-/var/www/html/xlx-dashboard}"
-CERT_MODE="${XLX_CERTIFICATES_MODE:-ask}"
+CERT_MODE="${XLX_CERTIFICATES_MODE:-no}"
 UI_LANG="${XLX_UI_LANG:-pt-BR}"
 
 say() {
@@ -18,11 +18,18 @@ bash "$ROOT/dashboard/install/install-dashboard.sh" "$@"
 INSTALL_DIR="$DASH_DEST" bash "$ROOT/dashboard/install/post-install.sh"
 bash "$ROOT/modules/65-callsign-directory.sh"
 
+# Private administrative page. On a fresh interactive installation this asks:
+# - route name (default: admin)
+# - username
+# - password + confirmation
+# Existing installations reuse the protected credential and route.
+XLX_DASHBOARD_DIR="$DASH_DEST" bash "$ROOT/modules/69-admin-page.sh" --dashboard-dir="$DASH_DEST"
+
 case "${CERT_MODE,,}" in
   yes|sim|s|y|1|true)
     CERT_MODE="yes"
     ;;
-  no|nao|não|n|0|false)
+  no|nao|não|n|0|false|"")
     CERT_MODE="no"
     ;;
   ask)
@@ -47,5 +54,5 @@ if [ "$CERT_MODE" = "yes" ]; then
   printf '%s\n' "$(say "[INFO] Instalando o módulo opcional XLX Certificate Generator." "[INFO] Installing the optional XLX Certificate Generator module.")"
   XLX_DASHBOARD_DIR="$DASH_DEST" bash "$ROOT/modules/66-certificates.sh" "--dashboard-dir=$DASH_DEST"
 else
-  printf '%s\n' "$(say "[INFO] Certificados não serão instalados agora. O módulo pode ser instalado separadamente depois." "[INFO] Certificates will not be installed now. The module can be installed separately later.")"
+  printf '%s\n' "$(say "[INFO] Certificados não fazem parte da instalação pública padrão." "[INFO] Certificates are not part of the standard public installation.")"
 fi
