@@ -271,13 +271,32 @@ localize_base_installer() {
     # This product must install only the bundled XLX Modern Dashboard.  The
     # controlled upstream source remains untouched and SHA-256 verified; only
     # this runtime copy has its legacy dashboard and TLS section disabled.
+    local state_hook="$SOURCE_DIR/.xlx-modern-state-hook"
+    cat > "$state_hook" <<\'HOOK\'
+if [ -n "${XLX_MODERN_STATE_FILE:-}" ]; then
+    {
+        printf "REFLECTOR_NAME=%q\\n" "$XRFNUM"
+        printf "REFLECTOR_TITLE=%q\\n" "$HEADER"
+        printf "REFLECTOR_DESCRIPTION=%q\\n" "$COMMENT"
+        printf "SYSOP_CALLSIGN=%q\\n" "$CALLSIGN"
+        printf "COUNTRY=%q\\n" "$COUNTRY"
+        printf "DOMAIN=%q\\n" "$XLXDOMAIN"
+        printf "CONTACT_EMAIL=%q\\n" "$EMAIL"
+        printf "ENABLE_HTTPS=%q\\n" "$INSTALL_SSL"
+    } > "$XLX_MODERN_STATE_FILE"
+    chmod 0600 "$XLX_MODERN_STATE_FILE"
+fi
+HOOK
+
     sed -i \
+        -e '/center_wrap_color \$BLUE_BRIGHT "\$ICON_INFO UPDATING OS\.\.\."/r '"$state_hook"' \
         -e '/center_wrap_color \$BLUE_BRIGHT "\$ICON_INFO INSTALLING DASHBOARD\.\.\."/,/^# SSL install$/ { /^# SSL install$/! s/^/# XLX_MODERN_SKIPPED: /; }' \
         -e 's|if \[ "\$INSTALL_SSL" == "Y" \]; then|if false; then # XLX Modern Dashboard configures TLS|' \
         -e '/^#  Starting users_db timer$/,/^#  Starting xlx_log service$/ { /^#  Starting xlx_log service$/! s/^/# XLX_MODERN_SKIPPED: /; }' \
         -e '/^# Check if update_db.sh file exist$/,/^# Check if echo service is running/ { /^# Check if echo service is running/! s/^/# XLX_MODERN_SKIPPED: /; }' \
         -e 's|\$XLXCONFIG|/xlxd/xlxd.cfg|g' \
         "$translated"
+    rm -f "$state_hook"
 
     [ "$UI_LANG" = "pt-BR" ] || { chmod 700 "$translated"; printf '%s\n' "$translated"; return 0; }
 
