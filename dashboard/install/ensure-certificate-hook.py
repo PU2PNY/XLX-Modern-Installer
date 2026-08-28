@@ -99,11 +99,11 @@ replace_once(
     'view',
 )
 
-# Scripts are likewise conditional. This preserves a clean dashboard when the
-# optional certificate module is not installed.
+# Scripts are likewise conditional. Anchor only on the single closing body
+# tag so this stays stable after language/template rendering changes earlier
+# script tags or their cache-busting query strings.
 replace_once(
-    "<script src=\"assets/xlx026-accessibility.js?v=1\" defer></script>\n</body></html>",
-    "<script src=\"assets/xlx026-accessibility.js?v=1\" defer></script>\n"
+    "</body></html>",
     "<?php if (is_file(__DIR__.'/assets/certificado.js')): ?>\n"
     "<script src=\"assets/certificado.js?v=1\" defer></script>\n"
     "<?php endif; ?>\n"
