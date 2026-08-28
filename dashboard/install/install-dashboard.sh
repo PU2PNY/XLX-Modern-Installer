@@ -426,6 +426,60 @@ if [ "$ENABLE_HTTPS" = "yes" ]; then
     fi
 fi
 
+# CallingHome is required for publication in the public XLX directory. The
+# upstream implementation lived inside the legacy dashboard; install it here
+# as a dedicated, non-web service so the Modern Dashboard remains standalone.
+CALLINGHOME_DIR="/etc/xlx-modern"
+CALLINGHOME_CONFIG="$CALLINGHOME_DIR/callinghome.php"
+install -d -m 0750 -o root -g www-data "$CALLINGHOME_DIR"
+
+CALLINGHOME_HASH="$(php -r '
+    $file = $argv[1];
+    if (is_file($file)) {
+        $value = require $file;
+        if (is_array($value) && isset($value["hash"])) {
+            echo (string)$value["hash"];
+        }
+    }
+' "$CALLINGHOME_CONFIG")"
+if [[ ! "$CALLINGHOME_HASH" =~ ^[a-f0-9]{32,128}$ ]]; then
+    CALLINGHOME_HASH="$(php -r 'echo bin2hex(random_bytes(16));')"
+fi
+
+CALLINGHOME_SCHEME="http"
+[ "$ENABLE_HTTPS" = "yes" ] && CALLINGHOME_SCHEME="https"
+CALLINGHOME_COMMENT="\${REFLECTOR_DESCRIPTION:0:100}"
+
+cat > "$CALLINGHOME_CONFIG" <<PHP
+<?php
+declare(strict_types=1);
+return [
+    'reflector_name' => '$(escape "$REFLECTOR_NAME")',
+    'dashboard_url' => '$(escape "$CALLINGHOME_SCHEME://$DOMAIN")',
+    'country' => '$(escape "$COUNTRY")',
+    'comment' => '$(escape "$CALLINGHOME_COMMENT")',
+    'hash' => '$(escape "$CALLINGHOME_HASH")',
+    'server_url' => 'http://xlxapi.rlx.lu/api.php',
+    'xml_path' => '/var/log/xlxd.xml',
+    'interlink_path' => '/xlxd/xlxd.interlink',
+];
+PHP
+chown root:www-data "$CALLINGHOME_CONFIG"
+chmod 0640 "$CALLINGHOME_CONFIG"
+
+install -d -m 0755 -o root -g root /usr/local/lib/xlx-modern
+install -m 0755 "$ROOT/install/xlx-callinghome.php" /usr/local/lib/xlx-modern/xlx-callinghome.php
+install -m 0644 "$ROOT/install/xlx-callinghome.service" /etc/systemd/system/xlx-callinghome.service
+install -m 0644 "$ROOT/install/xlx-callinghome.timer" /etc/systemd/system/xlx-callinghome.timer
+systemctl daemon-reload
+systemctl enable --now xlx-callinghome.timer
+
+if systemctl start xlx-callinghome.service; then
+    printf 'CallingHome: registration submitted successfully.\n'
+else
+    printf 'WARNING / ATENÇÃO: CallingHome could not be confirmed now; the timer will retry every five minutes. Check: journalctl -u xlx-callinghome.service -n 30 --no-pager\n' >&2
+fi
+
 printf '\nXLX Modern Dashboard installed / instalado em: %s\n' "$DEST"
 printf 'Language / Idioma: %s (%s)\n' "$(language_name "$DASHBOARD_LANG")" "$DASHBOARD_LANG"
 printf 'Translation report / Relatório: %s\n' "$DEST/config/i18n-build-report.json"
