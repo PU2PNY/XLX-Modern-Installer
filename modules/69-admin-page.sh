@@ -179,6 +179,11 @@ REFLECTOR_NAME='XLX Modern'
 if [[ -f "$SITE_CFG" ]]; then
   REFLECTOR_NAME="$(php -r '$c=require $argv[1]; echo (string)($c["reflector"]["name"]??"XLX Modern");' "$SITE_CFG")"
 fi
+DOMAIN="$(php -r '$c=require $argv[1]; echo (string)($c["reflector"]["domain"]??"");' "$SITE_CFG")"
+DOMAIN="$(printf '%s' "$DOMAIN" | sed -E 's#^https?://##; s#/*$##')"
+[[ -n "$DOMAIN" ]] || fail "$(say 'Domínio do dashboard não encontrado.' 'Dashboard domain not found.')"
+BASE_URL="https://$DOMAIN"
+TITLE="Admin $REFLECTOR_NAME"
 php -r '
 $f=$argv[1];$slug=$argv[2];$reflector=$argv[3];$c=require $f;
 $c["title"]="Admin ".$reflector;
