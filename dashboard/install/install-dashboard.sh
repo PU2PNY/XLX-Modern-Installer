@@ -328,6 +328,20 @@ mkdir -p "$DEST"
 rsync -a --delete --exclude='install/' --exclude='config/site.php' "$ROOT/" "$DEST/"
 mkdir -p "$DEST/config"
 
+# Every installed reflector receives its own neutral logo. This avoids the
+# broken XLX026-specific image reference on a fresh installation.
+cat > "$DEST/assets/logo-$REFLECTOR_NAME.svg" <<SVG
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-label="$REFLECTOR_NAME">
+  <defs><radialGradient id="g" cx="35%" cy="25%"><stop stop-color="#12d8ff"/><stop offset="1" stop-color="#062433"/></radialGradient></defs>
+  <circle cx="80" cy="80" r="74" fill="#04131c" stroke="#00d8ff" stroke-width="4"/>
+  <circle cx="80" cy="80" r="63" fill="url(#g)" opacity=".32"/>
+  <path d="M45 69h70M55 89h50" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".85"/>
+  <text x="80" y="119" text-anchor="middle" fill="#fff" font-family="Arial,sans-serif" font-size="22" font-weight="700">$REFLECTOR_NAME</text>
+</svg>
+SVG
+chown www-data:www-data "$DEST/assets/logo-$REFLECTOR_NAME.svg"
+chmod 0644 "$DEST/assets/logo-$REFLECTOR_NAME.svg"
+
 # Runtime cache directories used by status.php and ham-weather.php.
 # Fresh installations must provision them before Apache serves the dashboard.
 install -d -m 0750 -o www-data -g www-data /var/cache/xlx-dashboard
