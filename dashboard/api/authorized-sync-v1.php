@@ -443,7 +443,7 @@ function active_and_history_sync(array $connections, ?int $historyLimit = null, 
             $recent[$call.'||*']=$lab;
         }
 
-        if(preg_match('/Opening stream on module\s+([A-Z])\s+for client\s+([A-Z0-9]+)\s*([A-Z0-9]+)?\s+with sid\s+(\d+)/i',$line,$m)){
+        if(preg_match('/Opening stream on module\s+([A-Z])\s+for\s+(?:client\s+)?([A-Z0-9\/\-]+)(?:\s+((?!(?:on|via)\b)[A-Z0-9]+))?(?:\s*\/\s*[A-Z0-9+_-]+)?(?:\s+(?:on|via)\s+[A-Z0-9\/\-]+(?:\s+[A-Z0-9]+)?)?\s+with sid\s+(\d+)/i',$line,$m)){
             $mod=strtoupper($m[1]);
             $call=norm_call($m[2]);
             $s=strtoupper(trim($m[3]??''));
