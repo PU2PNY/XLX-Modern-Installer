@@ -555,6 +555,7 @@ execute_installer() {
     ok "$(msg "XLX instalado e validações essenciais aprovadas." "XLX installed and essential validation checks passed.")"
     info "$(msg "Dashboard: $dashboard_dest" "Dashboard: $dashboard_dest")"
     info "$(msg "Log: $logfile" "Log: $logfile")"
+    warn "$(msg "Refletor novo: ele pode não aparecer imediatamente nas listas públicas de hotspots. Cadastre-o em https://dvref.com/ e aguarde a propagação antes de testar pela lista pública." "New reflector: it may not appear immediately in public hotspot lists. Register it at https://dvref.com/ and allow propagation before testing through a public list.")"
 }
 
 main() {
