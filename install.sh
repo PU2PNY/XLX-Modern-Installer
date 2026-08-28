@@ -289,7 +289,7 @@ fi
 HOOK
 
     sed -i \
-        -e '/center_wrap_color \$BLUE_BRIGHT "\$ICON_INFO UPDATING OS\.\.\."/r '"$state_hook"' \
+        -e '/center_wrap_color \$BLUE_BRIGHT "\$ICON_INFO UPDATING OS\.\.\."/r '"$state_hook" \
         -e '/center_wrap_color \$BLUE_BRIGHT "\$ICON_INFO INSTALLING DASHBOARD\.\.\."/,/^# SSL install$/ { /^# SSL install$/! s/^/# XLX_MODERN_SKIPPED: /; }' \
         -e 's|if \[ "\$INSTALL_SSL" == "Y" \]; then|if false; then # XLX Modern Dashboard configures TLS|' \
         -e '/^#  Starting users_db timer$/,/^#  Starting xlx_log service$/ { /^#  Starting xlx_log service$/! s/^/# XLX_MODERN_SKIPPED: /; }' \
