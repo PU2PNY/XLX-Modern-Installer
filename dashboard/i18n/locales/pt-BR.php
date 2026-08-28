@@ -42,8 +42,9 @@ return [
 
     'history.eyebrow' => 'ÚLTIMAS ATIVIDADES',
     'history.title' => 'Atividade das últimas 24 horas',
-    'history.limit' => 'Até 40 indicativos',
+    'history.limit' => 'Todos os indicativos',
 
+    'table.number' => 'Nº',
     'table.country' => 'País',
     'table.time' => 'Horário',
     'table.callsign' => 'Indicativo',
@@ -54,6 +55,10 @@ return [
     'table.status' => 'Status',
     'table.name' => 'Nome',
     'table.location' => 'Localização',
+    'table.gateway' => 'Hotspot / Repetidora',
+    'table.city' => 'Cidade',
+    'table.tx_time' => 'Horário TX',
+    'table.tx_duration' => 'Tempo de TX',
     'table.connected_at' => 'Conectado às',
     'table.connected_time' => 'Tempo conectado',
     'table.last_activity' => 'Última atividade',
