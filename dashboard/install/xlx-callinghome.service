@@ -1,0 +1,14 @@
+[Unit]
+Description=XLX Modern CallingHome registration
+Wants=network-online.target
+After=network-online.target xlxd.service
+ConditionPathExists=/etc/xlx-modern/callinghome.php
+
+[Service]
+Type=oneshot
+User=www-data
+Group=www-data
+ExecStart=/usr/bin/php /usr/local/lib/xlx-modern/xlx-callinghome.php
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
