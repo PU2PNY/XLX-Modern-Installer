@@ -8,7 +8,7 @@
   const tr=(pt,en)=>us?en:pt;
   const num=(v,d=0)=>Number.isFinite(Number(v))?Number(v).toFixed(d):'—';
   const compass=deg=>Number.isFinite(Number(deg))?(us?['N','NE','E','SE','S','SW','W','NW']:['N','NE','L','SE','S','SO','O','NO'])[Math.round(Number(deg)/45)%8]:'—';
-  const weatherLabel=code=>(us?{0:'Clear sky',1:'Mainly clear',2:'Partly cloudy',3:'Overcast',45:'Fog',48:'Rime fog',51:'Light drizzle',53:'Drizzle',55:'Heavy drizzle',61:'Light rain',63:'Rain',65:'Heavy rain',80:'Light showers',81:'Showers',82:'Heavy showers',95:'Thunderstorms',96:'Thunderstorms with hail',99:'Severe thunderstorms'}:{0:'Céu limpo',1:'Predominantemente limpo',2:'Parcialmente nublado',3:'Nublado',45:'Neblina',48:'Neblina com geada',51:'Garoa fraca',53:'Garoa',55:'Garoa forte',61:'${tr("Chuva","Precipitation")} fraca',63:'${tr("Chuva","Precipitation")}',65:'${tr("Chuva","Precipitation")} forte',80:'Pancadas fracas',81:'Pancadas',82:'Pancadas fortes',95:'Trovoadas',96:'Trovoadas com granizo',99:'Trovoadas fortes'})[code]||tr('Condição variável','Variable conditions');
+  const weatherLabel=code=>(us?{0:'Clear sky',1:'Mainly clear',2:'Partly cloudy',3:'Overcast',45:'Fog',48:'Rime fog',51:'Light drizzle',53:'Drizzle',55:'Heavy drizzle',61:'Light rain',63:'Rain',65:'Heavy rain',80:'Light showers',81:'Showers',82:'Heavy showers',95:'Thunderstorms',96:'Thunderstorms with hail',99:'Severe thunderstorms'}:{0:'Céu limpo',1:'Predominantemente limpo',2:'Parcialmente nublado',3:'Nublado',45:'Neblina',48:'Neblina com geada',51:'Garoa fraca',53:'Garoa',55:'Garoa forte',61:'Chuva fraca',63:'Chuva',65:'Chuva forte',80:'Pancadas fracas',81:'Pancadas',82:'Pancadas fortes',95:'Trovoadas',96:'Trovoadas com granizo',99:'Trovoadas fortes'})[code]||tr('Condição variável','Variable conditions');
   const weatherIcon=code=>code===0?'☀️':code<=2?'🌤️':code===3?'☁️':code<60?'🌫️':code<70?'🌧️':code<90?'🌦️':'⛈️';
   const cls=level=>['favoravel','elevado','boa'].includes(level)?'hamwx-good':['moderada','moderado'].includes(level)?'hamwx-warn':['desfavoravel','baixo'].includes(level)?'hamwx-bad':'hamwx-neutral';
   const label=s=>(us?{favoravel:'Favorable',moderada:'Moderate',desfavoravel:'Unfavorable',elevado:'Elevated',moderado:'Moderate',baixo:'Low',indisponivel:'Unavailable'}:{favoravel:'Favorável',moderada:'Moderada',desfavoravel:'Desfavorável',elevado:'Elevado',moderado:'Moderado',baixo:'Baixo',indisponivel:'Indisponível'})[s]||s||tr('Indisponível','Unavailable');
@@ -25,16 +25,16 @@
     if(l){
       const named=[l.city,l.region,l.country].filter(Boolean).join(' · ');
       loc=named||`${num(l.latitude,2)}, ${num(l.longitude,2)}`;
-      if(l.approximate) loc+=tr(' · ${tr("aproximada","approximate")}',' · approximate');
+      if(l.approximate) loc+=tr(' · aproximada',' · approximate');
     }
     const sfiNote=s.sfi_fresh?tr('Atual: ','Current: ')+dateTime(s.sfi_time):(s.data_status?.sfi==='antigo'?tr('Dado antigo ocultado','Stale data hidden'):tr('Indisponível','Unavailable'));
     const kpNote=s.kp_fresh?tr('Atual: ','Current: ')+dateTime(s.kp_time):(s.data_status?.kp==='antigo'?tr('Dado antigo ocultado','Stale data hidden'):tr('Indisponível','Unavailable'));
 
     root.innerHTML=`<div class="hamwx-head"><div><p class="eyebrow">${tr("RADIOAMADORISMO","AMATEUR RADIO")}</p><h2>${tr("Clima e condições de propagação","Weather and propagation conditions")}</h2><div class="hamwx-sub">${esc(loc)}</div></div><div class="hamwx-updated">${tr("Atualizado ","Updated ")}${esc(time(w?.updated_at||s.updated_at))}</div></div>
     <div class="hamwx-grid">
-      <section class="hamwx-card"><div class="hamwx-card-title"><b>${tr("🌤️ CLIMA LOCAL","🌤️ LOCAL WEATHER")}</b><button class="hamwx-location-btn" id="hamWxLocate">${l?'${tr("Usar localização mais precisa","Use more precise location")}':'${tr("Usar minha localização","Use my location")}'}</button></div>
+      <section class="hamwx-card"><div class="hamwx-card-title"><b>${tr("🌤️ CLIMA LOCAL","🌤️ LOCAL WEATHER")}</b><button class="hamwx-location-btn" id="hamWxLocate">${l?tr('Usar localização mais precisa','Use more precise location'):tr('Usar minha localização','Use my location')}</button></div>
       ${w?`<div class="hamwx-primary"><div class="hamwx-icon">${weatherIcon(w.weather_code)}</div><div><div class="hamwx-temp">${temperature(w.temperature)}</div><div class="hamwx-condition">${esc(weatherLabel(w.weather_code))} · ${tr('sensação ','feels like ')}${temperature(w.apparent_temperature)}</div></div></div>
-      <div class="hamwx-list"><div class="hamwx-item"><span>${tr("Umidade","Humidity")}</span><strong>${num(w.humidity)}%</strong></div><div class="hamwx-item"><span>${tr("Pressão","Pressure")}</span><strong>${pressure(w.pressure)}</strong></div><div class="hamwx-item"><span>${tr("Vento","Wind")}</span><strong>${wind(w.wind_speed)} ${compass(w.wind_direction)}</strong></div><div class="hamwx-item"><span>${tr("Rajadas","Wind gusts")}</span><strong>${wind(w.wind_gust)}</strong></div><div class="hamwx-item"><span>${tr("Chuva","Precipitation")}</span><strong>${num(w.precipitation_probability)}%</strong></div><div class="hamwx-item"><span>${tr("Visibilidade","Visibility")}</span><strong>${distance(w.visibility_km)}</strong></div></div><div class="hamwx-note">${tr("Fonte da localização: ","Location source: ")}${esc(l?.source_label||'${tr("aproximada","approximate")}')}.</div>`:`<div class="hamwx-skeleton">${tr("Não foi possível obter o clima local automaticamente. Você ainda pode permitir a localização do navegador.","Local weather could not be obtained automatically. You can still allow browser location.")}</div>`}</section>
+      <div class="hamwx-list"><div class="hamwx-item"><span>${tr("Umidade","Humidity")}</span><strong>${num(w.humidity)}%</strong></div><div class="hamwx-item"><span>${tr("Pressão","Pressure")}</span><strong>${pressure(w.pressure)}</strong></div><div class="hamwx-item"><span>${tr("Vento","Wind")}</span><strong>${wind(w.wind_speed)} ${compass(w.wind_direction)}</strong></div><div class="hamwx-item"><span>${tr("Rajadas","Wind gusts")}</span><strong>${wind(w.wind_gust)}</strong></div><div class="hamwx-item"><span>${tr("Chuva","Precipitation")}</span><strong>${num(w.precipitation_probability)}%</strong></div><div class="hamwx-item"><span>${tr("Visibilidade","Visibility")}</span><strong>${distance(w.visibility_km)}</strong></div></div><div class="hamwx-note">${tr("Fonte da localização: ","Location source: ")}${esc(l?.source_label||tr('aproximada','approximate'))}.</div>`:`<div class="hamwx-skeleton">${tr("Não foi possível obter o clima local automaticamente. Você ainda pode permitir a localização do navegador.","Local weather could not be obtained automatically. You can still allow browser location.")}</div>`}</section>
 
       <section class="hamwx-card"><div class="hamwx-card-title"><b>${tr("☀️ PROPAGAÇÃO HF","☀️ HF PROPAGATION")}</b><span class="hamwx-status ${cls(s.hf_estimate)}">${label(s.hf_estimate)}</span></div>
       <div class="hamwx-list">
@@ -70,10 +70,10 @@
   function preciseLocation(){
     if(!navigator.geolocation)return;
     const btn=document.getElementById('hamWxLocate');
-    if(btn){btn.disabled=true;btn.textContent='${tr("Localizando...","Locating...")}'}
+    if(btn){btn.disabled=true;btn.textContent=tr('Localizando...','Locating...')}
     navigator.geolocation.getCurrentPosition(
       p=>load(`?lat=${encodeURIComponent(p.coords.latitude)}&lon=${encodeURIComponent(p.coords.longitude)}`),
-      ()=>{if(btn){btn.disabled=false;btn.textContent='${tr("Permissão não concedida","Permission not granted")}'}},
+      ()=>{if(btn){btn.disabled=false;btn.textContent=tr('Permissão não concedida','Permission not granted')}},
       {enableHighAccuracy:false,timeout:10000,maximumAge:600000}
     );
   }
