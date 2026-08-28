@@ -26,7 +26,7 @@ lock_radio(){
 text_ok(){ local v="$1" m="$2"; [[ ${#v} -le "$m" && "$v" != *$'\n'* && "$v" != *$'\r'* && "$v" != *','* ]]; }
 init_patch_db(){
   install -d -m 0750 -o root -g www-data "$(dirname "$PATCH_DB")"
-  sqlite3 "$PATCH_DB" <<'SQL'
+  sqlite3 "$PATCH_DB" >/dev/null <<'SQL'
 PRAGMA journal_mode=DELETE;
 CREATE TABLE IF NOT EXISTS local_records(
  callsign TEXT PRIMARY KEY,
