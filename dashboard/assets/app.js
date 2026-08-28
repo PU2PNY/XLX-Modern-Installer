@@ -1791,7 +1791,11 @@ toggle?.addEventListener('click',()=>{if(!nav)return;const open=nav.classList.to
         }
 
         if (!wrap.parentNode){
-            row.insertBefore(wrap, nav);
+            if (nav.parentNode === row) {
+                row.insertBefore(wrap, nav);
+            } else {
+                row.appendChild(wrap);
+            }
         }
 
         const isMobile = () => window.matchMedia(MOBILE_QUERY).matches;
