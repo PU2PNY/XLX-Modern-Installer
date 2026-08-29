@@ -14,17 +14,17 @@ $ysfId = (string)($site['radio']['ysf_id'] ?? '');
 $modules = [];
 
 $standardModules = [
-    'A' => ['name' => 'Envio de imagens D-STAR', 'protocol' => 'D-STAR', 'access' => '{{REFLECTOR_NAME}}-A'],
-    'B' => ['name' => 'APRS / D-PRS', 'protocol' => 'Dados digitais', 'access' => '{{REFLECTOR_NAME}}-B'],
-    'C' => ['name' => 'C4FM / YSF / DMR', 'protocol' => 'C4FM/YSF e DMR', 'access' => ($ysfId !== '' ? 'YSF ' . $ysfId . ' • ' : '') . 'DMR TG 4003'],
+    'A' => ['name' => 'D-STAR data', 'protocol' => 'D-STAR', 'access' => '{{REFLECTOR_NAME}}-A'],
+    'B' => ['name' => 'APRS / D-PRS', 'protocol' => 'APRS data', 'access' => '{{REFLECTOR_NAME}}-B'],
+    'C' => ['name' => 'Digital voice', 'protocol' => 'DMR / C4FM / YSF', 'access' => ($ysfId !== '' ? 'YSF ' . $ysfId . ' • ' : '') . 'DMR TG 4003'],
     'D' => ['name' => 'D-STAR', 'protocol' => 'D-STAR', 'access' => '{{REFLECTOR_NAME}}-D / XRF{{REFLECTOR_NUMBER}}-D'],
-    'E' => ['name' => 'Teste / Echo', 'protocol' => 'D-STAR Echo', 'access' => 'Teste de áudio'],
+    'E' => ['name' => 'Echo test', 'protocol' => 'D-STAR Echo', 'access' => 'Audio test'],
 ];
 for ($index = 0; $index < $moduleCount; $index++) {
     $letter = chr(65 + $index);
     $modules[$letter] = $standardModules[$letter] ?? [
         'name' => 'Módulo ' . $letter,
-        'protocol' => 'D-STAR / DMR / C4FM-YSF',
+        'protocol' => 'Digital voice',
         'access' => 'DMR TG ' . (4001 + $index)
             . ($ysfId !== '' ? ' • YSF ' . $ysfId : ''),
     ];

@@ -104,6 +104,21 @@ case "${1:-}" in
     audit "$1" "$rule" "$backup"
     status
     ;;
+  save-interlink)
+    [[ "$#" -eq 3 ]] || fail 'uso inválido'
+    lock_access
+    address="$2"; modules="${3^^}"
+    [[ -z "$address" || "$address" =~ ^[A-Za-z0-9._:-]{1,253}$ ]] || fail 'endereço Interlink inválido'
+    [[ "$modules" =~ ^([A-E*]+)$ ]] || fail 'módulos Interlink inválidos'
+    backup="$(backup_files)"
+    tmp="$(mktemp "${IL}.new.XXXXXX")"
+    printf '%s %s\n' "$address" "$modules" > "$tmp"
+    chown --reference="$IL" "$tmp" 2>/dev/null || chown www-data:www-data "$tmp"
+    chmod --reference="$IL" "$tmp" 2>/dev/null || chmod 0644 "$tmp"
+    mv -f "$tmp" "$IL"
+    audit 'interlink-save' "$address" "$backup"
+    status
+    ;;
   *)
     fail 'ação não permitida'
     ;;

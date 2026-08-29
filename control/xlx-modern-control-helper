@@ -125,10 +125,10 @@ case "${1:-}" in
     [[ -x "$ACCESS_HELPER" ]] || { echo 'ERRO: helper de acesso indisponível' >&2; exit 72; }
     exec "$ACCESS_HELPER" "${1#access-}" "$2"
     ;;
-  access-save-terminal)
+  access-save-terminal|interlink-save)
     [[ "$#" -eq 3 ]] || exit 64
     [[ -x "$ACCESS_HELPER" ]] || { echo 'ERRO: helper de acesso indisponível' >&2; exit 72; }
-    exec "$ACCESS_HELPER" save-terminal "$2" "$3"
+    exec "$ACCESS_HELPER" save-interlink "$2" "$3"
     ;;
 
   *)

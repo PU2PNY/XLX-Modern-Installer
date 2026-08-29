@@ -3,6 +3,9 @@ set -Eeuo pipefail
 IFS=$'\n\t'
 umask 077
 
+UI_LANG="${XLX_UI_LANG:-pt-BR}"
+say(){ if [[ "$UI_LANG" == en ]]; then printf '%s' "$2"; else printf '%s' "$1"; fi; }
+
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 DASHBOARD_DIR="${XLX_DASHBOARD_DIR:-${INSTALL_DIR:-/var/www/html/xlx-dashboard}}"
 MODE="install"
@@ -60,8 +63,8 @@ BACKUP_ROOT="/var/backups/xlx-reflector/control"
 WEBUSER="www-data"
 
 ok(){ printf '\033[0;32m[OK]\033[0m %s\n' "$*"; }
-warn(){ printf '\033[1;33m[ATENÇÃO]\033[0m %s\n' "$*"; }
-fail(){ printf '\033[0;31m[ERRO]\033[0m %s\n' "$*" >&2; }
+warn(){ printf '\033[1;33m%s\033[0m %s\n' "$(say '[ATENÇÃO]' '[WARNING]')" "$*"; }
+fail(){ printf '\033[0;31m%s\033[0m %s\n' "$(say '[ERRO]' '[ERROR]')" "$*" >&2; }
 section(){ printf '\n============================================================\n%s\n============================================================\n' "$*"; }
 
 require_root(){ [[ "$(id -u)" -eq 0 ]] || { fail 'execute como root'; exit 1; }; }
@@ -133,13 +136,13 @@ CORE_SHA="$(sha256sum /xlxd/xlxd | awk '{print $1}')"
 CORE_VERSION="$(version)"
 [[ -n "$CORE_VERSION" ]] || { fail 'versão do XLXD não encontrada em /var/log/xlxd.xml'; exit 15; }
 
-section '1/8 — CREDENCIAL LOCAL'
+section "$(say '1/8 — CREDENCIAL LOCAL' '1/8 — LOCAL CREDENTIAL')"
 USERNAME="${XLX_CONTROL_USERNAME:-}"
 if [[ -z "$USERNAME" ]]; then
   while :; do
-    read -r -p 'Usuário do Admin XLX Modern: ' USERNAME
+    read -r -p "$(say 'Usuário do Admin XLX Modern: ' 'XLX Modern Admin username: ')" USERNAME
     [[ "$USERNAME" =~ ^[A-Za-z0-9._-]{3,64}$ ]] && break
-    echo 'Use 3-64 caracteres: letras, números, ponto, _ ou -.'
+    echo "$(say 'Use 3-64 caracteres: letras, números, ponto, _ ou -.' 'Use 3-64 characters: letters, numbers, dot, _ or -.')"
   done
 fi
 [[ "$USERNAME" =~ ^[A-Za-z0-9._-]{3,64}$ ]] || { fail 'usuário inválido'; exit 20; }
@@ -150,20 +153,20 @@ if [[ -z "$PASSWORD" ]]; then
   # operator in this credential step until the password is long enough and
   # the confirmation matches; no password is printed or persisted here.
   while :; do
-    printf 'Senha do Admin (mínimo 10 caracteres): ' >&2
+    printf '%s' "$(say 'Senha do Admin (mínimo 10 caracteres): ' 'Admin password (minimum 10 characters): ')" >&2
     IFS= read -r -s PASSWORD
     printf '\n' >&2
-    printf 'Repita a senha: ' >&2
+    printf '%s' "$(say 'Repita a senha: ' 'Repeat the password: ')" >&2
     IFS= read -r -s PASSWORD2
     printf '\n' >&2
 
     if [[ ${#PASSWORD} -lt 10 ]]; then
-      warn 'senha deve ter ao menos 10 caracteres; tente novamente.'
+      warn "$(say 'senha deve ter ao menos 10 caracteres; tente novamente.' 'Password must be at least 10 characters; try again.')"
       unset PASSWORD PASSWORD2
       continue
     fi
     if [[ "$PASSWORD" != "$PASSWORD2" ]]; then
-      warn 'as senhas não coincidem; tente novamente.'
+      warn "$(say 'as senhas não coincidem; tente novamente.' 'Passwords do not match; try again.')"
       unset PASSWORD PASSWORD2
       continue
     fi
@@ -174,7 +177,7 @@ fi
 [[ ${#PASSWORD} -ge 10 ]] || { fail 'senha fornecida sem interação deve ter ao menos 10 caracteres'; exit 22; }
 PASSWORD_HASH="$(printf '%s' "$PASSWORD" | php -r '$p=stream_get_contents(STDIN); echo password_hash($p,PASSWORD_DEFAULT);')"
 [[ -n "$PASSWORD_HASH" ]] || { fail 'falha ao gerar hash'; exit 23; }
-ok 'credencial recebida localmente; senha não será exibida nem persistida em texto puro'
+ok "$(say 'credencial recebida localmente; senha não será exibida nem persistida em texto puro' 'Credential received locally; the password is never displayed or stored in plain text.')"
 
 STAMP="$(date +%Y%m%d_%H%M%S)"
 BACKUP="$BACKUP_ROOT/$STAMP"
