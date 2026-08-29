@@ -228,6 +228,11 @@ load_existing_dashboard_values() {
     [ -n "${MODULE_COUNT:-}" ] || MODULE_COUNT="$(dashboard_site_value radio.module_count)"
     [ -n "${DASHBOARD_LANG:-}" ] || DASHBOARD_LANG="$(dashboard_site_value locale.default)"
 
+    # Normalize legacy values before checking for an existing certificate.
+    if [ -n "${DOMAIN:-}" ]; then
+        DOMAIN="$(printf '%s' "$DOMAIN" | tr '[:upper:]' '[:lower:]' | sed -E 's#^https?://##; s#/*$##')"
+    fi
+
     if [ -z "${ENABLE_HTTPS:-}" ] && [ -n "${DOMAIN:-}" ] \
         && [ -s "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ]; then
         ENABLE_HTTPS="yes"

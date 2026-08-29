@@ -83,7 +83,7 @@ function standbyCard(m,newest){
 
  const name=lastOperator
   ? esc(lastOperator.name)
-  : 'Aguardando a próxima transmissão';
+  : 'Aguardando transmissão';
 
  return `<article class="tx-card standby compact-tx standby-v30">
   <div class="tx-top">

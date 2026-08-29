@@ -432,9 +432,10 @@ body[data-page="ao-vivo"]
 #moduleGrid
 .tx-card.standby.compact-tx.standby-v30
 .standby-v30-state::before{
-    content:"Monitor em escuta" !important;
+    /* Status text is rendered by the translated HTML/JavaScript layer. */
+    content:none !important;
 
-    display:block !important;
+    display:none !important;
 
     color:#f2fff9 !important;
 
@@ -459,9 +460,9 @@ body[data-page="ao-vivo"]
 #moduleGrid
 .tx-card.standby.compact-tx.standby-v30
 .standby-v30-state::after{
-    content:"Aguardando a proxima transmissao" !important;
+    content:none !important;
 
-    display:block !important;
+    display:none !important;
 
     margin-top:6px !important;
 

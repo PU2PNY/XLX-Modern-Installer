@@ -37,7 +37,7 @@ $genericMessage = static function (string $text): string {
     return str_replace('{{REFLECTOR_NAME}} Brasil', '{{REFLECTOR_NAME}}', $text);
 };
 
-$allowedExtensions = ['php', 'js', 'html', 'htm', 'json', 'webmanifest'];
+$allowedExtensions = ['php', 'js', 'css', 'html', 'htm', 'json', 'webmanifest'];
 $excludedParts = [
     DIRECTORY_SEPARATOR . 'i18n' . DIRECTORY_SEPARATOR,
     DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'site.php',
