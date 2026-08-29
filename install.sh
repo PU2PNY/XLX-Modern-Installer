@@ -162,7 +162,7 @@ bootstrap_install_prerequisites() {
     [ "${#needed[@]}" -eq 0 ] && return 0
 
     if [ "$MODE" = "check" ]; then
-        warn "$(msg "Pré-requisitos ainda não instalados: ${needed[*]}. O modo --check não altera o servidor." "Prerequisites are not installed yet: ${needed[*]}. --check does not change the server.")"
+        info "$(msg "Pré-requisitos pendentes: ${needed[*]}. Eles serão instalados automaticamente na instalação real; o modo --check não altera o servidor." "Prerequisites pending: ${needed[*]}. They will be installed automatically during the real installation; --check does not change the server.")"
         return 0
     fi
 
@@ -198,7 +198,7 @@ validate_network() {
     getent hosts github.com >/dev/null 2>&1 || fatal "$(msg "Falha de DNS: github.com não foi resolvido." "DNS failure: github.com could not be resolved.")"
     if ! command -v curl >/dev/null 2>&1; then
         CHECK_READY="no"
-        warn "$(msg "DNS validado, mas curl ainda não está instalado. A instalação real o instalará automaticamente; a verificação HTTPS foi adiada." "DNS validated, but curl is not installed yet. The real installation will install it automatically; the HTTPS check was deferred.")"
+        info "$(msg "DNS validado. curl será instalado automaticamente na instalação real; a verificação HTTPS foi adiada." "DNS validated. curl will be installed automatically during the real installation; the HTTPS check was deferred.")"
         return 0
     fi
     curl -fsSI --connect-timeout 10 https://github.com/ >/dev/null || fatal "$(msg "Sem acesso HTTPS ao GitHub." "Cannot reach GitHub over HTTPS.")"
@@ -213,7 +213,7 @@ validate_commands() {
     if [ "${#missing[@]}" -ne 0 ]; then
         if [ "$MODE" = "check" ]; then
             CHECK_READY="no"
-            warn "$(msg "Comandos ainda ausentes: ${missing[*]}. A instalação real instalará os pré-requisitos automaticamente." "Commands still missing: ${missing[*]}. The real installation will install prerequisites automatically.")"
+            info "$(msg "Comandos pendentes: ${missing[*]}. A instalação real instalará os pré-requisitos automaticamente." "Commands pending: ${missing[*]}. The real installation will install the prerequisites automatically.")"
             return 0
         fi
         fatal "$(msg "Comandos obrigatórios ausentes: ${missing[*]}. Execute a instalação real para instalar os pré-requisitos automaticamente." "Required commands missing: ${missing[*]}. Run the real installation to install prerequisites automatically.")"
@@ -438,7 +438,7 @@ run_check() {
     if [ "$CHECK_READY" = "yes" ]; then
         ok "$(msg "Pré-requisitos, rede e HTTPS validados." "Prerequisites, network, and HTTPS validated.")"
     else
-        warn "$(msg "Servidor compatível, mas faltam pré-requisitos que serão instalados automaticamente na instalação real." "Server is compatible, but prerequisites are missing and will be installed automatically during the real installation.")"
+        ok "$(msg "Servidor compatível. Os pré-requisitos pendentes serão instalados automaticamente na instalação real." "Server is compatible. Pending prerequisites will be installed automatically during the real installation.")"
     fi
     ok "$(msg "Nenhuma instalação ativa será sobrescrita." "No active installation will be overwritten.")"
     ok "$(msg "Commit e SHA-256 confirmados." "Commit and SHA-256 verified.")"
@@ -450,7 +450,7 @@ run_check() {
         info "$(msg "APRS/D-PRS não solicitado no modo de pré-validação." "APRS/D-PRS was not requested for this pre-check.")"
     fi
 
-    info "$(msg "Nenhuma instalação foi executada." "No installation was performed.")"
+    info "$(msg "Verificação concluída sem erro bloqueante. Para instalar agora, execute: bash install.sh" "Check completed with no blocking error. To install now, run: bash install.sh")"
 }
 
 confirm_real_installation() {
