@@ -8,6 +8,8 @@ echo "[locales]"
 grep -F 'Bem-vindo ao XLX Modern Installer' "$ROOT/locales/pt_BR.sh" >/dev/null || failures=$((failures+1))
 grep -F 'Welcome to XLX Modern Installer' "$ROOT/locales/en_US.sh" >/dev/null || failures=$((failures+1))
 echo "locales_checked=YES"
+echo "[installation flow]"
+bash "$ROOT/tests/test-install-flow.sh" || failures=$((failures+1))
 echo "[forbidden permissions]"
 if grep -RniE --include='*.sh' --exclude='run-all.sh' 'chmod[[:space:]]+(-R[[:space:]]+)?777|chmod[[:space:]]+(-R[[:space:]]+)?666' "$ROOT"; then failures=$((failures+1)); else echo "forbidden_permissions=NONE"; fi
 echo "[destructive operations]"
