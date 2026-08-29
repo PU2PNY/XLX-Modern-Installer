@@ -24,7 +24,7 @@ WEBUSER="www-data"
 
 say(){ if [[ "$UI_LANG" == en ]]; then printf '%s' "$2"; else printf '%s' "$1"; fi; }
 ok(){ printf '\033[0;32m[OK]\033[0m %s\n' "$*"; }
-warn(){ printf '\033[1;33m[ATENÇÃO]\033[0m %s\n' "$*"; }
+warn(){ printf '\033[1;33m%s\033[0m %s\n' "$(say '[ATENÇÃO]' '[WARNING]')" "$*"; }
 fail(){ printf '\033[0;31m[ERRO]\033[0m %s\n' "$*" >&2; exit 1; }
 
 [[ "$(id -u)" -eq 0 ]] || fail "$(say 'Execute como root.' 'Run as root.')"
@@ -252,9 +252,9 @@ python3 -m json.tool "$WORK/radioid.json" >/dev/null
 python3 -m json.tool "$WORK/access.json" >/dev/null
 grep -Fq 'X-Robots-Tag: noindex, nofollow, noarchive, nosnippet' "$ADMIN_DIR/index.php"
 grep -Fq 'googlebot|bingbot' "$ADMIN_DIR/index.php"
-grep -Fq 'Controle de Acesso XLXD' "$ADMIN_DIR/index.php"
+grep -Fq 'XLXD Access Control' "$ADMIN_DIR/index.php"
 grep -Fq 'radioid_save' "$ADMIN_DIR/index.php"
-grep -Fq 'Links rápidos' "$ADMIN_DIR/index.php"
+grep -Fq 'Quick links' "$ADMIN_DIR/index.php"
 
 # Quando o HTTPS já está disponível, confirme a rota nova antes de declarar
 # sucesso. Isso impede concluir uma atualização que criou os arquivos, mas
