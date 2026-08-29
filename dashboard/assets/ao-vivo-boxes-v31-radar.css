@@ -432,9 +432,10 @@ body[data-page="ao-vivo"]
 #moduleGrid
 .tx-card.standby.compact-tx.standby-v30
 .standby-v30-state::before{
-    content:"Monitor em escuta" !important;
+    /* Status text is rendered by the translated HTML/JavaScript layer. */
+    content:none !important;
 
-    display:block !important;
+    display:none !important;
 
     color:#f2fff9 !important;
 
