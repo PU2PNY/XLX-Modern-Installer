@@ -166,7 +166,12 @@ visudo -cf "$SUDOERS" >/dev/null
 # specific identity/path and add the generic access/quick-links layer.
 cp -a "$ROOT/control/xlx026-control-index-radioid-v2.php" "$WORK/index.php"
 python3 "$ROOT/control/patch-xlx026-control-v111.py" "$WORK/index.php"
-python3 "$ROOT/control/genericize-xlx-control.py" "$WORK/index.php"
+# Admin intentionally supports two complete interfaces only.  The dashboard
+# can use six languages, while the private operational screen stays PT-BR or
+# English so its safety prompts and maintenance actions remain unambiguous.
+ADMIN_UI_LANG='en'
+[[ "$UI_LANG" == pt || "$UI_LANG" == pt-BR || "$UI_LANG" == pt_BR ]] && ADMIN_UI_LANG='pt-BR'
+python3 "$ROOT/control/genericize-xlx-control.py" "$WORK/index.php" "$ADMIN_UI_LANG"
 php -l "$WORK/index.php" >/dev/null
 
 rm -rf "$ADMIN_DIR"
@@ -269,7 +274,8 @@ if curl --silent --show-error --insecure --resolve "$DOMAIN:443:127.0.0.1" \
   --connect-timeout 5 --max-time 12 "$BASE_URL/$slug/" -o "$WORK/admin-web.html" 2>/dev/null; then
   grep -Fq "$TITLE" "$WORK/admin-web.html" || fail "$(say 'A rota Admin respondeu, mas não entregou a tela privada correta.' 'Admin route responded but did not deliver the correct private page.')"
   [[ -s "$WORK/admin-web.html" ]] || fail "$(say 'A rota Admin retornou resposta vazia.' 'Admin route returned an empty response.')"
-  grep -Fq 'Acesso restrito' "$WORK/admin-web.html" || fail "$(say 'A rota Admin não entregou a tela de autenticação.' 'Admin route did not deliver the authentication page.')"
+  LOGIN_MARKER="$(say 'Acesso restrito' 'Restricted access')"
+  grep -Fq "$LOGIN_MARKER" "$WORK/admin-web.html" || fail "$(say 'A rota Admin não entregou a tela de autenticação.' 'Admin route did not deliver the authentication page.')"
   ok "$(say 'Rota privada do Admin validada localmente.' 'Private Admin route validated locally.')"
 else
   warn "$(say 'HTTPS local ainda indisponível; arquivos, credencial e rota foram validados e o teste web será repetido ao fim da instalação.' 'Local HTTPS is not available yet; files, credentials and route were validated and the web test will run at the end of installation.')"
