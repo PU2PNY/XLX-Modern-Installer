@@ -39,6 +39,12 @@ return [
     'live.transmission_time' => 'Durée de transmission',
     'live.server_operational' => 'Serveur opérationnel',
     'live.reading_state' => 'Lecture de l’état...',
+    'live.no_recent_transmission' => 'Aucune transmission récente',
+    'history.empty' => 'Aucune transmission enregistrée au cours des dernières 24 heures.',
+    'standby.dmr_advice' => '⚠ DMR — Privilégiez la radio ; les applications sont un complément, pas le moyen principal.',
+    'standby.app_audio_advice' => '⚠ Audio de l’application — Gardez le volume bas pour éviter un son excessif ou déformé.',
+    'footer.developed_by' => 'Développé par',
+    'footer.community' => 'pour la communauté radioamateur.',
 
     'history.eyebrow' => 'ACTIVITÉ RÉCENTE',
     'history.title' => 'Activité des dernières 24 heures',
