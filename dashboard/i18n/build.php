@@ -134,6 +134,9 @@ foreach ($iterator as $fileInfo) {
         $contents = str_replace("toLocaleTimeString('pt-BR'", "toLocaleTimeString('{$htmlLocale}'", $contents, $dateLocaleCount);
         $contents = str_replace('toLocaleTimeString("pt-BR"', 'toLocaleTimeString("' . $htmlLocale . '"', $contents, $dateLocaleCount2);
         $dateLocaleCount += $dateLocaleCount2;
+        $contents = str_replace("toLocaleString('pt-BR'", "toLocaleString('{$htmlLocale}'", $contents, $dateLocaleCount3);
+        $contents = str_replace('toLocaleString("pt-BR"', 'toLocaleString("' . $htmlLocale . '"', $contents, $dateLocaleCount4);
+        $dateLocaleCount += $dateLocaleCount3 + $dateLocaleCount4;
     }
 
     $contents = strtr($contents, $routeRestore);
