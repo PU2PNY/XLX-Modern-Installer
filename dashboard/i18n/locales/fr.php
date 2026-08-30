@@ -56,6 +56,11 @@ return [
     'live.awaiting_transmission' => 'En attente de transmission',
     'connected.by_protocol_module' => 'Connecté via',
     'connected.module' => 'module',
+    'table.number' => 'N°',
+    'table.gateway' => 'Point d’accès / Relais',
+    'table.city' => 'Ville',
+    'table.tx_time' => 'Heure TX',
+    'table.tx_duration' => 'Durée TX',
 
     'history.eyebrow' => 'ACTIVITÉ RÉCENTE',
     'history.title' => 'Activité des dernières 24 heures',
