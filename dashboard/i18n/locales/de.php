@@ -39,6 +39,12 @@ return [
     'live.transmission_time' => 'Sendezeit',
     'live.server_operational' => 'Server betriebsbereit',
     'live.reading_state' => 'Status wird gelesen...',
+    'live.no_recent_transmission' => 'Keine kürzliche Übertragung',
+    'history.empty' => 'In den letzten 24 Stunden wurden keine Übertragungen aufgezeichnet.',
+    'standby.dmr_advice' => '⚠ DMR — Bevorzugen Sie Funkgeräte; Apps sind eine Ergänzung, nicht das primäre Mittel.',
+    'standby.app_audio_advice' => '⚠ App-Audio — Halten Sie die Lautstärke niedrig, um übersteuerten oder verzerrten Ton zu vermeiden.',
+    'footer.developed_by' => 'Entwickelt von',
+    'footer.community' => 'für die Amateurfunkgemeinschaft.',
 
     'history.eyebrow' => 'LETZTE AKTIVITÄTEN',
     'history.title' => 'Aktivität der letzten 24 Stunden',
