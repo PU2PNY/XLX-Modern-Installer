@@ -12,6 +12,8 @@ echo "[installation flow]"
 bash "$ROOT/tests/test-install-flow.sh" || failures=$((failures+1))
 echo "[dashboard i18n]"
 bash "$ROOT/tests/test-dashboard-i18n.sh" || failures=$((failures+1))
+echo "[admin i18n]"
+bash "$ROOT/tests/test-admin-i18n.sh" || failures=$((failures+1))
 echo "[forbidden permissions]"
 if grep -RniE --include='*.sh' --exclude='run-all.sh' 'chmod[[:space:]]+(-R[[:space:]]+)?777|chmod[[:space:]]+(-R[[:space:]]+)?666' "$ROOT"; then failures=$((failures+1)); else echo "forbidden_permissions=NONE"; fi
 echo "[destructive operations]"
