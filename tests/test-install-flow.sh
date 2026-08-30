@@ -22,6 +22,7 @@ expect() {
 }
 
 expect 'language is selected before installation checks' 'select_ui_language' "$INSTALLER"
+expect 'dashboard language is selected before installation checks' 'select_dashboard_language' "$INSTALLER"
 expect 'clear final confirmation uses INSTALL' 'readonly CONFIRMATION="INSTALL"' "$INSTALLER"
 expect 'confirmation accepts upper or lower case' '[ "${typed^^}" = "$CONFIRMATION" ]' "$INSTALLER"
 expect 'invalid confirmation returns to the same safe prompt' 'tente novamente ou pressione Ctrl+C' "$INSTALLER"
@@ -31,6 +32,7 @@ expect 'modern dashboard runs after base XLXD installation' 'modules/60-dashboar
 expect 'dashboard-only mode is documented' '--dashboard-only' "$INSTALLER"
 expect 'dashboard-only mode preserves the existing XLXD core' 'Existing XLXD confirmed. Dashboard-only mode will preserve the reflector core.' "$INSTALLER"
 expect 'dashboard-only mode validates required panel files' 'Required dashboard file missing after update' "$INSTALLER"
+expect 'full installation passes the selected UI language to dashboard modules' 'XLX_INSTALL_STATE_FILE="$state_file" XLX_UI_LANG="$UI_LANG"' "$INSTALLER"
 expect 'base inputs are passed to the modern dashboard once' 'XLX_INSTALL_STATE_FILE="$state_file"' "$INSTALLER"
 expect 'dashboard lowercases domain before validation' "tr '[:upper:]' '[:lower:]'" "$DASHBOARD_INSTALLER"
 expect 'existing dashboard domain is normalized before certificate detection' 'Normalize legacy values before checking for an existing certificate.' "$DASHBOARD_INSTALLER"

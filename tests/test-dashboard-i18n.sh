@@ -34,7 +34,7 @@ mkdir -p "$tmp/config"
 printf '%s\n' '<?php return []; ' > "$tmp/config/site.php"
 php "$ROOT/dashboard/i18n/build.php" "$tmp" en >/dev/null
 
-for source in 'Sem transmissão recente' 'Nenhuma transmissão registrada nas últimas 24 horas.' 'Áudio do aplicativo' 'Desenvolvido por' 'para a comunidade radioamadora.' 'País não identificado' 'Bandeira de' 'Operador não identificado' 'Aguardando identificação pelo gateway' 'Não informado' 'Não informada' 'País não informado' 'Localização não informada' 'Aguardando transmissão' 'Conectou por'; do
+for source in 'Sem transmissão recente' 'Nenhuma transmissão registrada nas últimas 24 horas.' 'Áudio do aplicativo' 'Desenvolvido por' 'para a comunidade radioamadora.' 'País não identificado' 'Bandeira de' 'Operador não identificado' 'Aguardando identificação pelo gateway' 'Não informado' 'Não informada' 'País não informado' 'Localização não informada' 'Aguardando transmissão' 'Conectou por' 'Servidor em espera' 'Transmitindo agora'; do
   if rg -F --glob '!i18n/**' "$source" "$tmp" >/dev/null; then
     fail "Portuguese string remained in English build: $source"
   fi

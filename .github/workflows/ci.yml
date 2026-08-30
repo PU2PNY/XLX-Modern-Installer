@@ -65,6 +65,10 @@ jobs:
             }
           '
 
+      - name: Run installer and dashboard regression tests
+        shell: bash
+        run: bash tests/run-all.sh
+
       - name: Test multilingual generic dashboard builds
         shell: bash
         run: |

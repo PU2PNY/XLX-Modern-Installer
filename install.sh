@@ -138,7 +138,8 @@ collect_dashboard_inputs() {
 }
 
 select_ui_language() {
-    # --lang=CODE is explicit and must never be overridden interactively.
+    # --lang=CODE is explicit: it selects the dashboard locale and, when
+    # possible, the matching installer language without another prompt.
     [ -n "$DASHBOARD_LANG" ] && return 0
     [ -t 0 ] || return 0
 
@@ -151,13 +152,63 @@ select_ui_language() {
         printf '%s' "Opção / Option [1]: "
         read -r choice || choice=""
         case "${choice,,}" in
-            2|e|en|english) UI_LANG="en"; DASHBOARD_LANG="en"; break ;;
-            ""|1|p|pt|pt-br|portugues|português) UI_LANG="pt-BR"; DASHBOARD_LANG="pt-BR"; break ;;
+            2|e|en|english) UI_LANG="en"; break ;;
+            ""|1|p|pt|pt-br|portugues|português) UI_LANG="pt-BR"; break ;;
             *) warn "Opção inválida. Digite 1 para Português ou 2 para English. / Invalid option. Type 1 for Portuguese or 2 for English." ;;
         esac
     done
     export XLX_UI_LANG="$UI_LANG"
     ok "$(msg "Idioma selecionado: Português (Brasil)." "Selected language: English.")"
+}
+
+dashboard_language_name() {
+    case "$1" in
+        pt-BR) printf '%s' 'Português (Brasil)' ;;
+        en) printf '%s' 'English' ;;
+        es) printf '%s' 'Español' ;;
+        fr) printf '%s' 'Français' ;;
+        de) printf '%s' 'Deutsch' ;;
+        it) printf '%s' 'Italiano' ;;
+        *) printf '%s' "$1" ;;
+    esac
+}
+
+select_dashboard_language() {
+    # A command-line locale is already an explicit dashboard choice.
+    [ -n "$DASHBOARD_LANG" ] && return 0
+
+    # Non-interactive runs remain deterministic and use the same language as
+    # the installer UI. Interactive installations always show this choice.
+    if [ ! -t 0 ]; then
+        DASHBOARD_LANG="$UI_LANG"
+        return 0
+    fi
+
+    local choice="" default_choice="1"
+    [ "$UI_LANG" = "en" ] && default_choice="2"
+    section "$(msg "IDIOMA DO PAINEL" "DASHBOARD LANGUAGE")"
+    printf '%s\n' "  1) Português (Brasil)"
+    printf '%s\n' "  2) English"
+    printf '%s\n' "  3) Español"
+    printf '%s\n' "  4) Français"
+    printf '%s\n' "  5) Deutsch"
+    printf '%s\n' "  6) Italiano"
+
+    while :; do
+        printf '%s' "$(msg "Escolha o idioma exibido no painel [$default_choice]: " "Choose the language displayed on the dashboard [$default_choice]: ")"
+        read -r choice || choice=""
+        choice="${choice:-$default_choice}"
+        case "$choice" in
+            1) DASHBOARD_LANG="pt-BR"; break ;;
+            2) DASHBOARD_LANG="en"; break ;;
+            3) DASHBOARD_LANG="es"; break ;;
+            4) DASHBOARD_LANG="fr"; break ;;
+            5) DASHBOARD_LANG="de"; break ;;
+            6) DASHBOARD_LANG="it"; break ;;
+            *) warn "$(msg "Opção inválida. Digite um número de 1 a 6." "Invalid option. Type a number from 1 to 6.")" ;;
+        esac
+    done
+    ok "$(msg "Idioma do painel selecionado: $(dashboard_language_name "$DASHBOARD_LANG")." "Selected dashboard language: $(dashboard_language_name "$DASHBOARD_LANG").")"
 }
 
 bootstrap_install_prerequisites() {
@@ -564,9 +615,9 @@ execute_installer() {
 
     section "$(msg "INSTALANDO XLX MODERN DASHBOARD" "INSTALLING XLX MODERN DASHBOARD")"
     if [ -n "$DASHBOARD_LANG" ]; then
-        XLX_INSTALL_STATE_FILE="$state_file" bash "$ROOT_DIR/modules/60-dashboard-modern.sh" "--lang=$DASHBOARD_LANG"
+        XLX_INSTALL_STATE_FILE="$state_file" XLX_UI_LANG="$UI_LANG" bash "$ROOT_DIR/modules/60-dashboard-modern.sh" "--lang=$DASHBOARD_LANG"
     else
-        XLX_INSTALL_STATE_FILE="$state_file" bash "$ROOT_DIR/modules/60-dashboard-modern.sh"
+        XLX_INSTALL_STATE_FILE="$state_file" XLX_UI_LANG="$UI_LANG" bash "$ROOT_DIR/modules/60-dashboard-modern.sh"
     fi
 
     dashboard_dest="${INSTALL_DIR:-$DEFAULT_DASHBOARD_DIR}"
@@ -661,6 +712,7 @@ main() {
     validate_options
     require_root
     select_ui_language
+    select_dashboard_language
     section "XLX MODERN INSTALLER — PU2PNY"
     validate_os
     bootstrap_install_prerequisites
