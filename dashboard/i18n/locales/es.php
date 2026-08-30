@@ -56,6 +56,11 @@ return [
     'live.awaiting_transmission' => 'Esperando transmisión',
     'connected.by_protocol_module' => 'Conectado por',
     'connected.module' => 'módulo',
+    'table.number' => 'N.º',
+    'table.gateway' => 'Hotspot / Repetidor',
+    'table.city' => 'Ciudad',
+    'table.tx_time' => 'Hora TX',
+    'table.tx_duration' => 'Duración TX',
 
     'history.eyebrow' => 'ACTIVIDAD RECIENTE',
     'history.title' => 'Actividad de las últimas 24 horas',
