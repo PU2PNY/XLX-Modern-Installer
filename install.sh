@@ -135,15 +135,16 @@ select_ui_language() {
     printf '%s\n' "Selecione o idioma / Select language:"
     printf '%s\n' "  1) Português (Brasil) [padrão]"
     printf '%s\n' "  2) English"
-    printf '%s' "Opção / Option [1]: "
     local choice=""
-    read -r choice || choice=""
-    case "${choice,,}" in
-        2|e|en|english) UI_LANG="en"; DASHBOARD_LANG="en" ;;
-        ""|1|p|pt|pt-br|portugues|português) UI_LANG="pt-BR"; DASHBOARD_LANG="pt-BR" ;;
-        *) warn "Opção inválida; Português (Brasil) será usado. / Invalid option; Portuguese (Brazil) will be used."
-           UI_LANG="pt-BR"; DASHBOARD_LANG="pt-BR" ;;
-    esac
+    while :; do
+        printf '%s' "Opção / Option [1]: "
+        read -r choice || choice=""
+        case "${choice,,}" in
+            2|e|en|english) UI_LANG="en"; DASHBOARD_LANG="en"; break ;;
+            ""|1|p|pt|pt-br|portugues|português) UI_LANG="pt-BR"; DASHBOARD_LANG="pt-BR"; break ;;
+            *) warn "Opção inválida. Digite 1 para Português ou 2 para English. / Invalid option. Type 1 for Portuguese or 2 for English." ;;
+        esac
+    done
     export XLX_UI_LANG="$UI_LANG"
     ok "$(msg "Idioma selecionado: Português (Brasil)." "Selected language: English.")"
 }
@@ -460,9 +461,12 @@ confirm_real_installation() {
     warn "$(msg "Pacotes, Apache, PHP, systemd e firewall poderão ser alterados." "Packages, Apache, PHP, systemd, and firewall may be changed.")"
     printf '\n%s\n' "$(msg "Para continuar, digite INSTALL (maiúsculas ou minúsculas)." "To continue, type INSTALL (upper- or lowercase).")"
     printf '%s\n' "$(msg "Para cancelar com segurança, pressione Ctrl+C ou digite qualquer outra coisa." "To cancel safely, press Ctrl+C or type anything else.")"
-    printf '\n%s' "$(msg "Confirmação [INSTALL]: " "Confirmation [INSTALL]: ")"
-    read -r typed || typed=""
-    [ "${typed^^}" = "$CONFIRMATION" ] || fatal "$(msg "Confirmação não reconhecida. Instalação cancelada antes da etapa real." "Confirmation not recognized. Installation cancelled before the real installation step.")"
+    while :; do
+        printf '\n%s' "$(msg "Confirmação [INSTALL]: " "Confirmation [INSTALL]: ")"
+        read -r typed || typed=""
+        [ "${typed^^}" = "$CONFIRMATION" ] && break
+        warn "$(msg "Confirmação não reconhecida. Nenhuma alteração foi feita; tente novamente ou pressione Ctrl+C para cancelar." "Confirmation not recognized. No changes were made; try again or press Ctrl+C to cancel.")"
+    done
     ok "$(msg "Confirmação aceita. Iniciando instalação real." "Confirmation accepted. Starting real installation.")"
 }
 
