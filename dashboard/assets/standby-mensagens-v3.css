@@ -157,10 +157,10 @@ html body[data-page="ao-vivo"]
 /* alternância das mensagens */
 @keyframes xlx026StandbyInsideAdvice{
     0%,49%{
-        content:"⚠  DMR — Priorize o rádio • Aplicativos são uma alternativa complementar, não o meio preferencial.";
+        content:"⚠ DMR — Priorize o rádio • Aplicativos são uma alternativa complementar, não o meio preferencial.";
     }
     50%,99%{
-        content:"⚠  Áudio do aplicativo • Mantenha o volume do app sempre baixo para evitar áudio excessivo ou distorcido.";
+        content:"⚠ Áudio do aplicativo • Mantenha o volume do app sempre baixo para evitar áudio excessivo ou distorcido.";
     }
 }
 

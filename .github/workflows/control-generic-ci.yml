@@ -49,6 +49,11 @@ jobs:
           python3 control/genericize-xlx-control.py /tmp/admin.php
           php -l /tmp/admin.php
           grep -Fq "const CTRL_VER='1.3.0'" /tmp/admin.php
+          grep -Fq 'Restricted access' /tmp/admin.php
+          if grep -Fq 'Acesso restrito' /tmp/admin.php; then
+            echo 'Portuguese login text leaked into the English Admin candidate.' >&2
+            exit 1
+          fi
 
       - name: Generic identity invariants
         shell: bash
@@ -84,7 +89,7 @@ jobs:
           grep -Fq 'robots.txt' modules/69-admin-page.sh
           grep -Fq 'ai-context.json' modules/69-admin-page.sh
 
-      - name: XLX026 feature parity invariants
+      - name: Generic Admin feature parity invariants
         shell: bash
         run: |
           set -Eeuo pipefail
@@ -93,15 +98,15 @@ jobs:
           grep -Fq "if(\$a==='radioid_delete')" /tmp/admin.php
           grep -Fq "if(\$a==='radioid_refresh')" /tmp/admin.php
           grep -Fq "if(\$a==='radioid_check')" /tmp/admin.php
-          grep -Fq 'Controle de Acesso XLXD' /tmp/admin.php
+          grep -Fq 'XLXD Access Control' /tmp/admin.php
           grep -Fq 'access-add-white' /tmp/admin.php
           grep -Fq 'access-delete-white' /tmp/admin.php
           grep -Fq 'access-add-black' /tmp/admin.php
           grep -Fq 'access-delete-black' /tmp/admin.php
-          grep -Fq 'access-save-terminal' /tmp/admin.php
-          grep -Fq 'Links rápidos' /tmp/admin.php
-          grep -Fq 'Executar testes gerais' /tmp/admin.php
-          grep -Fq 'Reiniciar XLXD' /tmp/admin.php
+          grep -Fq 'interlink-save' /tmp/admin.php
+          grep -Fq 'Quick links' /tmp/admin.php
+          grep -Fq 'Run general tests' /tmp/admin.php
+          grep -Fq 'Restart XLXD' /tmp/admin.php
 
       - name: Credential safety invariants
         shell: bash
@@ -143,7 +148,7 @@ jobs:
           grep -Fq 'flock -n 9' control/xlx-modern-access-helper
           grep -Fq 'backup_files' control/xlx-modern-access-helper
           grep -Fq 'audit' control/xlx-modern-access-helper
-          grep -Fq 'save-terminal' control/xlx-modern-access-helper
+          grep -Fq 'interlink-save' control/xlx-modern-access-helper
           grep -Fq 'add-white|delete-white|add-black|delete-black' control/xlx-modern-access-helper
 
       - name: RadioID persistence invariants

@@ -2,10 +2,11 @@
 from pathlib import Path
 import sys
 
-if len(sys.argv) != 2:
-    raise SystemExit('uso: genericize-xlx-control.py INDEX.php')
+if len(sys.argv) not in (2, 3):
+    raise SystemExit('usage: genericize-xlx-control.py INDEX.php [locale]')
 
 p = Path(sys.argv[1])
+locale = sys.argv[2].lower() if len(sys.argv) == 3 else 'en'
 s = p.read_text(encoding='utf-8')
 
 
@@ -127,6 +128,41 @@ for needle in required:
 for forbidden in ('xlx026.net', '/etc/xlx026-control', '/var/lib/xlx026-control', '/usr/local/sbin/xlx026-control-helper', 'Controle XLX026'):
     if forbidden in s:
         raise SystemExit(f'identidade/caminho de produção remanescente: {forbidden}')
+
+# The reusable baseline is Portuguese. Never ship a mixed-language private
+# page: the English installer (and the other dashboard locales) receives a
+# fully English Admin UI until dedicated Admin locale catalogs are introduced.
+if locale not in ('pt', 'pt-br'):
+    english = {
+        'Controle do refletor': 'Reflector control',
+        'Controle administrativo indisponível.': 'Administrative control unavailable.',
+        'Configuração inválida.': 'Invalid configuration.',
+        'Rota administrativa inválida.': 'Invalid administrative route.',
+        'Muitas tentativas. Aguarde ': 'Too many attempts. Wait ',
+        'Usuário ou senha inválidos.': 'Invalid username or password.',
+        'Acesso restrito': 'Restricted access',
+        'Usuário': 'Username', 'Senha': 'Password', 'Entrar': 'Sign in',
+        'Requisição inválida.': 'Invalid request.',
+        'Reinício cancelado: confirmação ou senha inválida.': 'Restart canceled: confirmation or password is invalid.',
+        'XLXD reiniciado e validado com sucesso.': 'XLXD restarted and validated successfully.',
+        'Falha no reinício/validação.': 'Restart or validation failed.',
+        'Informe um filtro e um termo de pesquisa.': 'Enter a field and a search term.',
+        'Não foi possível pesquisar a base RadioID.': 'Could not search the RadioID database.',
+        'Não foi possível salvar. Nenhuma alteração incompleta foi mantida.': 'Could not save. No incomplete change was kept.',
+        'Excluir cadastro': 'Delete record', 'Pesquisar cadastro': 'Search directory',
+        'Pesquisar': 'Search', 'Indicativo': 'Callsign', 'Cidade': 'City', 'País': 'Country',
+        'Nome': 'Name', 'Estado': 'State', 'Ação': 'Action', 'Editar': 'Edit',
+        'Salvar e sincronizar': 'Save and synchronize', 'Adicionar e sincronizar': 'Add and synchronize',
+        'Verificar integridade': 'Check integrity', 'Verificar agora': 'Check now',
+        'Atualizar banco de indicativos': 'Update callsign database',
+        'Executar testes gerais': 'Run general tests', 'Integridade e testes': 'Integrity and tests',
+        'Área técnica privada': 'Private technical area', 'Sair': 'Sign out',
+        'Conectados': 'Connected', 'TX ativa': 'Active TX', 'Processos': 'Processes',
+        'Listeners UDP': 'UDP listeners', 'Logs recentes': 'Recent logs', 'Backups recentes': 'Recent backups',
+        'Reiniciar XLXD': 'Restart XLXD', 'não indexado': 'not indexed',
+    }
+    for old, new in english.items():
+        s = s.replace(old, new)
 
 p.write_text(s, encoding='utf-8')
 
