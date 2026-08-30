@@ -10,6 +10,7 @@ ROUTE_FILE="$CFG_DIR/route"
 CONTROL_CFG="$CFG_DIR/config.php"
 HELPER_CONF="$CFG_DIR/helper.conf"
 LEGACY_DIR="$DASHBOARD_DIR/controle"
+BOOTSTRAP_DIR="$DASHBOARD_DIR/admin"
 HELPER="/usr/local/sbin/xlx-modern-control-helper"
 RADIO_HELPER="/usr/local/sbin/xlx-modern-radioid-helper"
 ACCESS_HELPER="/usr/local/sbin/xlx-modern-access-helper"
@@ -128,7 +129,7 @@ ok "$(say "Backup: $BACKUP" "Backup: $BACKUP")"
 
 # First install owns credential creation and the strict base configuration.
 if [[ ! -f "$CONTROL_CFG" ]]; then
-  XLX_DASHBOARD_DIR="$DASHBOARD_DIR" bash "$ROOT/modules/68-control-panel.sh" --dashboard-dir="$DASHBOARD_DIR"
+  XLX_DASHBOARD_DIR="$DASHBOARD_DIR" XLX_UI_LANG="$UI_LANG" bash "$ROOT/modules/68-control-panel.sh" --dashboard-dir="$DASHBOARD_DIR"
 fi
 [[ -f "$CONTROL_CFG" && -f "$HELPER_CONF" ]] || fail "$(say 'Configuração administrativa não foi criada.' 'Administrative configuration was not created.')"
 
@@ -172,6 +173,10 @@ rm -rf "$ADMIN_DIR"
 install -d -o root -g www-data -m 0755 "$ADMIN_DIR"
 install -o root -g www-data -m 0644 "$WORK/index.php" "$ADMIN_DIR/index.php"
 if [[ "$LEGACY_DIR" != "$ADMIN_DIR" ]]; then rm -rf "$LEGACY_DIR"; fi
+# The credential bootstrap always starts at /admin/.  If the operator chose a
+# different slug, remove that temporary directory so no second private route
+# remains reachable.
+if [[ "$BOOTSTRAP_DIR" != "$ADMIN_DIR" ]]; then rm -rf "$BOOTSTRAP_DIR"; fi
 
 install -d -o root -g www-data -m 0750 "$CFG_DIR"
 printf '%s\n' "$slug" > "$ROUTE_FILE"
