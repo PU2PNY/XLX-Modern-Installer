@@ -109,10 +109,27 @@ function publicVisitorIp(): array {
 
     return ['ip'=>null,'source'=>'unavailable'];
 }
+function dashboardLocale(): string {
+    $configFile = dirname(__DIR__) . '/config/site.php';
+    if (!is_file($configFile)) {
+        return 'en';
+    }
+    $site = require $configFile;
+    $configured = strtolower(str_replace('_', '-', (string)($site['locale']['default'] ?? 'en')));
+    return match ($configured) {
+        'pt', 'pt-br' => 'pt-BR',
+        'en' => 'en',
+        'es' => 'es',
+        'fr' => 'fr',
+        'de' => 'de',
+        'it' => 'it',
+        default => 'en',
+    };
+}
 function ipFallback(): ?array {
     $v=publicVisitorIp();
     if (!is_string($v['ip']??null)) return null;
-    $url='https://ipwho.is/'.rawurlencode($v['ip']).'?fields=success,country,country_code,region,region_code,city,latitude,longitude&lang=pt-BR';
+    $url='https://ipwho.is/'.rawurlencode($v['ip']).'?fields=success,country,country_code,region,region_code,city,latitude,longitude&lang='.rawurlencode(dashboardLocale());
     $g=httpJson($url);
     if (!is_array($g)||($g['success']??false)!==true) return null;
     $lat=finiteFloat($g['latitude']??null);
