@@ -21,6 +21,7 @@ readonly DEFAULT_DASHBOARD_DIR="/var/www/html/xlx-dashboard"
 
 MODE="install"
 ALLOW_REMNANTS="no"
+DASHBOARD_ONLY="no"
 DASHBOARD_LANG=""
 UI_LANG="pt-BR"
 APRS_DPRS_MODE="ask"
@@ -31,6 +32,7 @@ DASHBOARD_YSF_ID=""
 for arg in "$@"; do
     case "$arg" in
         --check|--dry-run) MODE="check" ;;
+        --dashboard-only) DASHBOARD_ONLY="yes" ;;
         --allow-remnants|--force-clean) ALLOW_REMNANTS="yes" ;;
         --lang=*) DASHBOARD_LANG="${arg#*=}" ;;
         --with-aprs-dprs) APRS_DPRS_MODE="yes" ;;
@@ -43,6 +45,7 @@ Uso / Usage:
   sudo bash install.sh --check
   sudo bash install.sh
   sudo bash install.sh --lang=en
+  sudo bash install.sh --dashboard-only
   sudo bash install.sh --with-aprs-dprs
 
 Opções / Options:
@@ -60,6 +63,14 @@ Opções / Options:
   --with-aprs-dprs
       Instala também o módulo opcional APRS/D-PRS.
       Also installs the optional APRS/D-PRS module.
+
+  --dashboard-only
+      Atualiza ou reinstala somente o painel moderno em um XLXD existente.
+      Preserva o núcleo XLXD, cria backup preventivo e não executa a
+      instalação completa do refletor.
+      Updates or reinstalls only the modern dashboard on an existing XLXD.
+      It preserves the XLXD core, creates a preventive backup, and does not
+      run a full reflector installation.
 
   --without-aprs-dprs
       Não instala nem pergunta sobre APRS/D-PRS nesta execução.
@@ -228,7 +239,14 @@ detect_existing_installation() {
     if [ -e /var/www/html/xlxd ] || [ -e /var/www/html/xlx-dashboard ]; then
         warn "$(msg "Dashboard XLX existente detectado." "Existing XLX dashboard detected.")"; detected=1
     fi
-    [ "$detected" -eq 0 ] || fatal "$(msg "Instalação XLX ativa detectada. Por segurança, este instalador não sobrescreve produção." "Active XLX installation detected. For safety, this installer will not overwrite production.")"
+    if [ "$detected" -ne 0 ]; then
+        if [ "$DASHBOARD_ONLY" = "yes" ]; then
+            [ -x /xlxd/xlxd ] || fatal "$(msg "Atualização somente do painel exige um XLXD existente em /xlxd/xlxd." "Dashboard-only update requires an existing XLXD at /xlxd/xlxd.")"
+            ok "$(msg "XLXD existente confirmado. O modo somente painel preservará o núcleo do refletor." "Existing XLXD confirmed. Dashboard-only mode will preserve the reflector core.")"
+            return 0
+        fi
+        fatal "$(msg "Instalação XLX ativa detectada. Para atualizar somente o painel, execute: sudo bash install.sh --dashboard-only" "Active XLX installation detected. To update only the dashboard, run: sudo bash install.sh --dashboard-only")"
+    fi
 
     if [ -d /xlxd ] || [ -d /usr/src/xlxd ]; then
         warn "$(msg "Foram encontrados vestígios de uma instalação anterior." "Old installation remnants were found.")"
@@ -454,6 +472,35 @@ run_check() {
     info "$(msg "Verificação concluída sem erro bloqueante. Para instalar agora, execute: bash install.sh" "Check completed with no blocking error. To install now, run: bash install.sh")"
 }
 
+run_dashboard_only_check() {
+    section "$(msg "RESULTADO DA VERIFICAÇÃO DO PAINEL" "DASHBOARD UPDATE CHECK RESULT")"
+    [ -x /xlxd/xlxd ] || fatal "$(msg "XLXD não encontrado em /xlxd/xlxd." "XLXD was not found at /xlxd/xlxd.")"
+    ok "$(msg "XLXD existente encontrado; ele não será reinstalado." "Existing XLXD found; it will not be reinstalled.")"
+    if [ -d "$DEFAULT_DASHBOARD_DIR" ]; then
+        ok "$(msg "Painel atual encontrado em $DEFAULT_DASHBOARD_DIR." "Current dashboard found at $DEFAULT_DASHBOARD_DIR.")"
+    else
+        info "$(msg "O painel moderno será instalado em $DEFAULT_DASHBOARD_DIR." "The modern dashboard will be installed at $DEFAULT_DASHBOARD_DIR.")"
+    fi
+    info "$(msg "Nenhuma alteração foi feita." "No changes were made.")"
+}
+
+execute_dashboard_only() {
+    local dashboard_dest="$DEFAULT_DASHBOARD_DIR"
+    section "$(msg "ATUALIZANDO SOMENTE O PAINEL MODERNO" "UPDATING ONLY THE MODERN DASHBOARD")"
+    info "$(msg "O XLXD existente será preservado; apenas o painel e seus componentes públicos serão atualizados." "The existing XLXD will be preserved; only the dashboard and its public components will be updated.")"
+    if [ -n "$DASHBOARD_LANG" ]; then
+        INSTALL_DIR="$dashboard_dest" XLX_UI_LANG="$UI_LANG" bash "$ROOT_DIR/modules/60-dashboard-modern.sh" "--lang=$DASHBOARD_LANG"
+    else
+        INSTALL_DIR="$dashboard_dest" XLX_UI_LANG="$UI_LANG" bash "$ROOT_DIR/modules/60-dashboard-modern.sh"
+    fi
+    for required_file in "$dashboard_dest/index.php" "$dashboard_dest/config/site.php" "$dashboard_dest/api/status.php" "$dashboard_dest/api/live.php"; do
+        [ -s "$required_file" ] || fatal "$(msg "Arquivo obrigatório do painel ausente após atualização: $required_file" "Required dashboard file missing after update: $required_file")"
+    done
+    systemctl is-active --quiet xlxd || fatal "$(msg "XLXD não está ativo após a atualização do painel; o núcleo não foi reinstalado. Consulte os logs antes de continuar." "XLXD is not active after the dashboard update; the core was not reinstalled. Check the logs before continuing.")"
+    section "$(msg "ATUALIZAÇÃO DO PAINEL CONCLUÍDA" "DASHBOARD UPDATE COMPLETE")"
+    ok "$(msg "Painel moderno validado e XLXD preservado." "Modern dashboard validated and XLXD preserved.")"
+}
+
 confirm_real_installation() {
     local typed
     section "$(msg "CONFIRMAÇÃO FINAL" "FINAL CONFIRMATION")"
@@ -621,6 +668,16 @@ main() {
     validate_resources
     validate_network
     detect_existing_installation
+    if [ "$DASHBOARD_ONLY" = "yes" ]; then
+        if [ "$MODE" = "check" ]; then
+            run_dashboard_only_check
+            exit 0
+        fi
+        create_inventory_and_backup
+        confirm_real_installation
+        execute_dashboard_only
+        exit 0
+    fi
     collect_dashboard_inputs
     prepare_source
     show_plan
