@@ -129,9 +129,9 @@ for forbidden in ('xlx026.net', '/etc/xlx026-control', '/var/lib/xlx026-control'
     if forbidden in s:
         raise SystemExit(f'identidade/caminho de produção remanescente: {forbidden}')
 
-# The reusable baseline is Portuguese. Never ship a mixed-language private
-# page: the English installer (and the other dashboard locales) receives a
-# fully English Admin UI until dedicated Admin locale catalogs are introduced.
+# The reusable baseline is Portuguese. The private Admin intentionally offers
+# exactly two complete interfaces: Portuguese and English. Other dashboard
+# locales use English here rather than a partially translated safety screen.
 if locale not in ('pt', 'pt-br'):
     english = {
         'Controle do refletor': 'Reflector control',
@@ -160,8 +160,60 @@ if locale not in ('pt', 'pt-br'):
         'Conectados': 'Connected', 'TX ativa': 'Active TX', 'Processos': 'Processes',
         'Listeners UDP': 'UDP listeners', 'Logs recentes': 'Recent logs', 'Backups recentes': 'Recent backups',
         'Reiniciar XLXD': 'Restart XLXD', 'não indexado': 'not indexed',
+        'Atualizar': 'Refresh', 'Teste': 'Test', 'Esperado': 'Expected', 'Resultado': 'Result', 'FALHOU': 'FAILED',
+        'Registros RadioID': 'RadioID records', 'Base CSV': 'CSV database', 'Banco SQL': 'SQL database',
+        'Não foi possível ler o estado da base RadioID.': 'Could not read the RadioID database status.',
+        'Digite indicativo, Radio ID, nome...': 'Enter callsign, Radio ID, or name...', 'DMR / Radio ID': 'DMR / Radio ID',
+        'Sobrenome': 'Last name', 'Confirme sua senha': 'Confirm your password', 'Confirmo a exclusão deste cadastro.': 'I confirm deletion of this record.',
+        'Adicionar novo cadastro': 'Add new record', '7 dígitos': '7 digits', 'Atualizar banco de indicativos': 'Update callsign database',
+        'Cria um novo <strong>users.db</strong> separado, valida a integridade e só então publica o arquivo pronto. Se falhar, mantém a base anterior.': 'Creates a separate <strong>users.db</strong>, validates it, and only then publishes it. If it fails, the previous database is kept.',
+        'Confirmo a atualização da base de indicativos.': 'I confirm the callsign database update.',
+        'Executa uma verificação segura do banco SQL sem alterar os cadastros.': 'Runs a safe SQL database check without changing records.',
+        'Reinicia somente xlxd.service e valida versão, SHA e processo depois.': 'Restarts only xlxd.service and then validates the version, SHA, and process.',
+        'Confirmo o reinício somente do XLXD.': 'I confirm restarting XLXD only.',
+        'Configuração de acesso salva. Reinicie o XLXD somente depois de conferir as regras.': 'Access configuration saved. Restart XLXD only after reviewing the rules.',
+        'Não foi possível salvar: ': 'Could not save: ', 'XLX Interlink salvo. Reinicie o XLXD somente se quiser aplicar imediatamente.': 'XLX Interlink saved. Restart XLXD only to apply it immediately.',
+        'Não foi possível salvar. A base anterior foi preservada.': 'Could not save. The previous database was preserved.',
+        'Alteração cancelada: confirmação ou senha inválida.': 'Change canceled: confirmation or password is invalid.',
+        'Informe um indicativo ou prefixo.': 'Enter a callsign or prefix.',
+        'Registro excluído e banco sincronizado com segurança.': 'Record deleted and database synchronized safely.',
+        'Não foi possível excluir. A base anterior foi preservada.': 'Could not delete. The previous database was preserved.',
+        'Novo banco de indicativos criado, validado e publicado com segurança.': 'New callsign database created, validated, and published safely.',
+        'A atualização falhou. A base anterior foi restaurada automaticamente.': 'Update failed. The previous database was restored automatically.',
+        'Integridade do banco de indicativos: OK.': 'Callsign database integrity: OK.',
+        'A verificação de integridade encontrou problema.': 'The integrity check found a problem.',
+        'registro(s) encontrado(s).': 'record(s) found.',
+        'Registro RadioID adicionado e banco sincronizado.': 'RadioID record added and database synchronized.',
+        'Registro RadioID atualizado e banco sincronizado.': 'RadioID record updated and database synchronized.',
+        'Exclusão cancelada: confirmação ou senha inválida.': 'Deletion canceled: confirmation or password is invalid.',
+        'Atualização cancelada: confirmação ou senha inválida.': 'Update canceled: confirmation or password is invalid.',
+        'Gerencie visualmente a base local usada pelo refletor. Cada alteração cria backup e só publica um novo banco SQL depois de validá-lo.': 'Manage the local directory used by the reflector. Every change creates a backup and publishes a new SQL database only after validation.',
+        'Gerenciador protegido · sincronização atômica': 'Protected manager · atomic synchronization',
+        'Integridade do banco de indicativos: OK.': 'Callsign database integrity: OK.',
+        'Integridade': 'Integrity', 'Verificar': 'Check',
     }
     for old, new in english.items():
+        s = s.replace(old, new)
+
+    # helper_reason() must keep its Portuguese search keys because the helper
+    # returns Portuguese diagnostics. Translate only the message values shown
+    # to the operator, never those lookup keys.
+    helper_values = {
+        "'Radio ID já pertence'=>'Este Radio ID já pertence a outro cadastro.'": "'Radio ID já pertence'=>'This Radio ID already belongs to another record.'",
+        "'Radio ID deve ter 7 dígitos'=>'O Radio ID deve ter 7 dígitos ou ficar vazio.'": "'Radio ID deve ter 7 dígitos'=>'The Radio ID must contain 7 digits or be left blank.'",
+        "'indicativo original inválido'=>'O indicativo original é inválido.'": "'indicativo original inválido'=>'The original callsign is invalid.'",
+        "'indicativo inválido'=>'O indicativo informado é inválido.'": "'indicativo inválido'=>'The supplied callsign is invalid.'",
+        "'cadastro original não foi localizado de forma única'=>'O cadastro selecionado não pôde ser identificado de forma única. Pesquise novamente e tente outra vez.'": "'cadastro original não foi localizado de forma única'=>'The selected record could not be identified uniquely. Search again and try once more.'",
+        "'indicativo já existe'=>'Este indicativo já possui cadastro. Pesquise o indicativo e edite o registro existente.'": "'indicativo já existe'=>'This callsign already has a record. Search for it and edit the existing record.'",
+        "'nome, cidade, estado e país são obrigatórios'=>'Nome, cidade, estado e país são obrigatórios.'": "'nome, cidade, estado e país são obrigatórios'=>'Name, city, state, and country are required.'",
+        "'campos não podem conter vírgulas'=>'Os campos não podem conter vírgulas ou quebras de linha.'": "'campos não podem conter vírgulas'=>'Fields cannot contain commas or line breaks.'",
+        "'reconstrução SQL falhou'=>'A sincronização do banco SQL falhou. A base anterior foi restaurada automaticamente.'": "'reconstrução SQL falhou'=>'SQL database synchronization failed. The previous database was restored automatically.'",
+        "'novo banco SQL falhou na integridade'=>'O novo banco SQL não passou na verificação de integridade. A base anterior foi restaurada.'": "'novo banco SQL falhou na integridade'=>'The new SQL database did not pass the integrity check. The previous database was restored.'",
+        "'estrutura do novo banco SQL é incompatível'=>'O novo banco SQL apresentou estrutura incompatível. A base anterior foi restaurada.'": "'estrutura do novo banco SQL é incompatível'=>'The new SQL database has an incompatible structure. The previous database was restored.'",
+        "'gerador SQL tem formato inesperado'=>'O gerador SQL atual não é compatível com a sincronização segura. Nenhuma alteração foi mantida.'": "'gerador SQL tem formato inesperado'=>'The current SQL generator is not compatible with safe synchronization. No change was kept.'",
+        "'outra operação de indicativos está em andamento'=>'Já existe outra operação de indicativos em andamento. Tente novamente após ela terminar.'": "'outra operação de indicativos está em andamento'=>'Another callsign operation is already running. Try again after it finishes.'",
+    }
+    for old, new in helper_values.items():
         s = s.replace(old, new)
 
 p.write_text(s, encoding='utf-8')
