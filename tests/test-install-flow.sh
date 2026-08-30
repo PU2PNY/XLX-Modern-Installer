@@ -22,6 +22,8 @@ expect() {
 expect 'language is selected before installation checks' 'select_ui_language' "$INSTALLER"
 expect 'clear final confirmation uses INSTALL' 'readonly CONFIRMATION="INSTALL"' "$INSTALLER"
 expect 'confirmation accepts upper or lower case' '[ "${typed^^}" = "$CONFIRMATION" ]' "$INSTALLER"
+expect 'invalid confirmation returns to the same safe prompt' 'tente novamente ou pressione Ctrl+C' "$INSTALLER"
+expect 'invalid language selection is retried instead of silently changing language' 'Digite 1 para Português ou 2 para English' "$INSTALLER"
 expect 'legacy dashboard section is disabled in runtime copy' 'XLX_MODERN_SKIPPED' "$INSTALLER"
 expect 'modern dashboard runs after base XLXD installation' 'modules/60-dashboard-modern.sh' "$INSTALLER"
 expect 'base inputs are passed to the modern dashboard once' 'XLX_INSTALL_STATE_FILE="$state_file"' "$INSTALLER"
