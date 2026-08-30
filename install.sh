@@ -341,7 +341,7 @@ prepare_source() {
     actual_hash="$(sha256sum "$SOURCE_DIR/installer.sh" | awk '{print $1}')"
     [ "$actual_hash" = "$EXPECTED_INSTALLER_SHA256" ] || fatal "$(msg "SHA-256 do instalador-base divergente. Esperado=$EXPECTED_INSTALLER_SHA256 Obtido=$actual_hash" "Base installer SHA-256 mismatch. Expected=$EXPECTED_INSTALLER_SHA256 Got=$actual_hash")"
     bash -n "$SOURCE_DIR/installer.sh"
-    find "$SOURCE_DIR/templates" -type f -name '*.sh' -exec bash -n {} ;
+    find "$SOURCE_DIR/templates" -type f -name '*.sh' -exec bash -n {} \;
     ok "$(msg "Instalador-base local versionado e validado." "Versioned local base installer validated.")"
     info "$(msg "Fonte local: vendor/pp5pk-installer" "Local source: vendor/pp5pk-installer")"
     info "SHA-256: $actual_hash"
