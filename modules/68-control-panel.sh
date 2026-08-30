@@ -52,7 +52,7 @@ HELPER="/usr/local/sbin/xlx-modern-control-helper"
 RADIO_HELPER="/usr/local/sbin/xlx-modern-radioid-helper"
 ACCESS_HELPER="/usr/local/sbin/xlx-modern-access-helper"
 SUDOERS="/etc/sudoers.d/xlx-modern-control"
-CONTROL_DIR="$DASHBOARD_DIR/controle"
+CONTROL_DIR="$DASHBOARD_DIR/admin"
 BASE_INDEX="$ROOT/control/xlx026-control-index-radioid-v2.php"
 PATCH_V111="$ROOT/control/patch-xlx026-control-v111.py"
 GENERICIZER="$ROOT/control/genericize-xlx-control.py"
@@ -74,12 +74,12 @@ build_admin_source(){
   local out="$1"
   cp -a "$BASE_INDEX" "$out"
   python3 "$PATCH_V111" "$out"
-  python3 "$GENERICIZER" "$out"
+  python3 "$GENERICIZER" "$out" "$UI_LANG"
   php -l "$out" >/dev/null
   grep -Fq "const CTRL_VER='1.3.0'" "$out"
-  grep -Fq 'Controle de Acesso XLXD' "$out"
+  grep -Fq 'XLXD Access Control' "$out"
   grep -Fq "if(\$a==='radioid_save')" "$out"
-  grep -Fq 'Links rápidos' "$out"
+  grep -Fq 'Quick links' "$out"
   grep -Fq 'googlebot|bingbot' "$out"
   ! grep -Eq 'xlx026\.net|Controle XLX026|/etc/xlx026-control|/var/lib/xlx026-control' "$out"
 }
@@ -207,7 +207,7 @@ rollback(){
 trap 'rc=$?; if [[ $rc -ne 0 && $SUCCESS -ne 1 && $MUTATED -eq 1 ]]; then rollback "falha rc=$rc"; fi' EXIT
 
 section '2/8 — BACKUP'
-[[ -d "$CONTROL_DIR" ]] && tar -C "$DASHBOARD_DIR" -czf "$BACKUP/control.before.tar.gz" controle
+[[ -d "$CONTROL_DIR" ]] && tar -C "$DASHBOARD_DIR" -czf "$BACKUP/control.before.tar.gz" admin
 [[ -d "$CFG_DIR" ]] && tar -C / -czf "$BACKUP/config.before.tar.gz" "${CFG_DIR#/}"
 [[ -f "$HELPER" ]] && cp -a "$HELPER" "$BACKUP/helper.before"
 [[ -f "$RADIO_HELPER" ]] && cp -a "$RADIO_HELPER" "$BACKUP/radio-helper.before"
@@ -227,7 +227,7 @@ $data=[
  "expected_core_version"=>$ver,
  "base_url"=>$base,
  "title"=>$title,
- "admin_slug"=>"controle",
+ "admin_slug"=>"admin",
  "test_paths"=>[
   ["/ao-vivo",200,"html"],
   ["/conectados",200,"html"],
@@ -314,8 +314,8 @@ ok 'credencial, noindex, crawler deny, rate-limit, sessão e CSRF validados'
 
 section '7/8 — TESTE WEB LOCAL'
 WEB_OK=0
-if curl --silent --show-error --insecure --resolve "$DOMAIN:443:127.0.0.1" --connect-timeout 5 --max-time 12 "$BASE_URL/controle/" -o "$TMP/web.html" 2>/dev/null; then
-  if grep -Fq "$TITLE" "$TMP/web.html" && grep -Fq 'Acesso restrito' "$TMP/web.html"; then WEB_OK=1; fi
+if curl --silent --show-error --insecure --resolve "$DOMAIN:443:127.0.0.1" --connect-timeout 5 --max-time 12 "$BASE_URL/admin/" -o "$TMP/web.html" 2>/dev/null; then
+  if grep -Fq "$TITLE" "$TMP/web.html" && grep -Fq 'Restricted access' "$TMP/web.html"; then WEB_OK=1; fi
 fi
 if [[ "$WEB_OK" -eq 1 ]]; then
   ok 'tela privada respondeu localmente via HTTPS'
@@ -328,7 +328,7 @@ cat > "$BACKUP/CONTROL_INSTALL_COMPLETE" <<EOF
 status=CONTROL_INSTALL_OK
 control_version=1.3.0
 reflector=$REFLECTOR_NAME
-url=$BASE_URL/controle/
+url=$BASE_URL/admin/
 username=$USERNAME
 password_storage=hash_only
 radioid_admin=yes
@@ -352,6 +352,6 @@ MUTATED=0
 trap - EXIT
 cleanup
 ok 'ADMIN XLX MODERN COMPLETO INSTALADO'
-echo "URL temporária: $BASE_URL/controle/"
+echo "Temporary URL: $BASE_URL/admin/"
 echo "Usuário: $USERNAME"
 echo 'Senha: definida pelo operador e não exibida'
