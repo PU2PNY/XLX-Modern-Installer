@@ -49,6 +49,11 @@ jobs:
           python3 control/genericize-xlx-control.py /tmp/admin.php
           php -l /tmp/admin.php
           grep -Fq "const CTRL_VER='1.3.0'" /tmp/admin.php
+          grep -Fq 'Restricted access' /tmp/admin.php
+          if grep -Fq 'Acesso restrito' /tmp/admin.php; then
+            echo 'Portuguese login text leaked into the English Admin candidate.' >&2
+            exit 1
+          fi
 
       - name: Generic identity invariants
         shell: bash
