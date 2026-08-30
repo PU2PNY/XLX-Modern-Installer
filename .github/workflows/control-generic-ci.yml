@@ -89,7 +89,7 @@ jobs:
           grep -Fq 'robots.txt' modules/69-admin-page.sh
           grep -Fq 'ai-context.json' modules/69-admin-page.sh
 
-      - name: XLX026 feature parity invariants
+      - name: Generic Admin feature parity invariants
         shell: bash
         run: |
           set -Eeuo pipefail
@@ -98,15 +98,15 @@ jobs:
           grep -Fq "if(\$a==='radioid_delete')" /tmp/admin.php
           grep -Fq "if(\$a==='radioid_refresh')" /tmp/admin.php
           grep -Fq "if(\$a==='radioid_check')" /tmp/admin.php
-          grep -Fq 'Controle de Acesso XLXD' /tmp/admin.php
+          grep -Fq 'XLXD Access Control' /tmp/admin.php
           grep -Fq 'access-add-white' /tmp/admin.php
           grep -Fq 'access-delete-white' /tmp/admin.php
           grep -Fq 'access-add-black' /tmp/admin.php
           grep -Fq 'access-delete-black' /tmp/admin.php
-          grep -Fq 'access-save-terminal' /tmp/admin.php
-          grep -Fq 'Links rápidos' /tmp/admin.php
-          grep -Fq 'Executar testes gerais' /tmp/admin.php
-          grep -Fq 'Reiniciar XLXD' /tmp/admin.php
+          grep -Fq 'interlink-save' /tmp/admin.php
+          grep -Fq 'Quick links' /tmp/admin.php
+          grep -Fq 'Run general tests' /tmp/admin.php
+          grep -Fq 'Restart XLXD' /tmp/admin.php
 
       - name: Credential safety invariants
         shell: bash
