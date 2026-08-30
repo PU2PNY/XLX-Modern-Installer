@@ -7,6 +7,8 @@ INSTALLER="$ROOT/install.sh"
 DASHBOARD_INSTALLER="$ROOT/dashboard/install/install-dashboard.sh"
 I18N_BUILDER="$ROOT/dashboard/i18n/build.php"
 STANDBY_CSS="$ROOT/dashboard/assets/ao-vivo-boxes-v31-radar.css"
+ADMIN_MODULE="$ROOT/modules/69-admin-page.sh"
+ADMIN_BUILDER="$ROOT/modules/68-control-panel.sh"
 
 failures=0
 expect() {
@@ -36,6 +38,11 @@ expect 'callinghome client is installed automatically' 'xlx-callinghome.php' "$D
 expect 'callinghome timer is enabled automatically' 'enable --now xlx-callinghome.timer' "$DASHBOARD_INSTALLER"
 expect 'i18n builder processes CSS too' "'css'" "$I18N_BUILDER"
 expect 'standby CSS does not force Portuguese text' 'content:none !important;' "$STANDBY_CSS"
+expect 'Admin route defaults to admin and can be changed' 'Hidden administrative page name [admin]' "$ADMIN_MODULE"
+expect 'Admin installation passes the selected language to its builder' 'XLX_UI_LANG="$UI_LANG"' "$ADMIN_MODULE"
+expect 'Admin source is localized for English installations' 'genericize-xlx-control.py INDEX.php [locale]' "$ROOT/control/genericize-xlx-control.py"
+expect 'Admin temporary route uses the safe admin default' '"$BASE_URL/admin/"' "$ADMIN_BUILDER"
+expect 'Custom Admin slug removes the bootstrap admin route' 'BOOTSTRAP_DIR' "$ADMIN_MODULE"
 
 printf 'failures=%d\n' "$failures"
 exit "$failures"
