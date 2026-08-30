@@ -148,7 +148,7 @@ jobs:
           grep -Fq 'flock -n 9' control/xlx-modern-access-helper
           grep -Fq 'backup_files' control/xlx-modern-access-helper
           grep -Fq 'audit' control/xlx-modern-access-helper
-          grep -Fq 'save-terminal' control/xlx-modern-access-helper
+          grep -Fq 'interlink-save' control/xlx-modern-access-helper
           grep -Fq 'add-white|delete-white|add-black|delete-black' control/xlx-modern-access-helper
 
       - name: RadioID persistence invariants
