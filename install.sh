@@ -9,8 +9,8 @@ readonly ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 # Mantenedor da versão modificada: Dario — PU2PNY
 # Base técnica: Daniel K. — PP5PK / PP5PK/XLX_Installer
 
-readonly REPOSITORY="https://github.com/PP5PK/XLX_Installer.git"
-readonly REVIEWED_COMMIT="865c0ea7abf736b89086fcd4684639f075a02d94"
+readonly REPOSITORY="local:vendor/pp5pk-installer"
+readonly REVIEWED_COMMIT="vendor-pinned-PP5PK-20b4893"
 readonly EXPECTED_INSTALLER_SHA256="b5fe63dc45f1732a539bc67d0c0b0cf97d41adb2b9be5354824cc58d74061cda"
 readonly WORK_ROOT="/opt/xlx-modern-installer"
 readonly SOURCE_DIR="${WORK_ROOT}/vendor/pp5pk-installer"
@@ -329,27 +329,23 @@ create_inventory_and_backup() {
 }
 
 prepare_source() {
-    local actual_commit actual_hash
-    mkdir -p "$(dirname "$SOURCE_DIR")"
-    if [ -d "$SOURCE_DIR/.git" ]; then
-        info "$(msg "Atualizando a cópia controlada do instalador base." "Refreshing the controlled copy of the base installer.")"
-        git -C "$SOURCE_DIR" fetch --prune origin
-    else
-        rm -rf "$SOURCE_DIR"
-        git clone --no-checkout "$REPOSITORY" "$SOURCE_DIR"
-    fi
-    git -C "$SOURCE_DIR" checkout --detach "$REVIEWED_COMMIT"
-    actual_commit="$(git -C "$SOURCE_DIR" rev-parse HEAD)"
-    [ "$actual_commit" = "$REVIEWED_COMMIT" ] || fatal "$(msg "Commit inesperado: $actual_commit" "Unexpected commit: $actual_commit")"
-    [ -f "$SOURCE_DIR/installer.sh" ] || fatal "$(msg "installer.sh não encontrado no projeto base." "installer.sh was not found in the base project.")"
+    local source_installer="$ROOT_DIR/vendor/pp5pk-installer/installer.sh"
+    local actual_hash
+    [ -f "$source_installer" ] || fatal "$(msg "Instalador-base versionado não encontrado no repositório." "Versioned base installer was not found in this repository.")"
+    mkdir -p "$SOURCE_DIR/templates"
+    install -m 0700 "$source_installer" "$SOURCE_DIR/installer.sh"
+    for template in xlx_log.service xlx_log.sh xlx_logrotate.conf apache.tbd.conf uninstaller.sh; do
+        [ -f "$ROOT_DIR/vendor/pp5pk-installer/templates/$template" ] || fatal "$(msg "Template-base ausente: $template" "Base template is missing: $template")"
+        install -m 0644 "$ROOT_DIR/vendor/pp5pk-installer/templates/$template" "$SOURCE_DIR/templates/$template"
+    done
     actual_hash="$(sha256sum "$SOURCE_DIR/installer.sh" | awk '{print $1}')"
-    [ "$actual_hash" = "$EXPECTED_INSTALLER_SHA256" ] || fatal "$(msg "SHA-256 divergente. Esperado=$EXPECTED_INSTALLER_SHA256 Obtido=$actual_hash" "SHA-256 mismatch. Expected=$EXPECTED_INSTALLER_SHA256 Got=$actual_hash")"
-    find "$SOURCE_DIR" -type f -name '*.sh' -exec bash -n {} \;
-    ok "$(msg "Código-fonte base validado." "Base source code validated.")"
-    info "Commit: $REVIEWED_COMMIT"
+    [ "$actual_hash" = "$EXPECTED_INSTALLER_SHA256" ] || fatal "$(msg "SHA-256 do instalador-base divergente. Esperado=$EXPECTED_INSTALLER_SHA256 Obtido=$actual_hash" "Base installer SHA-256 mismatch. Expected=$EXPECTED_INSTALLER_SHA256 Got=$actual_hash")"
+    bash -n "$SOURCE_DIR/installer.sh"
+    find "$SOURCE_DIR/templates" -type f -name '*.sh' -exec bash -n {} ;
+    ok "$(msg "Instalador-base local versionado e validado." "Versioned local base installer validated.")"
+    info "$(msg "Fonte local: vendor/pp5pk-installer" "Local source: vendor/pp5pk-installer")"
     info "SHA-256: $actual_hash"
 }
-
 localize_base_installer() {
     local source="$SOURCE_DIR/installer.sh"
     local translated="$SOURCE_DIR/installer.runtime.sh"
