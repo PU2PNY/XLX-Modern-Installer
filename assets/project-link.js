@@ -1,14 +1,14 @@
 (() => {
   'use strict';
 
-  const REPO = 'https://github.com/PU2PNY/XLX-Modern-Installer';
+  const REPO = 'https://github.com/PU2PNY/XLX-Modern-Installer/tree/dashboard-only';
   const labels = {
-    'pt': 'Código-fonte, instalador e documentação no GitHub',
-    'en': 'Source code, installer and documentation on GitHub',
-    'es': 'Código fuente, instalador y documentación en GitHub',
-    'fr': 'Code source, installateur et documentation sur GitHub',
-    'de': 'Quellcode, Installer und Dokumentation auf GitHub',
-    'it': 'Codice sorgente, installer e documentazione su GitHub'
+    'pt': 'Código-fonte e documentação do painel no GitHub',
+    'en': 'Dashboard source code and documentation on GitHub',
+    'es': 'Código fuente y documentación del panel en GitHub',
+    'fr': 'Code source et documentation du tableau de bord sur GitHub',
+    'de': 'Dashboard-Quellcode und Dokumentation auf GitHub',
+    'it': 'Codice sorgente e documentazione del pannello su GitHub'
   };
 
   function start() {
