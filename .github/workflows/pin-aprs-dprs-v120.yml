@@ -1,0 +1,44 @@
+name: Pin APRS-DPRS v1.2.0
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/pin-aprs-dprs-v120.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  pin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pin validated standalone APRS-DPRS release
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('modules/67-aprs-dprs.sh')
+          s=p.read_text(encoding='utf-8')
+          replacements={
+            'readonly APRS_COMMIT="a6caec929f0098cf940093f2ccf9e23cddeaa2a5"':'readonly APRS_COMMIT="56a44f23c4a9d182dbfc685df7622a471b3bc636"',
+            'readonly APRS_INSTALLER_SHA256="0c5c26adbf9b54fe803e3cbaf2ddc17e4ba737f7c9f3b5606231b67c9a9403f9"':'readonly APRS_INSTALLER_SHA256="9759940f32850a779cfd0ef4405898f81f8707173d4f60849fc38c1bab381a7a"',
+            'readonly APRS_MANIFEST_SHA256="98a16770ca0d06194d6c67c82d4fe7146dd8a06a72b26eb92ac8eef8d0856e4e"':'readonly APRS_MANIFEST_SHA256="2a8e46fc61e6c8b52e121e80b209c12faef0ee42a368e4bb525a9056d7f19240"',
+          }
+          for old,new in replacements.items():
+              if old not in s:
+                  raise SystemExit(f'expected pin not found: {old}')
+              s=s.replace(old,new,1)
+          p.write_text(s,encoding='utf-8')
+          PY
+          bash -n modules/67-aprs-dprs.sh
+          grep -Fq '56a44f23c4a9d182dbfc685df7622a471b3bc636' modules/67-aprs-dprs.sh
+          grep -Fq '9759940f32850a779cfd0ef4405898f81f8707173d4f60849fc38c1bab381a7a' modules/67-aprs-dprs.sh
+          grep -Fq '2a8e46fc61e6c8b52e121e80b209c12faef0ee42a368e4bb525a9056d7f19240' modules/67-aprs-dprs.sh
+          git config user.name 'PU2PNY'
+          git config user.email '47339656+PU2PNY@users.noreply.github.com'
+          git add modules/67-aprs-dprs.sh
+          git commit -m 'chore: pin standalone APRS-DPRS v1.2.0'
+          git push origin HEAD:main
