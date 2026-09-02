@@ -1,60 +1,35 @@
 # XLX Modern Installer
 
-Instalador e camada de manutenção conservadora para **refletores XLX em Debian 12 x86_64**, mantido por **Dario — PU2PNY** e baseado no instalador revisado de **Daniel K. — PP5PK**.
+Instalador e camada de manutenção **independente** para refletores XLX em **Debian 12 x86_64**, mantido por **Dario — PU2PNY**.
 
-O projeto mantém o fluxo comprovado do PP5PK para instalar/compilar o núcleo XLXD e substitui a camada de dashboard/dados antiga pelo XLX Modern Dashboard, RadioID persistente, Admin privado oculto, CallingHome dedicado e módulos opcionais APRS/D-PRS / Certificados.
-
-> **Caminhos canônicos**
->
-> - Núcleo XLXD, listas nativas e runtime: `/xlxd`
-> - Webroot do painel moderno: `/var/www/html/xlxd`
-> - O caminho antigo `/var/www/html/xlxd-novo` não é destino de instalação nova.
+O XLX Modern Installer possui sua própria lógica de instalação: diagnóstico, coleta de configuração, backup preventivo, compilação do XLXD, systemd, painel moderno, Apache/HTTPS, RadioID, CallingHome, Admin privado, validações e recuperação. Ele **não executa, incorpora nem chama outro instalador de refletor**.
 
 English: [README.en.md](README.en.md)
 
----
+## Fontes externas realmente usadas
 
-## O que uma instalação limpa deve entregar
+O instalador busca somente os componentes de software que efetivamente precisa instalar:
 
-Uma instalação concluída com sucesso foi desenhada para fornecer:
+- núcleo XLXD: `https://github.com/LX3JL/xlxd.git`, revisão fixada em `modules/40-xlxd.sh`;
+- Echo/Parrot opcional: `https://github.com/narspt/XLXEcho.git`, revisão fixada em `modules/50-echo.sh`;
+- pacotes Debian pelo APT.
 
-- núcleo XLXD compilado/instalado usando o fluxo base revisado do PP5PK;
-- configuração de D-STAR, DMR e C4FM/YSF suportada pelo XLXD;
-- ID do refletor, domínio, dados do sysop e timezone configuráveis;
-- 1–26 módulos XLXD;
-- porta UDP YSF, frequência Wires-X e auto-link YSF configuráveis;
-- XLX Echo opcional;
-- `xlxd.service` gerenciado pelo systemd;
-- painel moderno diretamente em `/var/www/html/xlxd`;
-- VirtualHost Apache e HTTPS Let's Encrypt quando escolhido;
-- base RadioID/usuários atualizada diariamente com validação SQLite;
-- alterações locais de RadioID persistentes após novas atualizações;
-- ponte de log TX/RX e `xlx_log.service`;
-- CallingHome dedicado, sem depender do dashboard antigo;
-- Admin privado oculto, com usuário/senha locais e rota configurável;
-- APRS/D-PRS opcional;
-- XLX Certificate Generator opcional;
-- backup preventivo, validações e rollback nas operações mutáveis da camada Modern.
+O **XLX Modern Dashboard está dentro deste próprio repositório** e nunca é clonado de um repositório externo de dashboard.
 
-O pacote público **não publica conteúdo específico do XLX026** como Suporte, Simulado ANATEL ou Notícias em outros refletores.
+## Caminhos canônicos
 
----
+```text
+Runtime XLXD:       /xlxd
+Fonte XLXD:         /usr/src/xlxd
+Painel moderno:     /var/www/html/xlxd
+Configuração Admin: /etc/xlx-modern-control
+CallingHome:        /etc/xlx-modern
+Backups:            /var/backups/xlx-reflector
+```
 
-## Base PP5PK revisada
+Os caminhos antigos `/var/www/html/xlxd-novo` e `/var/www/html/xlx-dashboard` não são destinos válidos de instalação limpa.
 
-O instalador do núcleo está fixado à base revisada:
-
-- repositório: `PP5PK/XLX_Installer`
-- commit revisado: `20b48934505b1939317bf71b30ddc32b1ced0035`
-- Git blob do `installer.sh` upstream: `266217ee910742710b9c5c9f30009c8a0f0fcaf7`
-
-A cópia vendorizada é conferida por SHA-256 antes do uso. Veja [vendor/pp5pk-installer/UPSTREAM.md](vendor/pp5pk-installer/UPSTREAM.md) e [docs/PP5PK-COMPATIBILITY-MATRIX.md](docs/PP5PK-COMPATIBILITY-MATRIX.md).
-
-A camada Modern mantém intencionalmente do PP5PK: compilação/instalação do XLXD, módulos, YSF, systemd, arquivo nativo de opções de terminal e caminho opcional do Echo. Ela substitui intencionalmente o dashboard legado, a antiga camada de users-db do painel e o CallingHome dependente do painel legado.
-
----
-
-## Instalação rápida — VPS Debian 12 limpa
+## Instalação limpa
 
 ```bash
 sudo apt update
@@ -62,17 +37,7 @@ sudo apt install -y git
 cd /usr/src
 sudo git clone https://github.com/PU2PNY/XLX-Modern-Installer.git
 cd XLX-Modern-Installer
-```
-
-Primeiro execute a pré-validação sem alteração:
-
-```bash
 sudo bash install.sh --check
-```
-
-Depois execute a instalação real:
-
-```bash
 sudo bash install.sh
 ```
 
@@ -82,16 +47,36 @@ A instalação real exige a confirmação explícita:
 INSTALL
 ```
 
-### Idiomas
+O fluxo executado pelo nosso próprio instalador é:
 
-Sem `--lang`, a primeira escolha é o **idioma do instalador**:
+1. escolha do idioma do instalador;
+2. escolha do idioma do painel;
+3. validação do Debian 12 x86_64, recursos, DNS e HTTPS;
+4. detecção de instalação XLX ativa ou resíduos;
+5. coleta de ID do refletor, domínio, sysop, país, local, timezone, módulos, YSF, HTTPS e Echo;
+6. backup preventivo verificado;
+7. instalação dos pacotes Debian;
+8. download da revisão fixada do XLXD, configuração, compilação e instalação;
+9. instalação do nosso próprio `xlxd.service` e validação do processo/listeners;
+10. Echo/Parrot opcional instalado de forma independente;
+11. instalação do painel moderno local;
+12. Apache e HTTPS opcional;
+13. RadioID, timer de atualização e ponte de log TX/RX;
+14. CallingHome próprio com timer;
+15. Admin privado oculto;
+16. APRS/D-PRS opcional;
+17. validação final de serviços, portas, banco, Admin e HTTP/HTTPS.
+
+## Idiomas
+
+Idioma do instalador:
 
 ```text
 1) Português (Brasil)
 2) English
 ```
 
-Depois o instalador pergunta separadamente o **idioma do painel público**:
+Idioma do painel público:
 
 ```text
 1) Português (Brasil)
@@ -102,50 +87,50 @@ Depois o instalador pergunta separadamente o **idioma do painel público**:
 6) Italiano
 ```
 
-O dashboard público é construído/testado nos seis idiomas. O Admin operacional privado possui duas interfaces completas: **Português (Brasil)** e **English**. Quando o painel público usa espanhol, francês, alemão ou italiano, o Admin usa inglês para evitar uma interface de segurança parcialmente traduzida.
+O Admin operacional privado possui duas interfaces completas e auditadas: **Português (Brasil)** e **English**. Se o painel público estiver em espanhol, francês, alemão ou italiano, o Admin usa inglês para não apresentar uma interface de segurança parcialmente traduzida.
 
-Para selecionar inglês diretamente:
+## XLXD existente — somente painel
 
-```bash
-sudo bash install.sh --lang=en
-```
-
----
-
-## XLXD existente: atualizar somente o painel
-
-A instalação completa é bloqueada quando encontra um XLXD ativo. Para instalar/reinstalar somente o painel moderno preservando o núcleo existente:
+A instalação completa se recusa a sobrescrever um XLXD ativo. Para preservar o núcleo e instalar/atualizar apenas o painel moderno:
 
 ```bash
 sudo bash install.sh --dashboard-only
 ```
 
-Esse fluxo cria backup preventivo e não reinstala o binário do XLXD.
+## Núcleo XLXD independente
 
----
+`modules/40-xlxd.sh` realiza diretamente:
 
-## Painel moderno canônico
+- download da revisão fixada do projeto oficial XLXD;
+- verificação do commit exato;
+- configuração da quantidade de módulos, porta/frequência YSF e auto-link;
+- compilação local;
+- instalação de `/xlxd/xlxd` e arquivos nativos;
+- configuração de `/xlxd/xlxd.terminal`;
+- geração e instalação do nosso próprio serviço systemd;
+- validação do processo XLXD e listeners UDP.
 
-O único destino de instalação limpa é:
+Nenhum instalador externo participa dessa etapa.
+
+## Echo / Parrot opcional
+
+Quando escolhido, `modules/50-echo.sh` busca diretamente uma revisão fixada do XLXEcho, compila, instala nosso serviço systemd e gerencia com segurança a entrada nativa de Interlink:
+
+```text
+ECHO 127.0.0.1 E
+```
+
+Se o operador escolher não instalar Echo, a ausência de `xlxecho.service` é tratada corretamente como opcional.
+
+## Painel moderno
+
+A árvore local `dashboard/` é instalada diretamente em:
 
 ```text
 /var/www/html/xlxd
 ```
 
-O instalador do painel:
-
-- reaproveita os dados do refletor coletados pelo instalador base;
-- cria `config/site.php`;
-- compila o idioma escolhido;
-- renderiza placeholders genéricos;
-- cria diretórios de cache necessários;
-- configura Apache;
-- solicita HTTPS via Certbot quando escolhido;
-- instala CallingHome;
-- instala o Admin privado;
-- valida APIs e dados de runtime.
-
-Rotas públicas importantes:
+Rotas públicas principais:
 
 ```text
 /ao-vivo
@@ -156,142 +141,81 @@ Rotas públicas importantes:
 /api/live.php
 ```
 
----
+O pacote universal não publica em outros refletores conteúdo específico do XLX026 como **Suporte, Simulado ANATEL e Notícias**.
 
 ## Admin privado
 
-O Admin não aparece no menu público nem nos arquivos de indexação. A rota padrão é `admin`, mas o operador pode escolher outro nome válido durante a instalação.
-
-Para instalar/reparar o Admin isoladamente em um XLX Modern já funcional:
+Para instalar ou reparar isoladamente o Admin em um XLX Modern funcional:
 
 ```bash
 sudo bash install-control.sh
 ```
 
-O instalador isolado usa `/var/www/html/xlxd` por padrão.
+A rota padrão é `admin`, podendo ser renomeada. Ela não aparece no menu público, sitemap, robots ou arquivos de indexação para IAs/buscadores.
 
-Funções:
+O Admin oferece:
 
-- status do XLXD, versão, SHA, PID e quantidade de processos;
-- listeners UDP;
-- logs e backups recentes;
-- testes HTTP/API;
-- reinício protegido do XLXD com senha e validação posterior de SHA/versão;
-- RadioID: pesquisar, adicionar, editar, excluir, verificar integridade e atualizar;
+- status, versão, SHA, PID e listeners do XLXD;
+- logs, backups e testes HTTP/API;
+- reinício do XLXD protegido por senha e confirmação;
+- RadioID: pesquisa, inclusão, edição, exclusão, integridade e atualização;
 - whitelist e blacklist;
 - gerenciamento de peers do XLX Interlink;
-- auditoria, CSRF, rate-limit e cookies seguros.
+- auditoria, CSRF, cookies seguros e rate-limit de login.
 
 Não existe terminal web genérico nem execução arbitrária de comandos.
 
-### Interlink
+### Interlink nativo
 
-O Admin gerencia o formato nativo do XLXD em:
+O Admin trabalha diretamente com:
 
 ```text
 /xlxd/xlxd.interlink
 ```
 
-Cada entrada ativa usa:
+no formato nativo:
 
 ```text
 PEER ENDEREÇO MÓDULOS
 ```
 
-Exemplo:
+Ele altera somente o peer solicitado, preserva comentários e demais entradas, cria backup, valida o arquivo completo e publica de forma atômica. O XLXD monitora a lista e recarrega alterações automaticamente, portanto uma alteração de peer normalmente não exige restart.
 
-```text
-XLX123 peer.exemplo.net ABCDE
-```
+## RadioID
 
-O Admin altera um peer por vez, preserva comentários e entradas não relacionadas — inclusive uma linha do Echo —, cria backup, valida o arquivo completo e publica de forma atômica. O gatekeeper do XLXD monitora o arquivo e recarrega alterações automaticamente; portanto editar um peer Interlink normalmente **não exige restart do XLXD**.
-
-Veja [control/README.md](control/README.md).
-
----
-
-## RadioID / base de indicativos
-
-A camada Modern mantém:
+A camada runtime mantém:
 
 ```text
 /xlxd/users_db/users_base.csv
 /xlxd/users_db/users.db
 ```
 
-A atualização diária cria um candidato separado, executa `PRAGMA integrity_check` e só então publica. Inclusões, correções e exclusões feitas localmente pelo Admin são persistidas separadamente e reaplicadas depois das atualizações da base principal.
-
-A validação final exige que `users.db` exista, esteja íntegro e tenha quantidade coerente de registros antes de considerar a camada Modern pronta.
-
----
+A atualização cria um banco candidato, valida a integridade SQLite e só então publica. Inclusões, correções e exclusões locais feitas pelo Admin são persistidas separadamente e reaplicadas após futuras atualizações.
 
 ## CallingHome
 
-O CallingHome não depende mais do painel legado. O XLX Modern instala um cliente/timer systemd próprio, com configuração local protegida, usando identidade do refletor, URL do dashboard, país, comentário, versão do XLXD e lista Interlink.
+O CallingHome é implementado pelo próprio repositório, com configuração local protegida e serviço/timer systemd próprios, sem depender de painel antigo.
 
-Falhas temporárias de rede/diretório são repetidas pelo timer.
+## Módulos opcionais
 
----
-
-## APRS / D-PRS opcional
-
-Para instalar explicitamente:
+APRS/D-PRS:
 
 ```bash
 sudo bash install.sh --with-aprs-dprs
 ```
 
-Para pular o módulo e a pergunta:
+ou:
 
 ```bash
 sudo bash install.sh --without-aprs-dprs
 ```
 
----
+Certificados permanecem opcionais e **não fazem parte da instalação pública padrão**.
 
-## Certificados opcionais
+## Segurança e aceitação
 
-Certificados **não fazem parte da instalação pública padrão**. O XLX Certificate Generator só é instalado quando habilitado explicitamente pelo fluxo suportado.
+Os testes do repositório verificam sintaxe, traduções, caminhos canônicos, revisões das fontes independentes, limites de privilégio do Admin, alterações atômicas do Interlink e persistência RadioID.
 
----
+CI não consegue provar firewall do provedor, propagação DNS nem tráfego real D-STAR/DMR/YSF. A aceitação final de uma versão exige instalação limpa em VPS Debian 12 e teste real dos protocolos.
 
-## Firewall, DNS e alcance externo
-
-Assim como na base PP5PK, o instalador não afirma que firewall do provedor, NAT ou DNS estejam corretos apenas porque o processo XLXD está ativo. Essas camadas precisam ser verificadas na VPS real.
-
-Consulte a documentação de portas/firewall em `docs/` antes dos testes públicos.
-
----
-
-## Modelo de segurança
-
-- `--check` antes da instalação real;
-- bloqueio de instalação completa sobre XLXD ativo;
-- confirmação explícita `INSTALL`;
-- backup preventivo;
-- validação SHA/sintaxe/configuração/SQLite;
-- sudo restrito a ações administrativas fixas;
-- nenhuma senha do Admin em texto puro no GitHub/webroot;
-- rota Admin ausente do menu público;
-- nenhum `NOPASSWD: ALL`;
-- nenhum web shell;
-- persistência de alterações locais do RadioID;
-- rollback automático onde a operação Modern pode ser validada de forma atômica.
-
----
-
-## CI e aceitação
-
-O GitHub Actions valida sintaxe Bash/Python/PHP/JavaScript, os seis idiomas do dashboard, os dois idiomas completos do Admin, persistência RadioID, limites de privilégio, caminhos antigos proibidos, pin da base PP5PK e um teste ponta a ponta de inclusão/exclusão Interlink através da fronteira `www-data → sudo → helper`.
-
-CI é obrigatório, mas não consegue provar propagação DNS, firewall do provedor ou tráfego real de rádio D-STAR/DMR/YSF. A validação de campo exige instalação limpa em uma VPS Debian 12 e testes reais dos protocolos.
-
----
-
-## Créditos
-
-- XLXD: Jean-Luc Deltombe — LX3JL e colaboradores
-- Instalador-base: Daniel K. — PP5PK
-- XLX Modern Installer / integração do painel moderno: Dario — PU2PNY
-
-Veja [CREDITS.md](CREDITS.md), [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) e [LICENSE](LICENSE).
+Veja [ARCHITECTURE.md](ARCHITECTURE.md), [control/README.md](control/README.md) e os guias em `docs/`.
