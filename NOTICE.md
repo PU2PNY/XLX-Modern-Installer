@@ -1,9 +1,9 @@
 # Notice
 
-Primary foundation: `PP5PK/XLX_Installer`
+**XLX Modern Installer** is maintained independently by **Dario — PU2PNY**.
 
-Original installer author: **Daniel K. — PP5PK**
+The repository contains its own installation orchestration, dashboard integration, runtime-data management, private Admin, validation and recovery logic.
 
-Modified version maintainer: **Dario — PU2PNY**
+XLXD and optional XLXEcho are separate upstream software projects obtained directly at pinned revisions when required. Their original authorship and licenses remain unchanged; see `THIRD_PARTY_NOTICES.md`.
 
-This modified version does not imply endorsement or support by the original author.
+No external reflector installer is incorporated or executed as a dependency.
