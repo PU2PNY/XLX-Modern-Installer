@@ -1,0 +1,14 @@
+[Unit]
+Description=XLX Echo / Parrot peer
+After=network-online.target xlxd.service
+Wants=network-online.target
+Requires=xlxd.service
+
+[Service]
+Type=simple
+ExecStart=/xlxd/xlxecho ECHO 127.0.0.1
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
