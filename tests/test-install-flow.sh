@@ -38,7 +38,7 @@ expect 'independent Echo module is executed' 'modules/50-echo.sh" install' "$INS
 expect 'modern dashboard runs after XLXD core install' 'modules/60-dashboard-modern.sh' "$INSTALLER"
 expect 'dashboard-only mode exists' '--dashboard-only' "$INSTALLER"
 expect 'dashboard-only explicitly preserves existing core' 'Painel atualizado; núcleo XLXD preservado.' "$INSTALLER"
-expect 'pre-check verifies independence' 'tests/test-no-pp5pk-runtime.sh' "$INSTALLER"
+expect 'pre-check verifies repository independence' 'tests/test-no-external-installer.sh' "$INSTALLER"
 expect 'final validation checks XLXD UDP listeners' 'for port in 8880 10001 10002 12345 12346 20001 21110 30001 30051 40000 "$YSF_PORT" 62030' "$INSTALLER"
 expect 'final validation checks users database integrity' 'PRAGMA integrity_check;' "$INSTALLER"
 expect 'final validation checks hidden Admin route' '/etc/xlx-modern-control/route' "$INSTALLER"
