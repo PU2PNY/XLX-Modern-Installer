@@ -54,7 +54,7 @@ for path in \
     /xlxd/xlxd.blacklist \
     /xlxd/xlxd.interlink \
     /etc/systemd/system/xlxd.service \
-    /var/www/html/xlx-dashboard; do
+    /var/www/html/xlxd; do
     if [ -e "$path" ]; then ok "$path"; else warn "ausente / missing: $path"; fi
 done
 
