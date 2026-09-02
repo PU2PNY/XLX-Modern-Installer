@@ -31,26 +31,59 @@ clean_rule(){
   fi
   printf '%s' "$x"
 }
+clean_peer(){
+  local x="${1^^}"
+  x="${x//[[:space:]]/}"
+  [[ "$x" =~ ^[A-Z0-9]{1,8}$ ]] || return 1
+  printf '%s' "$x"
+}
+clean_address(){
+  local x="$1"
+  [[ "$x" =~ ^[A-Za-z0-9._:-]{1,253}$ ]] || return 1
+  printf '%s' "$x"
+}
+clean_modules(){
+  local x="${1^^}"
+  x="${x//[[:space:]]/}"
+  [[ "$x" == '*' || "$x" =~ ^[A-Z]{1,26}$ ]] || return 1
+  if [[ "$x" != '*' ]]; then
+    x="$(printf '%s' "$x" | grep -o . | awk '!seen[$0]++' | tr -d '\n')"
+  fi
+  printf '%s' "$x"
+}
 read_rules(){ sed -E '/^[[:space:]]*($|#)/d;s/[[:space:]]//g' "$1"; }
-json_string(){ python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))'; }
 status(){
-  printf '{"whitelist":['
-  local first=1 x
-  while IFS= read -r x; do
-    [[ -n "$x" ]] || continue
-    (( first )) || printf ','
-    first=0
-    printf '%s' "$(printf '%s' "$x" | json_string)"
-  done < <(read_rules "$WL")
-  printf '],"blacklist":['
-  first=1
-  while IFS= read -r x; do
-    [[ -n "$x" ]] || continue
-    (( first )) || printf ','
-    first=0
-    printf '%s' "$(printf '%s' "$x" | json_string)"
-  done < <(read_rules "$BL")
-  printf '],"interlink":%s}\n' "$(python3 -c 'import json,sys; print(json.dumps([x.split() for x in open(sys.argv[1]) if x.strip() and not x.lstrip().startswith("#")]))' "$IL")"
+  python3 - "$WL" "$BL" "$IL" <<'PY'
+import json,re,sys
+wl,bl,interlink=sys.argv[1:]
+def rules(path):
+    out=[]
+    with open(path,'r',encoding='utf-8',errors='replace') as handle:
+        for raw in handle:
+            line=raw.strip()
+            if not line or line.startswith('#'):
+                continue
+            out.append(re.sub(r'\s+','',line))
+    return out
+entries=[]
+invalid=[]
+with open(interlink,'r',encoding='utf-8',errors='replace') as handle:
+    for number,raw in enumerate(handle,1):
+        line=raw.strip()
+        if not line or line.startswith('#'):
+            continue
+        parts=[p for p in re.split(r'[\s,]+',line) if p]
+        if len(parts)<3:
+            invalid.append({'line':number,'text':line})
+            continue
+        entries.append({'peer':parts[0].upper(),'address':parts[1],'modules':parts[2].upper()})
+print(json.dumps({
+    'ok':len(invalid)==0,
+    'whitelist':rules(wl),
+    'blacklist':rules(bl),
+    'interlink':{'entries':entries,'count':len(entries),'invalid':invalid},
+},ensure_ascii=False,separators=(',',':')))
+PY
 }
 backup_files(){
   local stamp dir
@@ -76,6 +109,72 @@ write_rules(){
   chown --reference="$file" "$tmp" 2>/dev/null || chown www-data:www-data "$tmp"
   chmod --reference="$file" "$tmp" 2>/dev/null || chmod 0644 "$tmp"
   mv -f "$tmp" "$file"
+}
+write_interlink(){
+  local peer="$1" address="$2" modules="$3" op="$4" tmp
+  tmp="$(mktemp "${IL}.new.XXXXXX")"
+  python3 - "$IL" "$tmp" "$peer" "$address" "$modules" "$op" <<'PY'
+import re,sys
+src,dst,peer,address,modules,op=sys.argv[1:]
+peer=peer.upper()
+with open(src,'r',encoding='utf-8',errors='strict') as handle:
+    lines=handle.readlines()
+matches=[]
+for idx,raw in enumerate(lines):
+    line=raw.strip()
+    if not line or line.startswith('#'):
+        continue
+    parts=[p for p in re.split(r'[\s,]+',line) if p]
+    if parts and parts[0].upper()==peer:
+        matches.append(idx)
+if len(matches)>1:
+    raise SystemExit('peer duplicado no arquivo Interlink; corrija manualmente antes de usar o Admin')
+if op=='delete':
+    if not matches:
+        raise SystemExit('peer Interlink não encontrado')
+    del lines[matches[0]]
+elif op=='save':
+    newline=f'{peer} {address} {modules}\n'
+    if matches:
+        lines[matches[0]]=newline
+    else:
+        if lines and not lines[-1].endswith('\n'):
+            lines[-1]+='\n'
+        lines.append(newline)
+else:
+    raise SystemExit('operação Interlink inválida')
+with open(dst,'w',encoding='utf-8',newline='') as handle:
+    handle.writelines(lines)
+PY
+  chown --reference="$IL" "$tmp" 2>/dev/null || chown www-data:www-data "$tmp"
+  chmod --reference="$IL" "$tmp" 2>/dev/null || chmod 0644 "$tmp"
+  mv -f "$tmp" "$IL"
+}
+validate_interlink(){
+  python3 - "$IL" <<'PY'
+import re,sys
+path=sys.argv[1]
+seen=set()
+with open(path,'r',encoding='utf-8',errors='strict') as handle:
+    for number,raw in enumerate(handle,1):
+        line=raw.strip()
+        if not line or line.startswith('#'):
+            continue
+        parts=[p for p in re.split(r'[\s,]+',line) if p]
+        if len(parts)<3:
+            raise SystemExit(f'linha Interlink inválida: {number}')
+        peer,address,modules=parts[:3]
+        peer=peer.upper(); modules=modules.upper()
+        if not re.fullmatch(r'[A-Z0-9]{1,8}',peer):
+            raise SystemExit(f'peer Interlink inválido: {peer}')
+        if peer in seen:
+            raise SystemExit(f'peer Interlink duplicado: {peer}')
+        seen.add(peer)
+        if not re.fullmatch(r'[A-Za-z0-9._:-]{1,253}',address):
+            raise SystemExit(f'endereço Interlink inválido: {address}')
+        if not (modules=='*' or re.fullmatch(r'[A-Z]{1,26}',modules)):
+            raise SystemExit(f'módulos Interlink inválidos: {modules}')
+PY
 }
 audit(){
   install -d -m 0770 -o root -g www-data "$STATE"
@@ -105,18 +204,25 @@ case "${1:-}" in
     status
     ;;
   save-interlink)
-    [[ "$#" -eq 3 ]] || fail 'uso inválido'
+    [[ "$#" -eq 4 ]] || fail 'uso: save-interlink PEER ENDERECO MODULOS'
     lock_access
-    address="$2"; modules="${3^^}"
-    [[ -z "$address" || "$address" =~ ^[A-Za-z0-9._:-]{1,253}$ ]] || fail 'endereço Interlink inválido'
-    [[ "$modules" =~ ^([A-E*]+)$ ]] || fail 'módulos Interlink inválidos'
+    peer="$(clean_peer "$2")" || fail 'peer Interlink inválido'
+    address="$(clean_address "$3")" || fail 'endereço Interlink inválido'
+    modules="$(clean_modules "$4")" || fail 'módulos Interlink inválidos'
     backup="$(backup_files)"
-    tmp="$(mktemp "${IL}.new.XXXXXX")"
-    printf '%s %s\n' "$address" "$modules" > "$tmp"
-    chown --reference="$IL" "$tmp" 2>/dev/null || chown www-data:www-data "$tmp"
-    chmod --reference="$IL" "$tmp" 2>/dev/null || chmod 0644 "$tmp"
-    mv -f "$tmp" "$IL"
-    audit 'interlink-save' "$address" "$backup"
+    write_interlink "$peer" "$address" "$modules" save || { cp -a "$backup/$(basename "$IL")" "$IL"; fail 'falha ao salvar Interlink; arquivo anterior restaurado'; }
+    validate_interlink || { cp -a "$backup/$(basename "$IL")" "$IL"; fail 'validação do Interlink falhou; arquivo anterior restaurado'; }
+    audit 'interlink-save' "$peer $address $modules" "$backup"
+    status
+    ;;
+  delete-interlink)
+    [[ "$#" -eq 2 ]] || fail 'uso: delete-interlink PEER'
+    lock_access
+    peer="$(clean_peer "$2")" || fail 'peer Interlink inválido'
+    backup="$(backup_files)"
+    write_interlink "$peer" '' '' delete || { cp -a "$backup/$(basename "$IL")" "$IL"; fail 'falha ao excluir Interlink; arquivo anterior restaurado'; }
+    validate_interlink || { cp -a "$backup/$(basename "$IL")" "$IL"; fail 'validação do Interlink falhou; arquivo anterior restaurado'; }
+    audit 'interlink-delete' "$peer" "$backup"
     status
     ;;
   *)
