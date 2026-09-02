@@ -4,7 +4,7 @@ IFS=$'\n\t'
 umask 077
 
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-DASHBOARD_DIR="${XLX_DASHBOARD_DIR:-${INSTALL_DIR:-/var/www/html/xlx-dashboard}}"
+DASHBOARD_DIR="${XLX_DASHBOARD_DIR:-${INSTALL_DIR:-/var/www/html/xlxd}}"
 CFG_DIR="/etc/xlx-modern-control"
 ROUTE_FILE="$CFG_DIR/route"
 CONTROL_CFG="$CFG_DIR/config.php"
@@ -36,6 +36,7 @@ for file in \
   "$ROOT/control/xlx026-control-index-radioid-v2.php" \
   "$ROOT/control/patch-xlx026-control-v111.py" \
   "$ROOT/control/genericize-xlx-control.py" \
+  "$ROOT/control/patch-admin-interlink-v2.py" \
   "$ROOT/control/xlx-modern-control-helper" \
   "$ROOT/control/xlx-modern-radioid-helper" \
   "$ROOT/control/xlx-modern-access-helper"
@@ -158,6 +159,8 @@ $WEBUSER ALL=(root) NOPASSWD: $HELPER access-add-white *
 $WEBUSER ALL=(root) NOPASSWD: $HELPER access-delete-white *
 $WEBUSER ALL=(root) NOPASSWD: $HELPER access-add-black *
 $WEBUSER ALL=(root) NOPASSWD: $HELPER access-delete-black *
+$WEBUSER ALL=(root) NOPASSWD: $HELPER interlink-save *
+$WEBUSER ALL=(root) NOPASSWD: $HELPER interlink-delete *
 EOF
 chmod 0440 "$SUDOERS"
 visudo -cf "$SUDOERS" >/dev/null
@@ -166,19 +169,19 @@ visudo -cf "$SUDOERS" >/dev/null
 # specific identity/path and add the generic access/quick-links layer.
 cp -a "$ROOT/control/xlx026-control-index-radioid-v2.php" "$WORK/index.php"
 python3 "$ROOT/control/patch-xlx026-control-v111.py" "$WORK/index.php"
-# Admin intentionally supports two complete interfaces only.  The dashboard
-# can use six languages, while the private operational screen stays PT-BR or
-# English so its safety prompts and maintenance actions remain unambiguous.
+# The private Admin intentionally has two complete operational interfaces:
+# Portuguese (Brazil) and English. The public dashboard keeps all six locales.
 ADMIN_UI_LANG='en'
 [[ "$UI_LANG" == pt || "$UI_LANG" == pt-BR || "$UI_LANG" == pt_BR ]] && ADMIN_UI_LANG='pt-BR'
 python3 "$ROOT/control/genericize-xlx-control.py" "$WORK/index.php" "$ADMIN_UI_LANG"
+python3 "$ROOT/control/patch-admin-interlink-v2.py" "$WORK/index.php" "$ADMIN_UI_LANG"
 php -l "$WORK/index.php" >/dev/null
 
 rm -rf "$ADMIN_DIR"
 install -d -o root -g www-data -m 0755 "$ADMIN_DIR"
 install -o root -g www-data -m 0644 "$WORK/index.php" "$ADMIN_DIR/index.php"
 if [[ "$LEGACY_DIR" != "$ADMIN_DIR" ]]; then rm -rf "$LEGACY_DIR"; fi
-# The credential bootstrap always starts at /admin/.  If the operator chose a
+# The credential bootstrap always starts at /admin/. If the operator chose a
 # different slug, remove that temporary directory so no second private route
 # remains reachable.
 if [[ "$BOOTSTRAP_DIR" != "$ADMIN_DIR" ]]; then rm -rf "$BOOTSTRAP_DIR"; fi
@@ -187,10 +190,9 @@ install -d -o root -g www-data -m 0750 "$CFG_DIR"
 printf '%s\n' "$slug" > "$ROUTE_FILE"
 chown root:root "$ROUTE_FILE"; chmod 0600 "$ROUTE_FILE"
 
-# Invariantes da rota privada: sem pasta, arquivo e slug gravado não há sucesso.
 [[ -d "$ADMIN_DIR" ]] || fail "$(say "Diretório da rota Admin não foi criado: $ADMIN_DIR" "Admin route directory was not created: $ADMIN_DIR")"
 [[ -f "$ADMIN_DIR/index.php" ]] || fail "$(say "Tela Admin não foi instalada: $ADMIN_DIR/index.php" "Admin page was not installed: $ADMIN_DIR/index.php")"
-[[ "$(head -n 1 "$ROUTE_FILE")" == "$slug" ]] || fail "$(say "Slug administrativo não foi gravado corretamente." "Administrative slug was not saved correctly.")"
+[[ "$(head -n 1 "$ROUTE_FILE")" == "$slug" ]] || fail "$(say 'Slug administrativo não foi gravado corretamente.' 'Administrative slug was not saved correctly.')"
 
 SITE_CFG="$DASHBOARD_DIR/config/site.php"
 REFLECTOR_NAME='XLX Modern'
@@ -199,8 +201,6 @@ if [[ -f "$SITE_CFG" ]]; then
 fi
 DOMAIN="$(php -r '$c=require $argv[1]; echo (string)($c["reflector"]["domain"]??"");' "$SITE_CFG")"
 DOMAIN="$(printf '%s' "$DOMAIN" | sed -E 's#^https?://##; s#/*$##')"
-[[ -n "$DOMAIN" ]] || fail "$(say 'Domínio do dashboard não encontrado.' 'Dashboard domain not found.')"
-DOMAIN="${DOMAIN:-}"
 [[ -n "$DOMAIN" ]] || fail "$(say 'Domínio do dashboard não encontrado.' 'Dashboard domain not found.')"
 BASE_URL="https://$DOMAIN"
 TITLE="Admin $REFLECTOR_NAME"
@@ -226,27 +226,15 @@ python3 - "$DASHBOARD_DIR/index.php" "$slug" <<'PY'
 from pathlib import Path
 import re
 import sys
-
 path = Path(sys.argv[1])
 slug = sys.argv[2]
 s = path.read_text(encoding='utf-8')
-s = re.sub(
-    r'\n?<!-- XLX_MODERN_ADMIN_NAV_START -->.*?<!-- XLX_MODERN_ADMIN_NAV_END -->\n?',
-    '\n',
-    s,
-    flags=re.S,
-)
-s = re.sub(
-    r'\s*<a[^>]+href=["\']/'+re.escape(slug)+r'/["\'][^>]*>\s*Admin\s*</a>',
-    '',
-    s,
-    flags=re.I,
-)
+s = re.sub(r'\n?<!-- XLX_MODERN_ADMIN_NAV_START -->.*?<!-- XLX_MODERN_ADMIN_NAV_END -->\n?', '\n', s, flags=re.S)
+s = re.sub(r'\s*<a[^>]+href=["\']/'+re.escape(slug)+r'/["\'][^>]*>\s*Admin\s*</a>', '', s, flags=re.I)
 path.write_text(s, encoding='utf-8')
 PY
 php -l "$DASHBOARD_DIR/index.php" >/dev/null
 
-# The private URL must not be advertised by public files.
 if grep -Fq "href=\"/$slug/\"" "$DASHBOARD_DIR/index.php"; then fail "$(say 'A rota Admin ainda aparece no menu público.' 'Admin route is still present in public navigation.')"; fi
 for public_file in "$DASHBOARD_DIR/sitemap.xml" "$DASHBOARD_DIR/robots.txt" "$DASHBOARD_DIR/llms.txt" "$DASHBOARD_DIR/ai-context.json"; do
   [[ -f "$public_file" ]] || continue
@@ -260,16 +248,19 @@ sudo -u "$WEBUSER" sudo -n "$HELPER" radioid-status > "$WORK/radioid.json"
 sudo -u "$WEBUSER" sudo -n "$HELPER" access-status > "$WORK/access.json"
 python3 -m json.tool "$WORK/radioid.json" >/dev/null
 python3 -m json.tool "$WORK/access.json" >/dev/null
+php -r '$j=json_decode(file_get_contents($argv[1]),true);exit(is_array($j)&&isset($j["interlink"]["entries"])?0:1);' "$WORK/access.json" || fail "$(say 'Estrutura Interlink inválida.' 'Invalid Interlink data structure.')"
 grep -Fq 'X-Robots-Tag: noindex, nofollow, noarchive, nosnippet' "$ADMIN_DIR/index.php"
 grep -Fq 'googlebot|bingbot' "$ADMIN_DIR/index.php"
-grep -Fq 'XLXD Access Control' "$ADMIN_DIR/index.php"
+grep -Fq "const CTRL_VER='1.4.0'" "$ADMIN_DIR/index.php"
+grep -Fq 'XLXD Access Control' "$ADMIN_DIR/index.php" || grep -Fq 'Controle de acesso XLXD' "$ADMIN_DIR/index.php"
 grep -Fq 'radioid_save' "$ADMIN_DIR/index.php"
-grep -Fq 'Quick links' "$ADMIN_DIR/index.php"
+grep -Fq 'interlink-save' "$ADMIN_DIR/index.php"
+grep -Fq 'interlink-delete' "$ADMIN_DIR/index.php"
+grep -Fq 'name="interlink_peer"' "$ADMIN_DIR/index.php"
+grep -Fq 'Quick links' "$ADMIN_DIR/index.php" || grep -Fq 'Acesso rápido' "$ADMIN_DIR/index.php"
 
-# Quando o HTTPS já está disponível, confirme a rota nova antes de declarar
-# sucesso. Isso impede concluir uma atualização que criou os arquivos, mas
-# deixou /admin/ (ou o nome escolhido) respondendo 404. Em uma instalação
-# nova sem certificado ainda, a validação final do instalador cobre HTTPS.
+# When HTTPS already exists, prove the hidden route before success. A fresh
+# install without a certificate is validated again by the main installer.
 if curl --silent --show-error --insecure --resolve "$DOMAIN:443:127.0.0.1" \
   --connect-timeout 5 --max-time 12 "$BASE_URL/$slug/" -o "$WORK/admin-web.html" 2>/dev/null; then
   grep -Fq "$TITLE" "$WORK/admin-web.html" || fail "$(say 'A rota Admin respondeu, mas não entregou a tela privada correta.' 'Admin route responded but did not deliver the correct private page.')"
@@ -287,8 +278,9 @@ trap - EXIT
 cleanup
 ok "$(say 'Admin privado instalado sem link no painel público.' 'Private Admin installed with no public dashboard link.')"
 ok "$(say 'Bots conhecidos recebem 404; mecanismos de busca também recebem noindex/nofollow/noarchive.' 'Known crawlers receive 404; search engines also receive noindex/nofollow/noarchive.')"
-ok "$(say 'RadioID, whitelist, blacklist, logs, backups, testes e reinício protegido disponíveis.' 'RadioID, whitelist, blacklist, logs, backups, tests and protected restart are available.')"
+ok "$(say 'RadioID, whitelist, blacklist, Interlink, logs, backups, testes e reinício protegido disponíveis.' 'RadioID, whitelist, blacklist, Interlink, logs, backups, tests and protected restart are available.')"
 echo "ADMIN_ROUTE=/$slug/"
 echo 'ADMIN_PUBLIC_NAV=HIDDEN'
 echo 'ADMIN_BOT_POLICY=404+NOINDEX'
+echo 'ADMIN_INTERLINK=PEER_MANAGER'
 echo 'ADMIN_STATUS=OK'
