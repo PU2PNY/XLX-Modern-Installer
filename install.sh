@@ -4,16 +4,7 @@ IFS=$'\n\t'
 umask 077
 
 readonly ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-
-# XLX Modern Installer
-# Mantenedor da versão modificada: Dario — PU2PNY
-# Base técnica: Daniel K. — PP5PK / PP5PK/XLX_Installer
-
-readonly REPOSITORY="local:vendor/pp5pk-installer"
-readonly REVIEWED_COMMIT="vendor-pinned-PP5PK-20b4893"
-readonly EXPECTED_INSTALLER_SHA256="a2710d17d7d51c547c81fce3b5f184a423f20cd361abd0401066f8981acdfaac"
 readonly WORK_ROOT="/opt/xlx-modern-installer"
-readonly SOURCE_DIR="${WORK_ROOT}/vendor/pp5pk-installer"
 readonly BACKUP_ROOT="/var/backups/xlx-reflector"
 readonly LOG_ROOT="/var/log/xlx-reflector/installer"
 readonly CONFIRMATION="INSTALL"
@@ -25,697 +16,523 @@ DASHBOARD_ONLY="no"
 DASHBOARD_LANG=""
 UI_LANG="pt-BR"
 APRS_DPRS_MODE="ask"
-CHECK_READY="yes"
-DASHBOARD_LOCATION=""
-DASHBOARD_YSF_ID=""
+
+REFLECTOR_NAME=""
+REFLECTOR_TITLE=""
+REFLECTOR_DESCRIPTION=""
+SYSOP_CALLSIGN=""
+LOCATION=""
+COUNTRY=""
+DOMAIN=""
+CONTACT_EMAIL=""
+TIMEZONE=""
+YSF_ID=""
+MODULE_COUNT="5"
+ENABLE_HTTPS="yes"
+ENABLE_ECHO="yes"
+ECHO_MODULE="E"
+YSF_PORT="42000"
+YSF_FREQUENCY="433125000"
+YSF_AUTOLINK="1"
+YSF_AUTOLINK_MODULE="C"
+LISTEN_IP=""
+PUBLIC_IP=""
 
 for arg in "$@"; do
-    case "$arg" in
-        --check|--dry-run) MODE="check" ;;
-        --dashboard-only) DASHBOARD_ONLY="yes" ;;
-        --allow-remnants|--force-clean) ALLOW_REMNANTS="yes" ;;
-        --lang=*) DASHBOARD_LANG="${arg#*=}" ;;
-        --with-aprs-dprs) APRS_DPRS_MODE="yes" ;;
-        --without-aprs-dprs) APRS_DPRS_MODE="no" ;;
-        -h|--help)
-            cat <<'HELP'
-XLX Modern Installer
+  case "$arg" in
+    --check|--dry-run) MODE="check" ;;
+    --dashboard-only) DASHBOARD_ONLY="yes" ;;
+    --allow-remnants|--force-clean) ALLOW_REMNANTS="yes" ;;
+    --lang=*) DASHBOARD_LANG="${arg#*=}" ;;
+    --with-aprs-dprs) APRS_DPRS_MODE="yes" ;;
+    --without-aprs-dprs) APRS_DPRS_MODE="no" ;;
+    -h|--help)
+      cat <<'HELP'
+XLX Modern Installer — independent installation
 
-Uso / Usage:
+Usage / Uso:
   sudo bash install.sh --check
   sudo bash install.sh
   sudo bash install.sh --lang=en
   sudo bash install.sh --dashboard-only
   sudo bash install.sh --with-aprs-dprs
 
-Opções / Options:
-  --check
-      Apenas verifica o servidor. Não instala nem altera o XLX.
-      Checks the server only. Does not install or change XLX.
-
-  --lang=CODE
-      Define o idioma do dashboard. Com --lang=en, a interface deste
-      instalador também usa inglês.
-      Sets the dashboard language. With --lang=en, this installer UI
-      also uses English.
-      pt-BR | en | es | fr | de | it
-
-  --with-aprs-dprs
-      Instala também o módulo opcional APRS/D-PRS.
-      Also installs the optional APRS/D-PRS module.
-
-  --dashboard-only
-      Atualiza ou reinstala somente o painel moderno em um XLXD existente.
-      Preserva o núcleo XLXD, cria backup preventivo e não executa a
-      instalação completa do refletor.
-      Updates or reinstalls only the modern dashboard on an existing XLXD.
-      It preserves the XLXD core, creates a preventive backup, and does not
-      run a full reflector installation.
-
-  --without-aprs-dprs
-      Não instala nem pergunta sobre APRS/D-PRS nesta execução.
-      Skips APRS/D-PRS and does not ask about it in this run.
-
-  --allow-remnants
-      Permite continuar quando existem apenas vestígios de instalação antiga.
-      Não apaga arquivos automaticamente.
-      Allows continuing when only old installation remnants exist.
-      It never deletes files automatically.
-
-  --force-clean
-      Alias legado de --allow-remnants. Não executa limpeza automática.
-      Legacy alias for --allow-remnants. It does not clean files automatically.
+Options / Opções:
+  --check               Read-only compatibility check.
+  --dashboard-only      Install/update only the Modern Dashboard on an existing XLXD.
+  --lang=CODE           Dashboard language: pt-BR | en | es | fr | de | it.
+  --with-aprs-dprs      Install the optional APRS/D-PRS module.
+  --without-aprs-dprs   Skip APRS/D-PRS.
+  --allow-remnants      Allow inactive remnants after preventive backup.
 HELP
-            exit 0
-            ;;
-        *) printf 'ERRO / ERROR: opção desconhecida / unknown option: %s\n' "$arg" >&2; exit 2 ;;
-    esac
+      exit 0
+      ;;
+    *) printf 'ERRO / ERROR: opção desconhecida / unknown option: %s\n' "$arg" >&2; exit 2 ;;
+  esac
 done
 
-case "$DASHBOARD_LANG" in
-    en) UI_LANG="en" ;;
-    *) UI_LANG="pt-BR" ;;
-esac
+case "$DASHBOARD_LANG" in en) UI_LANG="en" ;; esac
 export XLX_UI_LANG="$UI_LANG"
 
 RED=$'\033[31m'; YELLOW=$'\033[33m'; GREEN=$'\033[32m'; BLUE=$'\033[34m'; RESET=$'\033[0m'
+msg(){ if [[ "$UI_LANG" == en ]]; then printf '%s' "$2"; else printf '%s' "$1"; fi; }
+info(){ printf '%s[INFO]%s %s\n' "$BLUE" "$RESET" "$*"; }
+ok(){ printf '%s[OK]%s %s\n' "$GREEN" "$RESET" "$*"; }
+warn(){ printf '%s%s%s %s\n' "$YELLOW" "$(msg '[ATENÇÃO]' '[WARNING]')" "$RESET" "$*"; }
+fatal(){ printf '%s%s%s %s\n' "$RED" "$(msg '[ERRO]' '[ERROR]')" "$RESET" "$*" >&2; exit 1; }
+section(){ printf '\n============================================================\n%s\n============================================================\n' "$*"; }
 
-msg() {
-    local pt="$1" en="$2"
-    if [ "$UI_LANG" = "en" ]; then printf '%s' "$en"; else printf '%s' "$pt"; fi
+validate_options(){
+  case "$DASHBOARD_LANG" in ""|pt-BR|en|es|fr|de|it) ;; *) fatal "$(msg "Idioma inválido: $DASHBOARD_LANG" "Invalid language: $DASHBOARD_LANG")" ;; esac
 }
-info()  { printf '%s[INFO]%s %s\n' "$BLUE" "$RESET" "$*"; }
-ok()    { printf '%s[OK]%s %s\n' "$GREEN" "$RESET" "$*"; }
-warn()  { if [ "$UI_LANG" = "en" ]; then printf '%s[WARNING]%s %s\n' "$YELLOW" "$RESET" "$*"; else printf '%s[ATENÇÃO]%s %s\n' "$YELLOW" "$RESET" "$*"; fi; }
-fatal() { if [ "$UI_LANG" = "en" ]; then printf '%s[ERROR]%s %s\n' "$RED" "$RESET" "$*" >&2; else printf '%s[ERRO]%s %s\n' "$RED" "$RESET" "$*" >&2; fi; exit 1; }
-section() { printf '\n============================================================\n%s\n============================================================\n' "$*"; }
+require_root(){ [[ "$(id -u)" -eq 0 ]] || fatal "$(msg 'Execute como root.' 'Run as root.')"; }
 
-validate_options() {
-    case "$DASHBOARD_LANG" in
-        ""|pt-BR|en|es|fr|de|it) ;;
-        *) fatal "$(msg "Idioma inválido: $DASHBOARD_LANG. Use pt-BR, en, es, fr, de ou it." "Invalid language: $DASHBOARD_LANG. Use pt-BR, en, es, fr, de, or it.")" ;;
+select_ui_language(){
+  [[ -n "$DASHBOARD_LANG" || ! -t 0 ]] && return 0
+  section 'XLX MODERN INSTALLER — PU2PNY'
+  printf 'Selecione o idioma / Select language:\n  1) Português (Brasil) [padrão]\n  2) English\n'
+  local choice
+  while :; do
+    printf 'Opção / Option [1]: '
+    read -r choice || choice=""
+    case "${choice,,}" in
+      ""|1|pt|pt-br|p) UI_LANG="pt-BR"; break ;;
+      2|en|e|english) UI_LANG="en"; break ;;
+      *) warn 'Opção inválida. Digite 1 ou 2. / Invalid option. Type 1 or 2.' ;;
     esac
+  done
+  export XLX_UI_LANG="$UI_LANG"
 }
 
-require_root() {
-    [ "$(id -u)" -eq 0 ] || fatal "$(msg "Execute como root: sudo bash $0" "Run as root: sudo bash $0")"
+select_dashboard_language(){
+  [[ -n "$DASHBOARD_LANG" ]] && return 0
+  if [[ ! -t 0 ]]; then DASHBOARD_LANG="$UI_LANG"; return 0; fi
+  local choice default=1
+  [[ "$UI_LANG" == en ]] && default=2
+  section "$(msg 'IDIOMA DO PAINEL' 'DASHBOARD LANGUAGE')"
+  printf '  1) Português (Brasil)\n  2) English\n  3) Español\n  4) Français\n  5) Deutsch\n  6) Italiano\n'
+  while :; do
+    printf '%s' "$(msg "Escolha [$default]: " "Choose [$default]: ")"
+    read -r choice || choice=""
+    choice="${choice:-$default}"
+    case "$choice" in 1) DASHBOARD_LANG=pt-BR;; 2) DASHBOARD_LANG=en;; 3) DASHBOARD_LANG=es;; 4) DASHBOARD_LANG=fr;; 5) DASHBOARD_LANG=de;; 6) DASHBOARD_LANG=it;; *) warn "$(msg 'Opção inválida.' 'Invalid option.')"; continue;; esac
+    break
+  done
 }
 
-collect_dashboard_inputs() {
-    [ "$MODE" = "install" ] || return 0
-    [ -t 0 ] || return 0
-    section "$(msg "DADOS ADICIONAIS DO PAINEL" "ADDITIONAL DASHBOARD DETAILS")"
-    while [ -z "$DASHBOARD_LOCATION" ]; do
-        printf '%s' "$(msg "Cidade e estado/região: " "City and state/region: ")"
-        read -r DASHBOARD_LOCATION || DASHBOARD_LOCATION=""
-    done
-    while :; do
-        printf '%s' "$(msg "ID do refletor YSF exibido no painel: " "YSF reflector ID shown on the dashboard: ")"
-        read -r DASHBOARD_YSF_ID || DASHBOARD_YSF_ID=""
-        [[ "$DASHBOARD_YSF_ID" =~ ^[0-9]{1,8}$ ]] && break
-        warn "$(msg "ID YSF inválido. Use de 1 a 8 dígitos." "Invalid YSF ID. Use 1 to 8 digits.")"
-    done
+bootstrap_prerequisites(){
+  local needed=() cmd
+  for cmd in curl git rsync sqlite3; do command -v "$cmd" >/dev/null 2>&1 || needed+=("$cmd"); done
+  [[ ${#needed[@]} -eq 0 ]] && return 0
+  if [[ "$MODE" == check ]]; then
+    info "$(msg "Pré-requisitos pendentes: ${needed[*]}." "Pending prerequisites: ${needed[*]}.")"
+    return 0
+  fi
+  export DEBIAN_FRONTEND=noninteractive
+  apt-get update
+  apt-get install -y ca-certificates "${needed[@]}"
 }
 
-select_ui_language() {
-    [ -n "$DASHBOARD_LANG" ] && return 0
-    [ -t 0 ] || return 0
-
-    section "XLX MODERN INSTALLER — PU2PNY"
-    printf '%s\n' "Selecione o idioma / Select language:"
-    printf '%s\n' "  1) Português (Brasil) [padrão]"
-    printf '%s\n' "  2) English"
-    local choice=""
-    while :; do
-        printf '%s' "Opção / Option [1]: "
-        read -r choice || choice=""
-        case "${choice,,}" in
-            2|e|en|english) UI_LANG="en"; break ;;
-            ""|1|p|pt|pt-br|portugues|português) UI_LANG="pt-BR"; break ;;
-            *) warn "Opção inválida. Digite 1 para Português ou 2 para English. / Invalid option. Type 1 for Portuguese or 2 for English." ;;
-        esac
-    done
-    export XLX_UI_LANG="$UI_LANG"
-    ok "$(msg "Idioma selecionado: Português (Brasil)." "Selected language: English.")"
+validate_os(){
+  [[ -r /etc/os-release ]] || fatal '/etc/os-release missing'
+  source /etc/os-release
+  [[ "${ID:-}" == debian && "${VERSION_ID:-}" == 12 ]] || fatal "$(msg 'Use Debian 12.' 'Use Debian 12.')"
+  [[ "$(uname -m)" == x86_64 ]] || fatal "$(msg 'Use arquitetura x86_64.' 'Use x86_64 architecture.')"
+  ok 'Debian 12 x86_64'
 }
 
-dashboard_language_name() {
-    case "$1" in
-        pt-BR) printf '%s' 'Português (Brasil)' ;;
-        en) printf '%s' 'English' ;;
-        es) printf '%s' 'Español' ;;
-        fr) printf '%s' 'Français' ;;
-        de) printf '%s' 'Deutsch' ;;
-        it) printf '%s' 'Italiano' ;;
-        *) printf '%s' "$1" ;;
-    esac
+validate_resources(){
+  local mem disk
+  mem="$(awk '/MemTotal:/ {print int($2/1024)}' /proc/meminfo)"
+  disk="$(df -Pm / | awk 'NR==2 {print $4}')"
+  [[ "$mem" -ge 768 ]] || fatal "RAM < 768 MB"
+  [[ "$disk" -ge 4096 ]] || fatal "Free disk < 4 GB"
+  info "RAM=${mem}MB | free_disk=${disk}MB"
 }
 
-select_dashboard_language() {
-    [ -n "$DASHBOARD_LANG" ] && return 0
+validate_network(){
+  getent hosts github.com >/dev/null 2>&1 || fatal "$(msg 'Falha DNS para github.com.' 'DNS failure for github.com.')"
+  command -v curl >/dev/null 2>&1 || return 0
+  curl -fsSI --connect-timeout 10 https://github.com/ >/dev/null || fatal "$(msg 'Sem HTTPS para GitHub.' 'GitHub HTTPS is unreachable.')"
+}
 
-    if [ ! -t 0 ]; then
-        DASHBOARD_LANG="$UI_LANG"
-        return 0
+validate_independent_sources(){
+  [[ -f "$ROOT_DIR/modules/40-xlxd.sh" && -f "$ROOT_DIR/modules/50-echo.sh" ]] || fatal 'Core modules missing'
+  grep -Fq 'https://github.com/LX3JL/xlxd.git' "$ROOT_DIR/modules/40-xlxd.sh" || fatal 'Independent XLXD source is not configured'
+  grep -Fq 'https://github.com/narspt/XLXEcho.git' "$ROOT_DIR/modules/50-echo.sh" || fatal 'Independent Echo source is not configured'
+  [[ ! -d "$ROOT_DIR/vendor/pp5pk-installer" ]] || fatal 'Legacy installer dependency directory is still present'
+  ok "$(msg 'Instalação do núcleo é independente e não usa instalador-base externo.' 'Core installation is independent and does not use an external base installer.')"
+}
+
+detect_existing_installation(){
+  local detected=0
+  [[ -x /xlxd/xlxd ]] && detected=1
+  systemctl is-active --quiet xlxd.service 2>/dev/null && detected=1 || true
+  [[ -e /var/www/html/xlxd ]] && detected=1
+  if [[ "$detected" -eq 1 ]]; then
+    if [[ "$DASHBOARD_ONLY" == yes ]]; then
+      [[ -x /xlxd/xlxd ]] || fatal 'Dashboard-only requires /xlxd/xlxd'
+      return 0
     fi
-
-    local choice="" default_choice="1"
-    [ "$UI_LANG" = "en" ] && default_choice="2"
-    section "$(msg "IDIOMA DO PAINEL" "DASHBOARD LANGUAGE")"
-    printf '%s\n' "  1) Português (Brasil)"
-    printf '%s\n' "  2) English"
-    printf '%s\n' "  3) Español"
-    printf '%s\n' "  4) Français"
-    printf '%s\n' "  5) Deutsch"
-    printf '%s\n' "  6) Italiano"
-
-    while :; do
-        printf '%s' "$(msg "Escolha o idioma exibido no painel [$default_choice]: " "Choose the language displayed on the dashboard [$default_choice]: ")"
-        read -r choice || choice=""
-        choice="${choice:-$default_choice}"
-        case "$choice" in
-            1) DASHBOARD_LANG="pt-BR"; break ;;
-            2) DASHBOARD_LANG="en"; break ;;
-            3) DASHBOARD_LANG="es"; break ;;
-            4) DASHBOARD_LANG="fr"; break ;;
-            5) DASHBOARD_LANG="de"; break ;;
-            6) DASHBOARD_LANG="it"; break ;;
-            *) warn "$(msg "Opção inválida. Digite um número de 1 a 6." "Invalid option. Type a number from 1 to 6.")" ;;
-        esac
-    done
-    ok "$(msg "Idioma do painel selecionado: $(dashboard_language_name "$DASHBOARD_LANG")." "Selected dashboard language: $(dashboard_language_name "$DASHBOARD_LANG").")"
+    fatal "$(msg 'Instalação XLX ativa detectada. Use --dashboard-only para preservar o núcleo.' 'Active XLX installation detected. Use --dashboard-only to preserve the core.')"
+  fi
+  if [[ -d /xlxd || -d /usr/src/xlxd || -d /usr/src/XLXEcho ]]; then
+    [[ "$ALLOW_REMNANTS" == yes ]] || fatal "$(msg 'Vestígios de instalação encontrados. Revise-os ou use --allow-remnants.' 'Installation remnants found. Review them or use --allow-remnants.')"
+  fi
 }
 
-bootstrap_install_prerequisites() {
-    local package
-    local needed=()
-    for package in ca-certificates curl git rsync sqlite3; do
-        case "$package" in
-            ca-certificates) [ -f /etc/ssl/certs/ca-certificates.crt ] || needed+=("$package") ;;
-            curl|git|rsync|sqlite3) command -v "$package" >/dev/null 2>&1 || needed+=("$package") ;;
-        esac
-    done
-    [ "${#needed[@]}" -eq 0 ] && return 0
-
-    if [ "$MODE" = "check" ]; then
-        info "$(msg "Pré-requisitos pendentes: ${needed[*]}. Eles serão instalados automaticamente na instalação real; o modo --check não altera o servidor." "Prerequisites pending: ${needed[*]}. They will be installed automatically during the real installation; --check does not change the server.")"
-        return 0
-    fi
-
-    command -v apt-get >/dev/null 2>&1 || fatal "$(msg "apt-get não foi encontrado; não é possível instalar os pré-requisitos." "apt-get was not found; cannot install prerequisites.")"
-    info "$(msg "Instalando pré-requisitos automaticamente: ${needed[*]}" "Installing prerequisites automatically: ${needed[*]}")"
-    export DEBIAN_FRONTEND=noninteractive
-    apt-get update
-    apt-get install -y "${needed[@]}"
-    ok "$(msg "Pré-requisitos instalados." "Prerequisites installed.")"
+create_inventory_and_backup(){
+  local stamp backup manifest path
+  stamp="$(date +%Y%m%d_%H%M%S)"
+  backup="$BACKUP_ROOT/$stamp"
+  manifest="$backup/manifest.txt"
+  install -d -m 0700 "$backup"
+  : > "$manifest"
+  for path in /etc/apache2 /etc/systemd/system /var/www/html/xlxd /xlxd /usr/src/xlxd /usr/src/XLXEcho /etc/xlx-modern-control /etc/xlx-modern; do
+    [[ ! -e "$path" ]] || printf '%s\n' "$path" >> "$manifest"
+  done
+  if [[ -s "$manifest" ]]; then
+    tar --one-file-system --ignore-failed-read -czpf "$backup/pre-installation.tar.gz" -T "$manifest"
+    sha256sum "$backup/pre-installation.tar.gz" > "$backup/pre-installation.tar.gz.sha256"
+    sha256sum -c "$backup/pre-installation.tar.gz.sha256" >/dev/null
+    ok "Backup: $backup/pre-installation.tar.gz"
+  else
+    info "$(msg 'Servidor limpo: nenhum arquivo existente exigiu backup.' 'Clean server: no existing file required backup.')"
+  fi
 }
 
-validate_os() {
-    [ -r /etc/os-release ] || fatal "$(msg "/etc/os-release não encontrado." "/etc/os-release was not found.")"
-    source /etc/os-release
-    [ "${ID:-}" = "debian" ] || fatal "$(msg "Distribuição não homologada. Use Debian 12." "Unsupported distribution. Use Debian 12.")"
-    [ "${VERSION_ID:-}" = "12" ] || fatal "$(msg "Versão não homologada: Debian ${VERSION_ID:-desconhecida}. Use Debian 12." "Unsupported version: Debian ${VERSION_ID:-unknown}. Use Debian 12.")"
-    [ "$(uname -m)" = "x86_64" ] || fatal "$(msg "Arquitetura não homologada: $(uname -m). Use x86_64." "Unsupported architecture: $(uname -m). Use x86_64.")"
-    ok "$(msg "Debian 12 x86_64 detectado." "Debian 12 x86_64 detected.")"
+read_nonempty(){
+  local var="$1" prompt_pt="$2" prompt_en="$3" value=""
+  while [[ -z "$value" ]]; do
+    printf '%s' "$(msg "$prompt_pt" "$prompt_en")"
+    read -r value || value=""
+  done
+  printf -v "$var" '%s' "$value"
 }
 
-validate_resources() {
-    local mem_mb disk_mb
-    mem_mb="$(awk '/MemTotal:/ {print int($2/1024)}' /proc/meminfo)"
-    disk_mb="$(df -Pm / | awk 'NR==2 {print $4}')"
-    info "$(msg "Memória RAM: ${mem_mb} MB" "RAM: ${mem_mb} MB")"
-    info "$(msg "Espaço livre em /: ${disk_mb} MB" "Free space on /: ${disk_mb} MB")"
-    [ "$mem_mb" -ge 768 ] || fatal "$(msg "RAM insuficiente. Mínimo: 768 MB." "Not enough RAM. Minimum: 768 MB.")"
-    [ "$disk_mb" -ge 4096 ] || fatal "$(msg "Espaço insuficiente. Mínimo: 4 GB livres em /." "Not enough disk space. Minimum: 4 GB free on /.")"
-}
-
-validate_network() {
-    getent hosts github.com >/dev/null 2>&1 || fatal "$(msg "Falha de DNS: github.com não foi resolvido." "DNS failure: github.com could not be resolved.")"
-    if ! command -v curl >/dev/null 2>&1; then
-        CHECK_READY="no"
-        info "$(msg "DNS validado. curl será instalado automaticamente na instalação real; a verificação HTTPS foi adiada." "DNS validated. curl will be installed automatically during the real installation; the HTTPS check was deferred.")"
-        return 0
-    fi
-    curl -fsSI --connect-timeout 10 https://github.com/ >/dev/null || fatal "$(msg "Sem acesso HTTPS ao GitHub." "Cannot reach GitHub over HTTPS.")"
-    ok "$(msg "Rede, DNS e HTTPS validados." "Network, DNS, and HTTPS validated.")"
-}
-
-validate_commands() {
-    local missing=() command_name
-    for command_name in bash awk sed grep find stat sha256sum tar systemctl curl getent df git tee; do
-        command -v "$command_name" >/dev/null 2>&1 || missing+=("$command_name")
-    done
-    if [ "${#missing[@]}" -ne 0 ]; then
-        if [ "$MODE" = "check" ]; then
-            CHECK_READY="no"
-            info "$(msg "Comandos pendentes: ${missing[*]}. A instalação real instalará os pré-requisitos automaticamente." "Commands pending: ${missing[*]}. The real installation will install the prerequisites automatically.")"
-            return 0
-        fi
-        fatal "$(msg "Comandos obrigatórios ausentes: ${missing[*]}. Execute a instalação real para instalar os pré-requisitos automaticamente." "Required commands missing: ${missing[*]}. Run the real installation to install prerequisites automatically.")"
-    fi
-}
-
-detect_existing_installation() {
-    local detected=0
-    if [ -x /xlxd/xlxd ]; then warn "$(msg "Binário XLXD existente: /xlxd/xlxd" "Existing XLXD binary: /xlxd/xlxd")"; detected=1; fi
-    if systemctl is-active --quiet xlxd 2>/dev/null; then warn "$(msg "Serviço xlxd está ativo." "xlxd service is active.")"; detected=1; fi
-    if [ -e /var/www/html/xlxd ] || [ -e /var/www/html/xlx-dashboard ]; then
-        warn "$(msg "Dashboard XLX existente detectado." "Existing XLX dashboard detected.")"; detected=1
-    fi
-    if [ "$detected" -ne 0 ]; then
-        if [ "$DASHBOARD_ONLY" = "yes" ]; then
-            [ -x /xlxd/xlxd ] || fatal "$(msg "Atualização somente do painel exige um XLXD existente em /xlxd/xlxd." "Dashboard-only update requires an existing XLXD at /xlxd/xlxd.")"
-            ok "$(msg "XLXD existente confirmado. O modo somente painel preservará o núcleo do refletor." "Existing XLXD confirmed. Dashboard-only mode will preserve the reflector core.")"
-            return 0
-        fi
-        fatal "$(msg "Instalação XLX ativa detectada. Para atualizar somente o painel, execute: sudo bash install.sh --dashboard-only" "Active XLX installation detected. To update only the dashboard, run: sudo bash install.sh --dashboard-only")"
-    fi
-
-    if [ -d /xlxd ] || [ -d /usr/src/xlxd ]; then
-        warn "$(msg "Foram encontrados vestígios de uma instalação anterior." "Old installation remnants were found.")"
-        [ "$ALLOW_REMNANTS" = "yes" ] || fatal "$(msg "Revise os vestígios. Se souber que são inativos, execute novamente com --allow-remnants. Essa opção NÃO apaga arquivos." "Review the remnants. If you know they are inactive, run again with --allow-remnants. This option does NOT delete files.")"
-    fi
-    ok "$(msg "Nenhuma instalação XLX ativa foi detectada." "No active XLX installation detected.")"
-}
-
-create_inventory_and_backup() {
-    local stamp backup manifest path
-    stamp="$(date +%Y%m%d_%H%M%S)"
-    backup="${BACKUP_ROOT}/${stamp}"
-    manifest="${backup}/manifest.txt"
-    mkdir -p "$backup"; chmod 700 "$backup"; : > "$manifest"
-
-    for path in /etc/apache2 /etc/systemd/system /etc/ufw /etc/nftables.conf /var/www/html /xlxd /usr/src/xlxd /usr/src/XLXEcho /usr/src/XLX_Dark_Dashboard; do
-        [ ! -e "$path" ] || printf '%s\n' "$path" >> "$manifest"
-    done
-
-    if [ -s "$manifest" ]; then
-        info "$(msg "Criando backup preventivo: $backup/pre-installation.tar.gz" "Creating safety backup: $backup/pre-installation.tar.gz")"
-        tar --one-file-system --ignore-failed-read -czpf "$backup/pre-installation.tar.gz" -T "$manifest"
-        sha256sum "$backup/pre-installation.tar.gz" > "$backup/pre-installation.tar.gz.sha256"
-        sha256sum -c "$backup/pre-installation.tar.gz.sha256" >/dev/null
-        ok "$(msg "Backup preventivo criado e verificado." "Safety backup created and verified.")"
+ask_yes_no(){
+  local var="$1" prompt_pt="$2" prompt_en="$3" default_yes="${4:-yes}" ans
+  while :; do
+    if [[ "$default_yes" == yes ]]; then
+      printf '%s' "$(msg "$prompt_pt [S/n]: " "$prompt_en [Y/n]: ")"
     else
-        info "$(msg "Nenhum caminho existente exigiu backup preventivo." "No existing paths required a safety backup.")"
+      printf '%s' "$(msg "$prompt_pt [s/N]: " "$prompt_en [y/N]: ")"
     fi
+    read -r ans || ans=""
+    [[ -z "$ans" ]] && { [[ "$default_yes" == yes ]] && printf -v "$var" yes || printf -v "$var" no; return; }
+    case "${ans,,}" in s|sim|y|yes) printf -v "$var" yes; return;; n|nao|não|no) printf -v "$var" no; return;; *) warn "$(msg 'Responda S ou N.' 'Answer Y or N.')";; esac
+  done
 }
 
-prepare_source() {
-    local source_installer="$ROOT_DIR/vendor/pp5pk-installer/installer.sh"
-    local actual_hash
-    [ -f "$source_installer" ] || fatal "$(msg "Instalador-base versionado não encontrado no repositório." "Versioned base installer was not found in this repository.")"
-    mkdir -p "$SOURCE_DIR/templates"
-    install -m 0700 "$source_installer" "$SOURCE_DIR/installer.sh"
-    for template in xlx_log.service xlx_log.sh xlx_logrotate.conf apache.tbd.conf uninstaller.sh; do
-        [ -f "$ROOT_DIR/vendor/pp5pk-installer/templates/$template" ] || fatal "$(msg "Template-base ausente: $template" "Base template is missing: $template")"
-        install -m 0644 "$ROOT_DIR/vendor/pp5pk-installer/templates/$template" "$SOURCE_DIR/templates/$template"
+detect_ips(){
+  LISTEN_IP="$(ip -4 route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i=="src"){print $(i+1); exit}}')"
+  [[ -n "$LISTEN_IP" ]] || LISTEN_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
+  [[ -n "$LISTEN_IP" ]] || LISTEN_IP=127.0.0.1
+  PUBLIC_IP="$(curl -m 5 -fsS https://v4.ident.me 2>/dev/null || curl -m 5 -fsS https://api4.ipify.org 2>/dev/null || true)"
+  info "$(msg "IP de escuta: $LISTEN_IP" "Listen IP: $LISTEN_IP")"
+  [[ -n "$PUBLIC_IP" ]] && info "$(msg "IP público detectado: $PUBLIC_IP" "Detected public IP: $PUBLIC_IP")" || warn "$(msg 'IP público não pôde ser detectado; xlxd.terminal ficará sem address explícito.' 'Public IP could not be detected; xlxd.terminal will keep no explicit address.')"
+}
+
+collect_configuration(){
+  [[ "$MODE" == install && -t 0 ]] || return 0
+  section "$(msg 'CONFIGURAÇÃO DO REFLETOR' 'REFLECTOR CONFIGURATION')"
+
+  local suffix
+  while :; do
+    printf '%s' "$(msg 'Número XLX, 3 dígitos (ex.: 724): ' 'XLX number, 3 digits (example: 724): ')"
+    read -r suffix || suffix=""
+    [[ "$suffix" =~ ^[0-9]{3}$ ]] && break
+    warn "$(msg 'Use exatamente 3 dígitos.' 'Use exactly 3 digits.')"
+  done
+  REFLECTOR_NAME="XLX$suffix"
+
+  while :; do
+    printf '%s' "$(msg 'Domínio/FQDN do painel: ' 'Dashboard FQDN: ')"
+    read -r DOMAIN || DOMAIN=""
+    DOMAIN="$(printf '%s' "$DOMAIN" | tr '[:upper:]' '[:lower:]')"
+    [[ "$DOMAIN" =~ ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$ ]] && break
+    warn "$(msg 'Domínio inválido.' 'Invalid domain.')"
+  done
+
+  while :; do
+    printf '%s' "$(msg 'E-mail do sysop: ' 'Sysop e-mail: ')"
+    read -r CONTACT_EMAIL || CONTACT_EMAIL=""
+    CONTACT_EMAIL="$(printf '%s' "$CONTACT_EMAIL" | tr '[:upper:]' '[:lower:]')"
+    [[ "$CONTACT_EMAIL" =~ ^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$ ]] && break
+    warn "$(msg 'E-mail inválido.' 'Invalid e-mail.')"
+  done
+
+  while :; do
+    printf '%s' "$(msg 'Indicativo do sysop: ' 'Sysop callsign: ')"
+    read -r SYSOP_CALLSIGN || SYSOP_CALLSIGN=""
+    SYSOP_CALLSIGN="${SYSOP_CALLSIGN^^}"
+    [[ "$SYSOP_CALLSIGN" =~ ^[A-Z0-9]{3,8}$ ]] && break
+    warn "$(msg 'Indicativo inválido.' 'Invalid callsign.')"
+  done
+
+  read_nonempty COUNTRY 'País: ' 'Country: '
+  read_nonempty LOCATION 'Cidade e estado/região: ' 'City and state/region: '
+
+  local current_tz tz
+  current_tz="$(timedatectl show --property=Timezone --value 2>/dev/null || echo UTC)"
+  while :; do
+    printf '%s' "$(msg "Fuso horário [$current_tz]: " "Timezone [$current_tz]: ")"
+    read -r tz || tz=""
+    tz="${tz:-$current_tz}"
+    if timedatectl list-timezones 2>/dev/null | grep -iFx "$tz" >/dev/null; then
+      TIMEZONE="$(timedatectl list-timezones | grep -iFx "$tz" | head -1)"
+      break
+    fi
+    [[ "$tz" == UTC ]] && { TIMEZONE=UTC; break; }
+    warn "$(msg 'Fuso inválido.' 'Invalid timezone.')"
+  done
+
+  REFLECTOR_TITLE="$REFLECTOR_NAME by $SYSOP_CALLSIGN"
+  REFLECTOR_DESCRIPTION="$REFLECTOR_NAME Multiprotocol Reflector by $SYSOP_CALLSIGN"
+  printf '%s' "$(msg "Nome exibido [$REFLECTOR_TITLE]: " "Displayed name [$REFLECTOR_TITLE]: ")"
+  read -r value || value=""
+  [[ -n "$value" ]] && REFLECTOR_TITLE="$value"
+  printf '%s' "$(msg "Descrição [$REFLECTOR_DESCRIPTION]: " "Description [$REFLECTOR_DESCRIPTION]: ")"
+  read -r value || value=""
+  [[ -n "$value" ]] && REFLECTOR_DESCRIPTION="$value"
+
+  ask_yes_no ENABLE_HTTPS 'Ativar HTTPS com Let’s Encrypt?' 'Enable HTTPS with Let’s Encrypt?' yes
+  ask_yes_no ENABLE_ECHO 'Instalar Echo/Parrot no módulo E?' 'Install Echo/Parrot on module E?' yes
+
+  local min_modules=1
+  [[ "$ENABLE_ECHO" == yes ]] && min_modules=5
+  while :; do
+    printf '%s' "$(msg "Quantidade de módulos ($min_modules-26) [5]: " "Number of modules ($min_modules-26) [5]: ")"
+    read -r MODULE_COUNT || MODULE_COUNT=""
+    MODULE_COUNT="${MODULE_COUNT:-5}"
+    [[ "$MODULE_COUNT" =~ ^[0-9]+$ && "$MODULE_COUNT" -ge "$min_modules" && "$MODULE_COUNT" -le 26 ]] && break
+    warn "$(msg 'Quantidade inválida.' 'Invalid module count.')"
+  done
+
+  while :; do
+    printf '%s' "$(msg 'Porta UDP YSF [42000]: ' 'YSF UDP port [42000]: ')"
+    read -r YSF_PORT || YSF_PORT=""
+    YSF_PORT="${YSF_PORT:-42000}"
+    [[ "$YSF_PORT" =~ ^[0-9]+$ && "$YSF_PORT" -ge 1 && "$YSF_PORT" -le 65535 ]] && break
+    warn "$(msg 'Porta inválida.' 'Invalid port.')"
+  done
+
+  while :; do
+    printf '%s' "$(msg 'Frequência YSF em Hz [433125000]: ' 'YSF frequency in Hz [433125000]: ')"
+    read -r YSF_FREQUENCY || YSF_FREQUENCY=""
+    YSF_FREQUENCY="${YSF_FREQUENCY:-433125000}"
+    [[ "$YSF_FREQUENCY" =~ ^[0-9]{9}$ ]] && break
+    warn "$(msg 'Use exatamente 9 dígitos.' 'Use exactly 9 digits.')"
+  done
+
+  local alink
+  ask_yes_no alink 'Ativar auto-link YSF?' 'Enable YSF auto-link?' yes
+  [[ "$alink" == yes ]] && YSF_AUTOLINK=1 || YSF_AUTOLINK=0
+  if [[ "$YSF_AUTOLINK" == 1 ]]; then
+    while :; do
+      printf '%s' "$(msg 'Módulo de auto-link YSF [C]: ' 'YSF auto-link module [C]: ')"
+      read -r YSF_AUTOLINK_MODULE || YSF_AUTOLINK_MODULE=""
+      YSF_AUTOLINK_MODULE="${YSF_AUTOLINK_MODULE:-C}"
+      YSF_AUTOLINK_MODULE="${YSF_AUTOLINK_MODULE^^}"
+      [[ "$YSF_AUTOLINK_MODULE" =~ ^[A-Z]$ ]] || { warn "$(msg 'Módulo inválido.' 'Invalid module.')"; continue; }
+      idx=$(( $(printf '%d' "'$YSF_AUTOLINK_MODULE") - 64 ))
+      [[ "$idx" -ge 1 && "$idx" -le "$MODULE_COUNT" ]] && break
+      warn "$(msg 'Módulo fora da faixa configurada.' 'Module is outside configured range.')"
     done
-    actual_hash="$(sha256sum "$SOURCE_DIR/installer.sh" | awk '{print $1}')"
-    [ "$actual_hash" = "$EXPECTED_INSTALLER_SHA256" ] || fatal "$(msg "SHA-256 do instalador-base divergente. Esperado=$EXPECTED_INSTALLER_SHA256 Obtido=$actual_hash" "Base installer SHA-256 mismatch. Expected=$EXPECTED_INSTALLER_SHA256 Got=$actual_hash")"
-    bash -n "$SOURCE_DIR/installer.sh"
-    find "$SOURCE_DIR/templates" -type f -name '*.sh' -exec bash -n {} \;
-    ok "$(msg "Instalador-base local versionado e validado." "Versioned local base installer validated.")"
-    info "$(msg "Fonte local: vendor/pp5pk-installer" "Local source: vendor/pp5pk-installer")"
-    info "SHA-256: $actual_hash"
+  fi
+
+  while :; do
+    printf '%s' "$(msg 'ID numérico YSF exibido no painel: ' 'Numeric YSF ID shown on dashboard: ')"
+    read -r YSF_ID || YSF_ID=""
+    [[ "$YSF_ID" =~ ^[0-9]{1,8}$ ]] && break
+    warn "$(msg 'ID YSF inválido.' 'Invalid YSF ID.')"
+  done
+
+  detect_ips
 }
 
-localize_base_installer() {
-    local source="$SOURCE_DIR/installer.sh"
-    local translated="$SOURCE_DIR/installer.runtime.sh"
-
-    cp -- "$source" "$translated"
-    local state_hook="$SOURCE_DIR/.xlx-modern-state-hook"
-    cat > "$state_hook" <<'HOOK'
-if [ -n "${XLX_MODERN_STATE_FILE:-}" ]; then
-    {
-        printf "REFLECTOR_NAME=%q\\n" "$XRFNUM"
-        printf "REFLECTOR_TITLE=%q\\n" "$HEADER"
-        printf "REFLECTOR_DESCRIPTION=%q\\n" "$COMMENT"
-        printf "SYSOP_CALLSIGN=%q\\n" "$CALLSIGN"
-        printf "COUNTRY=%q\\n" "$COUNTRY"
-        printf "DOMAIN=%q\\n" "$XLXDOMAIN"
-        printf "CONTACT_EMAIL=%q\\n" "$EMAIL"
-        printf "LOCATION=%q\\n" "${XLX_MODERN_LOCATION:-}"
-        printf "YSF_ID=%q\\n" "${XLX_MODERN_YSF_ID:-}"
-        printf "MODULE_COUNT=%q\\n" "$MODQTD"
-        printf "ENABLE_HTTPS=%q\\n" "$INSTALL_SSL"
-    } > "$XLX_MODERN_STATE_FILE"
-    chmod 0600 "$XLX_MODERN_STATE_FILE"
-fi
-HOOK
-
-    sed -i \
-        -e '/center_wrap_color \$BLUE_BRIGHT "\$ICON_INFO UPDATING OS\.\.\."/r '"$state_hook" \
-        -e '/center_wrap_color \$BLUE_BRIGHT "\$ICON_INFO INSTALLING DASHBOARD\.\.\."/,/^# SSL install$/ { /^# SSL install$/! s/^/# XLX_MODERN_SKIPPED: /; }' \
-        -e 's|if \[ "\$INSTALL_SSL" == "Y" \]; then|if false; then # XLX Modern Dashboard configures TLS|' \
-        -e '/^#  Starting users_db timer$/,/^#  Starting xlx_log service$/ { /^#  Starting xlx_log service$/! s/^/# XLX_MODERN_SKIPPED: /; }' \
-        -e '/^# Check if update_db.sh file exist$/,/^# Check if echo service is running/ { /^# Check if echo service is running/! s/^/# XLX_MODERN_SKIPPED: /; }' \
-        -e 's|\$XLXCONFIG|/xlxd/xlxd.cfg|g' \
-        "$translated"
-    rm -f "$state_hook"
-
-    [ "$UI_LANG" = "pt-BR" ] || { chmod 700 "$translated"; printf '%s\n' "$translated"; return 0; }
-
-    sed -i \
-        -e 's|XLX MULTIPROTOCOL AMATEUR RADIO REFLECTOR INSTALLER PROGRAM|INSTALADOR DO REFLETOR XLX MULTIPROTOCOLO PARA RADIOAMADOR|' \
-        -e 's|Next, you will be asked some questions\. Answer with the requested information or, if applicable, to accept the suggested value, press \[ENTER\]|A seguir, responda às perguntas. Quando houver um valor sugerido, pressione [ENTER] para aceitá-lo.|' \
-        -e 's|At any prompt, type X and press \[ENTER\] to cancel the installation\.|Em qualquer pergunta, digite X e pressione [ENTER] para cancelar a instalação.|' \
-        -e 's|REFLECTOR DATA INPUT|DADOS DO REFLETOR|' \
-        -e 's|Mandatory|Obrigatório|g' \
-        -e 's|01\. XLX Reflector ID, 3 alphanumeric characters\. (e\.g\., 300, US1, BRA)|01. ID do refletor XLX: 3 caracteres alfanuméricos. (ex.: 724, US1, BRA)|' \
-        -e 's|02\. Dashboard FQDN (fully qualified domain name)\. (e\.g\., xlxbra\.net)|02. Domínio completo (FQDN) do painel. (ex.: xlx724.seudominio.net)|' \
-        -e 's|03\. Sysop e-mail address|03. E-mail do sysop|' \
-        -e 's|04\. Sysop callsign\. Only letters and numbers allowed, max 6 characters\.|04. Indicativo do sysop. Use letras e números, máximo de 6 caracteres.|' \
-        -e 's|05\. Reflector country name\.|05. Nome do país do refletor.|' \
-        -e 's|06\. Local timezone\. Detected:|06. Fuso horário local. Detectado:|' \
-        -e 's|Press ENTER to keep it or type another timezone\.|Pressione ENTER para manter ou informe outro fuso horário.|' \
-        -e 's|06\. What is the local timezone? (e\.g\., America/Sao_Paulo, UTC, GMT-3)|06. Qual é o fuso horário local? (ex.: America/Sao_Paulo, UTC, GMT-3)|' \
-        -e 's|07\. Comment to XLX Reflectors list\.|07. Comentário para a lista de refletores XLX.|' \
-        -e 's|08\. Custom text for the dashboard tab\. (max 25 characters)|08. Texto personalizado para a aba do painel. (máximo: 25 caracteres)|' \
-        -e 's|09\. Custom text on footer of the dashboard webpage\.|09. Texto personalizado no rodapé do painel.|' \
-        -e 's|10\. Create an SSL certificate (https) for the dashboard webpage? (Y/N)|10. Criar certificado SSL (HTTPS) para o painel? (S/N)|' \
-        -e 's|11\. Install Echo Test on module E? (Y/N)|11. Instalar Echo Test no módulo E? (S/N)|' \
-        -e 's|12\. Number of active modules for the DStar Reflector\.|12. Quantidade de módulos ativos para o refletor D-STAR.|' \
-        -e 's|13\. YSF Reflector UDP port number\. (1-65535)|13. Porta UDP do refletor YSF. (1-65535)|' \
-        -e 's|14\. YSF Wires-X frequency\. In Hertz, 9 digits\.|14. Frequência YSF Wires-X, em Hertz, 9 dígitos.|' \
-        -e 's|15\. Auto-link YSF to a module? (Y/N)|15. Vincular YSF automaticamente a um módulo? (S/N)|' \
-        -e 's|16\. Module to Auto-link YSF\.|16. Módulo para vínculo automático do YSF.|' \
-        -e 's|PLEASE REVIEW YOUR SETTINGS:|REVISE AS CONFIGURAÇÕES:|' \
-        -e 's|Settings correct? Press \[ENTER\] to confirm, type a question number to edit it, or \[X\] to cancel the installation\.|Configurações corretas? Pressione [ENTER] para confirmar, informe o número para editar ou [X] para cancelar.|' \
-        "$translated"
-    chmod 700 "$translated"
-    printf '%s\n' "$translated"
+write_install_state(){
+  local state="$1"
+  install -d -m 0700 "$(dirname "$state")"
+  {
+    printf 'REFLECTOR_NAME=%q\n' "$REFLECTOR_NAME"
+    printf 'REFLECTOR_TITLE=%q\n' "$REFLECTOR_TITLE"
+    printf 'REFLECTOR_DESCRIPTION=%q\n' "$REFLECTOR_DESCRIPTION"
+    printf 'SYSOP_CALLSIGN=%q\n' "$SYSOP_CALLSIGN"
+    printf 'LOCATION=%q\n' "$LOCATION"
+    printf 'COUNTRY=%q\n' "$COUNTRY"
+    printf 'DOMAIN=%q\n' "$DOMAIN"
+    printf 'CONTACT_EMAIL=%q\n' "$CONTACT_EMAIL"
+    printf 'TIMEZONE=%q\n' "$TIMEZONE"
+    printf 'YSF_ID=%q\n' "$YSF_ID"
+    printf 'MODULE_COUNT=%q\n' "$MODULE_COUNT"
+    printf 'ENABLE_HTTPS=%q\n' "$ENABLE_HTTPS"
+    printf 'ENABLE_ECHO=%q\n' "$ENABLE_ECHO"
+    printf 'ECHO_MODULE=%q\n' "$ECHO_MODULE"
+    printf 'YSF_PORT=%q\n' "$YSF_PORT"
+    printf 'YSF_FREQUENCY=%q\n' "$YSF_FREQUENCY"
+    printf 'YSF_AUTOLINK=%q\n' "$YSF_AUTOLINK"
+    printf 'YSF_AUTOLINK_MODULE=%q\n' "$YSF_AUTOLINK_MODULE"
+    printf 'LISTEN_IP=%q\n' "$LISTEN_IP"
+    printf 'PUBLIC_IP=%q\n' "$PUBLIC_IP"
+  } > "$state"
+  chmod 0600 "$state"
 }
 
-show_plan() {
-    local dash_lang="${DASHBOARD_LANG:-$(msg "padrão (pt-BR)" "default (pt-BR)")}"
-    if [ "$UI_LANG" = "en" ]; then
-        cat <<PLAN
+show_plan(){
+  section "$(msg 'PLANO DA INSTALAÇÃO' 'INSTALLATION PLAN')"
+  cat <<PLAN
+Reflector: ${REFLECTOR_NAME:-not collected yet}
+Dashboard: $DEFAULT_DASHBOARD_DIR
+Dashboard language: ${DASHBOARD_LANG:-auto}
+Core source: LX3JL/xlxd pinned revision
+Echo source: narspt/XLXEcho pinned revision (only when selected)
+APRS/D-PRS: $APRS_DPRS_MODE
 
-REAL INSTALLATION PLAN
-----------------------
-Before starting, have these details ready:
-- XLX reflector ID (3 characters, e.g. 139)
-- dashboard domain/FQDN
-- sysop e-mail address
-- sysop callsign
-- country and timezone
-
-The installer will then:
-1. Collect reflector information.
-2. Install Debian dependencies.
-3. Build and install XLXD.
-4. Install systemd services.
-5. Install XLX Echo when selected.
-6. Install the modern dashboard.
-7. Configure Apache and HTTPS when selected.
-8. Prepare XLX databases.
-9. Start and validate services.
-10. Offer APRS/D-PRS when configured to ask.
-
-Current choices:
-- Mode: $MODE
-- Dashboard language: $dash_lang
-- Dashboard directory: $DEFAULT_DASHBOARD_DIR
-- APRS/D-PRS: $APRS_DPRS_MODE
-
-Technical base: PP5PK/XLX_Installer
-Original author: Daniel K. — PP5PK
-Modified version: Dario — PU2PNY
+Flow:
+1. Validate Debian 12 x86_64 and resources.
+2. Create preventive backup.
+3. Install Debian dependencies.
+4. Build and install XLXD using our own module.
+5. Install our own systemd service configuration.
+6. Install optional Echo/Parrot independently.
+7. Install the XLX Modern Dashboard.
+8. Install/validate RadioID, timers, logs, CallingHome and private Admin.
+9. Optionally install APRS/D-PRS.
+10. Validate services, UDP listeners, database, Admin and HTTP/HTTPS.
 PLAN
-    else
-        cat <<PLAN
-
-PLANO DA INSTALAÇÃO REAL
--------------------------
-Antes de começar, tenha estes dados em mãos:
-- ID do refletor XLX (3 caracteres, ex.: 026)
-- domínio/FQDN do dashboard
-- e-mail do sysop
-- indicativo do sysop
-- país e fuso horário
-
-Depois o instalador irá:
-1. Coletar os dados do refletor.
-2. Instalar dependências Debian.
-3. Compilar e instalar o XLXD.
-4. Instalar serviços systemd.
-5. Instalar XLX Echo quando selecionado.
-6. Instalar o dashboard moderno.
-7. Configurar Apache e HTTPS quando selecionado.
-8. Preparar as bases do XLX.
-9. Iniciar e validar os serviços.
-10. Oferecer APRS/D-PRS quando configurado para perguntar.
-
-Escolhas atuais:
-- Modo: $MODE
-- Idioma do dashboard: $dash_lang
-- Diretório do dashboard: $DEFAULT_DASHBOARD_DIR
-- APRS/D-PRS: $APRS_DPRS_MODE
-
-Base técnica: PP5PK/XLX_Installer
-Autor original: Daniel K. — PP5PK
-Versão modificada: Dario — PU2PNY
-PLAN
-    fi
-
-    if [ -n "$DASHBOARD_LANG" ] && [ "$DASHBOARD_LANG" != "en" ] && [ "$DASHBOARD_LANG" != "pt-BR" ]; then
-        info "$(msg "O dashboard usará $DASHBOARD_LANG. As mensagens do instalador permanecem em português; use --lang=en para interface do instalador em inglês." "The dashboard will use $DASHBOARD_LANG. Installer messages remain in Portuguese; use --lang=en for English installer UI.")"
-    fi
 }
 
-run_check() {
-    section "$(msg "RESULTADO DA PRÉ-VALIDAÇÃO" "PRE-INSTALLATION CHECK RESULT")"
-    ok "$(msg "Sistema compatível." "Compatible system.")"
-    ok "$(msg "Recursos mínimos disponíveis." "Minimum resources available.")"
-    if [ "$CHECK_READY" = "yes" ]; then
-        ok "$(msg "Pré-requisitos, rede e HTTPS validados." "Prerequisites, network, and HTTPS validated.")"
-    else
-        ok "$(msg "Servidor compatível. Os pré-requisitos pendentes serão instalados automaticamente na instalação real." "Server is compatible. Pending prerequisites will be installed automatically during the real installation.")"
-    fi
-    ok "$(msg "Nenhuma instalação ativa será sobrescrita." "No active installation will be overwritten.")"
-    ok "$(msg "Commit e SHA-256 confirmados." "Commit and SHA-256 verified.")"
-
-    if [ "$APRS_DPRS_MODE" = "yes" ]; then
-        section "$(msg "PRÉ-VALIDAÇÃO APRS/D-PRS" "APRS/D-PRS PRE-CHECK")"
-        bash "$ROOT_DIR/modules/67-aprs-dprs.sh" --check
-    else
-        info "$(msg "APRS/D-PRS não solicitado no modo de pré-validação." "APRS/D-PRS was not requested for this pre-check.")"
-    fi
-
-    info "$(msg "Verificação concluída sem erro bloqueante. Para instalar agora, execute: bash install.sh" "Check completed with no blocking error. To install now, run: bash install.sh")"
+confirm_real_installation(){
+  local typed
+  section "$(msg 'CONFIRMAÇÃO FINAL' 'FINAL CONFIRMATION')"
+  warn "$(msg 'A próxima etapa altera pacotes, systemd, Apache e arquivos XLX.' 'The next step changes packages, systemd, Apache and XLX files.')"
+  while :; do
+    printf '%s' "$(msg 'Digite INSTALL para continuar: ' 'Type INSTALL to continue: ')"
+    read -r typed || typed=""
+    [[ "${typed^^}" == "$CONFIRMATION" ]] && break
+    warn "$(msg 'Confirmação inválida; nada foi alterado nesta etapa.' 'Invalid confirmation; nothing was changed in this step.')"
+  done
 }
 
-run_dashboard_only_check() {
-    section "$(msg "RESULTADO DA VERIFICAÇÃO DO PAINEL" "DASHBOARD UPDATE CHECK RESULT")"
-    [ -x /xlxd/xlxd ] || fatal "$(msg "XLXD não encontrado em /xlxd/xlxd." "XLXD was not found at /xlxd/xlxd.")"
-    ok "$(msg "XLXD existente encontrado; ele não será reinstalado." "Existing XLXD found; it will not be reinstalled.")"
-    if [ -d "$DEFAULT_DASHBOARD_DIR" ]; then
-        ok "$(msg "Painel atual encontrado em $DEFAULT_DASHBOARD_DIR." "Current dashboard found at $DEFAULT_DASHBOARD_DIR.")"
-    else
-        info "$(msg "O painel moderno será instalado em $DEFAULT_DASHBOARD_DIR." "The modern dashboard will be installed at $DEFAULT_DASHBOARD_DIR.")"
-    fi
-    info "$(msg "Nenhuma alteração foi feita." "No changes were made.")"
+resolve_aprs_choice(){
+  local answer
+  case "$APRS_DPRS_MODE" in yes) return 0;; no) return 1;; ask)
+    printf '%s' "$(msg 'Instalar APRS/D-PRS opcional? [s/N]: ' 'Install optional APRS/D-PRS? [y/N]: ')"
+    read -r answer || answer=""
+    case "${answer,,}" in s|sim|y|yes) APRS_DPRS_MODE=yes; return 0;; *) APRS_DPRS_MODE=no; return 1;; esac;; esac
 }
 
-execute_dashboard_only() {
-    local dashboard_dest="$DEFAULT_DASHBOARD_DIR"
-    section "$(msg "ATUALIZANDO SOMENTE O PAINEL MODERNO" "UPDATING ONLY THE MODERN DASHBOARD")"
-    info "$(msg "O XLXD existente será preservado; apenas o painel e seus componentes públicos serão atualizados." "The existing XLXD will be preserved; only the dashboard and its public components will be updated.")"
-    if [ -n "$DASHBOARD_LANG" ]; then
-        INSTALL_DIR="$dashboard_dest" XLX_UI_LANG="$UI_LANG" bash "$ROOT_DIR/modules/60-dashboard-modern.sh" "--lang=$DASHBOARD_LANG"
-    else
-        INSTALL_DIR="$dashboard_dest" XLX_UI_LANG="$UI_LANG" bash "$ROOT_DIR/modules/60-dashboard-modern.sh"
-    fi
-    for required_file in "$dashboard_dest/index.php" "$dashboard_dest/config/site.php" "$dashboard_dest/api/status.php" "$dashboard_dest/api/live.php"; do
-        [ -s "$required_file" ] || fatal "$(msg "Arquivo obrigatório do painel ausente após atualização: $required_file" "Required dashboard file missing after update: $required_file")"
-    done
-    systemctl is-active --quiet xlxd || fatal "$(msg "XLXD não está ativo após a atualização do painel; o núcleo não foi reinstalado. Consulte os logs antes de continuar." "XLXD is not active after the dashboard update; the core was not reinstalled. Check the logs before continuing.")"
-    section "$(msg "ATUALIZAÇÃO DO PAINEL CONCLUÍDA" "DASHBOARD UPDATE COMPLETE")"
-    ok "$(msg "Painel moderno validado e XLXD preservado." "Modern dashboard validated and XLXD preserved.")"
+run_check(){
+  section "$(msg 'PRÉ-VALIDAÇÃO' 'PRE-CHECK')"
+  bash "$ROOT_DIR/modules/30-packages.sh" check
+  bash "$ROOT_DIR/modules/40-xlxd.sh" check
+  bash "$ROOT_DIR/modules/50-echo.sh" check
+  bash "$ROOT_DIR/tests/test-no-pp5pk-runtime.sh"
+  ok "$(msg 'Pré-validação concluída. Nenhuma alteração foi executada.' 'Pre-check complete. No changes were made.')"
 }
 
-confirm_real_installation() {
-    local typed
-    section "$(msg "CONFIRMAÇÃO FINAL" "FINAL CONFIRMATION")"
-    warn "$(msg "A próxima etapa inicia uma instalação REAL." "The next step starts a REAL installation.")"
-    warn "$(msg "Pacotes, Apache, PHP, systemd e firewall poderão ser alterados." "Packages, Apache, PHP, systemd, and firewall may be changed.")"
-    printf '\n%s\n' "$(msg "Para continuar, digite INSTALL (maiúsculas ou minúsculas)." "To continue, type INSTALL (upper- or lowercase).")"
-    printf '%s\n' "$(msg "Para cancelar com segurança, pressione Ctrl+C ou digite qualquer outra coisa." "To cancel safely, press Ctrl+C or type anything else.")"
-    while :; do
-        printf '\n%s' "$(msg "Confirmação [INSTALL]: " "Confirmation [INSTALL]: ")"
-        read -r typed || typed=""
-        [ "${typed^^}" = "$CONFIRMATION" ] && break
-        warn "$(msg "Confirmação não reconhecida. Nenhuma alteração foi feita; tente novamente ou pressione Ctrl+C para cancelar." "Confirmation not recognized. No changes were made; try again or press Ctrl+C to cancel.")"
-    done
-    ok "$(msg "Confirmação aceita. Iniciando instalação real." "Confirmation accepted. Starting real installation.")"
+run_dashboard_only(){
+  [[ -x /xlxd/xlxd ]] || fatal '/xlxd/xlxd missing'
+  [[ "$MODE" == check ]] && { ok 'XLXD exists; dashboard-only check OK'; return; }
+  create_inventory_and_backup
+  confirm_real_installation
+  INSTALL_DIR="$DEFAULT_DASHBOARD_DIR" XLX_UI_LANG="$UI_LANG" bash "$ROOT_DIR/modules/60-dashboard-modern.sh" "--lang=$DASHBOARD_LANG"
+  systemctl is-active --quiet xlxd.service || fatal 'XLXD became inactive during dashboard-only flow'
+  ok "$(msg 'Painel atualizado; núcleo XLXD preservado.' 'Dashboard updated; XLXD core preserved.')"
 }
 
-resolve_aprs_choice() {
-    local answer
-    case "$APRS_DPRS_MODE" in
-        yes) return 0 ;;
-        no) return 1 ;;
-        ask)
-            printf '\n%s' "$(msg "Instalar também o módulo opcional APRS/D-PRS? [s/N]: " "Install the optional APRS/D-PRS module too? [y/N]: ")"
-            read -r answer
-            case "${answer,,}" in
-                s|sim|y|yes) APRS_DPRS_MODE="yes"; return 0 ;;
-                *) APRS_DPRS_MODE="no"; return 1 ;;
-            esac
-            ;;
-        *) fatal "$(msg "Estado APRS/D-PRS inválido: $APRS_DPRS_MODE" "Invalid APRS/D-PRS state: $APRS_DPRS_MODE")" ;;
-    esac
+validate_final(){
+  local failures=0 port scheme port_http admin_slug rows integrity
+  section "$(msg 'VALIDAÇÃO FINAL' 'FINAL VALIDATION')"
+  for service in xlxd.service apache2.service update_XLX_db.timer xlx_log.service xlx-callinghome.timer; do
+    if systemctl is-active --quiet "$service"; then ok "$service active"; else warn "$service inactive"; failures=$((failures+1)); fi
+  done
+  if [[ "$ENABLE_ECHO" == yes ]]; then
+    systemctl is-active --quiet xlxecho.service && ok 'xlxecho.service active' || { warn 'xlxecho.service inactive'; failures=$((failures+1)); }
+  fi
+
+  [[ -x /xlxd/xlxd ]] || { warn '/xlxd/xlxd missing'; failures=$((failures+1)); }
+  [[ "$(pgrep -x xlxd | wc -l)" -eq 1 ]] || { warn 'XLXD process count is not 1'; failures=$((failures+1)); }
+  for port in 8880 10001 10002 12345 12346 20001 21110 30001 30051 40000 "$YSF_PORT" 62030; do
+    if ss -H -lunp 2>/dev/null | grep -E "[:.]${port}[[:space:]].*xlxd" >/dev/null; then ok "UDP $port xlxd"; else warn "UDP $port missing"; failures=$((failures+1)); fi
+  done
+
+  integrity="$(sqlite3 /xlxd/users_db/users.db 'PRAGMA integrity_check;' 2>/dev/null || true)"
+  rows="$(sqlite3 /xlxd/users_db/users.db 'SELECT COUNT(*) FROM users;' 2>/dev/null || echo 0)"
+  [[ "$integrity" == ok ]] || { warn 'users.db integrity failed'; failures=$((failures+1)); }
+  [[ "$rows" =~ ^[0-9]+$ && "$rows" -ge 1000 ]] || { warn "users.db rows=$rows"; failures=$((failures+1)); }
+
+  [[ -s /etc/xlx-modern-control/route ]] || { warn 'Admin route missing'; failures=$((failures+1)); }
+  if [[ -s /etc/xlx-modern-control/route ]]; then
+    admin_slug="$(tr -d '\r\n' < /etc/xlx-modern-control/route)"
+    [[ -s "$DEFAULT_DASHBOARD_DIR/$admin_slug/index.php" ]] || { warn 'Admin page missing'; failures=$((failures+1)); }
+  fi
+
+  apache2ctl configtest >/dev/null 2>&1 || { warn 'Apache config invalid'; failures=$((failures+1)); }
+  scheme=http; port_http=80
+  [[ "$ENABLE_HTTPS" == yes ]] && { scheme=https; port_http=443; }
+  if curl --noproxy '*' -kfsS --max-time 15 --resolve "$DOMAIN:$port_http:127.0.0.1" "$scheme://$DOMAIN/" >/dev/null; then
+    ok "dashboard $scheme local response"
+  else
+    warn "dashboard $scheme local response failed"; failures=$((failures+1))
+  fi
+
+  [[ "$failures" -eq 0 ]] || fatal "$(msg "Falharam $failures validações; não considere o servidor pronto." "$failures validation checks failed; do not consider the server ready.")"
+  ok "$(msg 'Servidor e painel passaram nas validações locais.' 'Server and dashboard passed local validation.')"
 }
 
-execute_installer() {
-    local stamp logfile installer_rc failures service dashboard_dest state_file
-    stamp="$(date +%Y%m%d_%H%M%S)"
-    mkdir -p "$LOG_ROOT"; chmod 700 "$LOG_ROOT"
-    logfile="${LOG_ROOT}/install_${stamp}.log"
-    section "$(msg "INICIANDO XLX MODERN INSTALLER" "STARTING XLX MODERN INSTALLER")"
-    info "$(msg "Log da instalação: $logfile" "Installation log: $logfile")"
-    info "$(msg "A próxima tela pertence ao instalador base e solicitará os dados do refletor." "The next screen is the base installer and will ask for reflector information.")"
-    local base_installer
-    base_installer="$(localize_base_installer)"
-    cd "$SOURCE_DIR"
-    info "$(msg "Usando o fluxo de perguntas em Português (Brasil)." "Using the English question flow.")"
-    state_file="${WORK_ROOT}/runtime/install-input.env"
-    install -d -m 0700 "$(dirname "$state_file")"
-    : > "$state_file"
-    chmod 0600 "$state_file"
+execute_full_install(){
+  local state_file stamp logfile
+  stamp="$(date +%Y%m%d_%H%M%S)"
+  install -d -m 0700 "$LOG_ROOT" "$WORK_ROOT/runtime"
+  logfile="$LOG_ROOT/install_$stamp.log"
+  state_file="$WORK_ROOT/runtime/install-input.env"
+  write_install_state "$state_file"
+  timedatectl set-timezone "$TIMEZONE"
 
-    set +e
-    XLX_MODERN_STATE_FILE="$state_file" XLX_MODERN_LOCATION="$DASHBOARD_LOCATION" XLX_MODERN_YSF_ID="$DASHBOARD_YSF_ID" bash "$base_installer" 2>&1 | tee -a "$logfile"
-    installer_rc=${PIPESTATUS[0]}
-    set -e
-    [ "$installer_rc" -eq 0 ] || fatal "$(msg "O instalador base terminou com código $installer_rc. Consulte o log: $logfile" "The base installer exited with code $installer_rc. Check the log: $logfile")"
+  exec > >(tee -a "$logfile") 2>&1
+  section "$(msg 'INSTALAÇÃO REAL' 'REAL INSTALLATION')"
+  info "Log: $logfile"
 
-    source "$state_file"
-    [ -n "${DOMAIN:-}" ] || fatal "$(msg "O instalador base não gravou o domínio para validação final." "The base installer did not save the domain for final validation.")"
+  bash "$ROOT_DIR/modules/30-packages.sh" install
+  bash "$ROOT_DIR/modules/40-xlxd.sh" install "$state_file"
+  bash "$ROOT_DIR/modules/50-echo.sh" install "$state_file"
+  XLX_INSTALL_STATE_FILE="$state_file" XLX_UI_LANG="$UI_LANG" INSTALL_DIR="$DEFAULT_DASHBOARD_DIR" bash "$ROOT_DIR/modules/60-dashboard-modern.sh" "--lang=$DASHBOARD_LANG"
 
-    section "$(msg "INSTALANDO XLX MODERN DASHBOARD" "INSTALLING XLX MODERN DASHBOARD")"
-    if [ -n "$DASHBOARD_LANG" ]; then
-        XLX_INSTALL_STATE_FILE="$state_file" XLX_UI_LANG="$UI_LANG" bash "$ROOT_DIR/modules/60-dashboard-modern.sh" "--lang=$DASHBOARD_LANG"
-    else
-        XLX_INSTALL_STATE_FILE="$state_file" XLX_UI_LANG="$UI_LANG" bash "$ROOT_DIR/modules/60-dashboard-modern.sh"
-    fi
+  if resolve_aprs_choice; then
+    XLX_DASHBOARD_DIR="$DEFAULT_DASHBOARD_DIR" bash "$ROOT_DIR/modules/67-aprs-dprs.sh" "--dashboard-dir=$DEFAULT_DASHBOARD_DIR"
+  fi
 
-    dashboard_dest="${INSTALL_DIR:-$DEFAULT_DASHBOARD_DIR}"
-    if resolve_aprs_choice; then
-        section "$(msg "INSTALANDO APRS/D-PRS OPCIONAL" "INSTALLING OPTIONAL APRS/D-PRS")"
-        XLX_DASHBOARD_DIR="$dashboard_dest" bash "$ROOT_DIR/modules/67-aprs-dprs.sh" "--dashboard-dir=$dashboard_dest"
-    else
-        info "$(msg "APRS/D-PRS não instalado. Ele poderá ser instalado separadamente depois." "APRS/D-PRS was not installed. It can be installed separately later.")"
-    fi
-
-    section "$(msg "VALIDAÇÃO PÓS-INSTALAÇÃO" "POST-INSTALLATION VALIDATION")"
-    failures=0
-    for service in apache2 xlxd; do
-        if systemctl is-active --quiet "$service"; then
-            ok "$(msg "Serviço $service ativo." "$service service is active.")"
-        else
-            warn "$(msg "Serviço $service não está ativo." "$service service is not active.")"
-            failures=$((failures + 1))
-        fi
-    done
-    if systemctl list-unit-files xlxecho.service --no-legend 2>/dev/null | grep -q .; then
-        if systemctl is-active --quiet xlxecho; then
-            ok "$(msg "Serviço xlxecho ativo." "xlxecho service is active.")"
-        else
-            warn "$(msg "XLX Echo foi instalado, mas o serviço está inativo." "XLX Echo is installed, but its service is inactive.")"
-            failures=$((failures + 1))
-        fi
-    fi
-    if apache2ctl configtest >/dev/null 2>&1; then
-        ok "$(msg "Configuração do Apache válida." "Apache configuration is valid.")"
-    else
-        warn "$(msg "A validação da configuração do Apache falhou." "Apache configuration validation failed.")"
-        failures=$((failures + 1))
-    fi
-    [ -x /xlxd/xlxd ] || { warn "$(msg "Binário /xlxd/xlxd ausente." "Binary /xlxd/xlxd is missing.")"; failures=$((failures + 1)); }
-
-    for required_file in "$dashboard_dest/index.php" "$dashboard_dest/config/site.php" "$dashboard_dest/api/status.php" "$dashboard_dest/api/live.php"; do
-        if [ -s "$required_file" ]; then
-            ok "$(msg "Arquivo obrigatório do painel encontrado: $required_file" "Required dashboard file found: $required_file")"
-        else
-            warn "$(msg "Arquivo obrigatório do painel ausente: $required_file" "Required dashboard file missing: $required_file")"
-            failures=$((failures + 1))
-        fi
-    done
-    if [ -f "/etc/apache2/sites-enabled/$DOMAIN.conf" ] && grep -Fq "DocumentRoot $dashboard_dest" "/etc/apache2/sites-enabled/$DOMAIN.conf"; then
-        ok "$(msg "VirtualHost do painel moderno confirmado." "Modern dashboard VirtualHost confirmed.")"
-    else
-        warn "$(msg "VirtualHost do painel moderno não aponta para $dashboard_dest." "Modern dashboard VirtualHost does not point to $dashboard_dest.")"
-        failures=$((failures + 1))
-    fi
-    if systemctl is-active --quiet xlx-callinghome.timer; then
-        ok "$(msg "Timer CallingHome ativo." "CallingHome timer is active.")"
-    else
-        warn "$(msg "Timer CallingHome inativo." "CallingHome timer is inactive.")"
-        failures=$((failures + 1))
-    fi
-
-    local dashboard_scheme="http"
-    case "${ENABLE_HTTPS:-}" in Y|y|yes|YES) dashboard_scheme="https" ;; esac
-    if [ "$dashboard_scheme" = "https" ]; then
-        if [ -s "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ] && [ -s "/etc/letsencrypt/live/$DOMAIN/privkey.pem" ]; then
-            ok "$(msg "Certificado HTTPS encontrado para $DOMAIN." "HTTPS certificate found for $DOMAIN.")"
-        else
-            warn "$(msg "Certificado HTTPS ausente para $DOMAIN." "HTTPS certificate missing for $DOMAIN.")"
-            failures=$((failures + 1))
-        fi
-    fi
-    local dashboard_port="80"
-    [ "$dashboard_scheme" = "https" ] && dashboard_port="443"
-    if curl --noproxy '*' -fsS --max-time 15 --resolve "$DOMAIN:$dashboard_port:127.0.0.1" "$dashboard_scheme://$DOMAIN/" >/dev/null; then
-        ok "$(msg "Painel respondeu localmente por $dashboard_scheme." "Dashboard responded locally over $dashboard_scheme.")"
-    else
-        warn "$(msg "O painel não respondeu localmente por $dashboard_scheme." "Dashboard did not respond locally over $dashboard_scheme.")"
-        failures=$((failures + 1))
-    fi
-
-    if [ "$failures" -ne 0 ]; then
-        fatal "$(msg "A instalação terminou, mas $failures validação(ões) falharam. Não considere o servidor pronto. Consulte: $logfile" "Installation finished, but $failures validation check(s) failed. Do not consider the server ready. Check: $logfile")"
-    fi
-
-    section "$(msg "INSTALAÇÃO CONCLUÍDA" "INSTALLATION COMPLETE")"
-    ok "$(msg "XLX instalado e validações essenciais aprovadas." "XLX installed and essential validation checks passed.")"
-    info "$(msg "Dashboard: $dashboard_dest" "Dashboard: $dashboard_dest")"
-    info "$(msg "Log: $logfile" "Log: $logfile")"
-    warn "$(msg "Refletor novo: ele pode não aparecer imediatamente nas listas públicas de hotspots. Cadastre-o em https://dvref.com/ e aguarde a propagação antes de testar pela lista pública." "New reflector: it may not appear immediately in public hotspot lists. Register it at https://dvref.com/ and allow propagation before testing through a public list.")"
+  validate_final
+  section "$(msg 'INSTALAÇÃO CONCLUÍDA' 'INSTALLATION COMPLETE')"
+  ok "$REFLECTOR_NAME"
+  info "Dashboard: $DEFAULT_DASHBOARD_DIR"
+  info "Log: $logfile"
 }
 
-main() {
-    clear
-    validate_options
-    require_root
-    select_ui_language
-    select_dashboard_language
-    section "XLX MODERN INSTALLER — PU2PNY"
-    validate_os
-    bootstrap_install_prerequisites
-    validate_commands
-    validate_resources
-    validate_network
-    detect_existing_installation
-    if [ "$DASHBOARD_ONLY" = "yes" ]; then
-        if [ "$MODE" = "check" ]; then
-            run_dashboard_only_check
-            exit 0
-        fi
-        create_inventory_and_backup
-        confirm_real_installation
-        execute_dashboard_only
-        exit 0
-    fi
-    collect_dashboard_inputs
-    prepare_source
-    show_plan
-    if [ "$MODE" = "check" ]; then run_check; exit 0; fi
-    create_inventory_and_backup
-    confirm_real_installation
-    execute_installer
+main(){
+  clear
+  validate_options
+  require_root
+  select_ui_language
+  select_dashboard_language
+  section 'XLX MODERN INSTALLER — PU2PNY'
+  validate_os
+  bootstrap_prerequisites
+  validate_resources
+  validate_network
+  validate_independent_sources
+  detect_existing_installation
+
+  if [[ "$DASHBOARD_ONLY" == yes ]]; then run_dashboard_only; exit 0; fi
+  if [[ "$MODE" == check ]]; then show_plan; run_check; exit 0; fi
+
+  collect_configuration
+  show_plan
+  create_inventory_and_backup
+  confirm_real_installation
+  execute_full_install
 }
 
 main "$@"
