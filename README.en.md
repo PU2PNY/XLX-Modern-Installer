@@ -1,32 +1,35 @@
 # XLX Modern Installer
 
-A conservative installer and maintenance layer for **XLX reflectors on Debian 12 x86_64**, maintained by **Dario — PU2PNY** and based on the reviewed installer by **Daniel K. — PP5PK**.
+Independent installer and maintenance layer for **XLX reflectors on Debian 12 x86_64**, maintained by **Dario — PU2PNY**.
 
-The project keeps the proven PP5PK XLXD core installation flow and replaces the legacy dashboard/data layer with the XLX Modern Dashboard, persistent RadioID management, a hidden private Admin, dedicated CallingHome, and optional APRS/D-PRS / Certificate modules.
-
-> **Canonical paths**
->
-> - XLXD core, native lists and runtime data: `/xlxd`
-> - Modern dashboard webroot: `/var/www/html/xlxd`
-> - The retired `/var/www/html/xlxd-novo` path is not a clean-install target.
+XLX Modern Installer owns the complete installation orchestration: environment checks, configuration collection, preventive backup, XLXD build, systemd units, Modern Dashboard, Apache/HTTPS, RadioID runtime data, CallingHome, hidden private Admin, validation and recovery logic. It does **not** execute, vendor or call another reflector installer.
 
 Português: [README.pt-BR.md](README.pt-BR.md)
 
+## Actual external sources
+
+Only the software components that are really required are fetched:
+
+- XLXD core: `https://github.com/LX3JL/xlxd.git`, pinned by `modules/40-xlxd.sh`;
+- optional Echo/Parrot: `https://github.com/narspt/XLXEcho.git`, pinned by `modules/50-echo.sh`;
+- Debian packages through APT.
+
+The **XLX Modern Dashboard is shipped inside this repository** and is never cloned from an external dashboard repository.
+
+## Canonical paths
+
+```text
+XLXD runtime:       /xlxd
+XLXD source:        /usr/src/xlxd
+Modern Dashboard:  /var/www/html/xlxd
+Admin config:       /etc/xlx-modern-control
+CallingHome config: /etc/xlx-modern
+Backups:            /var/backups/xlx-reflector
+```
+
+Retired paths such as `/var/www/html/xlxd-novo` and `/var/www/html/xlx-dashboard` are not clean-install targets.
+
 ## Clean installation
-
-A successful clean installation is designed to provide the reviewed PP5PK XLXD core flow, configurable reflector identity, 1–26 modules, configurable YSF port/frequency/auto-link, optional XLX Echo, systemd services, the Modern Dashboard at `/var/www/html/xlxd`, Apache/optional HTTPS, daily RadioID refresh with persistent local corrections, the TX/RX log bridge, dedicated CallingHome, the hidden Admin, and optional APRS/D-PRS / Certificates.
-
-The public package intentionally does not copy XLX026-only Support, ANATEL simulator or News content into other reflectors.
-
-## Reviewed PP5PK base
-
-- repository: `PP5PK/XLX_Installer`
-- reviewed commit: `20b48934505b1939317bf71b30ddc32b1ced0035`
-- upstream `installer.sh` Git blob: `266217ee910742710b9c5c9f30009c8a0f0fcaf7`
-
-The vendored core installer is checked by SHA-256 before use. See [vendor/pp5pk-installer/UPSTREAM.md](vendor/pp5pk-installer/UPSTREAM.md) and [docs/PP5PK-COMPATIBILITY-MATRIX.md](docs/PP5PK-COMPATIBILITY-MATRIX.md).
-
-## Quick start
 
 ```bash
 sudo apt update
@@ -40,16 +43,18 @@ sudo bash install.sh
 
 The real installation requires the explicit confirmation word `INSTALL`.
 
-### Languages
+The installer then independently performs dependency installation, pinned XLXD checkout/build/install, repository-owned systemd setup, optional Echo, the local Modern Dashboard, Apache/optional HTTPS, RadioID/update timer/log bridge, dedicated CallingHome, hidden Admin, optional APRS/D-PRS and final validation.
 
-Without `--lang`, the installer first asks for the installer interface language:
+## Languages
+
+Installer interface:
 
 ```text
 1) Português (Brasil)
 2) English
 ```
 
-It then asks separately for the public dashboard language:
+Public dashboard:
 
 ```text
 1) Português (Brasil)
@@ -60,86 +65,61 @@ It then asks separately for the public dashboard language:
 6) Italiano
 ```
 
-The public dashboard is built/tested in all six languages. The private operational Admin has two complete interfaces: Portuguese (Brazil) and English. For Spanish/French/German/Italian public dashboards, the private Admin uses English instead of a partially translated safety screen.
-
-Use English directly with:
-
-```bash
-sudo bash install.sh --lang=en
-```
+The private operational Admin has two complete audited interfaces: Portuguese (Brazil) and English. Spanish/French/German/Italian public dashboards use the English Admin rather than a partially translated safety interface.
 
 ## Existing XLXD
 
-A full installation is intentionally blocked over an active XLXD installation. Update/reinstall only the Modern dashboard with:
+A full installation refuses to overwrite an active XLXD. Preserve the existing core and install/update only the Modern Dashboard with:
 
 ```bash
 sudo bash install.sh --dashboard-only
 ```
 
-This path preserves the XLXD core and creates a preventive backup.
+## Independent XLXD core
+
+`modules/40-xlxd.sh` fetches the pinned official XLXD source, verifies the exact revision, configures module/YSF build constants, compiles XLXD, installs the native runtime files, configures `xlxd.terminal`, renders the repository-owned systemd unit and validates the resulting process/listeners.
+
+No external installer script participates in this flow.
+
+## Optional Echo / Parrot
+
+`modules/50-echo.sh` independently fetches a pinned XLXEcho revision when Echo is selected, compiles it, installs the local systemd unit and safely manages the native Interlink `ECHO` peer entry. Echo is optional; its absence is not a validation failure when the operator selected no Echo.
+
+## Modern Dashboard
+
+The local `dashboard/` tree is installed directly into `/var/www/html/xlxd`. The universal package intentionally does not distribute XLX026-specific Support, ANATEL simulator or News content to other reflectors.
 
 ## Private Admin
 
-Install or repair it independently with:
+Install/repair it independently with:
 
 ```bash
 sudo bash install-control.sh
 ```
 
-Its canonical dashboard target is `/var/www/html/xlxd`. The route defaults to `admin` but can be renamed. It is hidden from the public menu, sitemap/robots/AI files and known crawlers.
+The route defaults to `admin` and can be renamed. It is not advertised through public navigation or indexing files.
 
-Functions include status/version/SHA/PID, listeners, logs, backups, API tests, password-protected XLXD restart, RadioID search/add/edit/delete/check/refresh, whitelist/blacklist, and native XLX Interlink peer management. There is no generic web terminal or arbitrary shell command.
+Admin capabilities include XLXD status/listeners/logs/backups/tests, password-confirmed restart, RadioID management, whitelist/blacklist and native XLX Interlink peer management. There is no general web terminal or arbitrary shell command.
 
-### XLX Interlink
+Interlink uses `/xlxd/xlxd.interlink` and the native `PEER ADDRESS MODULES` format. Peer changes preserve unrelated lines, create a backup, validate the complete file and publish atomically. XLXD reloads the peer list automatically.
 
-The Admin manages `/xlxd/xlxd.interlink` in the native XLXD format:
+## RadioID and CallingHome
 
-```text
-PEER ADDRESS MODULES
-```
+The runtime layer maintains `/xlxd/users_db/users_base.csv` and `/xlxd/users_db/users.db`, validates candidate databases before publication and reapplies persistent local Admin changes after refreshes.
 
-It changes one peer at a time, preserves unrelated entries/comments, creates a backup, validates the complete file and publishes atomically. XLXD monitors the peer list and reloads it automatically, so an Interlink peer edit normally does not require an XLXD restart.
+CallingHome is implemented by this repository with a protected local configuration and dedicated systemd service/timer, independent of any retired dashboard.
 
-See [control/README.md](control/README.md).
-
-## RadioID
-
-The Modern runtime layer maintains `/xlxd/users_db/users_base.csv` and `/xlxd/users_db/users.db`, publishes a candidate only after SQLite integrity validation, and reapplies local Admin corrections/deletions after upstream refreshes.
-
-## CallingHome
-
-CallingHome is independent from the retired dashboard. The Modern installer deploys a dedicated client/timer using the reflector identity, dashboard URL, XLXD version, country/comment and Interlink list. Temporary failures are retried by systemd.
-
-## Optional APRS/D-PRS
+## Optional modules
 
 ```bash
 sudo bash install.sh --with-aprs-dprs
-```
-
-Or skip it with:
-
-```bash
 sudo bash install.sh --without-aprs-dprs
 ```
 
-## Optional Certificates
+Certificates remain optional and are not part of the standard public installation.
 
-Certificates are **not part of the standard public installation**. They are installed only when explicitly enabled through the supported Certificate workflow.
+## Acceptance
 
-## Network/firewall
+CI validates syntax, translations, canonical paths, independent source pins, Admin privilege boundaries, Interlink atomic changes and RadioID persistence. A clean Debian 12 VPS field test is still required to prove provider firewall/DNS behavior and real D-STAR/DMR/YSF traffic.
 
-The installer cannot prove provider firewall, NAT or DNS reachability from source-level CI. Follow the port/firewall documentation in `docs/` and perform live protocol tests on the clean VPS.
-
-## CI and acceptance
-
-CI validates Bash/Python/PHP/JavaScript syntax, six dashboard locales, PT-BR/English Admin builds, RadioID persistence, restricted privileges, canonical paths, the reviewed PP5PK pin and an end-to-end Interlink write/delete test through the `www-data → sudo → helper` boundary.
-
-CI cannot prove live D-STAR/DMR/YSF traffic or external firewall/DNS behavior. Field acceptance requires a clean Debian 12 VPS installation and real protocol testing.
-
-## Credits
-
-- XLXD: Jean-Luc Deltombe — LX3JL and contributors
-- Base installer: Daniel K. — PP5PK
-- XLX Modern Installer / Modern Dashboard integration: Dario — PU2PNY
-
-See [CREDITS.md](CREDITS.md), [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) and [LICENSE](LICENSE).
+See [ARCHITECTURE.md](ARCHITECTURE.md), [control/README.md](control/README.md) and the documentation under `docs/`.
