@@ -3,7 +3,7 @@ set -Eeuo pipefail
 IFS=$'\n\t'
 umask 077
 
-SOURCE_PANEL="${SOURCE_PANEL:-/var/www/html/xlxd-novo}"
+SOURCE_PANEL="${SOURCE_PANEL:-/var/www/html/xlxd}"
 REPO_DIR="${REPO_DIR:-/root/XLX-Modern-Installer}"
 BACKUP_DIR="${BACKUP_DIR:-/root/xlx-modern-dashboard-backups}"
 STAMP="$(date +%Y%m%d_%H%M%S)"
@@ -26,7 +26,7 @@ git -C "$REPO_DIR" reset --hard origin/main
 
 info "Criando backup do painel atual."
 mkdir -p "$BACKUP_DIR"
-BACKUP_FILE="$BACKUP_DIR/xlxd-novo-$STAMP.tar.gz"
+BACKUP_FILE="$BACKUP_DIR/xlxd-$STAMP.tar.gz"
 tar -C "$(dirname "$SOURCE_PANEL")" -czpf "$BACKUP_FILE" "$(basename "$SOURCE_PANEL")"
 sha256sum "$BACKUP_FILE" > "$BACKUP_FILE.sha256"
 sha256sum -c "$BACKUP_FILE.sha256" >/dev/null
@@ -124,7 +124,7 @@ set -Eeuo pipefail
 IFS=$'\n\t'
 umask 027
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-DEST="${INSTALL_DIR:-/var/www/html/xlx-dashboard}"
+DEST="${INSTALL_DIR:-/var/www/html/xlxd}"
 BACKUPS="${BACKUP_ROOT:-/var/backups/xlx-reflector}"
 ask(){ local n="$1" p="$2" v=""; while [ -z "$v" ]; do read -r -p "$p: " v; done; printf -v "$n" '%s' "$v"; }
 escape(){ printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e "s/'/\\\\'/g"; }

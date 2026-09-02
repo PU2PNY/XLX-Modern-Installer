@@ -5,7 +5,8 @@ CONFIG="${2:-}"
 case "$MODE" in dry-run|plan) ;; *) echo "ERROR: only dry-run mode is enabled in this development build." >&2; exit 20;; esac
 [ -z "$CONFIG" ] || [ -f "$CONFIG" ] || { echo "ERROR: configuration file not found: $CONFIG" >&2; exit 1; }
 [ -z "$CONFIG" ] || source "$CONFIG"
-TARGETS=("${XLX_INSTALL_DIR:-/xlxd}" "${XLX_WEB_ROOT:-/var/www/html/xlxd}" "${XLX_NEW_DASHBOARD_ROOT:-/var/www/html/xlxd-novo}" "/etc/apache2" "/etc/systemd/system" "/etc/nftables.conf")
+WEB_ROOT="${XLX_WEB_ROOT:-${XLX_NEW_DASHBOARD_ROOT:-/var/www/html/xlxd}}"
+TARGETS=("${XLX_INSTALL_DIR:-/xlxd}" "$WEB_ROOT" "/etc/apache2" "/etc/systemd/system" "/etc/nftables.conf")
 echo "mode=DRY_RUN"
 echo "backup_root=/root/xlx-modern-installer-backups/<timestamp>"
 echo "manifest=ENABLED"

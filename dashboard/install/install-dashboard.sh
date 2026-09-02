@@ -4,7 +4,7 @@ IFS=$'\n\t'
 umask 027
 
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-DEST="${INSTALL_DIR:-/var/www/html/xlx-dashboard}"
+DEST="${INSTALL_DIR:-/var/www/html/xlxd}"
 BACKUPS="${BACKUP_ROOT:-/var/backups/xlx-reflector}"
 DASHBOARD_LANG="${DASHBOARD_LANG:-}"
 

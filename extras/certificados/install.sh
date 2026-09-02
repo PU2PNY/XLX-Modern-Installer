@@ -4,7 +4,7 @@ IFS=$'\n\t'
 umask 027
 
 SRC="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-DEST="${XLX_DASHBOARD_DIR:-/var/www/html/xlx-dashboard}"
+DEST="${XLX_DASHBOARD_DIR:-/var/www/html/xlxd}"
 DATA="${XLX_CERT_DATA_DIR:-/var/lib/xlx-certificates}"
 CONF="${XLX_CERT_CONF_DIR:-/etc/xlx-certificates}"
 KEY="${XLX_CERT_KEY_FILE:-$CONF/hmac.key}"

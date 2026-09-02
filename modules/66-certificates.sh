@@ -12,13 +12,13 @@ fatal(){ printf '%s[ERRO]%s %s\n' "$RED" "$RESET" "$*" >&2; exit 1; }
 readonly PROJECT_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 readonly CERT_HOOK_SCRIPT="$PROJECT_ROOT/dashboard/install/ensure-certificate-hook.py"
 readonly CERT_REPOSITORY="PU2PNY/XLX-Certificate-Generator"
-readonly CERT_COMMIT="30722407eb2bd98adab7a67a7bb74ae83859e0e9"
+readonly CERT_COMMIT="b01d1e9b443238f8e45763377dfbf2649f328c3f"
 readonly CERT_INSTALLER_SHA256="7a1e3d6420a590ce24be5774e92cb115dbdf150fb6d0bc53690379360c9363a8"
-readonly CERT_MANIFEST_SHA256="705224e997a7cabecaf7e9e8bcb2683484ea4db43364b17bbacf176df204e44c"
+readonly CERT_MANIFEST_SHA256="015b7a2dd0815c2ec530b2972088fc8d9b7379eda277e5ab53bc22ff41dd93ea"
 readonly VENDOR_ROOT="/opt/xlx-modern-installer/vendor/xlx-certificate-generator"
 
 MODE="install"
-DASHBOARD="${XLX_DASHBOARD_DIR:-/var/www/html/xlx-dashboard}"
+DASHBOARD="${XLX_DASHBOARD_DIR:-/var/www/html/xlxd}"
 SITE_CONFIG=""
 DATA_DIR="${XLX_CERT_DATA_DIR:-}"
 SECRET_FILE="${XLX_CERT_SECRET_FILE:-}"
@@ -52,7 +52,7 @@ XLX Modern — módulo opcional XLX Certificate Generator
 
 Uso:
   sudo bash modules/66-certificates.sh --check
-  sudo bash modules/66-certificates.sh --dashboard-dir=/var/www/html/xlx-dashboard
+  sudo bash modules/66-certificates.sh --dashboard-dir=/var/www/html/xlxd
 
 O módulo baixa um commit fixado do repositório XLX-Certificate-Generator,
 valida SHA-256, manifesto e sintaxe e somente então chama o instalador
@@ -181,11 +181,6 @@ fi
 command -v python3 >/dev/null 2>&1 || fatal "Python 3 é obrigatório para preparar a integração segura de Certificados."
 command -v php >/dev/null 2>&1 || fatal "PHP é obrigatório para validar a integração segura de Certificados."
 
-# The public dashboard intentionally ships without the certificate runtime.
-# Before handing control to the pinned external installer, add a dormant,
-# conditional hook. It changes nothing until certificado-view.php/assets are
-# installed, and it gives the external installer a stable compatibility
-# contract. Restore index.php automatically if the optional install fails.
 HOOK_BACKUP="$(mktemp /var/tmp/xlx-cert-index.before.XXXXXX)"
 cp -a "$DASHBOARD/index.php" "$HOOK_BACKUP"
 index_before="$(sha256sum "$DASHBOARD/index.php" | awk '{print $1}')"

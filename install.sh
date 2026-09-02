@@ -17,7 +17,7 @@ readonly SOURCE_DIR="${WORK_ROOT}/vendor/pp5pk-installer"
 readonly BACKUP_ROOT="/var/backups/xlx-reflector"
 readonly LOG_ROOT="/var/log/xlx-reflector/installer"
 readonly CONFIRMATION="INSTALL"
-readonly DEFAULT_DASHBOARD_DIR="/var/www/html/xlx-dashboard"
+readonly DEFAULT_DASHBOARD_DIR="/var/www/html/xlxd"
 
 MODE="install"
 ALLOW_REMNANTS="no"
@@ -138,8 +138,6 @@ collect_dashboard_inputs() {
 }
 
 select_ui_language() {
-    # --lang=CODE is explicit: it selects the dashboard locale and, when
-    # possible, the matching installer language without another prompt.
     [ -n "$DASHBOARD_LANG" ] && return 0
     [ -t 0 ] || return 0
 
@@ -174,11 +172,8 @@ dashboard_language_name() {
 }
 
 select_dashboard_language() {
-    # A command-line locale is already an explicit dashboard choice.
     [ -n "$DASHBOARD_LANG" ] && return 0
 
-    # Non-interactive runs remain deterministic and use the same language as
-    # the installer UI. Interactive installations always show this choice.
     if [ ! -t 0 ]; then
         DASHBOARD_LANG="$UI_LANG"
         return 0
@@ -212,8 +207,6 @@ select_dashboard_language() {
 }
 
 bootstrap_install_prerequisites() {
-    # A clean supported Debian host should not fail merely because curl or
-    # certificates have not yet been installed. --check remains read-only.
     local package
     local needed=()
     for package in ca-certificates curl git rsync sqlite3; do
@@ -239,7 +232,6 @@ bootstrap_install_prerequisites() {
 
 validate_os() {
     [ -r /etc/os-release ] || fatal "$(msg "/etc/os-release não encontrado." "/etc/os-release was not found.")"
-    # shellcheck disable=SC1091
     source /etc/os-release
     [ "${ID:-}" = "debian" ] || fatal "$(msg "Distribuição não homologada. Use Debian 12." "Unsupported distribution. Use Debian 12.")"
     [ "${VERSION_ID:-}" = "12" ] || fatal "$(msg "Versão não homologada: Debian ${VERSION_ID:-desconhecida}. Use Debian 12." "Unsupported version: Debian ${VERSION_ID:-unknown}. Use Debian 12.")"
@@ -346,15 +338,12 @@ prepare_source() {
     info "$(msg "Fonte local: vendor/pp5pk-installer" "Local source: vendor/pp5pk-installer")"
     info "SHA-256: $actual_hash"
 }
+
 localize_base_installer() {
     local source="$SOURCE_DIR/installer.sh"
     local translated="$SOURCE_DIR/installer.runtime.sh"
 
     cp -- "$source" "$translated"
-    # The upstream installer includes its own legacy XLX Dark Dashboard.
-    # This product must install only the bundled XLX Modern Dashboard.  The
-    # controlled upstream source remains untouched and SHA-256 verified; only
-    # this runtime copy has its legacy dashboard and TLS section disabled.
     local state_hook="$SOURCE_DIR/.xlx-modern-state-hook"
     cat > "$state_hook" <<'HOOK'
 if [ -n "${XLX_MODERN_STATE_FILE:-}" ]; then
@@ -387,8 +376,6 @@ HOOK
 
     [ "$UI_LANG" = "pt-BR" ] || { chmod 700 "$translated"; printf '%s\n' "$translated"; return 0; }
 
-    # The upstream installer is English-only. This runtime-only copy
-    # translates its interactive workflow.
     sed -i \
         -e 's|XLX MULTIPROTOCOL AMATEUR RADIO REFLECTOR INSTALLER PROGRAM|INSTALADOR DO REFLETOR XLX MULTIPROTOCOLO PARA RADIOAMADOR|' \
         -e 's|Next, you will be asked some questions\. Answer with the requested information or, if applicable, to accept the suggested value, press \[ENTER\]|A seguir, responda às perguntas. Quando houver um valor sugerido, pressione [ENTER] para aceitá-lo.|' \
@@ -604,8 +591,6 @@ execute_installer() {
     set -e
     [ "$installer_rc" -eq 0 ] || fatal "$(msg "O instalador base terminou com código $installer_rc. Consulte o log: $logfile" "The base installer exited with code $installer_rc. Check the log: $logfile")"
 
-    # State is produced by the verified root-owned base-installer runtime.
-    # shellcheck disable=SC1090
     source "$state_file"
     [ -n "${DOMAIN:-}" ] || fatal "$(msg "O instalador base não gravou o domínio para validação final." "The base installer did not save the domain for final validation.")"
 
@@ -650,8 +635,6 @@ execute_installer() {
     fi
     [ -x /xlxd/xlxd ] || { warn "$(msg "Binário /xlxd/xlxd ausente." "Binary /xlxd/xlxd is missing.")"; failures=$((failures + 1)); }
 
-    # The modern dashboard is mandatory. Verify deployed files, VirtualHost,
-    # local HTTP(S) response and the public-directory registration timer.
     for required_file in "$dashboard_dest/index.php" "$dashboard_dest/config/site.php" "$dashboard_dest/api/status.php" "$dashboard_dest/api/live.php"; do
         if [ -s "$required_file" ]; then
             ok "$(msg "Arquivo obrigatório do painel encontrado: $required_file" "Required dashboard file found: $required_file")"

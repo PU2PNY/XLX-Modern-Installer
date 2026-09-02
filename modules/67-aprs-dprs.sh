@@ -16,7 +16,7 @@ readonly APRS_MANIFEST_SHA256="2a8e46fc61e6c8b52e121e80b209c12faef0ee42a368e4bb5
 readonly VENDOR_ROOT="/opt/xlx-modern-installer/vendor/xlx-aprs-dprs"
 
 MODE="install"
-DASHBOARD="${XLX_DASHBOARD_DIR:-/var/www/html/xlx-dashboard}"
+DASHBOARD="${XLX_DASHBOARD_DIR:-/var/www/html/xlxd}"
 SOURCE=""
 TEMP_DIR=""
 
@@ -37,7 +37,7 @@ XLX Modern — módulo opcional APRS/D-PRS
 
 Uso:
   sudo bash modules/67-aprs-dprs.sh --check
-  sudo bash modules/67-aprs-dprs.sh --dashboard-dir=/var/www/html/xlx-dashboard
+  sudo bash modules/67-aprs-dprs.sh --dashboard-dir=/var/www/html/xlxd
 
 O módulo baixa um commit fixado do repositório XLX-APRS-DPRS, valida SHA-256,
 manifesto e sintaxe e somente então chama o instalador independente.
@@ -194,8 +194,6 @@ fi
 info "Iniciando instalador independente APRS/D-PRS."
 bash "$SOURCE/install.sh" "${args[@]}"
 
-# Integrate the optional page into the existing public menu without replacing
-# any other navigation entry (including the private Admin link).
 php -r '
 $f=$argv[1];
 $s=file_get_contents($f); if($s===false) exit(2);

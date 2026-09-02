@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-DASH_DEST="${INSTALL_DIR:-/var/www/html/xlx-dashboard}"
+DASH_DEST="${INSTALL_DIR:-/var/www/html/xlxd}"
 CERT_MODE="${XLX_CERTIFICATES_MODE:-no}"
 UI_LANG="${XLX_UI_LANG:-pt-BR}"
 
