@@ -1,62 +1,32 @@
-# 🌐 XLX Modern Installer — Install, Configure and Recover XLX Reflectors on Debian 12
+# XLX Modern Installer
 
-<div align="center">
+A conservative installer and maintenance layer for **XLX reflectors on Debian 12 x86_64**, maintained by **Dario — PU2PNY** and based on the reviewed installer by **Daniel K. — PP5PK**.
 
-![Debian 12](https://img.shields.io/badge/Debian-12-red?logo=debian&logoColor=white)
-![Architecture](https://img.shields.io/badge/Architecture-x86__64-blue)
-![XLX](https://img.shields.io/badge/XLX-D--STAR%20%7C%20DMR%20%7C%20C4FM%2FYSF-00c8ff)
-![Dashboard](https://img.shields.io/badge/Dashboard-Modern-success)
-![Languages](https://img.shields.io/badge/Dashboard-6%20languages-blueviolet)
-![Callsigns](https://img.shields.io/badge/Callsigns-Persistent%20overrides-2ea44f)
-![Certificates](https://img.shields.io/badge/Certificates-QR%20%2B%20HMAC-d4a72c)
-![License](https://img.shields.io/badge/Project-MIT-yellow)
+The project keeps the proven PP5PK XLXD core installation flow and replaces the legacy dashboard/data layer with the XLX Modern Dashboard, persistent RadioID management, a hidden private Admin, dedicated CallingHome, and optional APRS/D-PRS / Certificate modules.
 
-**Installer and maintenance toolkit for XLX reflectors on Debian 12 with pre-flight validation, preventive backup, a modern dashboard, persistent callsign corrections, verifiable participation certificates, internationalization, diagnostics and recovery guidance.**
+> **Canonical paths**
+>
+> - XLXD core, native lists and runtime data: `/xlxd`
+> - Modern dashboard webroot: `/var/www/html/xlxd`
+> - The retired `/var/www/html/xlxd-novo` path is not a clean-install target.
 
-D-STAR • DMR • C4FM/YSF • XLX Echo • Modern Dashboard • Callsigns • Certificates • Debian 12
+Português: [README.pt-BR.md](README.pt-BR.md)
 
-🇺🇸 **English** | 🇧🇷 [Português](README.md) | 📚 [Documentation](docs/README.md)
+## Clean installation
 
-</div>
+A successful clean installation is designed to provide the reviewed PP5PK XLXD core flow, configurable reflector identity, 1–26 modules, configurable YSF port/frequency/auto-link, optional XLX Echo, systemd services, the Modern Dashboard at `/var/www/html/xlxd`, Apache/optional HTTPS, daily RadioID refresh with persistent local corrections, the TX/RX log bridge, dedicated CallingHome, the hidden Admin, and optional APRS/D-PRS / Certificates.
 
----
+The public package intentionally does not copy XLX026-only Support, ANATEL simulator or News content into other reflectors.
 
-## What is XLX Modern Installer?
+## Reviewed PP5PK base
 
-**XLX Modern Installer** helps deploy, configure, maintain and recover a multi-protocol XLX reflector on Debian 12 x86_64.
+- repository: `PP5PK/XLX_Installer`
+- reviewed commit: `20b48934505b1939317bf71b30ddc32b1ced0035`
+- upstream `installer.sh` Git blob: `266217ee910742710b9c5c9f30009c8a0f0fcaf7`
 
-The project uses the installer maintained by **Daniel K. — PP5PK** as a reviewed technical base and adds operational safety, a modern dashboard, six-language build support, persistent callsign corrections, participation certificates and recovery documentation.
+The vendored core installer is checked by SHA-256 before use. See [vendor/pp5pk-installer/UPSTREAM.md](vendor/pp5pk-installer/UPSTREAM.md) and [docs/PP5PK-COMPATIBILITY-MATRIX.md](docs/PP5PK-COMPATIBILITY-MATRIX.md).
 
-The installer is generic. A new deployment uses the identity supplied by the installer — reflector name/title, domain, country, sysop callsign, YSF ID, DMR TG and other site-specific data — instead of inheriting XLX026 branding.
-
----
-
-## Main features
-
-| Feature | Status | Description |
-|---|:---:|---|
-| Fresh XLX + dashboard installation | ✅ | Installs XLXD and then the modern dashboard |
-| Pre-flight validation | ✅ | Validates Debian, architecture, resources, network and existing installs |
-| Dashboard-only installation | ✅ | Installs/reinstalls the dashboard separately |
-| Live monitor | ✅ | Live transmission monitor and server status |
-| 24-hour activity | ✅ | Recent activity covering the last 24 hours, up to 40 callsigns |
-| Connected stations | ✅ | Callsign, protocol, module, location and activity data |
-| Modules A–E | ✅ | Module structure and access identifiers |
-| Activity ranking | ✅ | Ranking based on server data sources |
-| Six dashboard languages | ✅ | `pt-BR`, `en`, `es`, `fr`, `de`, `it` |
-| Persistent callsign directory | ✅ | Local corrections separated from the upstream/main user database |
-| Callsign aliases | ✅ | Administrative old → new callsign mapping |
-| SQLite safety | ✅ | Backup, integrity check and rollback when refreshing the main database |
-| Participation certificates | ✅ | Activity-based issuance, local QR and HMAC validation |
-| Automatic campaigns | ✅ | Global campaigns plus country-specific campaigns |
-| Preventive backup | ✅ | Protects files before real changes |
-| GitHub CI / public audit | ✅ | Validates Bash, PHP, JavaScript, translations, generic installs, callsigns and certificates |
-
----
-
-# Quick installation
-
-Use a clean **Debian 12 x86_64** VPS/server.
+## Quick start
 
 ```bash
 sudo apt update
@@ -68,308 +38,108 @@ sudo bash install.sh --check
 sudo bash install.sh
 ```
 
-Install with a predefined dashboard language:
+The real installation requires the explicit confirmation word `INSTALL`.
+
+### Languages
+
+Without `--lang`, the installer first asks for the installer interface language:
+
+```text
+1) Português (Brasil)
+2) English
+```
+
+It then asks separately for the public dashboard language:
+
+```text
+1) Português (Brasil)
+2) English
+3) Español
+4) Français
+5) Deutsch
+6) Italiano
+```
+
+The public dashboard is built/tested in all six languages. The private operational Admin has two complete interfaces: Portuguese (Brazil) and English. For Spanish/French/German/Italian public dashboards, the private Admin uses English instead of a partially translated safety screen.
+
+Use English directly with:
 
 ```bash
 sudo bash install.sh --lang=en
 ```
 
-Available languages:
+## Existing XLXD
 
-```text
-pt-BR  en  es  fr  de  it
-```
-
----
-
-# How installation works
-
-The complete flow is:
-
-```text
-PRE-FLIGHT VALIDATION
-    ↓
-PREVENTIVE BACKUP
-    ↓
-XLXD CORE INSTALLATION
-    ↓
-MODERN DASHBOARD
-    ↓
-DASHBOARD POST-INSTALL
-    ↓
-PERSISTENT CALLSIGN DIRECTORY
-    ↓
-CERTIFICATE SYSTEM
-    ↓
-FINAL VALIDATION
-```
-
-The dashboard installer uses the identity configured for the current reflector. Generic builds are tested to avoid fixed strings such as `BR-XLX999` or `XLX999 Brasil`.
-
----
-
-# Modern dashboard
-
-To install or reinstall only the dashboard:
+A full installation is intentionally blocked over an active XLXD installation. Update/reinstall only the Modern dashboard with:
 
 ```bash
-cd /usr/src/XLX-Modern-Installer
-sudo bash modules/60-dashboard-modern.sh
+sudo bash install.sh --dashboard-only
 ```
 
-This flow also installs/checks the persistent callsign directory and certificate module.
+This path preserves the XLXD core and creates a preventive backup.
 
-The installer collects values such as:
+## Private Admin
 
-- reflector identifier, for example `XLX724`;
-- display title;
-- description;
-- sysop callsign;
-- city/region;
-- country;
-- domain;
-- contact email;
-- YSF ID;
-- DMR TG;
-- dashboard language;
-- server timezone;
-- optional reflector anniversary for certificate campaigns.
-
----
-
-# Persistent callsign directory
-
-The main XLX user database remains:
-
-```text
-/xlxd/users_db/users.db
-```
-
-Local corrections are stored separately:
-
-```text
-/var/lib/xlx-user-directory/overrides.db
-```
-
-Examples:
+Install or repair it independently with:
 
 ```bash
-sudo xlx-user-directory --help
-sudo xlx-user-directory lookup N0CALL
-sudo xlx-user-directory set N0CALL "Operator Name" "City, Region"
-sudo xlx-user-directory alias OLDCALL NEWCALL
-sudo xlx-user-directory delete N0CALL
-sudo xlx-user-directory check
-sudo xlx-user-directory refresh
+sudo bash install-control.sh
 ```
 
-`refresh` performs:
+Its canonical dashboard target is `/var/www/html/xlxd`. The route defaults to `admin` but can be renamed. It is hidden from the public menu, sitemap/robots/AI files and known crawlers.
+
+Functions include status/version/SHA/PID, listeners, logs, backups, API tests, password-protected XLXD restart, RadioID search/add/edit/delete/check/refresh, whitelist/blacklist, and native XLX Interlink peer management. There is no generic web terminal or arbitrary shell command.
+
+### XLX Interlink
+
+The Admin manages `/xlxd/xlxd.interlink` in the native XLXD format:
 
 ```text
-BACKUP CURRENT DATABASE
-        ↓
-VALIDATE BACKUP
-        ↓
-RUN XLX USER DATABASE GENERATOR
-        ↓
-PRAGMA integrity_check
-        ↓
-SUCCESS → keep new database
-FAILURE → restore previous database
+PEER ADDRESS MODULES
 ```
 
-Local overrides remain separate and are not removed by `refresh`.
+It changes one peer at a time, preserves unrelated entries/comments, creates a backup, validates the complete file and publishes atomically. XLXD monitors the peer list and reloads it automatically, so an Interlink peer edit normally does not require an XLXD restart.
 
-> Callsign aliases do **not** change what a radio actually transmits. Radio/hotspot programming must still be corrected separately.
+See [control/README.md](control/README.md).
 
-Detailed guide: [docs/CALLSIGNS-CERTIFICATES.en.md](docs/CALLSIGNS-CERTIFICATES.en.md).
+## RadioID
 
----
+The Modern runtime layer maintains `/xlxd/users_db/users_base.csv` and `/xlxd/users_db/users.db`, publishes a candidate only after SQLite integrity validation, and reapplies local Admin corrections/deletions after upstream refreshes.
 
-# Participation certificates
+## CallingHome
 
-User page:
+CallingHome is independent from the retired dashboard. The Modern installer deploys a dedicated client/timer using the reflector identity, dashboard URL, XLXD version, country/comment and Interlink list. Temporary failures are retried by systemd.
 
-```text
-https://YOUR-DOMAIN/certificado.php
+## Optional APRS/D-PRS
+
+```bash
+sudo bash install.sh --with-aprs-dprs
 ```
 
-A certificate is available only when an actual transmission is found during the active campaign period. Being present in the user database alone is not enough.
+Or skip it with:
 
-User flow:
-
-1. Open `certificado.php`.
-2. Enter the callsign.
-3. The server checks eligible activity.
-4. If eligible, a preview is shown.
-5. Issue the certificate.
-6. The server stores the issuance and returns a unique ID and QR code.
-7. The user can print or save as PDF from the browser.
-
-Issuance is unique per:
-
-```text
-campaign + callsign
+```bash
+sudo bash install.sh --without-aprs-dprs
 ```
 
-Issuance records:
+## Optional Certificates
 
-```text
-/var/lib/xlx-certificates/emissoes.jsonl
-```
+Certificates are **not part of the standard public installation**. They are installed only when explicitly enabled through the supported Certificate workflow.
 
-Private HMAC key:
+## Network/firewall
 
-```text
-/etc/xlx-certificates/hmac.key
-```
+The installer cannot prove provider firewall, NAT or DNS reachability from source-level CI. Follow the port/firewall documentation in `docs/` and perform live protocol tests on the clean VPS.
 
-QR codes are generated locally with `qrencode` and point to:
+## CI and acceptance
 
-```text
-/certificado-validar.php?id=...&sig=...
-```
+CI validates Bash/Python/PHP/JavaScript syntax, six dashboard locales, PT-BR/English Admin builds, RadioID persistence, restricted privileges, canonical paths, the reviewed PP5PK pin and an end-to-end Interlink write/delete test through the `www-data → sudo → helper` boundary.
 
-## Campaigns
+CI cannot prove live D-STAR/DMR/YSF traffic or external firewall/DNS behavior. Field acceptance requires a clean Debian 12 VPS installation and real protocol testing.
 
-For all countries:
+## Credits
 
-- daily participation certificate;
-- World Amateur Radio Day — April 18;
-- reflector anniversary week when configured.
+- XLXD: Jean-Luc Deltombe — LX3JL and contributors
+- Base installer: Daniel K. — PP5PK
+- XLX Modern Installer / Modern Dashboard integration: Dario — PU2PNY
 
-Brazil-only campaigns are enabled only when the configured country is Brazil:
-
-- Mother's Day;
-- Father's Day;
-- Brazil Independence Day;
-- Brazilian Amateur Radio Day.
-
-A reflector configured in Portugal or another country does not inherit Brazilian campaigns.
-
-Detailed guide: [docs/CALLSIGNS-CERTIFICATES.en.md](docs/CALLSIGNS-CERTIFICATES.en.md).
-
----
-
-# Important files and persistent data
-
-```text
-/xlxd/
-/xlxd/users_db/users.db
-/etc/systemd/system/xlxd.service
-/etc/systemd/system/xlxecho.service
-/etc/apache2/
-/var/www/html/xlx-dashboard/
-/usr/src/XLX-Modern-Installer/
-/var/lib/xlx-user-directory/overrides.db
-/var/backups/xlx-reflector/callsign-directory/
-/var/lib/xlx-certificates/emissoes.jsonl
-/etc/xlx-certificates/hmac.key
-/var/backups/xlx-reflector/
-/var/log/xlx-reflector/installer/
-```
-
-Do not publish real user databases, override databases, issuance records, HMAC keys, production backups, passwords or tokens.
-
----
-
-# Backup and disaster recovery
-
-A full recovery backup should include the normal XLX files plus:
-
-```text
-/var/lib/xlx-user-directory/
-/var/lib/xlx-certificates/
-/etc/xlx-certificates/
-```
-
-The HMAC key is especially important because previously issued certificates depend on it for future validation.
-
-Recommended workflow:
-
-```text
-DIAGNOSE → INVENTORY → VERIFIED BACKUP → MINIMAL CHANGE → VALIDATE → ROLLBACK
-```
-
----
-
-# Project structure
-
-```text
-XLX-Modern-Installer/
-├── install.sh
-├── README.md
-├── README.en.md
-├── dashboard/
-│   ├── api/
-│   ├── assets/
-│   ├── config/
-│   ├── i18n/
-│   └── install/
-├── extras/
-│   └── certificados/
-├── modules/
-│   ├── 60-dashboard-modern.sh
-│   ├── 65-callsign-directory.sh
-│   └── 66-certificates.sh
-├── tools/
-│   └── xlx-user-directory.sh
-├── docs/
-├── scripts/
-├── tests/
-└── .github/workflows/
-```
-
----
-
-# Documentation
-
-- [Documentation index](docs/README.md)
-- [Callsign directory and certificates](docs/CALLSIGNS-CERTIFICATES.en.md)
-- [Install XLX on Debian 12](docs/INSTALL-XLX-DEBIAN-12.en.md)
-- [Update and recover XLX](docs/UPDATE-RECOVER-XLX.en.md)
-- [Firewall and ports](docs/XLX-FIREWALL-PORTS.en.md)
-- [Files and logs](docs/XLX-FILES-LOGS.en.md)
-- [Post-installation](docs/XLX-POST-INSTALL.en.md)
-- [Internationalization](docs/INTERNATIONALIZATION.md)
-
----
-
-# Security
-
-Never publish:
-
-- passwords or access tokens;
-- private keys;
-- `/etc/xlx-certificates/hmac.key`;
-- real `users.db` or `overrides.db` files;
-- real `emissoes.jsonl` files;
-- production backups;
-- sensitive production logs.
-
-See [SECURITY.md](SECURITY.md).
-
----
-
-# Credits
-
-| Project / resource | Relationship |
-|---|---|
-| [LX3JL/xlxd](https://github.com/LX3JL/xlxd) | XLXD core and protocol reference |
-| [PP5PK/XLX_Installer](https://github.com/PP5PK/XLX_Installer) | Reviewed installer base |
-| [narspt/XLXEcho](https://github.com/narspt/XLXEcho) | Echo/parrot service |
-| [Certbot](https://certbot.eff.org/) | HTTPS certificate tooling |
-| [DVRef](https://dvref.com/) | Related reflector directory/service |
-| **Dario — PU2PNY** | Maintenance, documentation, safety layer and modern dashboard |
-
-See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
-
----
-
-<div align="center">
-
-**XLX Modern Installer — universal installation, modern dashboard, persistent callsign data and verifiable certificates for the amateur-radio community.**
-
-🇧🇷 [Leia em Português](README.md)
-
-</div>
+See [CREDITS.md](CREDITS.md), [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) and [LICENSE](LICENSE).
