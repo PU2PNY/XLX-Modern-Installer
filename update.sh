@@ -33,8 +33,8 @@ XLX Modern Updater — dashboard existente
 
 Uso:
   sudo bash update.sh --check
-  sudo bash update.sh --check --dashboard-dir=/var/www/html/xlxd-novo
-  sudo bash update.sh --apply --dashboard-dir=/var/www/html/xlx-dashboard
+  sudo bash update.sh --check --dashboard-dir=/var/www/html/xlxd
+  sudo bash update.sh --apply --dashboard-dir=/var/www/html/xlxd
 
 Opções:
   --check              Somente pré-validação. É o padrão.
@@ -72,7 +72,7 @@ resolve_dashboard(){
         return
     fi
 
-    for d in /var/www/html/xlx-dashboard /var/www/html/xlxd-novo; do
+    for d in /var/www/html/xlxd /var/www/html/xlx-dashboard; do
         [ -d "$d" ] && candidates+=("$d")
     done
 
@@ -121,10 +121,6 @@ validate_source(){
 
     if command -v node >/dev/null 2>&1; then
         while IFS= read -r -d '' file; do
-            # Template JavaScript may contain installation placeholders that
-            # are deliberately not valid identifier text before rendering.
-            # The fully rendered candidate is validated with node --check in
-            # build_candidate(), so raw template files are deferred here.
             if grep -Eq '\{\{[A-Z0-9_]+\}\}' "$file"; then
                 continue
             fi
@@ -182,9 +178,6 @@ preserve_local_extensions(){
 
     before="$(find "$work" -type f | wc -l | tr -d ' ')"
 
-    # Preserva somente arquivos/caminhos que não existem no candidato do núcleo.
-    # Arquivos gerenciados pelo núcleo continuam vindo da nova versão.
-    # config/site.php fica fora desta cópia porque é tratado e validado acima.
     rsync -a --ignore-existing \
         --exclude='.git/' \
         --exclude='config/site.php' \
@@ -238,9 +231,6 @@ build_candidate(){
         done < <(find "$work/assets" -type f -name '*.js' -print0)
     fi
 
-    # Os catálogos em i18n/locales são fonte de build e preservam placeholders
-    # deliberadamente para futuras compilações. A verificação final deve seguir
-    # a mesma exclusão usada pelo renderizador oficial.
     if grep -REn '\{\{[A-Z0-9_]+\}\}' "$work" \
         --exclude-dir='locales' \
         --include='*.php' --include='*.js' --include='*.css' --include='*.html' \
