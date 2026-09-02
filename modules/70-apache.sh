@@ -5,7 +5,7 @@ case "$MODE" in dry-run|plan) ;; *) echo "ERROR: Apache and SSL changes are bloc
 [ -z "$CONFIG" ] || [ -f "$CONFIG" ] || { echo "ERROR: configuration file not found: $CONFIG" >&2; exit 1; }
 [ -z "$CONFIG" ] || source "$CONFIG"
 DOMAIN="${XLX_DOMAIN:-xlx.example.org}"
-WEB_ROOT="${XLX_NEW_DASHBOARD_ROOT:-/var/www/html/xlxd-novo}"
+WEB_ROOT="${XLX_WEB_ROOT:-${XLX_NEW_DASHBOARD_ROOT:-/var/www/html/xlxd}}"
 ENABLE_HTTPS="${ENABLE_HTTPS:-yes}"
 echo "mode=DRY_RUN"
 echo "domain=$DOMAIN"
