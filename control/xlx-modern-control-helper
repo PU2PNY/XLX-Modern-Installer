@@ -115,7 +115,7 @@ case "${1:-}" in
     exec "$RADIO_HELPER" delete "$2" "$3"
     ;;
 
-  access-status)
+  access-status|interlink-status)
     [[ "$#" -eq 1 ]] || exit 64
     [[ -x "$ACCESS_HELPER" ]] || { echo 'ERRO: helper de acesso indisponível' >&2; exit 72; }
     exec "$ACCESS_HELPER" status
@@ -125,14 +125,23 @@ case "${1:-}" in
     [[ -x "$ACCESS_HELPER" ]] || { echo 'ERRO: helper de acesso indisponível' >&2; exit 72; }
     exec "$ACCESS_HELPER" "${1#access-}" "$2"
     ;;
-  access-save-terminal|interlink-save)
-    [[ "$#" -eq 3 ]] || exit 64
+  interlink-save)
+    [[ "$#" -eq 4 ]] || exit 64
     [[ -x "$ACCESS_HELPER" ]] || { echo 'ERRO: helper de acesso indisponível' >&2; exit 72; }
-    exec "$ACCESS_HELPER" save-interlink "$2" "$3"
+    exec "$ACCESS_HELPER" save-interlink "$2" "$3" "$4"
+    ;;
+  interlink-delete)
+    [[ "$#" -eq 2 ]] || exit 64
+    [[ -x "$ACCESS_HELPER" ]] || { echo 'ERRO: helper de acesso indisponível' >&2; exit 72; }
+    exec "$ACCESS_HELPER" delete-interlink "$2"
+    ;;
+  access-save-terminal)
+    echo 'ERRO: configuração de terminal foi removida do Admin; use interlink-save' >&2
+    exit 73
     ;;
 
   *)
-    echo "Uso permitido: status|listeners|logs|backups|restart|radioid-*|access-*" >&2
+    echo "Uso permitido: status|listeners|logs|backups|restart|radioid-*|access-*|interlink-*" >&2
     exit 64
     ;;
 esac
