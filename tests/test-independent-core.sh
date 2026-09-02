@@ -17,5 +17,5 @@ grep -Fq 'systemctl enable --now xlxd.service' "$ROOT/modules/40-xlxd.sh"
 grep -Fq 'systemctl enable --now xlxecho.service' "$ROOT/modules/50-echo.sh"
 grep -Fq 'ECHO 127.0.0.1' "$ROOT/modules/50-echo.sh"
 
-bash "$ROOT/tests/test-no-pp5pk-runtime.sh"
+bash "$ROOT/tests/test-no-external-installer.sh"
 echo '[OK] independent XLXD/Echo installation sources and guards validated'
