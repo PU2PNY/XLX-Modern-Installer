@@ -1,7 +1,11 @@
 # Credits and acknowledgements
 
-Special thanks to **Daniel K. — PP5PK**, author and maintainer of [PP5PK/XLX_Installer](https://github.com/PP5PK/XLX_Installer), used as the technical foundation and inspiration for this modified version.
+The **XLX Modern Installer** installation logic, orchestration, dashboard integration, private Admin, validation, backup and recovery layers are maintained independently by **Dario — PU2PNY**.
 
-We also acknowledge **LX3JL**, **N5AMD**, **Narspt**, and the authors and maintainers of dashboards, RadioID databases, libraries and services actually incorporated.
+Third-party software used directly by the installer keeps its own authorship and licensing:
 
-Modified version maintained by **Dario — PU2PNY**.
+- **XLXD** — Jean-Luc Deltombe (LX3JL), Luc Engelmann (LX1IQ) and contributors. Source used by the core build: `https://github.com/LX3JL/xlxd`.
+- **XLXEcho** — Narspt and contributors. Optional Echo/Parrot source: `https://github.com/narspt/XLXEcho`.
+- Debian, Apache, PHP, SQLite, Certbot and the other distribution packages keep their upstream credits and licenses.
+
+No third-party installer is executed, vendored or used as an installation dependency by XLX Modern Installer.
