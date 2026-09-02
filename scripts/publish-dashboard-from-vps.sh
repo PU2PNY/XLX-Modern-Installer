@@ -3,11 +3,11 @@ set -Eeuo pipefail
 IFS=$'\n\t'
 umask 077
 
-SOURCE_PANEL="${SOURCE_PANEL:-/var/www/html/xlxd-novo}"
+SOURCE_PANEL="${SOURCE_PANEL:-/var/www/html/xlxd}"
 REPO_DIR="${REPO_DIR:-/root/XLX-Modern-Installer}"
 BACKUP_DIR="${BACKUP_DIR:-/root/xlx-modern-dashboard-backups}"
 STAMP="$(date +%Y%m%d_%H%M%S)"
-BACKUP_FILE="${BACKUP_DIR}/xlxd-novo-${STAMP}.tar.gz"
+BACKUP_FILE="${BACKUP_DIR}/xlxd-${STAMP}.tar.gz"
 DASHBOARD_DIR="${REPO_DIR}/dashboard"
 REPORT="${REPO_DIR}/dashboard-publication-report.txt"
 
@@ -139,7 +139,7 @@ IFS=$'\n\t'
 umask 027
 
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-DEST="${INSTALL_DIR:-/var/www/html/xlx-dashboard}"
+DEST="${INSTALL_DIR:-/var/www/html/xlxd}"
 BACKUPS="${BACKUP_ROOT:-/var/backups/xlx-reflector}"
 
 ask(){ local n="$1" p="$2" v=""; while [ -z "$v" ]; do read -r -p "$p: " v; done; printf -v "$n" '%s' "$v"; }
