@@ -10,6 +10,8 @@ grep -F 'Welcome to XLX Modern Installer' "$ROOT/locales/en_US.sh" >/dev/null ||
 echo "locales_checked=YES"
 echo "[installation flow]"
 bash "$ROOT/tests/test-install-flow.sh" || failures=$((failures+1))
+echo "[retired paths]"
+bash "$ROOT/tests/test-retired-paths.sh" || failures=$((failures+1))
 echo "[dashboard i18n]"
 bash "$ROOT/tests/test-dashboard-i18n.sh" || failures=$((failures+1))
 echo "[admin i18n]"
