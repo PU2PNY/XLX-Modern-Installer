@@ -1,12 +1,13 @@
 # Third-party licenses
 
-License verification is still in progress.
+This file records license information only for software that XLX Modern Installer actually obtains or uses as an external component.
 
-| Component | Author | License | Verified |
-|---|---|---|---|
-| XLX Reflector | LX3JL | Pending review | No |
-| XLX Installer | PP5PK | Pending review | No |
-| XLX Echo | Pending | Pending review | No |
-| Dashboard | Pending | Pending review | No |
+| Component | Upstream | License status |
+|---|---|---|
+| XLXD | `LX3JL/xlxd` | GPL terms are declared in the upstream source files; retain all upstream notices and terms |
+| XLXEcho | `narspt/XLXEcho` | No standalone LICENSE file is present in the reviewed repository; verify upstream terms before redistribution |
+| Debian/APT packages | Debian and individual upstream projects | Governed by each installed package's license metadata |
 
-No license may be inferred solely from badges or README text.
+The XLX Modern Dashboard, installer orchestration, private Admin and integration code stored in this repository are not copied from an external reflector installer.
+
+No license is inferred solely from a badge or project description. When a third-party component is downloaded during installation, its upstream license remains controlling for that component.
