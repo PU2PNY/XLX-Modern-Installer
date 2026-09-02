@@ -6,6 +6,7 @@ umask 027
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 MODE="${1:-check}"
 CONFIG="${2:-}"
+UI_LANG="${XLX_UI_LANG:-pt-BR}"
 case "$MODE" in check|dry-run|plan|install) ;; *) echo "ERROR: invalid mode: $MODE" >&2; exit 2;; esac
 [[ -z "$CONFIG" || -f "$CONFIG" ]] || { echo "ERROR: configuration file not found: $CONFIG" >&2; exit 1; }
 [[ -z "$CONFIG" ]] || source "$CONFIG"
@@ -23,21 +24,24 @@ YSF_AUTOLINK="${YSF_AUTOLINK:-0}"
 YSF_AUTOLINK_MODULE="${YSF_AUTOLINK_MODULE:-C}"
 LISTEN_IP="${LISTEN_IP:-127.0.0.1}"
 PUBLIC_IP="${PUBLIC_IP:-}"
+SERVICE_FILE="/etc/systemd/system/xlxd.service"
 
-fail(){ printf 'ERROR: %s\n' "$*" >&2; exit 1; }
-valid(){ [[ "$1" =~ $2 ]]; }
+say(){ if [[ "$UI_LANG" == en ]]; then printf '%s' "$2"; else printf '%s' "$1"; fi; }
+info(){ printf '[INFO] %s\n' "$*"; }
+ok(){ printf '[OK] %s\n' "$*"; }
+fail(){ printf '[ERRO] %s\n' "$*" >&2; exit 1; }
 
-valid "$REFLECTOR_NAME" '^XLX[A-Z0-9]{3}$' || fail "invalid reflector name: $REFLECTOR_NAME"
-[[ "$MODULE_COUNT" =~ ^[0-9]+$ && "$MODULE_COUNT" -ge 1 && "$MODULE_COUNT" -le 26 ]] || fail "invalid module count: $MODULE_COUNT"
-[[ "$YSF_PORT" =~ ^[0-9]+$ && "$YSF_PORT" -ge 1 && "$YSF_PORT" -le 65535 ]] || fail "invalid YSF port: $YSF_PORT"
-[[ "$YSF_FREQUENCY" =~ ^[0-9]{9}$ ]] || fail "invalid YSF frequency: $YSF_FREQUENCY"
-[[ "$YSF_AUTOLINK" == 0 || "$YSF_AUTOLINK" == 1 ]] || fail "invalid YSF auto-link flag: $YSF_AUTOLINK"
-[[ "$YSF_AUTOLINK_MODULE" =~ ^[A-Z]$ ]] || fail "invalid YSF auto-link module: $YSF_AUTOLINK_MODULE"
-[[ "$LISTEN_IP" =~ ^[0-9a-fA-F:.]+$ ]] || fail "invalid listen IP: $LISTEN_IP"
+[[ "$REFLECTOR_NAME" =~ ^XLX[0-9]{3}$ ]] || fail "$(say "Identificação inválida: $REFLECTOR_NAME" "Invalid reflector identifier: $REFLECTOR_NAME")"
+[[ "$MODULE_COUNT" =~ ^[0-9]+$ && "$MODULE_COUNT" -ge 1 && "$MODULE_COUNT" -le 26 ]] || fail "$(say "Quantidade de módulos inválida: $MODULE_COUNT" "Invalid module count: $MODULE_COUNT")"
+[[ "$YSF_PORT" =~ ^[0-9]+$ && "$YSF_PORT" -ge 1 && "$YSF_PORT" -le 65535 ]] || fail "$(say "Porta YSF inválida: $YSF_PORT" "Invalid YSF port: $YSF_PORT")"
+[[ "$YSF_FREQUENCY" =~ ^[0-9]{9}$ ]] || fail "$(say "Frequência YSF inválida: $YSF_FREQUENCY" "Invalid YSF frequency: $YSF_FREQUENCY")"
+[[ "$YSF_AUTOLINK" == 0 || "$YSF_AUTOLINK" == 1 ]] || fail "$(say 'Flag de auto-link YSF inválida.' 'Invalid YSF auto-link flag.')"
+[[ "$YSF_AUTOLINK_MODULE" =~ ^[A-Z]$ ]] || fail "$(say 'Módulo de auto-link YSF inválido.' 'Invalid YSF auto-link module.')"
+[[ "$LISTEN_IP" =~ ^[0-9a-fA-F:.]+$ ]] || fail "$(say "IP de escuta inválido: $LISTEN_IP" "Invalid listen IP: $LISTEN_IP")"
 
 module_index=$(( $(printf '%d' "'$YSF_AUTOLINK_MODULE") - 64 ))
 if [[ "$YSF_AUTOLINK" == 1 && ( "$module_index" -lt 1 || "$module_index" -gt "$MODULE_COUNT" ) ]]; then
-  fail "YSF auto-link module $YSF_AUTOLINK_MODULE is outside configured modules A-$(printf "\\$(printf '%03o' $((64+MODULE_COUNT)))")"
+  fail "$(say "Módulo YSF $YSF_AUTOLINK_MODULE está fora da quantidade configurada." "YSF module $YSF_AUTOLINK_MODULE is outside the configured module range.")"
 fi
 
 if [[ "$MODE" != install ]]; then
@@ -58,39 +62,82 @@ if [[ "$MODE" != install ]]; then
   exit 0
 fi
 
-[[ "$(id -u)" -eq 0 ]] || fail 'run as root'
-for command_name in git python3 make g++ systemctl install sha256sum; do
-  command -v "$command_name" >/dev/null 2>&1 || fail "missing command: $command_name"
+[[ "$(id -u)" -eq 0 ]] || fail "$(say 'Execute como root.' 'Run as root.')"
+for command_name in git python3 make g++ systemctl install sha256sum ss pgrep tar; do
+  command -v "$command_name" >/dev/null 2>&1 || fail "$(say "Comando ausente: $command_name" "Missing command: $command_name")"
 done
-[[ -f "$ROOT/runtime/xlxd.service.in" ]] || fail 'missing runtime/xlxd.service.in'
+[[ -f "$ROOT/runtime/xlxd.service.in" ]] || fail "$(say 'Template runtime/xlxd.service.in ausente.' 'runtime/xlxd.service.in is missing.')"
 
 stamp="$(date +%Y%m%d_%H%M%S)"
 backup="$BACKUP_ROOT/$stamp"
 work="$(mktemp -d /tmp/xlx-modern-core.XXXXXX)"
+source_candidate="$work/source"
+service_candidate="$work/xlxd.service"
+PRE_SOURCE=0
+PRE_RUNTIME=0
+PRE_SERVICE=0
+PRE_ACTIVE=0
+MUTATED=0
+SUCCESS=0
+
+[[ -e "$SOURCE_DIR" ]] && PRE_SOURCE=1
+[[ -e "$INSTALL_DIR" ]] && PRE_RUNTIME=1
+[[ -f "$SERVICE_FILE" ]] && PRE_SERVICE=1
+systemctl is-active --quiet xlxd.service 2>/dev/null && PRE_ACTIVE=1 || true
+
 cleanup(){ rm -rf "$work"; }
-trap cleanup EXIT
-install -d -m 0700 "$backup"
+rollback(){
+  local rc="${1:-90}"
+  trap - EXIT
+  set +e
+  printf '[ATENÇÃO] %s\n' "$(say 'Falha detectada; restaurando estado anterior do núcleo XLXD.' 'Failure detected; restoring the previous XLXD core state.')" >&2
+  systemctl stop xlxd.service >/dev/null 2>&1 || true
 
-if [[ -e "$SOURCE_DIR" ]]; then
-  tar -C "$(dirname "$SOURCE_DIR")" -czpf "$backup/source.before.tar.gz" "$(basename "$SOURCE_DIR")"
+  rm -rf "$INSTALL_DIR"
+  if [[ "$PRE_RUNTIME" -eq 1 && -f "$backup/runtime.before.tar.gz" ]]; then
+    tar -C "$(dirname "$INSTALL_DIR")" -xzpf "$backup/runtime.before.tar.gz"
+  fi
+
   rm -rf "$SOURCE_DIR"
+  if [[ "$PRE_SOURCE" -eq 1 && -f "$backup/source.before.tar.gz" ]]; then
+    tar -C "$(dirname "$SOURCE_DIR")" -xzpf "$backup/source.before.tar.gz"
+  fi
+
+  if [[ "$PRE_SERVICE" -eq 1 && -f "$backup/xlxd.service.before" ]]; then
+    cp -a "$backup/xlxd.service.before" "$SERVICE_FILE"
+  else
+    rm -f "$SERVICE_FILE"
+  fi
+  systemctl daemon-reload >/dev/null 2>&1 || true
+  if [[ "$PRE_ACTIVE" -eq 1 && "$PRE_SERVICE" -eq 1 ]]; then
+    systemctl start xlxd.service >/dev/null 2>&1 || true
+  fi
+  cleanup
+  exit "$rc"
+}
+trap 'rc=$?; if [[ $rc -ne 0 && $SUCCESS -ne 1 && $MUTATED -eq 1 ]]; then rollback "$rc"; else cleanup; fi' EXIT
+
+install -d -m 0700 "$backup"
+if [[ "$PRE_SOURCE" -eq 1 ]]; then
+  tar -C "$(dirname "$SOURCE_DIR")" -czpf "$backup/source.before.tar.gz" "$(basename "$SOURCE_DIR")"
+  sha256sum "$backup/source.before.tar.gz" > "$backup/source.before.tar.gz.sha256"
 fi
-if [[ -e "$INSTALL_DIR" ]]; then
+if [[ "$PRE_RUNTIME" -eq 1 ]]; then
   tar -C "$(dirname "$INSTALL_DIR")" -czpf "$backup/runtime.before.tar.gz" "$(basename "$INSTALL_DIR")"
+  sha256sum "$backup/runtime.before.tar.gz" > "$backup/runtime.before.tar.gz.sha256"
 fi
-if [[ -f /etc/systemd/system/xlxd.service ]]; then
-  cp -a /etc/systemd/system/xlxd.service "$backup/xlxd.service.before"
-fi
+[[ "$PRE_SERVICE" -eq 1 ]] && cp -a "$SERVICE_FILE" "$backup/xlxd.service.before"
+info "$(say "Backup do núcleo: $backup" "Core backup: $backup")"
 
-install -d -m 0755 "$(dirname "$SOURCE_DIR")"
-git init -q "$SOURCE_DIR"
-git -C "$SOURCE_DIR" remote add origin "$XLXD_REPOSITORY"
-git -C "$SOURCE_DIR" fetch -q --depth 1 origin "$XLXD_COMMIT"
-git -C "$SOURCE_DIR" checkout -q --detach FETCH_HEAD
-actual_commit="$(git -C "$SOURCE_DIR" rev-parse HEAD)"
-[[ "$actual_commit" == "$XLXD_COMMIT" ]] || fail "XLXD commit mismatch: $actual_commit"
+# Build completely outside production paths first.
+git init -q "$source_candidate"
+git -C "$source_candidate" remote add origin "$XLXD_REPOSITORY"
+git -C "$source_candidate" fetch -q --depth 1 origin "$XLXD_COMMIT"
+git -C "$source_candidate" checkout -q --detach FETCH_HEAD
+actual_commit="$(git -C "$source_candidate" rev-parse HEAD)"
+[[ "$actual_commit" == "$XLXD_COMMIT" ]] || fail "$(say "Commit XLXD divergente: $actual_commit" "XLXD commit mismatch: $actual_commit")"
 
-python3 - "$SOURCE_DIR/src/main.h" "$MODULE_COUNT" "$YSF_PORT" "$YSF_FREQUENCY" "$YSF_AUTOLINK" "$YSF_AUTOLINK_MODULE" <<'PY'
+python3 - "$source_candidate/src/main.h" "$MODULE_COUNT" "$YSF_PORT" "$YSF_FREQUENCY" "$YSF_AUTOLINK" "$YSF_AUTOLINK_MODULE" <<'PY'
 from pathlib import Path
 import re,sys
 path=Path(sys.argv[1])
@@ -99,7 +146,7 @@ s=path.read_text(encoding='utf-8')
 def sub(pattern,repl,label):
     global s
     s2,n=re.subn(pattern,repl,s,count=1,flags=re.M)
-    if n!=1:
+    if n != 1:
         raise SystemExit(f'cannot patch {label}: matches={n}')
     s=s2
 sub(r'^#define RUN_AS_DAEMON\s*$', r'//#define RUN_AS_DAEMON', 'RUN_AS_DAEMON')
@@ -112,15 +159,48 @@ sub(r"^#define YSF_AUTOLINK_MODULE\s+'[A-Z]'.*$", f"#define YSF_AUTOLINK_MODULE 
 path.write_text(s,encoding='utf-8')
 PY
 
-grep -Fq '//#define RUN_AS_DAEMON' "$SOURCE_DIR/src/main.h" || fail 'foreground/systemd mode was not configured'
-grep -Eq "^#define NB_OF_MODULES[[:space:]]+$MODULE_COUNT$" "$SOURCE_DIR/src/main.h" || fail 'module patch validation failed'
+grep -Fqx '//#define RUN_AS_DAEMON' "$source_candidate/src/main.h" || fail "$(say 'Modo foreground para systemd não foi aplicado.' 'Foreground mode for systemd was not applied.')"
+grep -Eq "^#define NB_OF_MODULES[[:space:]]+$MODULE_COUNT$" "$source_candidate/src/main.h" || fail "$(say 'Validação da quantidade de módulos falhou.' 'Module-count validation failed.')"
+grep -Eq "^#define YSF_PORT[[:space:]]+$YSF_PORT[[:space:]]" "$source_candidate/src/main.h" || fail 'YSF_PORT validation failed'
+grep -Eq "^#define YSF_DEFAULT_NODE_TX_FREQ[[:space:]]+$YSF_FREQUENCY[[:space:]]" "$source_candidate/src/main.h" || fail 'YSF TX frequency validation failed'
+grep -Eq "^#define YSF_AUTOLINK_ENABLE[[:space:]]+$YSF_AUTOLINK[[:space:]]" "$source_candidate/src/main.h" || fail 'YSF auto-link validation failed'
 
-make -C "$SOURCE_DIR/src" clean
-make -C "$SOURCE_DIR/src" -j"$(nproc)"
-[[ -x "$SOURCE_DIR/src/xlxd" ]] || fail 'compiled xlxd binary missing'
-sha256sum "$SOURCE_DIR/src/xlxd" > "$backup/xlxd.compiled.sha256"
-make -C "$SOURCE_DIR/src" install
-[[ -x "$INSTALL_DIR/xlxd" ]] || fail 'installed /xlxd/xlxd missing'
+make -C "$source_candidate/src" clean
+make -C "$source_candidate/src" -j"$(nproc)"
+[[ -x "$source_candidate/src/xlxd" ]] || fail "$(say 'Binário XLXD compilado não foi encontrado.' 'Compiled XLXD binary was not found.')"
+sha256sum "$source_candidate/src/xlxd" > "$backup/xlxd.candidate.sha256"
+
+python3 - "$ROOT/runtime/xlxd.service.in" "$service_candidate" "$REFLECTOR_NAME" "$LISTEN_IP" <<'PY'
+from pathlib import Path
+import sys
+src,dst,name,ip=sys.argv[1:]
+s=Path(src).read_text(encoding='utf-8')
+s=s.replace('{{REFLECTOR_NAME}}',name).replace('{{LISTEN_IP}}',ip)
+if '{{' in s or '}}' in s:
+    raise SystemExit('unrendered service placeholder')
+Path(dst).write_text(s,encoding='utf-8')
+PY
+
+grep -Fqx "ExecStart=/xlxd/xlxd $REFLECTOR_NAME $LISTEN_IP 127.0.0.1" "$service_candidate" || fail "$(say 'ExecStart candidato inválido.' 'Invalid candidate ExecStart.')"
+
+# Production mutation starts only after source/build/service candidates pass.
+MUTATED=1
+systemctl stop xlxd.service >/dev/null 2>&1 || true
+install -d -o root -g root -m 0755 "$INSTALL_DIR"
+
+binary_tmp="$INSTALL_DIR/.xlxd.new.$$"
+install -o root -g root -m 0755 "$source_candidate/src/xlxd" "$binary_tmp"
+mv -f "$binary_tmp" "$INSTALL_DIR/xlxd"
+
+for cfg in xlxd.blacklist xlxd.whitelist xlxd.interlink xlxd.terminal; do
+  upstream="$source_candidate/config/$cfg"
+  [[ -f "$upstream" ]] || fail "$(say "Configuração upstream ausente: $cfg" "Upstream configuration missing: $cfg")"
+  if [[ -f "$INSTALL_DIR/$cfg" ]]; then
+    install -o root -g root -m 0644 "$upstream" "$INSTALL_DIR/$cfg.sample"
+  else
+    install -o root -g root -m 0644 "$upstream" "$INSTALL_DIR/$cfg"
+  fi
+done
 
 modules="$(python3 - "$MODULE_COUNT" <<'PY'
 import sys
@@ -128,7 +208,6 @@ n=int(sys.argv[1]); print(''.join(chr(65+i) for i in range(n)))
 PY
 )"
 terminal="$INSTALL_DIR/xlxd.terminal"
-[[ -f "$terminal" ]] || fail 'xlxd.terminal missing after install'
 python3 - "$terminal" "$PUBLIC_IP" "$modules" <<'PY'
 from pathlib import Path
 import sys
@@ -142,37 +221,55 @@ for line in lines:
     if stripped.startswith('modules ') or stripped.startswith('#modules '):
         continue
     out.append(line)
-if public and public!='0.0.0.0': out.append(f'address {public}')
+if public and public != '0.0.0.0':
+    out.append(f'address {public}')
 out.append(f'modules {modules}')
 path.write_text('\n'.join(out).rstrip()+'\n',encoding='utf-8')
 PY
 
-python3 - "$ROOT/runtime/xlxd.service.in" "$work/xlxd.service" "$REFLECTOR_NAME" "$LISTEN_IP" <<'PY'
-from pathlib import Path
-import sys
-src,dst,name,ip=sys.argv[1:]
-s=Path(src).read_text(encoding='utf-8')
-s=s.replace('{{REFLECTOR_NAME}}',name).replace('{{LISTEN_IP}}',ip)
-if '{{' in s: raise SystemExit('unrendered service placeholder')
-Path(dst).write_text(s,encoding='utf-8')
-PY
-install -o root -g root -m 0644 "$work/xlxd.service" /etc/systemd/system/xlxd.service
-install -o root -g root -m 0644 /dev/null /var/log/xlxd.xml
+grep -Fxq "modules $modules" "$terminal" || fail "$(say 'Lista de módulos não foi gravada em xlxd.terminal.' 'Module list was not written to xlxd.terminal.')"
+if [[ -n "$PUBLIC_IP" && "$PUBLIC_IP" != '0.0.0.0' ]]; then
+  grep -Fxq "address $PUBLIC_IP" "$terminal" || fail "$(say 'IP público não foi gravado em xlxd.terminal.' 'Public IP was not written to xlxd.terminal.')"
+fi
+
+service_tmp="$SERVICE_FILE.new.$$"
+install -o root -g root -m 0644 "$service_candidate" "$service_tmp"
+mv -f "$service_tmp" "$SERVICE_FILE"
+
+# Publish the exact audited source tree only after the runtime candidate is ready.
+rm -rf "$SOURCE_DIR"
+install -d -m 0755 "$(dirname "$SOURCE_DIR")"
+mv "$source_candidate" "$SOURCE_DIR"
+
+[[ -e /var/log/xlxd.xml ]] || install -o root -g root -m 0644 /dev/null /var/log/xlxd.xml
+chown root:root /var/log/xlxd.xml
+chmod 0644 /var/log/xlxd.xml
+
 systemctl daemon-reload
-systemctl enable --now xlxd.service
+systemctl enable xlxd.service >/dev/null
+systemctl start xlxd.service
 
 for _ in $(seq 1 30); do
-  systemctl is-active --quiet xlxd.service && [[ "$(pgrep -x xlxd | wc -l)" -eq 1 ]] && break
+  if systemctl is-active --quiet xlxd.service && [[ "$(pgrep -x xlxd | wc -l)" -eq 1 ]]; then
+    break
+  fi
   sleep 1
 done
-systemctl is-active --quiet xlxd.service || fail 'xlxd.service did not become active'
-[[ "$(pgrep -x xlxd | wc -l)" -eq 1 ]] || fail 'unexpected XLXD process count'
+systemctl is-active --quiet xlxd.service || fail "$(say 'xlxd.service não ficou ativo.' 'xlxd.service did not become active.')"
+[[ "$(pgrep -x xlxd | wc -l)" -eq 1 ]] || fail "$(say 'Quantidade inesperada de processos XLXD.' 'Unexpected XLXD process count.')"
 
 for port in 10001 10002 8880 62030 "$YSF_PORT"; do
-  ss -H -lunp 2>/dev/null | grep -E "[:.]${port}[[:space:]].*xlxd" >/dev/null || fail "XLXD UDP listener missing: $port"
+  ss -H -lunp 2>/dev/null | grep -E "[:.]${port}[[:space:]].*xlxd" >/dev/null || fail "$(say "Listener UDP XLXD ausente: $port" "Missing XLXD UDP listener: $port")"
 done
 
+[[ "$(git -C "$SOURCE_DIR" rev-parse HEAD)" == "$XLXD_COMMIT" ]] || fail "$(say 'Fonte publicada não corresponde ao commit fixado.' 'Published source does not match the pinned commit.')"
 sha256sum "$INSTALL_DIR/xlxd" > "$backup/xlxd.installed.sha256"
+
+SUCCESS=1
+MUTATED=0
+trap - EXIT
+cleanup
+ok "$(say 'Núcleo XLXD instalado e validado de forma independente.' 'XLXD core installed and validated independently.')"
 echo "XLXD_SOURCE_REPOSITORY=$XLXD_REPOSITORY"
 echo "XLXD_SOURCE_COMMIT=$XLXD_COMMIT"
 echo "XLXD_BINARY_SHA256=$(sha256sum "$INSTALL_DIR/xlxd" | awk '{print $1}')"
