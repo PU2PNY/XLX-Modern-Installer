@@ -9,6 +9,8 @@ I18N_BUILDER="$ROOT/dashboard/i18n/build.php"
 STANDBY_CSS="$ROOT/dashboard/assets/ao-vivo-boxes-v31-radar.css"
 ADMIN_MODULE="$ROOT/modules/69-admin-page.sh"
 ADMIN_BUILDER="$ROOT/modules/68-control-panel.sh"
+ACCESS_HELPER="$ROOT/control/xlx-modern-access-helper"
+CONTROL_HELPER="$ROOT/control/xlx-modern-control-helper"
 
 failures=0
 expect() {
@@ -41,10 +43,19 @@ expect 'callinghome timer is enabled automatically' 'enable --now xlx-callinghom
 expect 'i18n builder processes CSS too' "'css'" "$I18N_BUILDER"
 expect 'standby CSS does not force Portuguese text' 'content:none !important;' "$STANDBY_CSS"
 expect 'Admin route defaults to admin and can be changed' 'Hidden administrative page name [admin]' "$ADMIN_MODULE"
+expect 'Admin defaults to the canonical dashboard path' '/var/www/html/xlxd' "$ADMIN_MODULE"
+expect 'Admin bootstrap defaults to the canonical dashboard path' '/var/www/html/xlxd' "$ADMIN_BUILDER"
 expect 'Admin installation passes the selected language to its builder' 'XLX_UI_LANG="$UI_LANG"' "$ADMIN_MODULE"
 expect 'Admin source is localized for English installations' 'genericize-xlx-control.py INDEX.php [locale]' "$ROOT/control/genericize-xlx-control.py"
+expect 'Admin applies peer-based Interlink patch' 'patch-admin-interlink-v2.py' "$ADMIN_MODULE"
 expect 'Admin temporary route uses the safe admin default' '"$BASE_URL/admin/"' "$ADMIN_BUILDER"
 expect 'Custom Admin slug removes the bootstrap admin route' 'BOOTSTRAP_DIR' "$ADMIN_MODULE"
+expect 'Admin sudoers explicitly permits Interlink save' '$HELPER interlink-save *' "$ADMIN_MODULE"
+expect 'Admin sudoers explicitly permits Interlink delete' '$HELPER interlink-delete *' "$ADMIN_MODULE"
+expect 'Admin bootstrap does not depend on xlxd.terminal' '/xlxd/xlxd.interlink' "$ADMIN_BUILDER"
+expect 'Access helper preserves native peer/address/modules Interlink format' "peer,address,modules=parts[:3]" "$ACCESS_HELPER"
+expect 'Control helper dispatches Interlink save with peer address and modules' 'save-interlink "$2" "$3" "$4"' "$CONTROL_HELPER"
+expect 'Control helper dispatches Interlink deletion by peer' 'delete-interlink "$2"' "$CONTROL_HELPER"
 
 printf 'failures=%d\n' "$failures"
 exit "$failures"
