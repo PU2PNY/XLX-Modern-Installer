@@ -1,0 +1,16 @@
+[Unit]
+Description=XLXD multiprotocol amateur-radio reflector
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/xlxd/xlxd {{REFLECTOR_NAME}} {{LISTEN_IP}} 127.0.0.1
+Restart=on-failure
+RestartSec=3
+KillSignal=SIGTERM
+TimeoutStopSec=15
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
