@@ -7,7 +7,7 @@ UI_LANG="${XLX_UI_LANG:-pt-BR}"
 say(){ if [[ "$UI_LANG" == en ]]; then printf '%s' "$2"; else printf '%s' "$1"; fi; }
 
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-DASHBOARD_DIR="${XLX_DASHBOARD_DIR:-${INSTALL_DIR:-/var/www/html/xlx-dashboard}}"
+DASHBOARD_DIR="${XLX_DASHBOARD_DIR:-${INSTALL_DIR:-/var/www/html/xlxd}}"
 MODE="install"
 
 for arg in "$@"; do
@@ -20,13 +20,13 @@ XLX Modern Private Admin
 
 Uso:
   sudo bash modules/68-control-panel.sh --check
-  sudo bash modules/68-control-panel.sh --dashboard-dir=/var/www/html/xlx-dashboard
+  sudo bash modules/68-control-panel.sh --dashboard-dir=/var/www/html/xlxd
 
 O Admin herda o conjunto funcional validado no XLX026:
   - status, portas, logs, backups e testes;
   - reinício XLXD protegido por senha e confirmação;
   - pesquisa, inclusão, edição, exclusão e atualização da base RadioID;
-  - whitelist, blacklist e rota terminal XLXD;
+  - whitelist, blacklist e gerenciamento de peers XLX Interlink;
   - auditoria, CSRF, rate-limit e sessão segura.
 
 Credenciais:
@@ -56,6 +56,7 @@ CONTROL_DIR="$DASHBOARD_DIR/admin"
 BASE_INDEX="$ROOT/control/xlx026-control-index-radioid-v2.php"
 PATCH_V111="$ROOT/control/patch-xlx026-control-v111.py"
 GENERICIZER="$ROOT/control/genericize-xlx-control.py"
+PATCH_INTERLINK="$ROOT/control/patch-admin-interlink-v2.py"
 SOURCE_HELPER="$ROOT/control/xlx-modern-control-helper"
 SOURCE_RADIO="$ROOT/control/xlx-modern-radioid-helper"
 SOURCE_ACCESS="$ROOT/control/xlx-modern-access-helper"
@@ -71,32 +72,37 @@ require_root(){ [[ "$(id -u)" -eq 0 ]] || { fail 'execute como root'; exit 1; };
 version(){ sed -n 's:.*<Version>\([^<]*\)</Version>.*:\1:p' /var/log/xlxd.xml 2>/dev/null | head -1; }
 
 build_admin_source(){
-  local out="$1"
+  local out="$1" admin_lang='en'
+  [[ "$UI_LANG" == pt || "$UI_LANG" == pt-BR || "$UI_LANG" == pt_BR ]] && admin_lang='pt-BR'
   cp -a "$BASE_INDEX" "$out"
   python3 "$PATCH_V111" "$out"
-  python3 "$GENERICIZER" "$out" "$UI_LANG"
+  python3 "$GENERICIZER" "$out" "$admin_lang"
+  python3 "$PATCH_INTERLINK" "$out" "$admin_lang"
   php -l "$out" >/dev/null
-  grep -Fq "const CTRL_VER='1.3.0'" "$out"
-  grep -Fq 'XLXD Access Control' "$out"
+  grep -Fq "const CTRL_VER='1.4.0'" "$out"
+  { grep -Fq 'XLXD Access Control' "$out" || grep -Fq 'Controle de acesso XLXD' "$out"; }
   grep -Fq "if(\$a==='radioid_save')" "$out"
-  grep -Fq 'Quick links' "$out"
+  grep -Fq "if(\$a==='interlink-save')" "$out"
+  grep -Fq "if(\$a==='interlink-delete')" "$out"
+  grep -Fq 'name="interlink_peer"' "$out"
+  { grep -Fq 'Quick links' "$out" || grep -Fq 'Acesso rápido' "$out"; }
   grep -Fq 'googlebot|bingbot' "$out"
   ! grep -Eq 'xlx026\.net|Controle XLX026|/etc/xlx026-control|/var/lib/xlx026-control' "$out"
 }
 
 validate_sources(){
-  for file in "$BASE_INDEX" "$PATCH_V111" "$GENERICIZER" "$SOURCE_HELPER" "$SOURCE_RADIO" "$SOURCE_ACCESS"; do
+  for file in "$BASE_INDEX" "$PATCH_V111" "$GENERICIZER" "$PATCH_INTERLINK" "$SOURCE_HELPER" "$SOURCE_RADIO" "$SOURCE_ACCESS"; do
     [[ -f "$file" ]] || { fail "fonte do Admin ausente: $file"; exit 3; }
   done
   bash -n "$SOURCE_HELPER"
   bash -n "$SOURCE_RADIO"
   bash -n "$SOURCE_ACCESS"
-  python3 -m py_compile "$PATCH_V111" "$GENERICIZER"
+  python3 -m py_compile "$PATCH_V111" "$GENERICIZER" "$PATCH_INTERLINK"
   local tmp
   tmp="$(mktemp /tmp/xlx-modern-admin-source.XXXXXX.php)"
   build_admin_source "$tmp"
   rm -f "$tmp"
-  grep -Fq 'Uso permitido: status|listeners|logs|backups|restart|radioid-*|access-*' "$SOURCE_HELPER"
+  grep -Fq 'Uso permitido: status|listeners|logs|backups|restart|radioid-*|access-*|interlink-*' "$SOURCE_HELPER"
   ok 'fonte completa do Admin, helpers e sintaxe aprovados'
 }
 
@@ -109,7 +115,7 @@ validate_sources
 if [[ "$MODE" == check ]]; then
   section 'ADMIN XLX MODERN — CHECK'
   ok 'baseline funcional do XLX026 pode ser convertido para instalação genérica'
-  ok 'RadioID, whitelist, blacklist, terminal, auditoria e proteção presentes'
+  ok 'RadioID, whitelist, blacklist, Interlink, auditoria e proteção presentes'
   ok 'nenhuma credencial fixa detectada'
   exit 0
 fi
@@ -121,7 +127,7 @@ SITE_CFG="$DASHBOARD_DIR/config/site.php"
 [[ -x /xlxd/xlxd ]] || { fail 'binário XLXD ausente'; exit 9; }
 systemctl is-active --quiet xlxd.service || { fail 'xlxd.service inativo'; exit 10; }
 [[ "$(pgrep -x xlxd | wc -l)" -eq 1 ]] || { fail 'quantidade de processos XLXD inesperada'; exit 11; }
-for file in /xlxd/xlxd.whitelist /xlxd/xlxd.blacklist /xlxd/xlxd.terminal /xlxd/users_db/users_base.csv /xlxd/users_db/users.db /xlxd/users_db/create_user_db.php; do
+for file in /xlxd/xlxd.whitelist /xlxd/xlxd.blacklist /xlxd/xlxd.interlink /xlxd/users_db/users_base.csv /xlxd/users_db/users.db /xlxd/users_db/create_user_db.php; do
   [[ -f "$file" ]] || { fail "dependência do Admin ausente: $file"; exit 12; }
 done
 
@@ -149,9 +155,6 @@ fi
 
 PASSWORD="${XLX_CONTROL_PASSWORD:-}"
 if [[ -z "$PASSWORD" ]]; then
-  # An interactive typo must never end the full XLX installation. Keep the
-  # operator in this credential step until the password is long enough and
-  # the confirmation matches; no password is printed or persisted here.
   while :; do
     printf '%s' "$(say 'Senha do Admin (mínimo 10 caracteres): ' 'Admin password (minimum 10 characters): ')" >&2
     IFS= read -r -s PASSWORD
@@ -159,7 +162,6 @@ if [[ -z "$PASSWORD" ]]; then
     printf '%s' "$(say 'Repita a senha: ' 'Repeat the password: ')" >&2
     IFS= read -r -s PASSWORD2
     printf '\n' >&2
-
     if [[ ${#PASSWORD} -lt 10 ]]; then
       warn "$(say 'senha deve ter ao menos 10 caracteres; tente novamente.' 'Password must be at least 10 characters; try again.')"
       unset PASSWORD PASSWORD2
@@ -287,7 +289,8 @@ $WEBUSER ALL=(root) NOPASSWD: $HELPER access-add-white *
 $WEBUSER ALL=(root) NOPASSWD: $HELPER access-delete-white *
 $WEBUSER ALL=(root) NOPASSWD: $HELPER access-add-black *
 $WEBUSER ALL=(root) NOPASSWD: $HELPER access-delete-black *
-$WEBUSER ALL=(root) NOPASSWD: $HELPER access-save-terminal *
+$WEBUSER ALL=(root) NOPASSWD: $HELPER interlink-save *
+$WEBUSER ALL=(root) NOPASSWD: $HELPER interlink-delete *
 EOF
 chmod 0440 "$SUDOERS"
 visudo -cf "$SUDOERS" >/dev/null
@@ -300,6 +303,7 @@ sudo -u "$WEBUSER" sudo -n "$HELPER" radioid-status > "$TMP/radioid.json"
 sudo -u "$WEBUSER" sudo -n "$HELPER" access-status > "$TMP/access.json"
 python3 -m json.tool "$TMP/radioid.json" >/dev/null
 python3 -m json.tool "$TMP/access.json" >/dev/null
+php -r '$j=json_decode(file_get_contents($argv[1]),true);exit(is_array($j)&&isset($j["interlink"]["entries"])?0:1);' "$TMP/access.json"
 ok 'www-data limitado à allowlist administrativa validada'
 
 section '6/8 — VALIDAR CREDENCIAL E SEGURANÇA'
@@ -310,12 +314,16 @@ grep -Fq 'googlebot|bingbot' "$CONTROL_DIR/index.php"
 grep -Fq 'session.use_strict_mode' "$CONTROL_DIR/index.php"
 grep -Fq 'fail_login' "$CONTROL_DIR/index.php"
 grep -Fq 'csrf_ok' "$CONTROL_DIR/index.php"
-ok 'credencial, noindex, crawler deny, rate-limit, sessão e CSRF validados'
+grep -Fq "const CTRL_VER='1.4.0'" "$CONTROL_DIR/index.php"
+grep -Fq 'interlink-save' "$CONTROL_DIR/index.php"
+grep -Fq 'interlink-delete' "$CONTROL_DIR/index.php"
+ok 'credencial, noindex, crawler deny, rate-limit, sessão, CSRF e Interlink validados'
 
 section '7/8 — TESTE WEB LOCAL'
 WEB_OK=0
+LOGIN_MARKER="$(say 'Acesso restrito' 'Restricted access')"
 if curl --silent --show-error --insecure --resolve "$DOMAIN:443:127.0.0.1" --connect-timeout 5 --max-time 12 "$BASE_URL/admin/" -o "$TMP/web.html" 2>/dev/null; then
-  if grep -Fq "$TITLE" "$TMP/web.html" && grep -Fq 'Restricted access' "$TMP/web.html"; then WEB_OK=1; fi
+  if grep -Fq "$TITLE" "$TMP/web.html" && grep -Fq "$LOGIN_MARKER" "$TMP/web.html"; then WEB_OK=1; fi
 fi
 if [[ "$WEB_OK" -eq 1 ]]; then
   ok 'tela privada respondeu localmente via HTTPS'
@@ -326,14 +334,15 @@ fi
 section '8/8 — RELATÓRIO'
 cat > "$BACKUP/CONTROL_INSTALL_COMPLETE" <<EOF
 status=CONTROL_INSTALL_OK
-control_version=1.3.0
+control_version=1.4.0
 reflector=$REFLECTOR_NAME
 url=$BASE_URL/admin/
 username=$USERNAME
 password_storage=hash_only
 radioid_admin=yes
 whitelist_blacklist_admin=yes
-terminal_route_admin=yes
+interlink_admin=yes
+terminal_admin=no
 bot_indexing=no
 core_version=$CORE_VERSION
 core_sha=$CORE_SHA
