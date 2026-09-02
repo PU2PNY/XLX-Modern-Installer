@@ -8,6 +8,8 @@ on:
       - 'modules/69-admin-page.sh'
       - 'tools/xlx-modern-users-refresh.sh'
       - 'install-control.sh'
+      - 'tests/test-admin-i18n.sh'
+      - 'tests/test-install-flow.sh'
       - '.github/workflows/control-generic-ci.yml'
   pull_request:
     paths:
@@ -16,6 +18,8 @@ on:
       - 'modules/69-admin-page.sh'
       - 'tools/xlx-modern-users-refresh.sh'
       - 'install-control.sh'
+      - 'tests/test-admin-i18n.sh'
+      - 'tests/test-install-flow.sh'
       - '.github/workflows/control-generic-ci.yml'
 
 permissions:
@@ -38,47 +42,58 @@ jobs:
           bash -n control/xlx-modern-radioid-helper
           bash -n control/xlx-modern-access-helper
           bash -n tools/xlx-modern-users-refresh.sh
-          python3 -m py_compile control/patch-xlx026-control-v111.py control/genericize-xlx-control.py
+          python3 -m py_compile \
+            control/patch-xlx026-control-v111.py \
+            control/genericize-xlx-control.py \
+            control/patch-admin-interlink-v2.py
 
-      - name: Generate the production Admin candidate
+      - name: Generate the production Admin candidates
         shell: bash
         run: |
           set -Eeuo pipefail
-          cp control/xlx026-control-index-radioid-v2.php /tmp/admin.php
-          python3 control/patch-xlx026-control-v111.py /tmp/admin.php
-          python3 control/genericize-xlx-control.py /tmp/admin.php
-          php -l /tmp/admin.php
-          grep -Fq "const CTRL_VER='1.3.0'" /tmp/admin.php
-          grep -Fq 'Restricted access' /tmp/admin.php
-          if grep -Fq 'Acesso restrito' /tmp/admin.php; then
-            echo 'Portuguese login text leaked into the English Admin candidate.' >&2
-            exit 1
-          fi
+          for locale in en pt-BR; do
+            cp control/xlx026-control-index-radioid-v2.php "/tmp/admin-$locale.php"
+            python3 control/patch-xlx026-control-v111.py "/tmp/admin-$locale.php"
+            python3 control/genericize-xlx-control.py "/tmp/admin-$locale.php" "$locale"
+            python3 control/patch-admin-interlink-v2.py "/tmp/admin-$locale.php" "$locale"
+            php -l "/tmp/admin-$locale.php"
+            grep -Fq "const CTRL_VER='1.4.0'" "/tmp/admin-$locale.php"
+          done
+          grep -Fq 'Restricted access' /tmp/admin-en.php
+          grep -Fq 'Acesso restrito' /tmp/admin-pt-BR.php
 
       - name: Generic identity invariants
         shell: bash
         run: |
           set -Eeuo pipefail
-          if grep -En 'https://xlx026\.net|Controle XLX026|/etc/xlx026-control|/var/lib/xlx026-control|/usr/local/sbin/xlx026-control-helper' /tmp/admin.php control/xlx-modern-control-helper control/xlx-modern-radioid-helper control/xlx-modern-access-helper; then
+          if grep -En 'https://xlx026\.net|Controle XLX026|/etc/xlx026-control|/var/lib/xlx026-control|/usr/local/sbin/xlx026-control-helper' \
+            /tmp/admin-en.php /tmp/admin-pt-BR.php \
+            control/xlx-modern-control-helper control/xlx-modern-radioid-helper control/xlx-modern-access-helper; then
             echo 'Production identity leaked into generated generic Admin.' >&2
             exit 1
           fi
-          grep -Fq "/etc/xlx-modern-control/config.php" /tmp/admin.php
-          grep -Fq "/usr/local/sbin/xlx-modern-control-helper" /tmp/admin.php
+          grep -Fq "/etc/xlx-modern-control/config.php" /tmp/admin-en.php
+          grep -Fq "/usr/local/sbin/xlx-modern-control-helper" /tmp/admin-en.php
           grep -Fq 'TITLE="Admin $REFLECTOR_NAME"' modules/68-control-panel.sh
+          if grep -Fq '/var/www/html/xlx-dashboard' modules/68-control-panel.sh modules/69-admin-page.sh install-control.sh; then
+            echo 'Retired dashboard path remains in active Admin installation code.' >&2
+            exit 1
+          fi
+          grep -Fq '/var/www/html/xlxd' modules/68-control-panel.sh
+          grep -Fq '/var/www/html/xlxd' modules/69-admin-page.sh
 
       - name: Hidden route and crawler invariants
         shell: bash
         run: |
           set -Eeuo pipefail
-          grep -Fq 'X-Robots-Tag: noindex, nofollow, noarchive, nosnippet' /tmp/admin.php
-          grep -Fq 'noimageindex' /tmp/admin.php
-          grep -Fq 'googlebot|bingbot' /tmp/admin.php
-          grep -Fq 'http_response_code(404)' /tmp/admin.php
-          grep -Fq 'session.use_strict_mode' /tmp/admin.php
-          grep -Fq "'samesite'=>'Strict'" /tmp/admin.php
-          grep -Fq 'fail_login' /tmp/admin.php
-          grep -Fq 'csrf_ok' /tmp/admin.php
+          grep -Fq 'X-Robots-Tag: noindex, nofollow, noarchive, nosnippet' /tmp/admin-en.php
+          grep -Fq 'noimageindex' /tmp/admin-en.php
+          grep -Fq 'googlebot|bingbot' /tmp/admin-en.php
+          grep -Fq 'http_response_code(404)' /tmp/admin-en.php
+          grep -Fq 'session.use_strict_mode' /tmp/admin-en.php
+          grep -Fq "'samesite'=>'Strict'" /tmp/admin-en.php
+          grep -Fq 'fail_login' /tmp/admin-en.php
+          grep -Fq 'csrf_ok' /tmp/admin-en.php
           if grep -Fq 'xlx-admin-menu-link' modules/69-admin-page.sh; then
             echo 'Legacy public Admin-link injector still present.' >&2
             exit 1
@@ -89,31 +104,46 @@ jobs:
           grep -Fq 'robots.txt' modules/69-admin-page.sh
           grep -Fq 'ai-context.json' modules/69-admin-page.sh
 
+      - name: Admin translation invariants
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          bash tests/test-admin-i18n.sh
+          grep -Fq 'Controle de acesso XLXD' /tmp/admin-pt-BR.php
+          grep -Fq 'Acesso rápido' /tmp/admin-pt-BR.php
+          grep -Fq 'Salvar Interlink' /tmp/admin-pt-BR.php
+          grep -Fq 'XLXD Access Control' /tmp/admin-en.php
+          grep -Fq 'Quick links' /tmp/admin-en.php
+          grep -Fq 'Save Interlink' /tmp/admin-en.php
+
       - name: Generic Admin feature parity invariants
         shell: bash
         run: |
           set -Eeuo pipefail
-          grep -Fq "if(\$a==='radioid_search')" /tmp/admin.php
-          grep -Fq "if(\$a==='radioid_save')" /tmp/admin.php
-          grep -Fq "if(\$a==='radioid_delete')" /tmp/admin.php
-          grep -Fq "if(\$a==='radioid_refresh')" /tmp/admin.php
-          grep -Fq "if(\$a==='radioid_check')" /tmp/admin.php
-          grep -Fq 'XLXD Access Control' /tmp/admin.php
-          grep -Fq 'access-add-white' /tmp/admin.php
-          grep -Fq 'access-delete-white' /tmp/admin.php
-          grep -Fq 'access-add-black' /tmp/admin.php
-          grep -Fq 'access-delete-black' /tmp/admin.php
-          grep -Fq 'interlink-save' /tmp/admin.php
-          grep -Fq 'Quick links' /tmp/admin.php
-          grep -Fq 'Run general tests' /tmp/admin.php
-          grep -Fq 'Restart XLXD' /tmp/admin.php
+          grep -Fq "if(\$a==='radioid_search')" /tmp/admin-en.php
+          grep -Fq "if(\$a==='radioid_save')" /tmp/admin-en.php
+          grep -Fq "if(\$a==='radioid_delete')" /tmp/admin-en.php
+          grep -Fq "if(\$a==='radioid_refresh')" /tmp/admin-en.php
+          grep -Fq "if(\$a==='radioid_check')" /tmp/admin-en.php
+          grep -Fq 'XLXD Access Control' /tmp/admin-en.php
+          grep -Fq 'access-add-white' /tmp/admin-en.php
+          grep -Fq 'access-delete-white' /tmp/admin-en.php
+          grep -Fq 'access-add-black' /tmp/admin-en.php
+          grep -Fq 'access-delete-black' /tmp/admin-en.php
+          grep -Fq "if(\$a==='interlink-save')" /tmp/admin-en.php
+          grep -Fq "if(\$a==='interlink-delete')" /tmp/admin-en.php
+          grep -Fq 'name="interlink_peer"' /tmp/admin-en.php
+          grep -Fq "(\$access['interlink']['entries']??[])" /tmp/admin-en.php
+          grep -Fq 'Quick links' /tmp/admin-en.php
+          grep -Fq 'Run general tests' /tmp/admin-en.php
+          grep -Fq 'Restart XLXD' /tmp/admin-en.php
 
       - name: Credential safety invariants
         shell: bash
         run: |
           set -Eeuo pipefail
           grep -Fq 'password_hash($p,PASSWORD_DEFAULT)' modules/68-control-panel.sh
-          grep -Fq 'password_verify' /tmp/admin.php
+          grep -Fq 'password_verify' /tmp/admin-en.php
           grep -Fq 'Repita a senha:' modules/68-control-panel.sh
           grep -Fq 'senha não será exibida nem persistida em texto puro' modules/68-control-panel.sh
           if grep -En '^PASSWORD=["'"'][^$][^"'"']+["'"']$' modules/68-control-panel.sh; then
@@ -131,15 +161,109 @@ jobs:
           grep -Fq 'NOPASSWD: $HELPER restart' modules/68-control-panel.sh
           grep -Fq 'NOPASSWD: $HELPER radioid-save *' modules/68-control-panel.sh
           grep -Fq 'NOPASSWD: $HELPER access-add-black *' modules/68-control-panel.sh
+          grep -Fq 'NOPASSWD: $HELPER interlink-save *' modules/68-control-panel.sh
+          grep -Fq 'NOPASSWD: $HELPER interlink-delete *' modules/68-control-panel.sh
+          grep -Fq 'NOPASSWD: $HELPER interlink-save *' modules/69-admin-page.sh
+          grep -Fq 'NOPASSWD: $HELPER interlink-delete *' modules/69-admin-page.sh
           if grep -Eq 'NOPASSWD:[[:space:]]+ALL' modules/68-control-panel.sh modules/69-admin-page.sh; then
             echo 'Unrestricted sudo rule detected.' >&2
             exit 1
           fi
-          grep -Fq 'Uso permitido: status|listeners|logs|backups|restart|radioid-*|access-*' control/xlx-modern-control-helper
-          if grep -En '\$_(GET|POST|REQUEST).*cmd|shell_exec\(|passthru\(|proc_open\(|popen\(' /tmp/admin.php; then
+          grep -Fq 'Uso permitido: status|listeners|logs|backups|restart|radioid-*|access-*|interlink-*' control/xlx-modern-control-helper
+          if grep -En '\$_(GET|POST|REQUEST).*cmd|shell_exec\(|passthru\(|proc_open\(|popen\(' /tmp/admin-en.php; then
             echo 'Unsafe web-command execution pattern detected.' >&2
             exit 1
           fi
+
+      - name: Interlink native-format and atomic-update test
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          tmp="$(mktemp -d /tmp/xlx-interlink-ci.XXXXXX)"
+          trap 'rm -rf "$tmp"' EXIT
+          printf '%s\n' '*' > "$tmp/xlxd.whitelist"
+          : > "$tmp/xlxd.blacklist"
+          cat > "$tmp/xlxd.interlink" <<'EOF'
+          # keep this comment
+          ECHO 127.0.0.1 E
+          XLX123 peer.example.net ABC
+          EOF
+          env \
+            XLX_WHITELIST="$tmp/xlxd.whitelist" \
+            XLX_BLACKLIST="$tmp/xlxd.blacklist" \
+            XLX_INTERLINK="$tmp/xlxd.interlink" \
+            XLX_ACCESS_BACKUPS="$tmp/backups" \
+            XLX_CONTROL_STATE="$tmp/state" \
+            XLX_ACCESS_LOCK="$tmp/access.lock" \
+            bash control/xlx-modern-access-helper status > "$tmp/status-before.json"
+          python3 - "$tmp/status-before.json" <<'PY'
+          import json,sys
+          j=json.load(open(sys.argv[1]))
+          assert j['ok'] is True
+          assert j['interlink']['count']==2
+          assert j['interlink']['entries'][0]=={'peer':'ECHO','address':'127.0.0.1','modules':'E'}
+          PY
+          env \
+            XLX_WHITELIST="$tmp/xlxd.whitelist" \
+            XLX_BLACKLIST="$tmp/xlxd.blacklist" \
+            XLX_INTERLINK="$tmp/xlxd.interlink" \
+            XLX_ACCESS_BACKUPS="$tmp/backups" \
+            XLX_CONTROL_STATE="$tmp/state" \
+            XLX_ACCESS_LOCK="$tmp/access.lock" \
+            bash control/xlx-modern-access-helper save-interlink XLX999 192.0.2.99 ABCDE > "$tmp/status-after.json"
+          grep -Fxq '# keep this comment' "$tmp/xlxd.interlink"
+          grep -Fxq 'ECHO 127.0.0.1 E' "$tmp/xlxd.interlink"
+          grep -Fxq 'XLX123 peer.example.net ABC' "$tmp/xlxd.interlink"
+          grep -Fxq 'XLX999 192.0.2.99 ABCDE' "$tmp/xlxd.interlink"
+          find "$tmp/backups" -name SHA256_BEFORE.txt -type f | grep -q .
+          env \
+            XLX_WHITELIST="$tmp/xlxd.whitelist" \
+            XLX_BLACKLIST="$tmp/xlxd.blacklist" \
+            XLX_INTERLINK="$tmp/xlxd.interlink" \
+            XLX_ACCESS_BACKUPS="$tmp/backups" \
+            XLX_CONTROL_STATE="$tmp/state" \
+            XLX_ACCESS_LOCK="$tmp/access.lock" \
+            bash control/xlx-modern-access-helper delete-interlink XLX999 > /dev/null
+          ! grep -Fq 'XLX999 ' "$tmp/xlxd.interlink"
+          grep -Fxq 'ECHO 127.0.0.1 E' "$tmp/xlxd.interlink"
+
+      - name: Interlink sudo dispatch end to end
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          id www-data >/dev/null 2>&1 || sudo useradd --system --no-create-home www-data
+          sudo install -d -m 0755 /xlxd
+          printf '%s\n' '*' | sudo tee /xlxd/xlxd.whitelist >/dev/null
+          sudo touch /xlxd/xlxd.blacklist
+          printf '%s\n' 'ECHO 127.0.0.1 E' | sudo tee /xlxd/xlxd.interlink >/dev/null
+          sudo install -d -m 0750 /etc/xlx-modern-control
+          sudo tee /etc/xlx-modern-control/helper.conf >/dev/null <<'EOF'
+          EXPECTED_SHA="ci"
+          EXPECTED_VERSION="ci"
+          SERVICE="xlxd.service"
+          BIN="/xlxd/xlxd"
+          XML="/var/log/xlxd.xml"
+          LOG="/var/log/xlx.log"
+          BACKUPS="/var/backups/xlx-reflector"
+          EOF
+          sudo install -m 0755 control/xlx-modern-access-helper /usr/local/sbin/xlx-modern-access-helper
+          sudo install -m 0755 control/xlx-modern-control-helper /usr/local/sbin/xlx-modern-control-helper
+          sudo tee /etc/sudoers.d/xlx-modern-control-ci >/dev/null <<'EOF'
+          www-data ALL=(root) NOPASSWD: /usr/local/sbin/xlx-modern-control-helper interlink-save *
+          www-data ALL=(root) NOPASSWD: /usr/local/sbin/xlx-modern-control-helper interlink-delete *
+          EOF
+          sudo chmod 0440 /etc/sudoers.d/xlx-modern-control-ci
+          sudo visudo -cf /etc/sudoers.d/xlx-modern-control-ci
+          sudo -u www-data sudo -n /usr/local/sbin/xlx-modern-control-helper interlink-save XLX998 198.51.100.98 ABC > /tmp/interlink-sudo.json
+          python3 - <<'PY'
+          import json
+          j=json.load(open('/tmp/interlink-sudo.json'))
+          assert any(x['peer']=='XLX998' and x['address']=='198.51.100.98' and x['modules']=='ABC' for x in j['interlink']['entries'])
+          PY
+          grep -Fxq 'ECHO 127.0.0.1 E' /xlxd/xlxd.interlink
+          grep -Fxq 'XLX998 198.51.100.98 ABC' /xlxd/xlxd.interlink
+          sudo -u www-data sudo -n /usr/local/sbin/xlx-modern-control-helper interlink-delete XLX998 >/dev/null
+          ! grep -Fq 'XLX998 ' /xlxd/xlxd.interlink
 
       - name: Access-list safety invariants
         shell: bash
@@ -147,8 +271,9 @@ jobs:
           set -Eeuo pipefail
           grep -Fq 'flock -n 9' control/xlx-modern-access-helper
           grep -Fq 'backup_files' control/xlx-modern-access-helper
-          grep -Fq 'audit' control/xlx-modern-access-helper
+          grep -Fq 'validate_interlink' control/xlx-modern-access-helper
           grep -Fq 'interlink-save' control/xlx-modern-access-helper
+          grep -Fq 'delete-interlink' control/xlx-modern-access-helper
           grep -Fq 'add-white|delete-white|add-black|delete-black' control/xlx-modern-access-helper
 
       - name: RadioID persistence invariants
@@ -161,6 +286,12 @@ jobs:
           grep -Fq 'reapplied local Admin records=' tools/xlx-modern-users-refresh.sh
           grep -Fq 'local_records' tools/xlx-modern-users-refresh.sh
           grep -Fq 'local_deletions' tools/xlx-modern-users-refresh.sh
+
+      - name: Installation flow guardrails
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          bash tests/test-install-flow.sh
 
       - name: Module self-check
         shell: bash
