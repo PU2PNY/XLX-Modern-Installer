@@ -16,6 +16,9 @@ echo "locales_checked=YES"
 echo "[independent core]"
 bash "$ROOT/tests/test-independent-core.sh" || failures=$((failures+1))
 
+echo "[independent CallingHome]"
+bash "$ROOT/tests/test-callinghome.sh" || failures=$((failures+1))
+
 echo "[installation flow]"
 bash "$ROOT/tests/test-install-flow.sh" || failures=$((failures+1))
 
