@@ -2,13 +2,19 @@
 Description=XLX Modern CallingHome registration
 Wants=network-online.target
 After=network-online.target xlxd.service
+Requires=xlxd.service
 ConditionPathExists=/etc/xlx-modern/callinghome.php
+ConditionPathExists=/usr/local/sbin/xlx-modern-callinghome
 
 [Service]
 Type=oneshot
-User=www-data
-Group=www-data
-ExecStart=/usr/bin/php /usr/local/lib/xlx-modern/xlx-callinghome.php
+User=root
+Group=root
+ExecStart=/usr/local/sbin/xlx-modern-callinghome
 NoNewPrivileges=true
 PrivateTmp=true
+PrivateDevices=true
 ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/run/lock /var/lib/xlx-modern-callinghome
+TimeoutStartSec=90
