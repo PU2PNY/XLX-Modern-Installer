@@ -53,6 +53,9 @@ case "${CERT_MODE,,}" in
       CERT_MODE="no"
     fi
     ;;
+  *)
+    fail "XLX_CERTIFICATES_MODE inválido: $CERT_MODE. Use ask, yes ou no." "Invalid XLX_CERTIFICATES_MODE: $CERT_MODE. Use ask, yes, or no."
+    ;;
 esac
 
 if [ "$CERT_MODE" = "yes" ]; then
