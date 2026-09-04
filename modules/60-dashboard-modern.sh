@@ -13,12 +13,17 @@ fail() {
   exit 1
 }
 
-# Runtime data is intentionally independent from the legacy dashboard.
+# Runtime data is intentionally independent from every dashboard implementation.
 # This repairs/installs the callsign database, its daily timer and the
 # TX/RX journal bridge before publishing the dashboard itself.
 bash "$ROOT/modules/64-runtime-data.sh"
 
 bash "$ROOT/dashboard/install/install-dashboard.sh" "$@"
+
+# Reinstall/validate CallingHome through the standalone implementation. This
+# intentionally replaces any dashboard-coupled or legacy per-reflector timer.
+INSTALL_DIR="$DASH_DEST" XLX_UI_LANG="$UI_LANG" bash "$ROOT/modules/63-callinghome.sh" --dashboard-dir="$DASH_DEST"
+
 INSTALL_DIR="$DASH_DEST" bash "$ROOT/dashboard/install/post-install.sh"
 bash "$ROOT/modules/65-callsign-directory.sh"
 
@@ -48,10 +53,6 @@ case "${CERT_MODE,,}" in
       CERT_MODE="no"
     fi
     ;;
-  *)
-    printf '%s\n' "$(say "[ERRO] XLX_CERTIFICATES_MODE inválido: $CERT_MODE. Use ask, yes ou no." "[ERROR] Invalid XLX_CERTIFICATES_MODE: $CERT_MODE. Use ask, yes, or no.")" >&2
-    exit 2
-    ;;
 esac
 
 if [ "$CERT_MODE" = "yes" ]; then
@@ -61,9 +62,8 @@ else
   printf '%s\n' "$(say "[INFO] Certificados não fazem parte da instalação pública padrão." "[INFO] Certificates are not part of the standard public installation.")"
 fi
 
-# Final modern-layer validation. The PP5PK base installs the XLXD core and its
-# native services; this section proves that every component intentionally
-# replaced by the Modern layer is actually available before returning success.
+# Final Modern-layer validation. The independent core installer owns XLXD;
+# this section proves every Modern runtime component before returning success.
 printf '\n%s\n' "$(say '[INFO] Validando a camada moderna completa.' '[INFO] Validating the complete Modern layer.')"
 
 for required in \
@@ -74,6 +74,12 @@ for required in \
   /xlxd/users_db/users.db \
   /usr/local/sbin/xlx-modern-users-refresh \
   /usr/local/sbin/xlx-modern-log-bridge \
+  /usr/local/sbin/xlx-modern-callinghome \
+  /usr/local/lib/xlx-modern/xlx-callinghome.php \
+  /etc/xlx-modern/callinghome.php \
+  /etc/systemd/system/xlx-callinghome.service \
+  /etc/systemd/system/xlx-callinghome.timer \
+  /var/lib/xlx-modern-callinghome/last-success \
   /etc/systemd/system/update_XLX_db.timer \
   /etc/systemd/system/xlx_log.service
  do
@@ -82,8 +88,13 @@ for required in \
 
 systemctl is-active --quiet xlxd.service || fail 'xlxd.service não está ativo.' 'xlxd.service is not active.'
 systemctl is-active --quiet apache2.service || fail 'apache2.service não está ativo.' 'apache2.service is not active.'
+systemctl is-active --quiet xlx-callinghome.timer || fail 'xlx-callinghome.timer não está ativo.' 'xlx-callinghome.timer is not active.'
 systemctl is-active --quiet update_XLX_db.timer || fail 'update_XLX_db.timer não está ativo.' 'update_XLX_db.timer is not active.'
 systemctl is-active --quiet xlx_log.service || fail 'xlx_log.service não está ativo.' 'xlx_log.service is not active.'
+
+if grep -Fq '/var/www/html' /usr/local/sbin/xlx-modern-callinghome /usr/local/lib/xlx-modern/xlx-callinghome.php; then
+  fail 'CallingHome ainda depende do painel.' 'CallingHome still depends on the dashboard.'
+fi
 
 command -v sqlite3 >/dev/null 2>&1 || fail 'sqlite3 não encontrado.' 'sqlite3 was not found.'
 DB_INTEGRITY="$(sqlite3 /xlxd/users_db/users.db 'PRAGMA integrity_check;' 2>/dev/null || true)"
@@ -108,9 +119,10 @@ visudo -cf /etc/sudoers.d/xlx-modern-control >/dev/null || fail 'sudoers do Admi
 
 grep -Fq '/var/www/html/xlxd-novo' "$DASH_DEST/config/site.php" && fail 'Caminho xlxd-novo reapareceu na configuração do painel.' 'xlxd-novo path reappeared in dashboard configuration.' || true
 
-printf '%s\n' "$(say "[OK] Camada moderna validada: painel=$DASH_DEST, módulos=$MODULE_COUNT, RadioID=$DB_ROWS registros, Admin=/$ADMIN_SLUG/." "[OK] Modern layer validated: dashboard=$DASH_DEST, modules=$MODULE_COUNT, RadioID=$DB_ROWS records, Admin=/$ADMIN_SLUG/.")"
+printf '%s\n' "$(say "[OK] Camada moderna validada: painel=$DASH_DEST, módulos=$MODULE_COUNT, RadioID=$DB_ROWS registros, Admin=/$ADMIN_SLUG/, CallingHome=independente." "[OK] Modern layer validated: dashboard=$DASH_DEST, modules=$MODULE_COUNT, RadioID=$DB_ROWS records, Admin=/$ADMIN_SLUG/, CallingHome=independent.")"
 echo 'MODERN_DASHBOARD_STATUS=OK'
 echo "MODERN_DASHBOARD_DIR=$DASH_DEST"
 echo "MODERN_ADMIN_ROUTE=/$ADMIN_SLUG/"
 echo "MODERN_USERS_DB_ROWS=$DB_ROWS"
 echo "MODERN_MODULE_COUNT=$MODULE_COUNT"
+echo 'MODERN_CALLINGHOME=INDEPENDENT'
