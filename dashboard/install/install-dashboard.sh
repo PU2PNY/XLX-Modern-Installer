@@ -287,13 +287,17 @@ esac
 
 REFLECTOR_NAME="$(printf '%s' "$REFLECTOR_NAME" | tr '[:lower:]' '[:upper:]')"
 
-if [[ ! "$REFLECTOR_NAME" =~ ^XLX([0-9]{3})$ ]]; then
-    echo "ERROR / ERRO: reflector identifier must use XLX + 3 digits, example XLX026." >&2
+if [[ ! "$REFLECTOR_NAME" =~ ^XLX([A-Z0-9]{3})$ ]]; then
+    echo "ERROR / ERRO: reflector identifier must use XLX + 3 alphanumeric characters (A-Z/0-9), examples XLX026 or XLXPNY." >&2
     exit 2
 fi
 
 REFLECTOR_NUMBER="${BASH_REMATCH[1]}"
-REFLECTOR_SHORT_NUMBER="$((10#$REFLECTOR_NUMBER))"
+if [[ "$REFLECTOR_NUMBER" =~ ^[0-9]{3}$ ]]; then
+    REFLECTOR_SHORT_NUMBER="$((10#$REFLECTOR_NUMBER))"
+else
+    REFLECTOR_SHORT_NUMBER="$REFLECTOR_NUMBER"
+fi
 
 DOMAIN="$(printf '%s' "$DOMAIN" | tr '[:upper:]' '[:lower:]' | sed -E 's#^https?://##; s#/*$##')"
 if [[ ! "$DOMAIN" =~ ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$ ]]; then
