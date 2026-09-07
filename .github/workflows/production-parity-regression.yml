@@ -1,0 +1,33 @@
+name: Production parity regression
+
+on:
+  pull_request:
+    paths:
+      - 'control/**'
+      - 'modules/**'
+      - 'dashboard/**'
+      - 'tests/regression-production-parity.sh'
+      - '.github/workflows/production-parity-regression.yml'
+  push:
+    branches: [ main ]
+    paths:
+      - 'control/**'
+      - 'modules/**'
+      - 'dashboard/**'
+      - 'tests/regression-production-parity.sh'
+      - '.github/workflows/production-parity-regression.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  parity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install validation tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y php-cli python3 sudo
+      - name: Run production parity regression
+        run: bash tests/regression-production-parity.sh
