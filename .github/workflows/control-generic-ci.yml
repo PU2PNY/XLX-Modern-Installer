@@ -38,17 +38,16 @@ jobs:
           bash -n control/xlx-modern-radioid-helper
           bash -n control/xlx-modern-access-helper
           bash -n tools/xlx-modern-users-refresh.sh
-          python3 -m py_compile control/patch-xlx026-control-v111.py control/genericize-xlx-control.py
+          python3 -m py_compile control/build-admin.py
 
       - name: Generate the production Admin candidate
         shell: bash
         run: |
           set -Eeuo pipefail
-          cp control/xlx026-control-index-radioid-v2.php /tmp/admin.php
-          python3 control/patch-xlx026-control-v111.py /tmp/admin.php
-          python3 control/genericize-xlx-control.py /tmp/admin.php
+          cp control/current-production-admin.php /tmp/admin.php
+          python3 control/build-admin.py /tmp/admin.php en
           php -l /tmp/admin.php
-          grep -Fq "const CTRL_VER='1.3.0'" /tmp/admin.php
+          grep -Fq "const CTRL_VER='1.5.1'" /tmp/admin.php
           grep -Fq 'Restricted access' /tmp/admin.php
           if grep -Fq 'Acesso restrito' /tmp/admin.php; then
             echo 'Portuguese login text leaked into the English Admin candidate.' >&2
@@ -59,7 +58,7 @@ jobs:
         shell: bash
         run: |
           set -Eeuo pipefail
-          if grep -En 'https://xlx026\.net|Controle XLX026|/etc/xlx026-control|/var/lib/xlx026-control|/usr/local/sbin/xlx026-control-helper' /tmp/admin.php control/xlx-modern-control-helper control/xlx-modern-radioid-helper control/xlx-modern-access-helper; then
+          if grep -En '/etc/legacy-control|/var/lib/legacy-control|/usr/local/sbin/legacy-control-helper' /tmp/admin.php control/xlx-modern-control-helper control/xlx-modern-radioid-helper control/xlx-modern-access-helper; then
             echo 'Production identity leaked into generated generic Admin.' >&2
             exit 1
           fi
@@ -103,7 +102,9 @@ jobs:
           grep -Fq 'access-delete-white' /tmp/admin.php
           grep -Fq 'access-add-black' /tmp/admin.php
           grep -Fq 'access-delete-black' /tmp/admin.php
-          grep -Fq 'interlink-save' /tmp/admin.php
+          grep -Fq 'access-interlink-add' /tmp/admin.php
+          grep -Fq 'access-interlink-delete' /tmp/admin.php
+          grep -Fq 'health-status' /tmp/admin.php
           grep -Fq 'Quick links' /tmp/admin.php
           grep -Fq 'Run general tests' /tmp/admin.php
           grep -Fq 'Restart XLXD' /tmp/admin.php
