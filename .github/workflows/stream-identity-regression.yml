@@ -27,7 +27,8 @@ jobs:
         run: php tests/regression-stream-identity.php
       - name: No legacy webroot dependency
         run: |
-          if grep -R --exclude-dir=.git -n '/var/www/html/xlxd-novo' .; then
-            echo 'Legacy xlxd-novo dependency found.' >&2
+          pattern='/var/www/html/'"xlxd"'-novo'
+          if grep -R --exclude-dir=.git --exclude='stream-identity-regression.yml' -n "$pattern" .; then
+            echo 'Legacy alternate webroot dependency found.' >&2
             exit 1
           fi
