@@ -19,7 +19,6 @@ ok 'shell/python syntax'
 grep -Fq 'modules/70-production-parity.sh' "$ROOT/modules/60-dashboard-modern.sh" || fail 'production parity module is not wired into fresh installs/upgrades'
 grep -Fq 'interlink-save *' "$ROOT/modules/70-production-parity.sh" || fail 'interlink sudo authorization missing'
 grep -Fq 'interlink-delete *' "$ROOT/modules/70-production-parity.sh" || fail 'interlink delete sudo authorization missing'
-! grep -Eq 'Terminal XLXD|Terminal SSH' "$ROOT/control/finalize-production-parity-v14.py" || true
 ok 'installer wiring'
 
 # Reproduce the exact Admin build pipeline and then apply the parity finalizer.
@@ -35,15 +34,16 @@ grep -Fq "const CTRL_VER='1.4.0'" "$TMP/admin.php" || fail 'Admin version marker
 grep -Fq 'name="interlink_reflector"' "$TMP/admin.php" || fail 'remote XLX field missing'
 grep -Fq 'name="interlink_address"' "$TMP/admin.php" || fail 'Interlink address field missing'
 grep -Fq 'name="interlink_modules"' "$TMP/admin.php" || fail 'Interlink modules field missing'
-grep -Fq "jr('interlink-save',[$reflector,$address,$modules])" "$TMP/admin.php" || fail 'three-field Interlink dispatch missing'
+grep -Fq "jr('interlink-save',[\$reflector,\$address,\$modules])" "$TMP/admin.php" || fail 'three-field Interlink dispatch missing'
 grep -Fq 'href="/modulos"' "$TMP/admin.php" || fail 'Admin quick-link to Modules missing'
 grep -Fq "'modulos' => 'Modules'" "$TMP/dashboard.php" || fail 'Modules navigation missing'
-grep -Fq "$allowed = ['ao-vivo','modulos','conectados','ranking','refletores'];" "$TMP/dashboard.php" || fail 'Modules route not independent'
-! grep -Fq "if ($page === 'modulos') $page = 'conectados';" "$TMP/dashboard.php" || fail 'legacy Modules-to-Connected redirect still present'
+grep -Fq "\$allowed = ['ao-vivo','modulos','conectados','ranking','refletores'];" "$TMP/dashboard.php" || fail 'Modules route not independent'
+! grep -Fq "if (\$page === 'modulos') \$page = 'conectados';" "$TMP/dashboard.php" || fail 'legacy Modules-to-Connected redirect still present'
 
 python3 - "$TMP/dashboard.php" <<'PY'
 from pathlib import Path
-s=Path(__import__('sys').argv[1]).read_text()
+import sys
+s=Path(sys.argv[1]).read_text()
 a=s.index("<?php elseif ($page === 'conectados'): ?>")
 b=s.index("<?php elseif ($page === 'ranking'): ?>",a)
 chunk=s[a:b]
