@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-DASH_DEST="${INSTALL_DIR:-/var/www/html/xlxd}"
+DEFAULT_DASH_DEST="/var/www/html/xlxd"
+DASH_DEST="${INSTALL_DIR:-$DEFAULT_DASH_DEST}"
 CERT_MODE="${XLX_CERTIFICATES_MODE:-no}"
 UI_LANG="${XLX_UI_LANG:-pt-BR}"
 
@@ -9,37 +10,46 @@ say() {
   if [ "$UI_LANG" = "en" ]; then printf '%s' "$2"; else printf '%s' "$1"; fi
 }
 
+# When updating an existing installation, preserve the active Apache webroot.
+# The standard default remains /var/www/html/xlxd for new installations.
+# No legacy xlxd-novo path is assumed or required.
+if [ "$DASH_DEST" = "$DEFAULT_DASH_DEST" ] && [ ! -d "$DASH_DEST" ] && [ -d /etc/apache2/sites-enabled ]; then
+  detected=""
+  while IFS= read -r candidate; do
+    [ -n "$candidate" ] || continue
+    candidate="${candidate%/}"
+    if [ -f "$candidate/index.php" ] && { [ -f "$candidate/api/status.php" ] || [ -d "$candidate/api" ]; }; then
+      if [ -n "$detected" ] && [ "$detected" != "$candidate" ]; then
+        detected=""
+        break
+      fi
+      detected="$candidate"
+    fi
+  done < <(awk 'tolower($1)=="documentroot" {gsub(/"/,"",$2); print $2}' /etc/apache2/sites-enabled/*.conf 2>/dev/null | sort -u)
+
+  if [ -n "$detected" ]; then
+    DASH_DEST="$detected"
+    printf '%s\n' "$(say "[INFO] Webroot existente detectado pelo Apache: $DASH_DEST" "[INFO] Existing Apache webroot detected: $DASH_DEST")"
+  fi
+fi
+
 # Runtime data is intentionally independent from the legacy dashboard.
-# This repairs/installs the callsign database, its daily timer and the
-# TX/RX journal bridge before publishing the dashboard itself.
 bash "$ROOT/modules/64-runtime-data.sh"
 
-bash "$ROOT/dashboard/install/install-dashboard.sh" "$@"
+INSTALL_DIR="$DASH_DEST" bash "$ROOT/dashboard/install/install-dashboard.sh" "$@"
 INSTALL_DIR="$DASH_DEST" bash "$ROOT/dashboard/install/post-install.sh"
 bash "$ROOT/modules/65-callsign-directory.sh"
 
-# Private administrative page. On a fresh interactive installation this asks:
-# - route name (default: admin)
-# - username
-# - password + confirmation
-# Existing installations reuse the protected credential and route.
 XLX_DASHBOARD_DIR="$DASH_DEST" bash "$ROOT/modules/69-admin-page.sh" --dashboard-dir="$DASH_DEST"
 
 case "${CERT_MODE,,}" in
-  yes|sim|s|y|1|true)
-    CERT_MODE="yes"
-    ;;
-  no|nao|não|n|0|false|"")
-    CERT_MODE="no"
-    ;;
+  yes|sim|s|y|1|true) CERT_MODE="yes" ;;
+  no|nao|não|n|0|false|"") CERT_MODE="no" ;;
   ask)
     if [ -t 0 ]; then
       printf '\n%s' "$(say "Instalar também o módulo opcional de Certificados? [s/N]: " "Install the optional Certificate module too? [y/N]: ")"
       read -r answer || answer=""
-      case "${answer,,}" in
-        s|sim|y|yes) CERT_MODE="yes" ;;
-        *) CERT_MODE="no" ;;
-      esac
+      case "${answer,,}" in s|sim|y|yes) CERT_MODE="yes" ;; *) CERT_MODE="no" ;; esac
     else
       CERT_MODE="no"
     fi
