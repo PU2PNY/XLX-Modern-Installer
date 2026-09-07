@@ -12,7 +12,7 @@ say() {
 
 # When updating an existing installation, preserve the active Apache webroot.
 # The standard default remains /var/www/html/xlxd for new installations.
-# No legacy xlxd-novo path is assumed or required.
+# No alternate historical webroot is assumed or required.
 if [ "$DASH_DEST" = "$DEFAULT_DASH_DEST" ] && [ ! -d "$DASH_DEST" ] && [ -d /etc/apache2/sites-enabled ]; then
   detected=""
   while IFS= read -r candidate; do
@@ -33,13 +33,10 @@ if [ "$DASH_DEST" = "$DEFAULT_DASH_DEST" ] && [ ! -d "$DASH_DEST" ] && [ -d /etc
   fi
 fi
 
-# Runtime data is intentionally independent from the legacy dashboard.
 bash "$ROOT/modules/64-runtime-data.sh"
-
 INSTALL_DIR="$DASH_DEST" bash "$ROOT/dashboard/install/install-dashboard.sh" "$@"
 INSTALL_DIR="$DASH_DEST" bash "$ROOT/dashboard/install/post-install.sh"
 bash "$ROOT/modules/65-callsign-directory.sh"
-
 XLX_DASHBOARD_DIR="$DASH_DEST" bash "$ROOT/modules/69-admin-page.sh" --dashboard-dir="$DASH_DEST"
 
 case "${CERT_MODE,,}" in
