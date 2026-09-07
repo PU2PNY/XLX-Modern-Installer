@@ -7,7 +7,7 @@ O sistema de Certificados foi separado do núcleo do XLX Modern e agora vive no 
 Após o dashboard e o diretório de indicativos serem instalados, o instalador pergunta:
 
 ```text
-Deseja instalar também o módulo opcional de Certificados? [s/N]:
+Os Certificados são instalados por padrão junto com o dashboard moderno.
 ```
 
 Para automação não interativa, defina:

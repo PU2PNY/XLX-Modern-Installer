@@ -1,5 +1,5 @@
 /* ==========================================================
-   XLX026 — TX FINETUNE V6
+   XLXMODERN — TX FINETUNE V6
 
    Ajuste exclusivamente visual.
 
@@ -17,7 +17,7 @@
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-tx-stack-v5
+.xlxmodern-tx-stack-v5
 .tx-card.live.tx-v30{
 
     min-height:154px !important;
@@ -39,7 +39,7 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-tx-stack-v5
+.xlxmodern-tx-stack-v5
 .tx-top{
 
     min-height:18px !important;
@@ -50,7 +50,7 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-tx-stack-v5
+.xlxmodern-tx-stack-v5
 .module-badge{
 
     padding:3px 6px !important;
@@ -62,7 +62,7 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-tx-stack-v5
+.xlxmodern-tx-stack-v5
 .tx-top h3{
 
     font-size:
@@ -83,7 +83,7 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-tx-stack-v5
+.xlxmodern-tx-stack-v5
 .tx-v30-content{
 
     grid-template-columns:
@@ -102,7 +102,7 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-tx-stack-v5
+.xlxmodern-tx-stack-v5
 .tx-v30-person{
 
     grid-template-columns:
@@ -115,7 +115,7 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-tx-stack-v5
+.xlxmodern-tx-stack-v5
 .operator-visual{
 
     width:36px !important;
@@ -128,7 +128,7 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-tx-stack-v5
+.xlxmodern-tx-stack-v5
 .operator-visual img{
 
     width:24px !important;
@@ -138,7 +138,7 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-tx-stack-v5
+.xlxmodern-tx-stack-v5
 .tx-v30-callsign{
 
     font-size:
@@ -148,7 +148,7 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-tx-stack-v5
+.xlxmodern-tx-stack-v5
 .tx-v30-name{
 
     margin-top:1px !important;
@@ -160,12 +160,12 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-tx-stack-v5
+.xlxmodern-tx-stack-v5
 .tx-v30-location,
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-tx-stack-v5
+.xlxmodern-tx-stack-v5
 .tx-v30-country{
 
     margin-top:1px !important;
@@ -181,7 +181,7 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-tech-v5{
+.xlxmodern-tech-v5{
 
     gap:3px !important;
 }
@@ -196,7 +196,7 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-mtr-embedded-v5{
+.xlxmodern-mtr-embedded-v5{
 
     min-height:52px !important;
 
@@ -210,7 +210,7 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-mtr-embedded-v5
+.xlxmodern-mtr-embedded-v5
 .mtr-head{
 
     min-height:13px !important;
@@ -223,7 +223,7 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-mtr-embedded-v5
+.xlxmodern-mtr-embedded-v5
 .mtr-label{
 
     padding:2px 4px !important;
@@ -234,7 +234,7 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-mtr-embedded-v5
+.xlxmodern-mtr-embedded-v5
 .mtr-gateway{
 
     font-size:
@@ -244,7 +244,7 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-mtr-embedded-v5
+.xlxmodern-mtr-embedded-v5
 .mtr-update{
 
     font-size:5px !important;
@@ -255,7 +255,7 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-mtr-embedded-v5
+.xlxmodern-mtr-embedded-v5
 .mtr-metrics{
 
     gap:3px !important;
@@ -264,7 +264,7 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-mtr-embedded-v5
+.xlxmodern-mtr-embedded-v5
 .mtr-metric{
 
     min-height:19px !important;
@@ -275,7 +275,7 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-mtr-embedded-v5
+.xlxmodern-mtr-embedded-v5
 .mtr-metric small{
 
     font-size:5px !important;
@@ -284,7 +284,7 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-mtr-embedded-v5
+.xlxmodern-mtr-embedded-v5
 .mtr-metric b{
 
     font-size:
@@ -296,7 +296,7 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-mtr-embedded-v5
+.xlxmodern-mtr-embedded-v5
 .mtr-graph-row{
 
     min-height:13px !important;
@@ -307,7 +307,7 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-mtr-embedded-v5
+.xlxmodern-mtr-embedded-v5
 .mtr-chart{
 
     height:12px !important;
@@ -318,12 +318,12 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-mtr-embedded-v5
+.xlxmodern-mtr-embedded-v5
 .mtr-quality,
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-mtr-embedded-v5
+.xlxmodern-mtr-embedded-v5
 .mtr-route{
 
     font-size:
@@ -333,12 +333,12 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-mtr-embedded-v5
+.xlxmodern-mtr-embedded-v5
 .mtr-reason,
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-mtr-embedded-v5
+.xlxmodern-mtr-embedded-v5
 .mtr-trend{
 
     font-size:5px !important;
@@ -349,7 +349,7 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-mtr-embedded-v5
+.xlxmodern-mtr-embedded-v5
 .mtr-scale{
 
     height:4px !important;
@@ -367,7 +367,7 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-tech-v5
+.xlxmodern-tech-v5
 .tx-v30-details{
 
     gap:3px !important;
@@ -376,7 +376,7 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-tech-v5
+.xlxmodern-tech-v5
 .tx-v30-details > div{
 
     min-height:34px !important;
@@ -387,7 +387,7 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-tech-v5
+.xlxmodern-tech-v5
 .tx-v30-details small{
 
     margin-bottom:2px !important;
@@ -399,7 +399,7 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-tech-v5
+.xlxmodern-tech-v5
 .tx-v30-details strong{
 
     font-size:
@@ -418,7 +418,7 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-tx-stack-v5
+.xlxmodern-tx-stack-v5
 .spectrum{
 
     height:10px !important;
@@ -432,7 +432,7 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-tx-stack-v5
+.xlxmodern-tx-stack-v5
 .spectrum i{
 
     max-height:8px !important;
@@ -477,7 +477,7 @@ html body[data-page="ao-vivo"]
 
     html body[data-page="ao-vivo"]
     #moduleGrid
-    .xlx026-tx-stack-v5
+    .xlxmodern-tx-stack-v5
     .tx-v30-content{
 
         grid-template-columns:
@@ -492,7 +492,7 @@ html body[data-page="ao-vivo"]
 
     html body[data-page="ao-vivo"]
     #moduleGrid
-    .xlx026-tx-stack-v5
+    .xlxmodern-tx-stack-v5
     .tx-card.live.tx-v30{
 
         min-height:154px !important;
@@ -510,7 +510,7 @@ html body[data-page="ao-vivo"]
 
     html body[data-page="ao-vivo"]
     #moduleGrid
-    .xlx026-tx-stack-v5
+    .xlxmodern-tx-stack-v5
     .tx-v30-content{
 
         grid-template-columns:
@@ -522,7 +522,7 @@ html body[data-page="ao-vivo"]
 
     html body[data-page="ao-vivo"]
     #moduleGrid
-    .xlx026-tx-stack-v5
+    .xlxmodern-tx-stack-v5
     .tx-card.live.tx-v30{
 
         min-height:188px !important;
@@ -531,7 +531,7 @@ html body[data-page="ao-vivo"]
 
     html body[data-page="ao-vivo"]
     #moduleGrid
-    .xlx026-tx-stack-v5
+    .xlxmodern-tx-stack-v5
     .tx-v30-person{
 
         grid-template-columns:
@@ -542,7 +542,7 @@ html body[data-page="ao-vivo"]
 
     html body[data-page="ao-vivo"]
     #moduleGrid
-    .xlx026-tx-stack-v5
+    .xlxmodern-tx-stack-v5
     .operator-visual{
 
         width:28px !important;
@@ -555,7 +555,7 @@ html body[data-page="ao-vivo"]
 
     html body[data-page="ao-vivo"]
     #moduleGrid
-    .xlx026-tx-stack-v5
+    .xlxmodern-tx-stack-v5
     .operator-visual img{
 
         width:19px !important;
@@ -565,7 +565,7 @@ html body[data-page="ao-vivo"]
 
     html body[data-page="ao-vivo"]
     #moduleGrid
-    .xlx026-mtr-embedded-v5{
+    .xlxmodern-mtr-embedded-v5{
 
         min-height:50px !important;
     }
@@ -582,7 +582,7 @@ html body[data-page="ao-vivo"]
 
     html body[data-page="ao-vivo"]
     #moduleGrid
-    .xlx026-tx-stack-v5
+    .xlxmodern-tx-stack-v5
     .tx-card.live.tx-v30{
 
         min-height:0 !important;
@@ -591,7 +591,7 @@ html body[data-page="ao-vivo"]
 
     html body[data-page="ao-vivo"]
     #moduleGrid
-    .xlx026-tx-stack-v5
+    .xlxmodern-tx-stack-v5
     .tx-v30-content{
 
         grid-template-columns:
@@ -606,7 +606,7 @@ html body[data-page="ao-vivo"]
 
     html body[data-page="ao-vivo"]
     #moduleGrid
-    .xlx026-tech-v5
+    .xlxmodern-tech-v5
     .tx-v30-details{
 
         grid-template-columns:

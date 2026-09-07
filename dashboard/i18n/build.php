@@ -37,7 +37,7 @@ $genericMessage = static function (string $text): string {
     return str_replace('{{REFLECTOR_NAME}} Brasil', '{{REFLECTOR_NAME}}', $text);
 };
 
-$allowedExtensions = ['php', 'js', 'css', 'html', 'htm', 'json', 'webmanifest'];
+$allowedExtensions = ['php', 'js', 'html', 'htm'];
 $excludedParts = [
     DIRECTORY_SEPARATOR . 'i18n' . DIRECTORY_SEPARATOR,
     DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'site.php',
@@ -67,6 +67,40 @@ foreach ($routeSlugs as $routeSlug) {
     $routeProtection['"' . $routeSlug . '"'] = '"' . $sentinel . '"';
 }
 $routeRestore = array_flip($routeProtection);
+
+
+/*
+ * Protect technical identifiers before translation. Public copy may contain
+ * words that are also used inside route slugs, asset filenames, element IDs,
+ * CSS classes or form field names. Those values are application contracts and
+ * must never be localized.
+ */
+$protectTechnical = static function (string $text, array &$restore): string {
+    $n = 0;
+    $protect = static function (string $value) use (&$restore, &$n): string {
+        $token = '__XLX_TECH_' . $n++ . '__';
+        $restore[$token] = $value;
+        return $token;
+    };
+
+    // HTML attributes whose values are technical contracts, not visible copy.
+    $text = preg_replace_callback(
+        "~\\b(?:class|id|name|for|type|value|href|src|action|data-[a-z0-9_-]+)=(\"[^\"]*\"|'[^']*')~iu",
+        static function (array $m) use ($protect): string {
+            $eq = strpos($m[0], '=');
+            return substr($m[0], 0, $eq + 1) . $protect(substr($m[0], $eq + 1));
+        },
+        $text
+    ) ?? $text;
+
+    // File/path/URL-like tokens that can also appear inside PHP/JS strings.
+    $text = preg_replace_callback(
+        "~(?:https?://[^\\s\"'<>]+|(?:assets|api|config|flags|install)/[A-Za-z0-9_./?=&%#{}-]+|[A-Za-z0-9_.-]+\\.(?:css|js|php|png|jpe?g|svg|webp|ico|json|sqlite|db|service|timer|socket|sh)(?:\\?[A-Za-z0-9_=&.%#{}-]+)?)~u",
+        static fn(array $m): string => $protect($m[0]),
+        $text
+    ) ?? $text;
+    return $text;
+};
 
 $filesChanged = 0;
 $replacementCount = 0;
@@ -106,22 +140,36 @@ foreach ($iterator as $fileInfo) {
 
     $contents = strtr($contents, $routeProtection);
 
+    $technicalRestore = [];
+    $contents = $protectTechnical($contents, $technicalRestore);
+
     if ($locale !== 'pt-BR') {
+        $replacements = [];
         foreach ($sourceMessages as $key => $sourceText) {
             if (!array_key_exists($key, $targetMessages)) {
                 continue;
             }
-
             $sourceText = $genericMessage((string)$sourceText);
             $translatedText = $genericMessage((string)$targetMessages[$key]);
             if ($sourceText === '' || $sourceText === $translatedText || strlen($sourceText) < 4) {
                 continue;
             }
-
-            $localCount = 0;
-            $contents = str_replace($sourceText, $translatedText, $contents, $localCount);
-            $countForFile += $localCount;
+            $replacements[$sourceText] = $translatedText;
         }
+        // Longest source first prevents partial replacements such as
+        // "País" inside "País não identificado".
+        uksort($replacements, static fn(string $a, string $b): int => strlen($b) <=> strlen($a));
+        $beforeTranslation = $contents;
+        $contents = strtr($contents, $replacements);
+        if ($contents !== $beforeTranslation) {
+            // Exact replacement count is informational only; file integrity is
+            // validated by the post-build tests below.
+            $countForFile++;
+        }
+    }
+
+    if ($technicalRestore) {
+        $contents = strtr($contents, $technicalRestore);
     }
 
     $langCount = 0;

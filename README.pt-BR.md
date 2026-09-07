@@ -1,3 +1,32 @@
+# XLX Modern Installer
+
+Instalador reproduzível para Debian 12 que instala XLXD, painel moderno, Admin privado e APRS/D-PRS integrado. A meta desta versão é reproduzir em um novo refletor as funções validadas em produção, sem publicar identidade, credenciais ou dados privados do servidor de referência.
+
+## Destaques da versão atual
+
+Versão: **v1.2.0**
+
+- Instalador em **Português (Brasil)** ou **English**, escolhido no início.
+- Painel em Português, English, Español, Français, Deutsch ou Italiano.
+- **Ao Vivo**, **Conectados** e **Módulos** são páginas separadas.
+- APRS/D-PRS é incorporado ao próprio repositório e instalado por padrão.
+- Admin privado completo com URL escolhida na instalação e senha mínima de 8 caracteres.
+- QRZ no TX, Gateway/Repetidora, satélite de localização, RadioID, Health e CallingHome.
+- Suporte, Simulado ANATEL e Notícias não fazem parte do pacote público padrão.
+
+Consulte [FEATURES](docs/FEATURES.md) e [CHANGELOG](CHANGELOG.md).
+
+## Instalação rápida
+
+```bash
+git clone https://github.com/PU2PNY/XLX-Modern-Installer.git
+cd XLX-Modern-Installer
+sudo bash install.sh --check
+sudo bash install.sh
+```
+
+---
+
 # 🌐 XLX Modern Installer — Instale, Configure e Recupere um Refletor XLX no Debian 12
 
 <div align="center">
@@ -25,21 +54,9 @@ D-STAR • DMR • C4FM/YSF • XLX Echo • Dashboard moderno • Indicativos �
 
 ## 🖥️ Dashboard real — screenshots
 
-As imagens abaixo são capturas reais do **XLX026 Brasil** usando o XLX Modern Dashboard.
+As imagens abaixo são capturas reais do **servidor de referência** usando o XLX Modern Dashboard.
 
-### Ao vivo, transmissões, MTR, clima e propagação
-
-<p align="center">
-  <img src="docs/screenshots/ao-vivo-xlx026.webp" alt="XLX Modern Dashboard em produção mostrando histórico de transmissões, monitor ao vivo, MTR, estado do servidor, clima e propagação" width="900">
-</p>
-
-### Módulos A–E e identificações de acesso
-
-<p align="center">
-  <img src="docs/screenshots/modulos-xlx026.webp" alt="XLX Modern Dashboard mostrando módulos A a E e identificações de acesso D-STAR, DMR e C4FM/YSF" width="900">
-</p>
-
-> As capturas são exemplos de uma instalação real. O instalador oficial é **universal**: nome, domínio, país, indicativo do responsável, YSF ID, TG DMR e demais dados são definidos por quem instala. Uma nova instalação não herda automaticamente a identidade do XLX026.
+> As capturas são exemplos de uma instalação real. O instalador oficial é **universal**: nome, domínio, país, indicativo do responsável, YSF ID, TG DMR e demais dados são definidos por quem instala. Uma nova instalação não herda automaticamente a identidade do servidor de referência.
 
 ---
 
@@ -49,7 +66,7 @@ O **XLX Modern Installer** foi criado para facilitar a instalação, configuraç
 
 O projeto usa como base técnica revisada o instalador de **Daniel K. — PP5PK** e acrescenta uma camada própria de segurança operacional, dashboard moderno, internacionalização, gerenciamento de indicativos, certificados de participação e documentação de recuperação.
 
-O objetivo é permitir que uma VPS nova seja configurada com a identidade do refletor desejado — por exemplo `XLX724`, `XLX999` ou outro código XLX válido — sem depender de textos ou caminhos fixos do XLX026.
+O objetivo é permitir que uma VPS nova seja configurada com a identidade do refletor desejado — por exemplo `XLX724`, `XLX999` ou outro código XLX válido — sem depender de textos ou caminhos fixos do servidor de referência.
 
 > **Princípio operacional:** diagnosticar antes de alterar, criar backup antes de mudanças, validar depois e manter rollback disponível.
 
@@ -65,7 +82,7 @@ O objetivo é permitir que uma VPS nova seja configurada com a identidade do ref
 | 📡 Ao Vivo | ✅ | Monitor de transmissões com atualização rápida |
 | 🕐 Histórico 24 h | ✅ | Exibe atividade das últimas 24 horas, com até 40 indicativos |
 | 👥 Conectados | ✅ | Exibe estações conectadas, protocolo, módulo, localização e atividade |
-| 🧩 Módulos A–E | ✅ | Visualização dos módulos e identificações de acesso |
+| 🧩 Módulos A–Z | ✅ | Quantidade selecionável, visualização dos módulos e identificações de acesso |
 | 🏆 Ranking | ✅ | Ranking de atividade baseado nos dados do servidor |
 | 🌍 Painel em 6 idiomas | ✅ | `pt-BR`, `en`, `es`, `fr`, `de`, `it` |
 | 👤 Diretório de indicativos | ✅ | Correções locais persistentes sem alterar a base principal |
@@ -153,7 +170,7 @@ SISTEMA DE CERTIFICADOS
 VALIDAÇÕES FINAIS
 ```
 
-O módulo `modules/60-dashboard-modern.sh` instala o dashboard e, na sequência, prepara os recursos integrados de indicativos e certificados.
+O módulo `modules/60-dashboard-modern.sh` instala o dashboard e, na sequência, prepara o diretório persistente de indicativos, o Admin privado e os certificados. A instalação completa via `install.sh` também instala APRS/D-PRS incorporado e a observabilidade operacional.
 
 Durante a configuração do painel são usados dados como:
 
@@ -171,7 +188,7 @@ Durante a configuração do painel são usados dados como:
 - timezone;
 - aniversário opcional do refletor para campanhas de certificados.
 
-A identidade configurada é reutilizada pelo painel e pelos certificados. Isso evita hardcodes como `BR-XLX...`, `XLX026 Brasil` ou domínio fixo em novas instalações.
+A identidade configurada é reutilizada pelo painel e pelos certificados. Isso evita hardcodes como `BR-XLX...`, `servidor de referência` ou domínio fixo em novas instalações.
 
 ---
 
@@ -208,7 +225,7 @@ cd /usr/src/XLX-Modern-Installer
 sudo bash modules/60-dashboard-modern.sh
 ```
 
-O módulo do dashboard também instala/verifica o diretório de indicativos e o sistema de certificados.
+O módulo do dashboard também instala/verifica o diretório de indicativos, o Admin privado e o sistema de certificados. O `install.sh` completo adiciona APRS/D-PRS e observabilidade DMR/YSF/Health.
 
 ## Áreas principais
 
@@ -224,7 +241,7 @@ O módulo do dashboard também instala/verifica o diretório de indicativos e o 
 
 Mostra estações conectadas com dados disponíveis de indicativo, nome, localização, protocolo, módulo, tempo conectado e última atividade.
 
-### Módulos A–E
+### Módulos A–Z
 
 Mostra função, protocolo, identificação e acessos configurados por módulo.
 

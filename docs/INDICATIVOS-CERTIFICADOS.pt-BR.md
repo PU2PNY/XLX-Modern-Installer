@@ -35,7 +35,7 @@ A configuração instalada fica em:
 /var/www/html/xlx-dashboard/config/site.php
 ```
 
-O template público continua genérico. Portanto um servidor configurado como `XLX724` não herda automaticamente nome, domínio ou identidade do XLX026.
+O template público continua genérico. Portanto um servidor configurado como `XLX724` não herda automaticamente nome, domínio ou identidade do servidor de referência.
 
 ## 3. Diretório persistente de indicativos
 

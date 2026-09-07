@@ -1762,11 +1762,11 @@ img {
 
 
 /* ==========================================================
-   XLX026 OFFLINE NEON VERMELHO V1
+   XLXMODERN OFFLINE NEON VERMELHO V1
    Altera exclusivamente a aparência do texto Offline.
    ========================================================== */
 
-@keyframes xlx026-offline-neon-pulse {
+@keyframes xlxmodern-offline-neon-pulse {
     0%,
     100% {
         color: #ff304f;
@@ -1800,12 +1800,12 @@ img {
         0 0 12px rgba(255, 48, 79, 0.58) !important;
 
     animation:
-        xlx026-offline-neon-pulse
+        xlxmodern-offline-neon-pulse
         1.15s ease-in-out infinite !important;
 }
 
 /* ==========================================================
-   XLX026_BOX_TAMANHO_V1
+   XLXMODERN_BOX_TAMANHO_V1
    SOMENTE BOX TRANSMITINDO + STANDBY
    ========================================================== */
 
@@ -1843,11 +1843,11 @@ body[data-page='ao-vivo'] .tx-card.standby .standby-main {
     }
 }
 
-/* FIM XLX026_BOX_TAMANHO_V1 */
+/* FIM XLXMODERN_BOX_TAMANHO_V1 */
 
 
 /* ==========================================================
-   XLX026_TX_BOX_FONTE_V1
+   XLXMODERN_TX_BOX_FONTE_V1
    SOMENTE BOX VERMELHO DE TRANSMISSAO
    ========================================================== */
 
@@ -1890,20 +1890,20 @@ body[data-page='ao-vivo'] .tx-card.live .operator-location b{
     }
 }
 
-/* FIM XLX026_TX_BOX_FONTE_V1 */
+/* FIM XLXMODERN_TX_BOX_FONTE_V1 */
 
 
-/* XLX026_TX_CALLSIGN_SIZE_V2
+/* XLXMODERN_TX_CALLSIGN_SIZE_V2
    SOMENTE INDICATIVO NO BOX VERMELHO */
 body[data-page='ao-vivo'] .tx-card.live .callsign {
     font-size: 26px !important;
 }
 
-/* FIM XLX026_TX_CALLSIGN_SIZE_V2 */
+/* FIM XLXMODERN_TX_CALLSIGN_SIZE_V2 */
 
 
 /* ==========================================================
-   XLX026_TX_V30_LAYOUT_INTERNO_V1
+   XLXMODERN_TX_V30_LAYOUT_INTERNO_V1
 
    ALTERA SOMENTE O CONTEUDO INTERNO DO BOX VERMELHO.
    NAO ALTERA O BOX, STANDBY OU QUALQUER OUTRA AREA.
@@ -2169,7 +2169,7 @@ body[data-page='ao-vivo'] .tx-card.live .callsign {
     }
 }
 
-/* FIM XLX026_TX_V30_LAYOUT_INTERNO_V1 */
+/* FIM XLXMODERN_TX_V30_LAYOUT_INTERNO_V1 */
 
 
 
@@ -2178,7 +2178,7 @@ body[data-page='ao-vivo'] .tx-card.live .callsign {
 
 
 /* ==========================================================
-   XLX026_MENU_NEON_V2
+   XLXMODERN_MENU_NEON_V2
 
    NORMAL    = discreto
    HOVER     = neon verde
@@ -2313,7 +2313,7 @@ body[data-page='ao-vivo'] .tx-card.live .callsign {
         0 0 8px rgba(0,216,255,.85);
 
     animation:
-        xlx026MenuBluePulse 1.8s ease-in-out infinite !important;
+        xlxmodernMenuBluePulse 1.8s ease-in-out infinite !important;
 }
 
 
@@ -2342,7 +2342,7 @@ body[data-page='ao-vivo'] .tx-card.live .callsign {
         0 0 18px rgba(0,216,255,.55) !important;
 
     animation:
-        xlx026MenuBlueDot 1.25s ease-in-out infinite;
+        xlxmodernMenuBlueDot 1.25s ease-in-out infinite;
 }
 
 
@@ -2372,7 +2372,7 @@ body[data-page='ao-vivo'] .tx-card.live .callsign {
    PULSO AZUL
    ---------------------------------------------------------- */
 
-@keyframes xlx026MenuBluePulse{
+@keyframes xlxmodernMenuBluePulse{
 
     0%,100%{
 
@@ -2395,7 +2395,7 @@ body[data-page='ao-vivo'] .tx-card.live .callsign {
 }
 
 
-@keyframes xlx026MenuBlueDot{
+@keyframes xlxmodernMenuBlueDot{
 
     0%,100%{
         opacity:.70;
@@ -2476,12 +2476,12 @@ body[data-page='ao-vivo'] .tx-card.live .callsign {
 }
 
 
-/* FIM XLX026_MENU_NEON_V2 */
+/* FIM XLXMODERN_MENU_NEON_V2 */
 
 
 
 /* ==========================================================
-   XLX026_MENU_CLICK_FIX_V1
+   XLXMODERN_MENU_CLICK_FIX_V1
    SOMENTE CORRECAO DE CLIQUE DO MENU
    ========================================================== */
 
@@ -2547,7 +2547,7 @@ body[data-page='ao-vivo'] .tx-card.live .callsign {
 }
 
 
-/* FIM XLX026_MENU_CLICK_FIX_V1 */
+/* FIM XLXMODERN_MENU_CLICK_FIX_V1 */
 
 
 
@@ -2560,7 +2560,7 @@ body[data-page='ao-vivo'] .tx-card.live .callsign {
 
 
 /* ==========================================================
-   XLX026_MENU_MOBILE_FECHADO_V3
+   XLXMODERN_MENU_MOBILE_FECHADO_V3
 
    OBJETIVO NO MOBILE:
    - menu inicia fechado
@@ -2572,7 +2572,7 @@ body[data-page='ao-vivo'] .tx-card.live .callsign {
    - nao afeta desktop
    ========================================================== */
 
-.xlx026-mobile-togglebar{
+.xlxmodern-mobile-togglebar{
     display:none;
 }
 
@@ -2582,14 +2582,14 @@ body[data-page='ao-vivo'] .tx-card.live .callsign {
        esconde botoes antigos de menu no mobile
        ------------------------------------------------------ */
     .universal-header .menu-toggle,
-    .universal-header .xlx026-mobile-menu-button{
+    .universal-header .xlxmodern-mobile-menu-button{
         display:none !important;
     }
 
     /* ------------------------------------------------------
        botao MENU novo
        ------------------------------------------------------ */
-    .xlx026-mobile-togglebar{
+    .xlxmodern-mobile-togglebar{
         display:flex !important;
 
         grid-column:1 / -1 !important;
@@ -2601,7 +2601,7 @@ body[data-page='ao-vivo'] .tx-card.live .callsign {
         padding:0 !important;
     }
 
-    .xlx026-mobile-togglebar button{
+    .xlxmodern-mobile-togglebar button{
         display:inline-flex !important;
 
         align-items:center !important;
@@ -2645,7 +2645,7 @@ body[data-page='ao-vivo'] .tx-card.live .callsign {
             0 0 7px rgba(0,216,255,.65);
     }
 
-    .xlx026-mobile-togglebar button[aria-expanded="true"]{
+    .xlxmodern-mobile-togglebar button[aria-expanded="true"]{
         border-color:#21eaa0 !important;
 
         background:
@@ -2692,7 +2692,7 @@ body[data-page='ao-vivo'] .tx-card.live .callsign {
     }
 
     /* menu aberto */
-    .universal-header .universal-nav.xlx026-mobile-open-v3{
+    .universal-header .universal-nav.xlxmodern-mobile-open-v3{
         display:flex !important;
     }
 
@@ -2770,7 +2770,7 @@ body[data-page='ao-vivo'] .tx-card.live .callsign {
 
 @media (max-width:520px){
 
-    .xlx026-mobile-togglebar button{
+    .xlxmodern-mobile-togglebar button{
         width:82px !important;
         min-width:82px !important;
 
@@ -2787,13 +2787,13 @@ body[data-page='ao-vivo'] .tx-card.live .callsign {
 }
 
 
-/* FIM XLX026_MENU_MOBILE_FECHADO_V3 */
+/* FIM XLXMODERN_MENU_MOBILE_FECHADO_V3 */
 
 
 /* ==========================================================
-   XLX026_LEGIBILITY_V2_START
+   XLXMODERN_LEGIBILITY_V2_START
 
-   PAINEL XLX026 BRASIL — LEGIBILIDADE RESPONSIVA V2
+   PAINEL XLXMODERN BRASIL — LEGIBILIDADE RESPONSIVA V2
 
    Objetivo:
    - melhorar leitura em notebooks e monitores;
@@ -3071,7 +3071,7 @@ footer > small {
     }
 }
 
-/* XLX026_LEGIBILITY_V2_END */
+/* XLXMODERN_LEGIBILITY_V2_END */
 
 /* XLX_FOOTER_REFINED_V1_START
    Rodapé refinado, visual premium e alinhamento profissional
@@ -3793,7 +3793,7 @@ footer .footer-final-line{
 
 
 
-/* XLX026_CONECTADOS_UNIFICADO_V1 */
+/* XLXMODERN_CONECTADOS_UNIFICADO_V1 */
 body[data-page="conectados"] .connected-stations-heading{margin-top:28px}
 body[data-page="conectados"] .connected-filter-tools{
  display:grid;grid-template-columns:minmax(260px,1fr) 140px 190px;
@@ -3818,11 +3818,11 @@ body[data-page="conectados"] .connected-section-title{margin:0;font-size:32px}
  body[data-page="conectados"] .connected-filter-search{grid-column:auto}
  body[data-page="conectados"] .connected-section-title{font-size:28px}
 }
-/* /XLX026_CONECTADOS_UNIFICADO_V1 */
+/* /XLXMODERN_CONECTADOS_UNIFICADO_V1 */
 
 
 /* ==================================================================
-   XLX026_CONECTADOS_LEGIBILIDADE_V2
+   XLXMODERN_CONECTADOS_LEGIBILIDADE_V2
    Escopo: SOMENTE body[data-page="conectados"]
    ================================================================== */
 
@@ -3945,4 +3945,4 @@ body[data-page="conectados"] .connected-table td{
   }
 }
 
-/* /XLX026_CONECTADOS_LEGIBILIDADE_V2 */
+/* /XLXMODERN_CONECTADOS_LEGIBILIDADE_V2 */

@@ -1,4 +1,4 @@
-/* Widget MTR individual do XLX026 */
+/* Widget MTR individual do XLXMODERN */
 
 .tx-mtr-stack {
     display: flex;
@@ -185,7 +185,7 @@
 }
 
 /* ==========================================================
-   XLX026 MTR — fonte ampliada v2
+   XLXMODERN MTR — fonte ampliada v2
    ========================================================== */
 
 .mtr-mini {
@@ -262,7 +262,7 @@
 }
 
 /* ==========================================================
-   XLX026 MTR — visual com siglas v3
+   XLXMODERN MTR — visual com siglas v3
    ========================================================== */
 
 .mtr-mini {
@@ -342,7 +342,7 @@
     transform-origin: center;
 
     animation:
-        xlx026-mtr-dot 1.2s
+        xlxmodern-mtr-dot 1.2s
         ease-in-out infinite;
 }
 
@@ -360,7 +360,7 @@
     font-weight: 900;
 
     animation:
-        xlx026-mtr-route 1.3s
+        xlxmodern-mtr-route 1.3s
         ease-in-out infinite;
 }
 
@@ -495,7 +495,7 @@
     display: block;
 }
 
-@keyframes xlx026-mtr-dot {
+@keyframes xlxmodern-mtr-dot {
     0%,
     100% {
         opacity: 0.55;
@@ -508,7 +508,7 @@
     }
 }
 
-@keyframes xlx026-mtr-route {
+@keyframes xlxmodern-mtr-route {
     0%,
     100% {
         opacity: 0.6;
@@ -564,7 +564,7 @@
 }
 
 /* ==========================================================
-   XLX026 MTR — layout organizado v4
+   XLXMODERN MTR — layout organizado v4
    ========================================================== */
 
 .mtr-mini {
@@ -736,7 +736,7 @@
     transform-origin: center;
 
     animation:
-        xlx026-mtr-dot 1.2s
+        xlxmodern-mtr-dot 1.2s
         ease-in-out infinite;
 }
 
@@ -814,7 +814,7 @@
     white-space: nowrap;
 
     animation:
-        xlx026-mtr-route 1.3s
+        xlxmodern-mtr-route 1.3s
         ease-in-out infinite;
 }
 

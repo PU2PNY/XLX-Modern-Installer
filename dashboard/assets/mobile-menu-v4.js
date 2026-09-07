@@ -1,5 +1,5 @@
 /* ==========================================================
-   XLX026_MOBILE_MENU_V4
+   XLXMODERN_MOBILE_MENU_V4
    Controle independente e definitivo
    ========================================================== */
 
@@ -33,8 +33,8 @@
 
         header
             .querySelectorAll(
-                '.xlx026-mobile-menu-button,'
-                + '.xlx026-mobile-togglebar'
+                '.xlxmodern-mobile-menu-button,'
+                + '.xlxmodern-mobile-togglebar'
             )
             .forEach(el => el.remove());
 
@@ -43,8 +43,8 @@
 
             nav.classList.remove(
                 'open',
-                'xlx026-mobile-open',
-                'xlx026-mobile-open-v3'
+                'xlxmodern-mobile-open',
+                'xlxmodern-mobile-open-v3'
             );
         }
 
@@ -54,7 +54,7 @@
             limparClassesAntigas();
 
             nav.classList.remove(
-                'xlx026-v4-open'
+                'xlxmodern-v4-open'
             );
 
             button.textContent = 'MENU';
@@ -76,7 +76,7 @@
             limparClassesAntigas();
 
             nav.classList.add(
-                'xlx026-v4-open'
+                'xlxmodern-v4-open'
             );
 
             button.textContent = 'FECHAR';
@@ -109,7 +109,7 @@
                 limparClassesAntigas();
 
                 nav.classList.remove(
-                    'xlx026-v4-open'
+                    'xlxmodern-v4-open'
                 );
 
                 /*
@@ -144,7 +144,7 @@
 
                 if (
                     nav.classList.contains(
-                        'xlx026-v4-open'
+                        'xlxmodern-v4-open'
                     )
                 ){
 
@@ -245,4 +245,4 @@
 
 })();
 
-/* FIM XLX026_MOBILE_MENU_V4 */
+/* FIM XLXMODERN_MOBILE_MENU_V4 */

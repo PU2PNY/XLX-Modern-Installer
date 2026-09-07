@@ -91,7 +91,7 @@ body[data-page=ranking] .rv2-old{display:none!important}
  const S={p:'today',r:null,status:null,long:null},$=s=>document.querySelector(s);
  const dur=n=>{n=Math.max(0,+n||0);let h=Math.floor(n/3600),m=Math.floor(n%3600/60),s=Math.floor(n%60);return [h,m,s].map(x=>String(x).padStart(2,'0')).join(':')};
 
- /* XLX026_RANKING_CONNECTED_DHM_V22
+ /* XLXMODERN_RANKING_CONNECTED_DHM_V22
     Somente contador da estacao mais tempo conectada. */
  const connectedDur=n=>{
    n=Math.max(0,Math.floor(+n||0));

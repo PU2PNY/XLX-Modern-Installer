@@ -62,30 +62,30 @@
         var reflectorName = reflectorIdentity(header);
 
         /* Defensive cleanup from legacy compact-header experiments. */
-        header.classList.remove('xlx026-header-compact');
+        header.classList.remove('xlxmodern-header-compact');
 
         var fixed = document.createElement('div');
-        fixed.className = 'xlx026-fixed-header-v2';
+        fixed.className = 'xlxmodern-fixed-header-v2';
         fixed.setAttribute('aria-hidden', 'true');
 
         var inner = document.createElement('div');
-        inner.className = 'xlx026-fixed-inner-v2';
+        inner.className = 'xlxmodern-fixed-inner-v2';
 
         var brand = document.createElement('a');
-        brand.className = 'xlx026-fixed-brand-v2';
+        brand.className = 'xlxmodern-fixed-brand-v2';
         brand.href = originalBrand
             ? (originalBrand.getAttribute('href') || '/?page=ao-vivo')
             : '/?page=ao-vivo';
         brand.setAttribute('aria-label', reflectorName + ' — Ao vivo');
 
         var code = document.createElement('span');
-        code.className = 'xlx026-fixed-code-v2';
+        code.className = 'xlxmodern-fixed-code-v2';
         code.textContent = reflectorName;
         brand.appendChild(code);
 
         /* Clone the real current navigation, including optional Admin/APRS. */
         var nav = originalNav.cloneNode(true);
-        nav.classList.add('xlx026-fixed-nav-v2');
+        nav.classList.add('xlxmodern-fixed-nav-v2');
         nav.setAttribute('aria-label', 'Menu principal fixo');
 
         if (nav.hasAttribute('id')) {

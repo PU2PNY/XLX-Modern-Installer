@@ -36,9 +36,9 @@ sudo bash install.sh --lang=en
 sudo bash modules/60-dashboard-modern.sh --lang=es
 ```
 
-The installed reflector identity is reused by the dashboard and certificate module. A generic deployment does not inherit the XLX026 name, domain or country.
+The installed reflector identity is reused by the dashboard and certificate module. A generic deployment does not inherit the servidor de referência name, domain or country.
 
-A identidade configurada no refletor é reutilizada pelo dashboard e pelo módulo de certificados. Uma instalação genérica não herda automaticamente nome, domínio ou país do XLX026.
+A identidade configurada no refletor é reutilizada pelo dashboard e pelo módulo de certificados. Uma instalação genérica não herda automaticamente nome, domínio ou país do servidor de referência.
 
 ## 👤 Indicativos / Callsigns
 

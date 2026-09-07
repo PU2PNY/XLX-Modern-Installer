@@ -1,5 +1,5 @@
 /* ==========================================================
-   XLX026 — GIF SCALE V8
+   XLXMODERN — GIF SCALE V8
 
    SOMENTE TAMANHO DO AVATAR/GIF.
 
@@ -21,7 +21,7 @@
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-> .xlx026-tx-stack-v5:only-child
+> .xlxmodern-tx-stack-v5:only-child
 .tx-v30-person
 .operator-visual{
 
@@ -37,7 +37,7 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-> .xlx026-tx-stack-v5:only-child
+> .xlxmodern-tx-stack-v5:only-child
 .tx-v30-person
 .operator-visual img{
 
@@ -54,7 +54,7 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-> .xlx026-tx-stack-v5:only-child
+> .xlxmodern-tx-stack-v5:only-child
 .tx-v30-person{
 
     grid-template-columns:
@@ -72,14 +72,14 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
 .tx-v30-person
 .operator-visual,
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
-~ .xlx026-tx-stack-v5
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
+~ .xlxmodern-tx-stack-v5
 .tx-v30-person
 .operator-visual{
 
@@ -95,14 +95,14 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
 .tx-v30-person
 .operator-visual img,
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
-~ .xlx026-tx-stack-v5
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
+~ .xlxmodern-tx-stack-v5
 .tx-v30-person
 .operator-visual img{
 
@@ -120,13 +120,13 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
 .tx-v30-person,
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
-~ .xlx026-tx-stack-v5
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
+~ .xlxmodern-tx-stack-v5
 .tx-v30-person{
 
     grid-template-columns:
@@ -147,7 +147,7 @@ html body[data-page="ao-vivo"]
 
     html body[data-page="ao-vivo"]
     #moduleGrid
-    > .xlx026-tx-stack-v5
+    > .xlxmodern-tx-stack-v5
     .tx-v30-person
     .operator-visual{
 
@@ -161,7 +161,7 @@ html body[data-page="ao-vivo"]
 
     html body[data-page="ao-vivo"]
     #moduleGrid
-    > .xlx026-tx-stack-v5
+    > .xlxmodern-tx-stack-v5
     .tx-v30-person
     .operator-visual img{
 
@@ -172,7 +172,7 @@ html body[data-page="ao-vivo"]
 
     html body[data-page="ao-vivo"]
     #moduleGrid
-    > .xlx026-tx-stack-v5
+    > .xlxmodern-tx-stack-v5
     .tx-v30-person{
 
         grid-template-columns:

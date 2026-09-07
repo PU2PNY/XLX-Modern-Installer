@@ -1,0 +1,31 @@
+[Unit]
+Description=XLX APRS/D-PRS Gateway
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+ExecStart=/usr/bin/python3 /opt/xlx-aprs-dprs/xlx_aprs_dprs.py --config /etc/xlx-aprs-dprs/config.json
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+ReadWritePaths=/var/lib/xlx-aprs-dprs
+UMask=0027
+
+# Current production envelope validated for the gateway workload.
+MemoryMax=192M
+TasksMax=32
+
+[Install]
+WantedBy=multi-user.target

@@ -24,7 +24,7 @@ ALLOW_REMNANTS="no"
 DASHBOARD_ONLY="no"
 DASHBOARD_LANG=""
 UI_LANG="pt-BR"
-APRS_DPRS_MODE="ask"
+APRS_DPRS_MODE="yes"
 CHECK_READY="yes"
 DASHBOARD_LOCATION=""
 DASHBOARD_YSF_ID=""
@@ -61,8 +61,8 @@ Opções / Options:
       pt-BR | en | es | fr | de | it
 
   --with-aprs-dprs
-      Instala também o módulo opcional APRS/D-PRS.
-      Also installs the optional APRS/D-PRS module.
+      Instala o módulo APRS/D-PRS incorporado ao pacote (padrão).
+      Installs the bundled APRS/D-PRS module (default).
 
   --dashboard-only
       Atualiza ou reinstala somente o painel moderno em um XLXD existente.
@@ -135,6 +135,26 @@ collect_dashboard_inputs() {
         [[ "$DASHBOARD_YSF_ID" =~ ^[0-9]{1,8}$ ]] && break
         warn "$(msg "ID YSF inválido. Use de 1 a 8 dígitos." "Invalid YSF ID. Use 1 to 8 digits.")"
     done
+    section "$(msg "ADMINISTRAÇÃO PRIVADA" "PRIVATE ADMINISTRATION")"
+    while :; do
+      printf '%s' "$(msg "Usuário do Admin: " "Admin username: ")"; read -r XLX_CONTROL_USERNAME || XLX_CONTROL_USERNAME=""
+      [[ "$XLX_CONTROL_USERNAME" =~ ^[A-Za-z0-9._-]{3,64}$ ]] && break
+      warn "$(msg "Use 3 a 64 caracteres: letras, números, ponto, _ ou -." "Use 3 to 64 characters: letters, numbers, dot, _ or -.")"
+    done
+    while :; do
+      printf '%s' "$(msg "Nome da URL privada do Admin [admin]: " "Private Admin URL name [admin]: ")"; read -r XLX_ADMIN_SLUG || XLX_ADMIN_SLUG=""
+      XLX_ADMIN_SLUG="${XLX_ADMIN_SLUG:-admin}"; XLX_ADMIN_SLUG="$(printf '%s' "$XLX_ADMIN_SLUG"|tr '[:upper:]' '[:lower:]')"
+      [[ "$XLX_ADMIN_SLUG" =~ ^[a-z0-9][a-z0-9-]{1,31}$ ]] && break
+      warn "$(msg "Use 2 a 32 caracteres: letras, números e hífen." "Use 2 to 32 characters: letters, numbers, and hyphens.")"
+    done
+    while :; do
+      printf '%s' "$(msg "Senha do Admin (mínimo 8 caracteres): " "Admin password (minimum 8 characters): ")" >&2; IFS= read -r -s XLX_CONTROL_PASSWORD; printf '\n' >&2
+      printf '%s' "$(msg "Repita a senha: " "Repeat the password: ")" >&2; IFS= read -r -s XLX_CONTROL_PASSWORD2; printf '\n' >&2
+      [[ ${#XLX_CONTROL_PASSWORD} -ge 8 ]] || { warn "$(msg "A senha precisa ter pelo menos 8 caracteres." "Password must contain at least 8 characters.")"; continue; }
+      [[ "$XLX_CONTROL_PASSWORD" == "$XLX_CONTROL_PASSWORD2" ]] || { warn "$(msg "As senhas não coincidem; tente novamente." "Passwords do not match; try again.")"; continue; }
+      unset XLX_CONTROL_PASSWORD2; break
+    done
+    export XLX_CONTROL_USERNAME XLX_CONTROL_PASSWORD XLX_ADMIN_SLUG
 }
 
 select_ui_language() {
@@ -353,6 +373,7 @@ if [ -n "${XLX_MODERN_STATE_FILE:-}" ]; then
         printf "REFLECTOR_DESCRIPTION=%q\\n" "$COMMENT"
         printf "SYSOP_CALLSIGN=%q\\n" "$CALLSIGN"
         printf "COUNTRY=%q\\n" "$COUNTRY"
+        printf "TIMEZONE=%q\\n" "$TIMEZONE"
         printf "DOMAIN=%q\\n" "$XLXDOMAIN"
         printf "CONTACT_EMAIL=%q\\n" "$EMAIL"
         printf "LOCATION=%q\\n" "${XLX_MODERN_LOCATION:-}"
@@ -431,13 +452,13 @@ The installer will then:
 7. Configure Apache and HTTPS when selected.
 8. Prepare XLX databases.
 9. Start and validate services.
-10. Offer APRS/D-PRS when configured to ask.
+10. Install and validate the bundled APRS/D-PRS module.
 
 Current choices:
 - Mode: $MODE
 - Dashboard language: $dash_lang
 - Dashboard directory: $DEFAULT_DASHBOARD_DIR
-- APRS/D-PRS: $APRS_DPRS_MODE
+- APRS/D-PRS: included / incluído
 
 Technical base: PP5PK/XLX_Installer
 Original author: Daniel K. — PP5PK
@@ -465,13 +486,13 @@ Depois o instalador irá:
 7. Configurar Apache e HTTPS quando selecionado.
 8. Preparar as bases do XLX.
 9. Iniciar e validar os serviços.
-10. Oferecer APRS/D-PRS quando configurado para perguntar.
+10. Instalar e validar o módulo APRS/D-PRS incorporado.
 
 Escolhas atuais:
 - Modo: $MODE
 - Idioma do dashboard: $dash_lang
 - Diretório do dashboard: $DEFAULT_DASHBOARD_DIR
-- APRS/D-PRS: $APRS_DPRS_MODE
+- APRS/D-PRS: included / incluído
 
 Base técnica: PP5PK/XLX_Installer
 Autor original: Daniel K. — PP5PK
@@ -499,6 +520,7 @@ run_check() {
     if [ "$APRS_DPRS_MODE" = "yes" ]; then
         section "$(msg "PRÉ-VALIDAÇÃO APRS/D-PRS" "APRS/D-PRS PRE-CHECK")"
         bash "$ROOT_DIR/modules/67-aprs-dprs.sh" --check
+    bash "$ROOT_DIR/modules/71-observability.sh" --check
     else
         info "$(msg "APRS/D-PRS não solicitado no modo de pré-validação." "APRS/D-PRS was not requested for this pre-check.")"
     fi
@@ -557,7 +579,7 @@ resolve_aprs_choice() {
         yes) return 0 ;;
         no) return 1 ;;
         ask)
-            printf '\n%s' "$(msg "Instalar também o módulo opcional APRS/D-PRS? [s/N]: " "Install the optional APRS/D-PRS module too? [y/N]: ")"
+            printf '\n%s' "$(msg "Instalar o APRS/D-PRS incorporado? [S/n]: " "Install the bundled APRS/D-PRS module? [Y/n]: ")"
             read -r answer
             case "${answer,,}" in
                 s|sim|y|yes) APRS_DPRS_MODE="yes"; return 0 ;;
@@ -596,18 +618,15 @@ execute_installer() {
 
     section "$(msg "INSTALANDO XLX MODERN DASHBOARD" "INSTALLING XLX MODERN DASHBOARD")"
     if [ -n "$DASHBOARD_LANG" ]; then
-        XLX_INSTALL_STATE_FILE="$state_file" XLX_UI_LANG="$UI_LANG" bash "$ROOT_DIR/modules/60-dashboard-modern.sh" "--lang=$DASHBOARD_LANG"
+        XLX_INSTALL_STATE_FILE="$state_file" XLX_UI_LANG="$UI_LANG" XLX_CONTROL_USERNAME="$XLX_CONTROL_USERNAME" XLX_CONTROL_PASSWORD="$XLX_CONTROL_PASSWORD" XLX_ADMIN_SLUG="$XLX_ADMIN_SLUG" bash "$ROOT_DIR/modules/60-dashboard-modern.sh" "--lang=$DASHBOARD_LANG"
     else
-        XLX_INSTALL_STATE_FILE="$state_file" XLX_UI_LANG="$UI_LANG" bash "$ROOT_DIR/modules/60-dashboard-modern.sh"
+        XLX_INSTALL_STATE_FILE="$state_file" XLX_UI_LANG="$UI_LANG" XLX_CONTROL_USERNAME="$XLX_CONTROL_USERNAME" XLX_CONTROL_PASSWORD="$XLX_CONTROL_PASSWORD" XLX_ADMIN_SLUG="$XLX_ADMIN_SLUG" bash "$ROOT_DIR/modules/60-dashboard-modern.sh"
     fi
 
     dashboard_dest="${INSTALL_DIR:-$DEFAULT_DASHBOARD_DIR}"
-    if resolve_aprs_choice; then
-        section "$(msg "INSTALANDO APRS/D-PRS OPCIONAL" "INSTALLING OPTIONAL APRS/D-PRS")"
-        XLX_DASHBOARD_DIR="$dashboard_dest" bash "$ROOT_DIR/modules/67-aprs-dprs.sh" "--dashboard-dir=$dashboard_dest"
-    else
-        info "$(msg "APRS/D-PRS não instalado. Ele poderá ser instalado separadamente depois." "APRS/D-PRS was not installed. It can be installed separately later.")"
-    fi
+    section "$(msg "INSTALANDO APRS/D-PRS" "INSTALLING APRS/D-PRS")"
+    XLX_DASHBOARD_DIR="$dashboard_dest" XLX_UI_LANG="$UI_LANG" bash "$ROOT_DIR/modules/67-aprs-dprs.sh" "--dashboard-dir=$dashboard_dest"
+    XLX_DASHBOARD_DIR="$dashboard_dest" XLX_UI_LANG="$UI_LANG" bash "$ROOT_DIR/modules/71-observability.sh" "--dashboard-dir=$dashboard_dest"
 
     section "$(msg "VALIDAÇÃO PÓS-INSTALAÇÃO" "POST-INSTALLATION VALIDATION")"
     failures=0
@@ -687,7 +706,7 @@ execute_installer() {
 }
 
 main() {
-    clear
+    clear 2>/dev/null || true
     validate_options
     require_root
     select_ui_language

@@ -825,7 +825,7 @@ if (
     ) !== ''
 ) {
     error_log(
-        'XLX MTR: '
+        'XLXMODERN MTR: '
         . preg_replace(
             '/\s+/',
             ' ',

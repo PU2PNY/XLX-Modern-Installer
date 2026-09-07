@@ -1,5 +1,5 @@
 /* ================================================================
-   XLX026_HEADER_BRASIL_NEON_FIXED_V2
+   XLXMODERN_HEADER_BRASIL_NEON_FIXED_V2
 
    V2:
    - header principal NÃO muda de tamanho durante scroll
@@ -121,7 +121,7 @@
      */
     html body
     section.universal-header
-    .xlx026-brasil-title{
+    .xlxmodern-brasil-title{
         position:relative;
 
         display:inline-block;
@@ -138,7 +138,7 @@
 
     html body
     section.universal-header
-    .xlx026-title-code{
+    .xlxmodern-title-code{
         color:#e9fbff;
 
         text-shadow:
@@ -155,7 +155,7 @@
      */
     html body
     section.universal-header
-    .xlx026-title-country{
+    .xlxmodern-title-country{
         color:#f7fbff;
 
         background:
@@ -190,7 +190,7 @@
      */
     html body
     section.universal-header
-    .xlx026-brasil-title::before{
+    .xlxmodern-brasil-title::before{
         content:"";
 
         position:absolute;
@@ -228,7 +228,7 @@
             blur(2.6px);
 
         animation:
-            xlx026BrasilLensV2
+            xlxmodernBrasilLensV2
             28s
             ease-in-out
             infinite;
@@ -243,7 +243,7 @@
      */
     html body
     section.universal-header
-    .xlx026-brasil-title::after{
+    .xlxmodern-brasil-title::after{
         content:
             attr(data-title);
 
@@ -290,7 +290,7 @@
         opacity:0;
 
         animation:
-            xlx026BrasilSweepV2
+            xlxmodernBrasilSweepV2
             28s
             ease-in-out
             infinite;
@@ -346,7 +346,7 @@
    LASER DO TÍTULO
    ================================================================ */
 
-@keyframes xlx026BrasilSweepV2{
+@keyframes xlxmodernBrasilSweepV2{
 
     /*
      * Pausa inicial.
@@ -429,7 +429,7 @@
 }
 
 
-@keyframes xlx026BrasilLensV2{
+@keyframes xlxmodernBrasilLensV2{
 
     0%,
     15%{
@@ -478,7 +478,7 @@
 @media (min-width:821px){
 
     html body
-    .xlx026-fixed-header-v2{
+    .xlxmodern-fixed-header-v2{
         position:fixed;
 
         z-index:5000;
@@ -519,7 +519,7 @@
 
 
     html body
-    .xlx026-fixed-header-v2.is-visible{
+    .xlxmodern-fixed-header-v2.is-visible{
         pointer-events:auto;
 
         opacity:1;
@@ -533,7 +533,7 @@
      * Linha Brasil no rodapé do compacto.
      */
     html body
-    .xlx026-fixed-header-v2::after{
+    .xlxmodern-fixed-header-v2::after{
         content:"";
 
         position:absolute;
@@ -570,7 +570,7 @@
 
 
     html body
-    .xlx026-fixed-inner-v2{
+    .xlxmodern-fixed-inner-v2{
         width:
             min(1180px,calc(100% - 28px));
 
@@ -597,7 +597,7 @@
      * Marca do compacto.
      */
     html body
-    .xlx026-fixed-brand-v2{
+    .xlxmodern-fixed-brand-v2{
         display:flex;
 
         align-items:center;
@@ -619,7 +619,7 @@
 
 
     html body
-    .xlx026-fixed-code-v2{
+    .xlxmodern-fixed-code-v2{
         color:#eefcff;
 
         text-shadow:
@@ -628,7 +628,7 @@
 
 
     html body
-    .xlx026-fixed-country-v2{
+    .xlxmodern-fixed-country-v2{
         background:
             linear-gradient(
                 90deg,
@@ -651,7 +651,7 @@
      * Não depende visualmente do estilo antigo.
      */
     html body
-    .xlx026-fixed-nav-v2{
+    .xlxmodern-fixed-nav-v2{
         display:flex !important;
 
         justify-content:flex-end;
@@ -680,23 +680,23 @@
 
 
     html body
-    .xlx026-fixed-nav-v2::-webkit-scrollbar{
+    .xlxmodern-fixed-nav-v2::-webkit-scrollbar{
         display:none;
     }
 
 
     html body
-    .xlx026-fixed-nav-v2::before,
+    .xlxmodern-fixed-nav-v2::before,
 
     html body
-    .xlx026-fixed-nav-v2::after{
+    .xlxmodern-fixed-nav-v2::after{
         display:none !important;
         content:none !important;
     }
 
 
     html body
-    .xlx026-fixed-nav-v2 a{
+    .xlxmodern-fixed-nav-v2 a{
         position:relative !important;
 
         flex:
@@ -756,7 +756,7 @@
 
 
     html body
-    .xlx026-fixed-nav-v2 a:hover{
+    .xlxmodern-fixed-nav-v2 a:hover{
         color:#ffffff !important;
 
         border-color:
@@ -775,10 +775,10 @@
      * preservando a linguagem funcional do painel.
      */
     html body
-    .xlx026-fixed-nav-v2 a.active,
+    .xlxmodern-fixed-nav-v2 a.active,
 
     html body
-    .xlx026-fixed-nav-v2 a[aria-current="page"]{
+    .xlxmodern-fixed-nav-v2 a[aria-current="page"]{
         color:#ffffff !important;
 
         border-color:
@@ -803,10 +803,10 @@
      * LED ciano pequeno somente no ativo.
      */
     html body
-    .xlx026-fixed-nav-v2 a.active::before,
+    .xlxmodern-fixed-nav-v2 a.active::before,
 
     html body
-    .xlx026-fixed-nav-v2 a[aria-current="page"]::before{
+    .xlxmodern-fixed-nav-v2 a[aria-current="page"]::before{
         content:"";
 
         display:block !important;
@@ -834,7 +834,7 @@
 
 
     html body
-    .xlx026-fixed-nav-v2 a::after{
+    .xlxmodern-fixed-nav-v2 a::after{
         content:none !important;
         display:none !important;
     }
@@ -850,7 +850,7 @@
 @media (min-width:821px) and (max-width:1120px){
 
     html body
-    .xlx026-fixed-inner-v2{
+    .xlxmodern-fixed-inner-v2{
         width:
             calc(100% - 20px);
 
@@ -859,13 +859,13 @@
 
 
     html body
-    .xlx026-fixed-brand-v2{
+    .xlxmodern-fixed-brand-v2{
         font-size:16px;
     }
 
 
     html body
-    .xlx026-fixed-nav-v2 a{
+    .xlxmodern-fixed-nav-v2 a{
         padding:
             7px 8px !important;
 
@@ -884,18 +884,18 @@
 
     html body
     section.universal-header
-    .xlx026-brasil-title::before,
+    .xlxmodern-brasil-title::before,
 
     html body
     section.universal-header
-    .xlx026-brasil-title::after{
+    .xlxmodern-brasil-title::after{
         animation:none !important;
         opacity:0 !important;
     }
 
 
     html body
-    .xlx026-fixed-header-v2{
+    .xlxmodern-fixed-header-v2{
         transition:none !important;
     }
 
@@ -907,11 +907,11 @@
  */
 .high-contrast
 section.universal-header
-.xlx026-brasil-title::before,
+.xlxmodern-brasil-title::before,
 
 .high-contrast
 section.universal-header
-.xlx026-brasil-title::after{
+.xlxmodern-brasil-title::after{
     display:none !important;
 }
 
@@ -927,11 +927,11 @@ section.universal-header
 @media (max-width:820px){
 
     html body
-    .xlx026-fixed-header-v2{
+    .xlxmodern-fixed-header-v2{
         display:none !important;
     }
 
 }
 
 
-/* /XLX026_HEADER_BRASIL_NEON_FIXED_V2 */
+/* /XLXMODERN_HEADER_BRASIL_NEON_FIXED_V2 */

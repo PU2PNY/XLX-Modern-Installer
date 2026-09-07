@@ -16,7 +16,7 @@ The project itself is generic and should not be represented as belonging to a si
 https://github.com/PU2PNY/XLX-Modern-Installer
 ```
 
-The real XLX026 deployment may still be cited in screenshots/documentation as a production example, but it should not be the universal project's identity.
+The real servidor de referência deployment may still be cited in screenshots/documentation as a production example, but it should not be the universal project's identity.
 
 ## Recommended topics
 
@@ -54,7 +54,7 @@ The README and documentation now cover:
 - clean Debian 12 installation;
 - generic reflector identity/configuration;
 - dashboard-only installation;
-- Ao Vivo, Conectados, Módulos A–E and Ranking;
+- Ao Vivo, Conectados, Módulos A–Z and Ranking;
 - six dashboard languages;
 - persistent callsign corrections and aliases;
 - safe main user-database refresh with backup/integrity check/rollback;

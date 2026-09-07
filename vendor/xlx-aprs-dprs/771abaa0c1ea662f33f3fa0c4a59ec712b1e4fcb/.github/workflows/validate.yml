@@ -1,0 +1,82 @@
+name: Validate XLX APRS-DPRS
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate source manifest
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          sha256sum -c SOURCE-MANIFEST.sha256
+
+      - name: Validate Bash
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          while IFS= read -r -d '' file; do
+            echo "bash -n $file"
+            bash -n "$file"
+          done < <(find . -type f -name '*.sh' -print0)
+
+      - name: Validate PHP
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          while IFS= read -r -d '' file; do
+            echo "php -l $file"
+            php -l "$file" >/dev/null
+          done < <(find web scripts -type f -name '*.php' -print0)
+
+      - name: Validate JavaScript
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          while IFS= read -r -d '' file; do
+            echo "node --check $file"
+            node --check "$file"
+          done < <(find web/assets -type f -name '*.js' -print0)
+
+      - name: Validate Python gateway
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('gateway/xlx_aprs_dprs.py')
+          compile(p.read_text(encoding='utf-8'), str(p), 'exec')
+          PY
+          python3 gateway/xlx_aprs_dprs.py --config config/config.example.json --check-config
+
+      - name: Validate executable modes
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          for file in install.sh update.sh backup.sh uninstall.sh scripts/validate-source.sh gateway/xlx_aprs_dprs.py; do
+            test -x "$file" || { echo "Not executable: $file" >&2; exit 1; }
+          done
+
+      - name: Run repository validator
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          bash scripts/validate-source.sh
+
+      - name: Reject runtime data and secrets
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          ! find . -type f \( -name 'config.json' -o -name '*.sqlite' -o -name '*.sqlite-wal' -o -name '*.sqlite-shm' -o -name '*.pem' -o -name '*.key' \) -print -quit | grep -q .
+          ! grep -RniE --exclude-dir=.git --exclude-dir=.github --exclude='validate-source.sh' --binary-files=without-match -- '-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----|github_pat_|ghp_[A-Za-z0-9]{20,}' .

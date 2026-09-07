@@ -1,4 +1,4 @@
-/* XLX Modern — XLX026 validated live/history identity synchronization. */
+/* XLX Modern — XLXMODERN validated live/history identity synchronization. */
 (() => {
   'use strict';
   if (window.__XLX_AUTHORIZED_SYNC_V15B__) return;
@@ -6,8 +6,8 @@
 
   historyStatusMarkup = function (x) {
     if (Boolean(x && x.online)) return '<span class="state-pill online">Online</span>';
-    const call = xlx026BaseCall((x && x.callsign) || '');
-    const gateway = xlx026BaseCall((x && x.gateway) || '');
+    const call = xlxmodernBaseCall((x && x.callsign) || '');
+    const gateway = xlxmodernBaseCall((x && x.gateway) || '');
     const source = String((x && x.identity_source) || '').trim();
     const linked = call !== '' && gateway !== '' && call !== gateway && source.indexOf('xlxd-station') === 0;
     if (linked) {
@@ -19,12 +19,12 @@
 
   /* Never display Via/Peer as the gateway unless STATION proved the relation. */
   hotspotRepeaterMarkup = function (x) {
-    const callsign = xlx026BaseCall((x && x.callsign) || '');
+    const callsign = xlxmodernBaseCall((x && x.callsign) || '');
     const source = String((x && x.identity_source) || '').trim();
     const stationIdentity = source.indexOf('xlxd-station') === 0;
     const raw = String(stationIdentity ? ((x && x.gateway) || '') : ((x && x.network_callsign) || (x && x.callsign) || '')).trim();
     const normalized = raw.toUpperCase();
-    const gatewayCall = xlx026BaseCall(raw);
+    const gatewayCall = xlxmodernBaseCall(raw);
     const unknown = !raw || normalized === 'NÃO IDENTIFICADO' || normalized === 'GATEWAY NÃO IDENTIFICADO' || normalized === 'HOTSPOT / REPETIDORA NÃO IDENTIFICADO';
     if (unknown) return '<span class="hotspot-repeater-empty">—</span>';
     const different = callsign !== '' && gatewayCall !== '' && gatewayCall !== callsign;

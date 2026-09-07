@@ -1,4 +1,4 @@
-/* XLX026_REFLETORES_COMPLETO_V2B — somente /refletores */
+/* XLXMODERN_REFLETORES_COMPLETO_V2B — somente /refletores */
 body[data-page="refletores"] main{width:min(1500px,calc(100% - 32px));max-width:none}
 body[data-page="refletores"] .embedded-panel[data-reflector-v2="1"]{padding:16px}
 body[data-page="refletores"] .reflector-tools{display:grid;grid-template-columns:minmax(210px,.65fr) minmax(0,1.35fr);gap:14px;align-items:end;margin-bottom:12px}

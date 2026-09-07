@@ -1,4 +1,4 @@
-/* XLX026 HAM WEATHER WIDGET V3 */
+/* XLXMODERN HAM WEATHER WIDGET V3 */
 (() => {
   'use strict';
   const root=document.getElementById('hamWeatherWidget'); if(!root)return;
@@ -78,7 +78,7 @@
     );
   }
 /*
-   * XLX026_HAMWX_LAZY_V1
+   * XLXMODERN_HAMWX_LAZY_V1
    *
    * Clima e propagação deixam de disputar recursos
    * com o monitor durante o carregamento inicial.

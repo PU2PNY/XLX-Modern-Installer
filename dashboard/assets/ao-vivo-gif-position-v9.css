@@ -1,5 +1,5 @@
 /* ==========================================================
-   XLX026 — GIF POSITION V9
+   XLXMODERN — GIF POSITION V9
 
    Ajuste fino:
    - somente para EXATAMENTE 2 transmissões
@@ -15,13 +15,13 @@
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
 .tx-v30-person,
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
-~ .xlx026-tx-stack-v5
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
+~ .xlxmodern-tx-stack-v5
 .tx-v30-person{
 
     /*
@@ -38,14 +38,14 @@ html body[data-page="ao-vivo"]
 /* círculo/gif maior */
 html body[data-page="ao-vivo"]
 #moduleGrid
-> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
 .tx-v30-person
 .operator-visual,
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
-~ .xlx026-tx-stack-v5
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
+~ .xlxmodern-tx-stack-v5
 .tx-v30-person
 .operator-visual{
 
@@ -72,14 +72,14 @@ html body[data-page="ao-vivo"]
 /* gif interno maior */
 html body[data-page="ao-vivo"]
 #moduleGrid
-> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
 .tx-v30-person
 .operator-visual img,
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
-~ .xlx026-tx-stack-v5
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
+~ .xlxmodern-tx-stack-v5
 .tx-v30-person
 .operator-visual img{
 
@@ -93,13 +93,13 @@ html body[data-page="ao-vivo"]
 /* texto continua totalmente livre na esquerda */
 html body[data-page="ao-vivo"]
 #moduleGrid
-> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
 .tx-v30-person-data,
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
-~ .xlx026-tx-stack-v5
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
+~ .xlxmodern-tx-stack-v5
 .tx-v30-person-data{
 
     grid-column:1 !important;
@@ -115,13 +115,13 @@ html body[data-page="ao-vivo"]
 /* segurança: callsign não encosta no gif */
 html body[data-page="ao-vivo"]
 #moduleGrid
-> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
 .tx-v30-callsign,
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
-~ .xlx026-tx-stack-v5
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
+~ .xlxmodern-tx-stack-v5
 .tx-v30-callsign{
 
     max-width:100% !important;
@@ -141,7 +141,7 @@ html body[data-page="ao-vivo"]
 
     html body[data-page="ao-vivo"]
     #moduleGrid
-    > .xlx026-tx-stack-v5
+    > .xlxmodern-tx-stack-v5
     .tx-v30-person
     .operator-visual{
 
@@ -157,7 +157,7 @@ html body[data-page="ao-vivo"]
 
     html body[data-page="ao-vivo"]
     #moduleGrid
-    > .xlx026-tx-stack-v5
+    > .xlxmodern-tx-stack-v5
     .tx-v30-person
     .operator-visual img{
 

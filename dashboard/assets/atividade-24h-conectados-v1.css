@@ -1,5 +1,5 @@
 /*
- * XLX026 — ATIVIDADE 24H V1
+ * XLXMODERN — ATIVIDADE 24H V1
  * Igualação visual com página Conectados.
  * Escopo exclusivo: página Ao vivo / histórico.
  */
@@ -115,9 +115,9 @@ table.home-history
 
 /*
  * ==========================================================
- * XLX026 — TABELA FINAL 24H / 11 COLUNAS
+ * XLXMODERN — TABELA FINAL 24H / 11 COLUNAS
  *
- * Mantém a apresentação desktop aprovada do XLX026 sem
+ * Mantém a apresentação desktop aprovada do XLXMODERN sem
  * rolagem horizontal e preserva a ordem final:
  * Nº | País | Status | Indicativo | Nome | Hotspot/Repetidora |
  * Cidade | Protocolo | Módulo | Horário TX | Tempo de TX
@@ -242,7 +242,7 @@ table.home-history
 
 
 /* ==========================================================
-   SUBMENU / NUMERAÇÃO — MESMO COMPORTAMENTO DO XLX026
+   SUBMENU / NUMERAÇÃO — MESMO COMPORTAMENTO DO XLXMODERN
    ========================================================== */
 
 body[data-page="ao-vivo"] .history-number-wrap{
@@ -362,7 +362,7 @@ body[data-page="ao-vivo"] .gateway-different .gateway-value{
 
 
 /* ==========================================================
-   XLX026_SUBMENU_DIREITA_V1 — PRODUÇÃO APROVADA
+   XLXMODERN_SUBMENU_DIREITA_V1 — PRODUÇÃO APROVADA
    Mantém todas as células alinhadas e recua somente a
    primeira célula das transmissões secundárias.
    ========================================================== */

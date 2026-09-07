@@ -1,0 +1,893 @@
+/* XLX APRS/D-PRS DIGITAL LAB V1.1 — operador APRS */
+
+.dlab-command-action{
+  appearance:none;
+  width:100%;
+  display:grid;
+  gap:6px;
+  text-align:left;
+  padding:12px;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:11px;
+  background:rgba(255,255,255,.025);
+  color:inherit;
+  font:inherit;
+  cursor:pointer;
+  transition:border-color .16s ease,transform .16s ease,background .16s ease
+}
+
+.dlab-command-action:hover{
+  transform:translateY(-1px);
+  border-color:rgba(57,231,255,.26);
+  background:rgba(57,231,255,.05)
+}
+
+.dlab-command-action code{
+  width:max-content;
+  max-width:100%;
+  color:#c9f9ff;
+  background:rgba(57,231,255,.075);
+  border:1px solid rgba(57,231,255,.13);
+  border-radius:6px;
+  padding:4px 6px;
+  font-size:.74rem;
+  font-weight:850
+}
+
+.dlab-command-action span{
+  font-size:.71rem;
+  line-height:1.4;
+  color:var(--dlab-muted)
+}
+
+.dlab-operator-shell{
+  margin-top:16px;
+  padding:16px;
+  border:1px solid rgba(57,231,255,.11);
+  border-radius:14px;
+  background:rgba(3,11,19,.46)
+}
+
+.dlab-operator-title{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:14px
+}
+
+.dlab-operator-title>div{
+  display:grid;
+  gap:4px
+}
+
+.dlab-operator-title strong{
+  font-size:.88rem
+}
+
+.dlab-operator-title span{
+  font-size:.7rem;
+  color:var(--dlab-muted)
+}
+
+.dlab-lock-badge{
+  border:1px solid rgba(255,194,92,.25);
+  background:rgba(255,194,92,.07);
+  color:#ffd28b!important;
+  border-radius:999px;
+  padding:5px 8px;
+  font-size:.63rem!important;
+  font-weight:850;
+  letter-spacing:.08em
+}
+
+.dlab-operator-login,
+.dlab-message-form{
+  display:grid;
+  gap:8px
+}
+
+.dlab-operator-login label,
+.dlab-message-form label{
+  font-size:.7rem;
+  font-weight:850;
+  letter-spacing:.07em;
+  text-transform:uppercase;
+  color:#c8d8e8
+}
+
+.dlab-message-form input,
+.dlab-message-form textarea{
+  width:100%;
+  border:1px solid rgba(143,174,205,.24);
+  border-radius:11px;
+  background:rgba(5,13,22,.62);
+  color:#fff;
+  padding:11px 13px;
+  font:inherit;
+  outline:none
+}
+
+.dlab-message-form input{
+  min-height:45px;
+  text-transform:uppercase;
+  font-weight:800;
+  letter-spacing:.04em
+}
+
+.dlab-message-form textarea{
+  resize:vertical;
+  min-height:82px
+}
+
+.dlab-message-form input:focus,
+.dlab-message-form textarea:focus{
+  border-color:rgba(57,231,255,.6);
+  box-shadow:0 0 0 3px rgba(57,231,255,.08)
+}
+
+.dlab-message-footer{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px
+}
+
+.dlab-message-footer>span{
+  font-size:.7rem;
+  color:var(--dlab-muted);
+  font-variant-numeric:tabular-nums
+}
+
+.dlab-private-history{
+  margin-top:18px;
+  padding-top:14px;
+  border-top:1px solid rgba(255,255,255,.07)
+}
+
+.dlab-private-message-list{
+  display:grid;
+  gap:7px
+}
+
+.dlab-private-message{
+  display:grid;
+  grid-template-columns:76px 100px 1fr auto;
+  gap:9px;
+  align-items:start;
+  padding:9px 10px;
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:9px;
+  background:rgba(255,255,255,.022);
+  font-size:.72rem
+}
+
+.dlab-private-message .dir{
+  font-weight:850;
+  color:#9fe8ff
+}
+
+.dlab-private-message .peer{
+  font-weight:800
+}
+
+.dlab-private-message .body{
+  overflow-wrap:anywhere;
+  color:#dce8f4
+}
+
+.dlab-private-message .status{
+  color:var(--dlab-muted);
+  white-space:nowrap
+}
+
+.dlab-private-message.is-acked .status{
+  color:#8ff0bf
+}
+
+.dlab-private-message.is-rejected .status{
+  color:#ff9f9f
+}
+
+#dlabMessageSend:disabled{
+  cursor:not-allowed;
+  opacity:.45;
+  transform:none
+}
+
+@media(max-width:720px){
+  .dlab-operator-title{
+    align-items:flex-start
+  }
+
+  .dlab-message-footer{
+    display:grid
+  }
+
+  .dlab-message-footer .dlab-btn{
+    width:100%
+  }
+
+  .dlab-private-message{
+    grid-template-columns:70px 1fr
+  }
+
+  .dlab-private-message .body,
+  .dlab-private-message .status{
+    grid-column:2
+  }
+}
+
+/* Digital Lab V1.1 — orientação da senha do operador */
+.dlab-password-help{
+  margin-top:14px;
+  border-top:1px solid rgba(255,255,255,.07);
+  padding-top:12px
+}
+
+.dlab-password-help summary{
+  cursor:pointer;
+  color:#bfefff;
+  font-size:.74rem;
+  font-weight:800
+}
+
+.dlab-password-help-body{
+  margin-top:10px;
+  padding:12px;
+  border-radius:10px;
+  background:rgba(57,231,255,.035);
+  border:1px solid rgba(57,231,255,.09)
+}
+
+.dlab-password-help-body p{
+  margin:0 0 9px;
+  color:#b8c6d7;
+  font-size:.72rem;
+  line-height:1.55
+}
+
+.dlab-password-help-body code{
+  display:block;
+  width:max-content;
+  max-width:100%;
+  margin:8px 0 12px;
+  padding:7px 9px;
+  overflow:auto;
+  border-radius:7px;
+  color:#d4fbff;
+  background:#06121b;
+  border:1px solid rgba(57,231,255,.16);
+  font-size:.72rem
+}
+
+.dlab-password-support{
+  display:inline-flex;
+  align-items:center;
+  min-height:36px;
+  margin-top:3px;
+  padding:0 11px;
+  border-radius:8px;
+  border:1px solid rgba(57,231,255,.2);
+  color:#bff6ff;
+  text-decoration:none;
+  font-size:.71rem;
+  font-weight:800
+}
+
+.dlab-password-support:hover{
+  background:rgba(57,231,255,.07);
+  border-color:rgba(57,231,255,.36)
+}
+
+/* Digital Lab APRS V1.1.1 — notificações */
+.dlab-operator-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  flex-wrap:wrap;
+  gap:7px
+}
+
+.dlab-operator-actions .dlab-btn-ghost{
+  margin-top:0
+}
+
+.dlab-sound-btn{
+  min-height:36px;
+  padding:0 10px;
+  font-size:.68rem
+}
+
+.dlab-unread-badge{
+  border:1px solid rgba(98,239,171,.28);
+  background:rgba(98,239,171,.08);
+  color:#aff8d4!important;
+  border-radius:999px;
+  padding:5px 8px;
+  font-size:.63rem!important;
+  font-weight:900;
+  letter-spacing:.05em
+}
+
+@media(max-width:720px){
+  .dlab-operator-actions{
+    justify-content:flex-start;
+  }
+}
+
+/* XLX APRS/D-PRS DIGITAL LAB V1.2 — contas */
+
+.dlab-account-form{
+  display:grid;
+  gap:9px
+}
+
+.dlab-account-form>label,
+.dlab-dialog-field>span{
+  font-size:.7rem;
+  font-weight:850;
+  letter-spacing:.07em;
+  text-transform:uppercase;
+  color:#c8d8e8
+}
+
+.dlab-account-form input,
+.dlab-account-form select,
+.dlab-dialog-field input,
+.dlab-dialog-field select{
+  width:100%;
+  min-height:43px;
+  border:1px solid rgba(143,174,205,.24);
+  border-radius:10px;
+  background:rgba(5,13,22,.62);
+  color:#fff;
+  padding:0 12px;
+  font:inherit;
+  outline:none
+}
+
+.dlab-account-form input:focus,
+.dlab-account-form select:focus,
+.dlab-dialog-field input:focus,
+.dlab-dialog-field select:focus{
+  border-color:rgba(57,231,255,.6);
+  box-shadow:0 0 0 3px rgba(57,231,255,.08)
+}
+
+.dlab-check-row{
+  display:flex!important;
+  align-items:flex-start;
+  gap:8px;
+  text-transform:none!important;
+  letter-spacing:0!important;
+  font-weight:500!important;
+  color:var(--dlab-muted)!important
+}
+
+.dlab-check-row input{
+  width:17px;
+  min-height:17px;
+  height:17px;
+  margin-top:2px
+}
+
+.dlab-register-box{
+  margin-top:16px;
+  padding-top:13px;
+  border-top:1px solid rgba(255,255,255,.07)
+}
+
+.dlab-register-box summary{
+  cursor:pointer;
+  color:#c5f4ff;
+  font-weight:850;
+  font-size:.76rem
+}
+
+.dlab-register-body{
+  margin-top:12px;
+  padding:14px;
+  border:1px solid rgba(57,231,255,.10);
+  border-radius:12px;
+  background:rgba(57,231,255,.025)
+}
+
+.dlab-register-body>p,
+.dlab-recovery-note,
+.dlab-dialog-text{
+  color:var(--dlab-muted);
+  font-size:.72rem;
+  line-height:1.55
+}
+
+.dlab-recovery-note{
+  margin:14px 0 0
+}
+
+.dlab-birthday-grid{
+  display:grid;
+  grid-template-columns:1fr 1.4fr;
+  gap:9px
+}
+
+.dlab-birthday-grid>div,
+.dlab-dialog-field{
+  display:grid;
+  gap:6px
+}
+
+.dlab-role-badge{
+  border:1px solid rgba(57,231,255,.22);
+  background:rgba(57,231,255,.06);
+  color:#c9f8ff;
+  border-radius:999px;
+  padding:6px 9px;
+  font-size:.66rem;
+  font-weight:900;
+  letter-spacing:.08em
+}
+
+.dlab-role-badge[data-role="ADMIN"]{
+  border-color:rgba(255,195,84,.28);
+  background:rgba(255,195,84,.07);
+  color:#ffd58f
+}
+
+.dlab-role-badge[data-role="COLLABORATOR"]{
+  border-color:rgba(133,158,255,.28);
+  background:rgba(133,158,255,.07);
+  color:#cdd7ff
+}
+
+.dlab-admin-toolbar{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:7px;
+  margin-bottom:15px
+}
+
+.dlab-admin-toolbar .dlab-btn{
+  margin-top:0;
+  min-height:36px;
+  padding:0 10px;
+  font-size:.68rem
+}
+
+.dlab-birth-warning,
+.dlab-user-notice{
+  margin:0 0 14px;
+  padding:11px 12px;
+  border-radius:10px;
+  font-size:.72rem;
+  line-height:1.5
+}
+
+.dlab-birth-warning{
+  border:1px solid rgba(255,195,84,.20);
+  background:rgba(255,195,84,.055);
+  color:#ffdca0
+}
+
+.dlab-birth-warning button{
+  margin-left:5px;
+  border:0;
+  background:none;
+  color:#fff;
+  font-weight:850;
+  cursor:pointer;
+  text-decoration:underline
+}
+
+.dlab-user-notice{
+  border:1px solid rgba(57,231,255,.10);
+  background:rgba(57,231,255,.025);
+  color:#b9cedf
+}
+
+.dlab-account-dialog{
+  width:min(760px,calc(100vw - 28px));
+  max-height:min(82vh,780px);
+  margin:auto;
+  border:1px solid rgba(57,231,255,.18);
+  border-radius:16px;
+  background:#071722;
+  color:#e7f1fa;
+  padding:0;
+  box-shadow:0 30px 90px rgba(0,0,0,.6)
+}
+
+.dlab-account-dialog::backdrop{
+  background:rgba(0,7,12,.74);
+  backdrop-filter:blur(3px)
+}
+
+.dlab-dialog-head{
+  position:sticky;
+  top:0;
+  z-index:2;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:15px 17px;
+  border-bottom:1px solid rgba(255,255,255,.07);
+  background:#071722
+}
+
+.dlab-dialog-head strong{
+  font-size:.95rem
+}
+
+.dlab-dialog-head button{
+  width:34px;
+  height:34px;
+  border-radius:9px;
+  border:1px solid rgba(255,255,255,.10);
+  background:rgba(255,255,255,.03);
+  color:#fff;
+  font-size:1.2rem;
+  cursor:pointer
+}
+
+.dlab-dialog-body{
+  padding:17px;
+  overflow:auto;
+  max-height:calc(82vh - 65px)
+}
+
+.dlab-dialog-form{
+  display:grid;
+  gap:10px
+}
+
+.dlab-dialog-actions,
+.dlab-row-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px
+}
+
+.dlab-generated-password{
+  display:grid;
+  gap:11px
+}
+
+.dlab-generated-password>strong{
+  font-size:1rem
+}
+
+.dlab-generated-password>span{
+  color:#ffdaa0;
+  font-size:.72rem
+}
+
+.dlab-generated-password>code{
+  display:block;
+  padding:12px;
+  border-radius:10px;
+  background:#031018;
+  border:1px solid rgba(57,231,255,.16);
+  color:#d5fbff;
+  font-size:.9rem;
+  overflow-wrap:anywhere
+}
+
+.dlab-admin-create{
+  margin-bottom:15px;
+  padding:12px;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:11px
+}
+
+.dlab-admin-create summary{
+  cursor:pointer;
+  font-weight:850;
+  margin-bottom:10px
+}
+
+.dlab-user-list,
+.dlab-audit-list{
+  display:grid;
+  gap:7px
+}
+
+.dlab-user-row{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:10px;
+  align-items:center;
+  padding:10px;
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:10px;
+  background:rgba(255,255,255,.02)
+}
+
+.dlab-user-row>div:first-child{
+  display:grid;
+  gap:4px
+}
+
+.dlab-user-row span{
+  color:var(--dlab-muted);
+  font-size:.68rem
+}
+
+.dlab-row-actions button{
+  border:1px solid rgba(57,231,255,.13);
+  border-radius:7px;
+  background:rgba(57,231,255,.04);
+  color:#d4f8ff;
+  min-height:31px;
+  padding:0 8px;
+  font-size:.64rem;
+  font-weight:800;
+  cursor:pointer
+}
+
+.dlab-audit-row{
+  display:grid;
+  gap:4px;
+  padding:9px 10px;
+  border-bottom:1px solid rgba(255,255,255,.06)
+}
+
+.dlab-audit-row span{
+  color:var(--dlab-muted);
+  font-size:.67rem
+}
+
+.dlab-credential-box{
+  margin-top:12px
+}
+
+@media(max-width:720px){
+  .dlab-birthday-grid{
+    grid-template-columns:1fr
+  }
+
+  .dlab-admin-toolbar{
+    align-items:stretch
+  }
+
+  .dlab-admin-toolbar .dlab-btn{
+    flex:1 1 calc(50% - 7px)
+  }
+
+  .dlab-user-row{
+    grid-template-columns:1fr
+  }
+
+  .dlab-row-actions{
+    justify-content:flex-start
+  }
+}
+
+/* =========================================================
+   XLX APRS/D-PRS DIGITAL LAB V1.2.1
+   LOGIN COMPACTO / PROFISSIONAL
+   ========================================================= */
+
+#dlabOperatorLocked{
+  width:100%;
+  max-width:680px;
+  margin:0 auto;
+}
+
+#dlabOperatorLocked .dlab-operator-title{
+  margin-bottom:14px;
+}
+
+#dlabOperatorLocked .dlab-account-form{
+  grid-template-columns:
+    minmax(155px,.75fr)
+    minmax(245px,1.35fr)
+    125px;
+  column-gap:10px;
+  row-gap:6px;
+  align-items:end;
+}
+
+#dlabOperatorLoginForm label[for="dlabLoginCall"]{
+  grid-column:1;
+  grid-row:1;
+}
+
+#dlabLoginCall{
+  grid-column:1;
+  grid-row:2;
+}
+
+#dlabOperatorLoginForm label[for="dlabOperatorPassword"]{
+  grid-column:2;
+  grid-row:1;
+}
+
+#dlabOperatorPassword{
+  grid-column:2;
+  grid-row:2;
+}
+
+#dlabOperatorLoginForm > .dlab-check-row{
+  grid-column:1 / 3;
+  grid-row:3;
+  margin-top:3px;
+}
+
+#dlabOperatorLoginForm > button[type="submit"]{
+  grid-column:3;
+  grid-row:2;
+  min-height:43px;
+  height:43px;
+  margin:0;
+  padding:0 16px;
+}
+
+#dlabOperatorLocked .dlab-account-form input{
+  min-height:43px;
+  height:43px;
+}
+
+#dlabOperatorLocked .dlab-register-box{
+  margin-top:13px;
+  padding-top:12px;
+}
+
+#dlabOperatorLocked .dlab-register-box > summary{
+  display:flex;
+  align-items:center;
+  width:max-content;
+  min-height:34px;
+  padding:0 9px;
+  border:1px solid rgba(57,231,255,.10);
+  border-radius:8px;
+  background:rgba(57,231,255,.025);
+  color:#c5f4ff;
+}
+
+#dlabOperatorLocked .dlab-register-box[open] > summary{
+  margin-bottom:10px;
+  border-color:rgba(57,231,255,.20);
+  background:rgba(57,231,255,.055);
+}
+
+#dlabOperatorLocked .dlab-register-body{
+  margin-top:0;
+}
+
+#dlabOperatorLocked .dlab-recovery-note{
+  margin-top:11px;
+  padding-top:10px;
+  border-top:1px solid rgba(255,255,255,.055);
+}
+
+/* Chrome/Edge autofill sem o fundo branco/azulado */
+#dlabOperatorLocked input:-webkit-autofill,
+#dlabOperatorLocked input:-webkit-autofill:hover,
+#dlabOperatorLocked input:-webkit-autofill:focus{
+  -webkit-text-fill-color:#fff!important;
+  caret-color:#fff!important;
+  box-shadow:
+    0 0 0 1000px #07141d inset!important;
+  -webkit-box-shadow:
+    0 0 0 1000px #07141d inset!important;
+  border-color:rgba(143,174,205,.24)!important;
+  transition:
+    background-color 9999s ease-out 0s;
+}
+
+/* Celular/tablet volta para coluna única */
+@media(max-width:760px){
+
+  #dlabOperatorLocked{
+    max-width:100%;
+  }
+
+  #dlabOperatorLocked .dlab-account-form{
+    display:grid;
+    grid-template-columns:1fr;
+  }
+
+  #dlabOperatorLoginForm label[for="dlabLoginCall"],
+  #dlabLoginCall,
+  #dlabOperatorLoginForm label[for="dlabOperatorPassword"],
+  #dlabOperatorPassword,
+  #dlabOperatorLoginForm > .dlab-check-row,
+  #dlabOperatorLoginForm > button[type="submit"]{
+    grid-column:1;
+    grid-row:auto;
+  }
+
+  #dlabOperatorLoginForm > button[type="submit"]{
+    width:100%;
+  }
+}
+
+/* =========================================================
+   XLX APRS/D-PRS APRS / D-PRS FINAL V1.2.3
+   ========================================================= */
+
+.dlab-ssid-note{
+  display:grid;
+  grid-template-columns:auto 1fr;
+  gap:10px;
+  align-items:start;
+  margin:10px 0 14px;
+  padding:10px 12px;
+  border:1px solid rgba(57,231,255,.14);
+  border-radius:10px;
+  background:rgba(57,231,255,.035);
+  color:#b9cedf;
+  font-size:.70rem;
+  line-height:1.5;
+}
+
+.dlab-ssid-note>strong{
+  color:#bff7ff;
+  white-space:nowrap;
+}
+
+.dlab-ssid-note b{
+  color:#fff;
+}
+
+.dlab-peer-button{
+  appearance:none;
+  border:0;
+  padding:0;
+  margin:0;
+  background:transparent;
+  color:#bff7ff;
+  font:inherit;
+  font-weight:850;
+  text-align:left;
+  cursor:pointer;
+  text-decoration:none;
+}
+
+.dlab-peer-button:hover,
+.dlab-peer-button:focus-visible{
+  color:#fff;
+  text-decoration:underline;
+}
+
+.dlab-peer-button:focus-visible{
+  outline:2px solid rgba(57,231,255,.65);
+  outline-offset:3px;
+  border-radius:3px;
+}
+
+.dlab-btn-logout{
+  margin-left:auto!important;
+  min-height:36px;
+  padding:0 12px;
+  border:1px solid rgba(255,120,120,.28)!important;
+  border-radius:9px;
+  background:rgba(255,90,90,.055)!important;
+  color:#ffd5d5!important;
+  font-size:.68rem;
+  font-weight:850;
+  cursor:pointer;
+}
+
+.dlab-btn-logout:hover,
+.dlab-btn-logout:focus-visible{
+  border-color:rgba(255,120,120,.55)!important;
+  background:rgba(255,90,90,.11)!important;
+  color:#fff!important;
+}
+
+.dlab-station-call strong{
+  position:relative;
+}
+
+@media(max-width:720px){
+  .dlab-ssid-note{
+    grid-template-columns:1fr;
+  }
+
+  .dlab-btn-logout{
+    margin-left:0!important;
+  }
+}

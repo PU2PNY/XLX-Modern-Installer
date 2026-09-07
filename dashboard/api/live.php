@@ -9,6 +9,49 @@ header('Pragma: no-cache');
 $logFile = '/var/log/xlx.log';
 $statusCache = '/var/cache/xlx-dashboard/status.json';
 
+
+/* XLXMODERN_LIVE_MICROCACHE_V1
+ * Evita que vários navegadores reconstruam o mesmo estado simultaneamente.
+ * Janela curta: 300 ms. Formato externo da API permanece idêntico.
+ */
+$microCacheFile = '/var/cache/xlx-dashboard/live-fast.cache';
+$microLockFile = '/var/cache/xlx-dashboard/live-fast.lock';
+$microCacheTtl = 0.300;
+$microNow = microtime(true);
+
+$microReadFresh = static function(string $file, float $now, float $ttl): ?string {
+    if (!is_readable($file)) return null;
+    $raw = @file_get_contents($file);
+    if (!is_string($raw) || $raw === '') return null;
+    $nl = strpos($raw, "\n");
+    if ($nl === false) return null;
+    $stamp = (float)substr($raw, 0, $nl);
+    if ($stamp <= 0 || ($now - $stamp) < 0 || ($now - $stamp) >= $ttl) return null;
+    $body = substr($raw, $nl + 1);
+    return $body !== '' ? $body : null;
+};
+
+$microCached = $microReadFresh($microCacheFile, $microNow, $microCacheTtl);
+if ($microCached !== null) {
+    header('X-XLXMODERN-Live-Cache: HIT');
+    echo $microCached;
+    exit;
+}
+
+$microLock = @fopen($microLockFile, 'c');
+if (is_resource($microLock)) {
+    @flock($microLock, LOCK_EX);
+    $microNow = microtime(true);
+    $microCached = $microReadFresh($microCacheFile, $microNow, $microCacheTtl);
+    if ($microCached !== null) {
+        header('X-XLXMODERN-Live-Cache: HIT-LOCK');
+        @flock($microLock, LOCK_UN);
+        @fclose($microLock);
+        echo $microCached;
+        exit;
+    }
+}
+
 if (!is_readable($logFile)) {
     http_response_code(503);
 
@@ -415,7 +458,7 @@ foreach (
      * Primeiro normaliza o gateway bruto:
      *
      * PY4RWC B -> PY4RWC + suffix B
-     * PU2PNY B -> PU2PNY + suffix B
+     * N0CALL B -> PU2PNY + suffix B
      */
 
     [
@@ -649,8 +692,6 @@ foreach (
         'gateway',
         'gateway_suffix',
         'network_callsign',
-        'operator_callsign',
-        'operator_identity',
         'identity_source',
         'origin_match',
     ] as $field) {
@@ -715,7 +756,7 @@ foreach (
 
 /* XLXMODERN_LIVE_OPERATOR_BRIDGE_V12 END */
 
-echo json_encode(
+$liveJson = json_encode(
     [
         'ok' => true,
         'generated_at' => $now,
@@ -730,3 +771,21 @@ echo json_encode(
     | JSON_UNESCAPED_SLASHES
     | JSON_INVALID_UTF8_SUBSTITUTE
 );
+
+if (!is_string($liveJson)) {
+    $liveJson = '{"ok":false,"error":"json_encode_failed"}';
+}
+
+if (is_resource($microLock)) {
+    $tmpMicro = $microCacheFile . '.' . getmypid() . '.tmp';
+    $payload = sprintf('%.6F', microtime(true)) . "\n" . $liveJson;
+    if (@file_put_contents($tmpMicro, $payload, LOCK_EX) !== false) {
+        @chmod($tmpMicro, 0640);
+        @rename($tmpMicro, $microCacheFile);
+    }
+    header('X-XLXMODERN-Live-Cache: MISS');
+    @flock($microLock, LOCK_UN);
+    @fclose($microLock);
+}
+
+echo $liveJson;

@@ -1,5 +1,6 @@
 const $=s=>document.querySelector(s);let previousConnections=null,lastData=null;const page=document.body.dataset.page||'ao-vivo';
 const historyExpandedCalls=new Set();
+const reflectorName=String(document.body.dataset.reflector||'XLX').trim().toUpperCase();
 const fmtTime=ts=>ts?new Date(ts*1000).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}):'—';
 const elapsed=ts=>{if(!ts)return'—';let s=Math.max(0,Math.floor(Date.now()/1000-ts)),d=Math.floor(s/86400);s%=86400;let h=Math.floor(s/3600);s%=3600;let m=Math.floor(s/60);s%=60;return(d?d+'d ':'')+String(h).padStart(2,'0')+'h '+String(m).padStart(2,'0')+'m '+String(s).padStart(2,'0')+'s'};
 const duration=s=>{s=Number(s||0);const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;return(h?h+'h ':'')+String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0')};
@@ -14,21 +15,135 @@ const flag=x=>{
  return `<span class="flag" title="${esc(name)}"><img src="/flags/${esc(code)}.png" alt="Bandeira de ${esc(name)}" width="24" height="16" loading="lazy" decoding="async" style="display:inline-block;width:24px;height:16px;object-fit:cover;vertical-align:middle;border-radius:2px"></span>`;
 };
 const onlineBadge = online => `<span class="state-pill ${online?'online':'offline'}">${online?'Online':'Offline'}</span>`;
-function operatorDisplay(x){
- const unresolved=x?.operator_identity==='unresolved'&&String(x?.protocol||'').toUpperCase().startsWith('D-STAR/');
- if(unresolved)return {callsign:'Operador não identificado',name:'Aguardando identificação pelo gateway',qrz:''};
- return {callsign:String(x?.operator_callsign||x?.callsign||'Não informado'),name:String(x?.name||x?.callsign||'Operador não identificado'),qrz:String(x?.qrz||'')};
+const xlxmodernQrzPhotoCache=new Map();
+function xlxmodernSyncQrzPhotoSizes(root=document){
+ const grid=document.getElementById('moduleGrid');
+ if(!grid)return;
+ const cards=[...grid.querySelectorAll('.tx-card.live.tx-v30')];
+ const count=Math.max(1,Math.min(3,cards.length||1));
+ const desktop=window.innerWidth>=721;
+ const px=desktop?({1:120,2:96,3:80}[count]):72;
+
+ grid.querySelectorAll('.tx-v30-person').forEach(person=>{
+  person.classList.remove('qrz-one-tx-layout');
+  ['display','grid-template-columns','gap','align-items','position','width'].forEach(k=>person.style.removeProperty(k));
+  const data=person.querySelector('.tx-v30-person-data');
+  if(data){
+   ['padding-right','margin','min-width','position','z-index'].forEach(k=>data.style.removeProperty(k));
+  }
+ });
+
+ grid.querySelectorAll('.operator-visual').forEach(v=>{
+  v.classList.remove('qrz-size-1','qrz-size-2','qrz-size-3');
+  if(!v.classList.contains('qrz-photo-active')){
+   ['width','height','min-width','min-height','max-width','max-height','position','top','right','bottom','left','transform','margin','z-index'].forEach(k=>v.style.removeProperty(k));
+  }
+ });
+
+ grid.querySelectorAll('.operator-visual.qrz-photo-active').forEach(v=>{
+  v.classList.add(`qrz-size-${count}`);
+  ['width','height','min-width','min-height','max-width','max-height'].forEach(k=>v.style.setProperty(k,`${px}px`,'important'));
+  const img=v.querySelector('img.is-qrz-photo');
+  if(img){
+   ['width','height','min-width','min-height','max-width','max-height'].forEach(k=>img.style.setProperty(k,'100%','important'));
+   img.style.setProperty('object-fit','cover','important');
+   img.style.setProperty('display','block','important');
+  }
+
+  if(desktop && count===1){
+   const person=v.closest('.tx-v30-person');
+   const data=person?.querySelector('.tx-v30-person-data');
+   if(person){
+    person.classList.add('qrz-one-tx-layout');
+    person.style.setProperty('display','grid','important');
+    person.style.setProperty('grid-template-columns','132px minmax(0,1fr)','important');
+    person.style.setProperty('gap','20px','important');
+    person.style.setProperty('align-items','center','important');
+    person.style.setProperty('position','relative','important');
+    person.style.setProperty('width','100%','important');
+   }
+   v.style.setProperty('position','relative','important');
+   v.style.setProperty('top','auto','important');
+   v.style.setProperty('right','auto','important');
+   v.style.setProperty('bottom','auto','important');
+   v.style.setProperty('left','auto','important');
+   v.style.setProperty('transform','none','important');
+   v.style.setProperty('margin','0','important');
+   v.style.setProperty('z-index','3','important');
+   if(data){
+    data.style.setProperty('padding-right','0','important');
+    data.style.setProperty('margin','0','important');
+    data.style.setProperty('min-width','0','important');
+    data.style.setProperty('position','relative','important');
+    data.style.setProperty('z-index','3','important');
+   }
+  }
+ });
 }
-function operatorVisual(){return `<div class="operator-visual"><img src="assets/talking-radio.gif" alt="Indicador de transmissão"><span class="signal-ring"></span></div>`}
+function operatorVisual(call=''){
+ const c=String(call||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+ return `<div class="operator-visual"><img class="tx-qrz-photo-target" data-qrz-call="${esc(c)}" src="assets/talking-radio.gif" alt="Indicador de transmissão"><span class="signal-ring"></span></div>`
+}
+async function xlxmodernLoadQrzPhoto(img){
+ if(!img||img.dataset.qrzState)return;
+ const call=String(img.dataset.qrzCall||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+ if(!call)return;
+ img.dataset.qrzState='loading';
+ try{
+  let result=xlxmodernQrzPhotoCache.get(call);
+  if(result===undefined){
+   const controller=new AbortController();
+   const timer=setTimeout(()=>controller.abort(),5000);
+   try{
+    const r=await fetch(`/api/qrz-photo.php?callsign=${encodeURIComponent(call)}`,{cache:'no-store',signal:controller.signal});
+    result=r.ok?await r.json():null;
+   }finally{clearTimeout(timer)}
+   const url=result&&result.ok&&result.photo&&result.url?String(result.url):'';
+   xlxmodernQrzPhotoCache.set(call,url);
+   result=url;
+  }
+  const url=typeof result==='string'?result:'';
+  if(!url){img.dataset.qrzState='fallback';return}
+  const fallback='assets/talking-radio.gif';
+  img.onerror=()=>{
+   img.onerror=null;
+   img.src=fallback;
+   img.classList.remove('is-qrz-photo');
+   {const v=img.closest('.operator-visual');v?.classList.remove('qrz-photo-active','qrz-size-1','qrz-size-2','qrz-size-3');} xlxmodernSyncQrzPhotoSizes();
+   img.alt='Indicador de transmissão';
+   img.dataset.qrzState='fallback';
+   xlxmodernQrzPhotoCache.set(call,'');
+  };
+  img.onload=()=>{
+   img.classList.add('is-qrz-photo');
+   img.closest('.operator-visual')?.classList.add('qrz-photo-active'); xlxmodernSyncQrzPhotoSizes();
+   img.alt=`Foto pública do QRZ de ${call}`;
+   img.dataset.qrzState='photo';
+  };
+  img.src=url;
+ }catch(_e){img.dataset.qrzState='fallback'}
+}
+function xlxmodernHydrateQrzPhotos(root=document){
+ root.querySelectorAll?.('img.tx-qrz-photo-target[data-qrz-call]').forEach(xlxmodernLoadQrzPhoto);
+}
+function xlxmodernInitQrzPhotoObserver(){
+ if(page!=='ao-vivo')return;
+ const grid=document.getElementById('moduleGrid');
+ if(!grid||grid.dataset.qrzPhotoObserver==='1')return;
+ grid.dataset.qrzPhotoObserver='1';
+ new MutationObserver(()=>{xlxmodernHydrateQrzPhotos(grid);xlxmodernSyncQrzPhotoSizes(grid)}).observe(grid,{childList:true,subtree:true});
+ xlxmodernHydrateQrzPhotos(grid);
+ xlxmodernSyncQrzPhotoSizes(grid);
+}
+setTimeout(xlxmodernInitQrzPhotoObserver,0);
+window.addEventListener('resize',()=>xlxmodernSyncQrzPhotoSizes(),{passive:true});
 function txCard(m){
-/* {{REFLECTOR_NAME}}_TXCARD_CALLSIGN_SEM_SUFFIX_V13 */
+/* XLXMODERN_TXCARD_CALLSIGN_SEM_SUFFIX_V13 */
 
  const tx=m.transmission;
  const countryName=tx.country?.name||'País não informado';
  const gatewayHtml=hotspotRepeaterMarkup(tx);
- const operator=operatorDisplay(tx);
- const callsign=esc(operator.callsign);
- const operatorLink=operator.qrz?`<a class="tx-v30-callsign" target="_blank" rel="noopener" href="${esc(operator.qrz)}">${callsign}</a>`:`<strong class="tx-v30-callsign">${callsign}</strong>`;
+ const callsign=esc(tx.callsign);
 
  return `<article class="tx-card live compact-tx tx-v30">
   <div class="tx-top">
@@ -41,10 +156,10 @@ function txCard(m){
 
   <div class="tx-v30-content">
    <div class="tx-v30-person">
-    ${operatorVisual()}
+    ${operatorVisual(tx.callsign)}
     <div class="tx-v30-person-data">
-     ${operatorLink}
-     <strong class="tx-v30-name">${esc(operator.name)}</strong>
+     <span class="connected-call-wrap"><a class="tx-v30-callsign" target="_blank" rel="noopener" href="${esc(tx.qrz)}">${callsign}</a>${xlxmodernAprsSatelliteMarkup(tx.callsign)}</span>
+     <strong class="tx-v30-name">${esc(tx.name||tx.callsign)}</strong>
      <span class="tx-v30-location">${esc(tx.location||'Localização não informada')}</span>
      <span class="tx-v30-country">${flag(tx)} ${esc(countryName)}</span>
     </div>
@@ -52,7 +167,7 @@ function txCard(m){
 
    <div class="tx-v30-details">
     <div>
-     <small>Hotspot / Repetidora</small>
+     <small>Gateway / Repetidora</small>
      <strong class="tx-hotspot-repeater">${gatewayHtml}</strong>
     </div>
 
@@ -76,19 +191,18 @@ function txCard(m){
 
 function standbyCard(m,newest){
  const last=newest||m.last_transmission;
- const lastOperator=last?operatorDisplay(last):null;
- const callsign=lastOperator
-  ? `${esc(lastOperator.callsign)}${last.suffix?' '+esc(last.suffix):''}`
+ const callsign=last
+  ? `${esc(last.callsign)}${last.suffix?' '+esc(last.suffix):''}`
   : 'Sem transmissão recente';
 
- const name=lastOperator
-  ? esc(lastOperator.name)
-  : 'Aguardando transmissão';
+ const name=last
+  ? esc(last.name||'Operador não identificado')
+  : 'Aguardando a próxima transmissão';
 
  return `<article class="tx-card standby compact-tx standby-v30">
   <div class="tx-top">
    <div>
-    <span class="module-badge">{{REFLECTOR_NAME}} AO VIVO</span>
+    <span class="module-badge">${esc(reflectorName)} AO VIVO</span>
     <h3>Aguardando transmissão</h3>
    </div>
    <span class="ready"><i></i> STANDBY</span>
@@ -110,13 +224,13 @@ function standbyCard(m,newest){
 }
 
 function toast(c){let el=document.createElement('div');el.className='toast';el.innerHTML=`<div class="toast-icon">${flag(c)}</div><div><strong>${esc(c.callsign)} — ${esc(c.name)}</strong><span>Conectou por ${esc(c.protocol)} • módulo ${esc(c.module)}</span></div>`;$('#toastStack')?.append(el);setTimeout(()=>el.classList.add('out'),7500);setTimeout(()=>el.remove(),8500)}
-function updateTitle(d){const active=Object.values(d.modules).filter(m=>m.transmission).map(m=>m.transmission.callsign);document.title=active.length?`(${d.connected_count}) ${active.join(' + ')} TX — {{REFLECTOR_NAME}}`:`(${d.connected_count}) {{REFLECTOR_TITLE}}`;}
+function updateTitle(d){const active=Object.values(d.modules).filter(m=>m.transmission).map(m=>m.transmission.callsign);document.title=active.length?`(${d.connected_count}) ${active.join(' + ')} TX — ${reflectorName}`:`(${d.connected_count}) ${reflectorName}`;}
 function historyCallKey(x){return String(x?.callsign||'').trim().toUpperCase()}
 function historyRowId(callKey,index){const safe=Array.from(callKey).map(ch=>/[A-Z0-9_-]/.test(ch)?ch:'x'+ch.charCodeAt(0).toString(16)+'x').join('');return `history-${safe}-${index}`}
 function ensureHistoryDropdownStyles(){
- if(document.getElementById('xlx026HistoryDropdownStyles'))return;
+ if(document.getElementById('xlxmodernHistoryDropdownStyles'))return;
  const style=document.createElement('style');
- style.id='xlx026HistoryDropdownStyles';
+ style.id='xlxmodernHistoryDropdownStyles';
  style.textContent=`
   body[data-page='ao-vivo'] .history-status-wrap{display:inline-flex;align-items:center;justify-content:center;gap:3px;flex-wrap:nowrap;white-space:nowrap;width:100%}
   body[data-page='ao-vivo'] .history-status-wrap .state-pill{display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 auto!important;min-width:38px!important;max-width:none!important;padding:3px 5px!important;font-size:8px!important;line-height:1!important;white-space:nowrap!important;word-break:normal!important;overflow-wrap:normal!important}
@@ -136,9 +250,171 @@ function ensureHistoryDropdownStyles(){
   }`;
  document.head.appendChild(style);
 }
+/* XLXMODERN APRS/DPRS PRESENCE V1 */
+const xlxmodernAprsPresence=new Map();
+const xlxmodernDmrTalkerAlias=new Map();
+let xlxmodernAprsPresenceAt=0;
+let xlxmodernAprsPresenceLoading=false;
+const xlxmodernAprsActiveMs=30*60*1000;
+function xlxmodernAprsBaseCall(v){return String(v||'').toUpperCase().trim().split(/[\s/]/)[0].replace(/[^A-Z0-9-]/g,'').replace(/-[0-9]{1,2}$/,'')}
+function xlxmodernPositionSourceLabel(st){
+ const source=String(st&&st.source||'');
+ if(source.startsWith('DPRS_MODULE_'))return `D-PRS • módulo ${st&&st.module||'?'}`;
+ if(source==='APRS_IS')return 'APRS-IS';
+ if(source==='YSF_GPS')return 'YSF GPS';
+ if(source==='DMR_GPS')return 'DMR GPS';
+ return String(st&&st.protocol||'Posição digital');
+}
+function xlxmodernAprsDevice(st){
+ const source=String(st&&st.source||'');
+ if(source==='DMR_GPS')return ['🛰️','Posição GPS DMR'];
+ if(source==='YSF_GPS')return ['🛰️','Posição GPS YSF'];
+ if(source.startsWith('DPRS_MODULE_'))return ['🛰️','Posição D-PRS'];
+ if(source==='APRS_IS')return ['🛰️','Posição APRS'];
+ return ['🛰️','Posição digital'];
+}
+function xlxmodernAprsSatelliteMarkup(call){
+ const key=xlxmodernAprsBaseCall(call),st=xlxmodernAprsPresence.get(key);
+ if(!st)return '';
+ const dev=xlxmodernAprsDevice(st),source=xlxmodernPositionSourceLabel(st);
+ const target=String(st.callsign||key);
+ return `<a class="aprs-activity-satellite aprs-device-icon" href="/aprs-dprs?station=${encodeURIComponent(target)}" title="${esc(dev[1])} • ${source} — ver localização" aria-label="${esc(dev[1])} — ver localização de ${esc(target)}">${dev[0]}</a>`;
+}
+function xlxmodernDmrTalkerAliasMarkup(call){
+ const key=xlxmodernAprsBaseCall(call),row=xlxmodernDmrTalkerAlias.get(key);
+ if(!row)return '';
+ const alias=String(row.alias||'').trim();
+ if(!alias)return '';
+ return `<span class="dmr-talker-alias-badge" title="Talker Alias DMR reportado pelo rádio: ${esc(alias)}" aria-label="Talker Alias DMR reportado pelo rádio: ${esc(alias)}">T</span>`;
+}
+async function xlxmodernLoadAprsPresence(force=false){
+ if(xlxmodernAprsPresenceLoading)return;
+ if(!force && Date.now()-xlxmodernAprsPresenceAt<15000)return;
+ xlxmodernAprsPresenceLoading=true;
+ try{
+  const r=await fetch('/api/digital-lab.php?presence=1&ts='+Date.now(),{cache:'no-store',headers:{Accept:'application/json'}});
+  const d=await r.json();
+  if(r.ok&&d&&d.ok&&Array.isArray(d.stations)){
+   xlxmodernAprsPresence.clear();
+   xlxmodernDmrTalkerAlias.clear();
+   const now=Date.now();
+   d.stations.forEach(st=>{
+    const key=xlxmodernAprsBaseCall(st.callsign),t=Date.parse(st.last_seen||'');
+    if(!key||!Number.isFinite(t)||now-t>xlxmodernAprsActiveMs)return;
+    const prev=xlxmodernAprsPresence.get(key),pt=prev?Date.parse(prev.last_seen||''):0;
+    if(!prev||t>pt)xlxmodernAprsPresence.set(key,st);
+   });
+   (Array.isArray(d.dmr_talker_alias)?d.dmr_talker_alias:[]).forEach(row=>{
+    const key=xlxmodernAprsBaseCall(row&&row.callsign),t=Date.parse(row&&row.last_seen||'');
+    if(!key||!Number.isFinite(t)||now-t>xlxmodernAprsActiveMs)return;
+    const prev=xlxmodernDmrTalkerAlias.get(key),pt=prev?Date.parse(prev.last_seen||''):0;
+    if(!prev||t>pt)xlxmodernDmrTalkerAlias.set(key,row);
+   });
+   xlxmodernAprsPresenceAt=Date.now();
+   if(lastData){
+    if(page==='conectados')renderConnectedTable(lastData);
+    if(page==='ao-vivo'){
+     const hr=$('#historyRows'); if(hr)hr.innerHTML=historyMarkup(lastData);
+    }
+   }
+  }
+ }catch(_e){}finally{xlxmodernAprsPresenceLoading=false}
+}
+
+/* XLXMODERN REPEATER POPUP V2 */
+const xlxmodernRepeaterCache=new Map();
+const xlxmodernGatewayLocalMeta=new Map();
+function xlxmodernIndexGatewayLocalMeta(d){
+ xlxmodernGatewayLocalMeta.clear();
+ const rows=[...(d&&d.connections||[]),...(d&&d.history||[])];
+ rows.forEach(r=>{
+  const call=xlxmodernBaseCall(r&&r.callsign);
+  const name=String((r&&r.name)||'').trim();
+  const location=String((r&&r.location)||'').trim();
+  if(!call)return;
+  const usefulName=name&&!/^N[aã]o informado$/i.test(name);
+  const usefulLocation=location&&!/^N[aã]o informad[ao]$/i.test(location);
+  if(usefulName||usefulLocation){
+   const prev=xlxmodernGatewayLocalMeta.get(call)||{};
+   xlxmodernGatewayLocalMeta.set(call,{name:usefulName?name:(prev.name||''),location:usefulLocation?location:(prev.location||'')});
+  }
+ });
+}
+function xlxmodernStationProvesGateway(x){const src=String((x&&x.identity_source)||'');const conf=String((x&&x.identity_confidence)||'');return src.indexOf('xlxd-station')===0&&(conf==='station'||conf==='station-strict')}
+function xlxmodernRepeaterEligible(x,gatewayCall,callsign){const selfRepeater=gatewayCall&&callsign&&gatewayCall===callsign&&/^REPETIDORA\b/i.test(String((x&&x.name)||'').trim());const linkedRepeater=gatewayCall&&callsign&&gatewayCall!==callsign&&xlxmodernStationProvesGateway(x);return Boolean(selfRepeater||linkedRepeater)}
+async function xlxmodernRepeaterInfo(call){
+ const key=xlxmodernBaseCall(call); if(!key)return null;
+ if(xlxmodernRepeaterCache.has(key))return xlxmodernRepeaterCache.get(key);
+ try{
+  const r=await fetch('/api/repeater.php?callsign='+encodeURIComponent(key),{cache:'no-store',headers:{Accept:'application/json'}});
+  const d=await r.json(); const v=(r.ok&&d&&d.ok&&d.repeater)?d.repeater:null;
+  xlxmodernRepeaterCache.set(key,v); return v;
+ }catch(_e){xlxmodernRepeaterCache.set(key,null);return null}
+}
+function xlxmodernEnsureRepeaterDialog(){
+ let d=document.getElementById('xlxmodernRepeaterDialog'); if(d)return d;
+ d=document.createElement('dialog');d.id='xlxmodernRepeaterDialog';d.className='xlxmodern-repeater-dialog';
+ d.innerHTML='<div class="repeater-dialog-head"><strong id="xlxmodernRepeaterTitle">Repetidora</strong><button type="button" data-repeater-close aria-label="Fechar">×</button></div><div id="xlxmodernRepeaterBody" class="repeater-dialog-body"></div>';
+ document.body.appendChild(d);d.querySelector('[data-repeater-close]').addEventListener('click',()=>d.close());d.addEventListener('click',e=>{if(e.target===d)d.close()});return d;
+}
+function xlxmodernRepeaterField(label,value){return value?`<div><small>${esc(label)}</small><strong>${esc(String(value))}</strong></div>`:''}
+async function xlxmodernOpenRepeater(call){
+ const d=xlxmodernEnsureRepeaterDialog(),body=d.querySelector('#xlxmodernRepeaterBody'),title=d.querySelector('#xlxmodernRepeaterTitle');
+ title.textContent=xlxmodernBaseCall(call)||'Repetidora';body.innerHTML='<p class="repeater-loading">Consultando RadioID.net…</p>';d.showModal();
+ const r=await xlxmodernRepeaterInfo(call);
+ if(!r){body.innerHTML='<p>Não há cadastro de repetidora disponível no RadioID.net para este indicativo.</p>';return}
+ const place=[r.city,r.state].filter(Boolean).join(' / '), updated=r.fetched_at?new Date(Number(r.fetched_at)*1000).toLocaleString('pt-BR'):'—';
+ body.innerHTML=`<div class="repeater-detail-grid">${xlxmodernRepeaterField('Frequência',r.frequency?`${r.frequency} MHz`:'')}${xlxmodernRepeaterField('Offset',r.offset?`${r.offset} MHz`:'')}${xlxmodernRepeaterField('Localização',place)}${xlxmodernRepeaterField('Color Code',r.color_code)}${xlxmodernRepeaterField('Status',r.status)}${xlxmodernRepeaterField('Cobertura',r.coverage)}${xlxmodernRepeaterField('Rede / modos',r.network)}${xlxmodernRepeaterField('Responsável',Array.isArray(r.trustee)?r.trustee.join(', '):'')}</div><div class="repeater-source"><b>Fonte:</b> RadioID.net<br><b>Última consulta:</b> ${esc(updated)}${r.cache==='stale'?'<br><span>Exibindo último cache disponível.</span>':''}</div>`;
+}
+async function xlxmodernEnableRepeaterButtons(root=document){
+ const nodes=[...root.querySelectorAll('[data-repeater-call]')];
+ for(const n of nodes){
+  if(n.dataset.repeaterBound==='1')continue;
+  n.dataset.repeaterBound='1';
+  const call=xlxmodernBaseCall(n.dataset.repeaterCall||'');
+  if(!call)continue;
+  const info=await xlxmodernRepeaterInfo(call);
+  if(!info){
+   n.dataset.gatewayType='gateway-unknown';
+   n.title='Gateway/hotspot — sem cadastro de repetidora confirmado no RadioID.net';
+   continue;
+  }
+  n.dataset.gatewayType='repeater';
+  n.classList.add('has-repeater-info','gateway-confirmed-repeater');
+  n.title='Repetidora confirmada no RadioID.net';
+  const row=n.closest('tr');
+  if(row){
+   const nameCell=row.querySelector('.history-name-cell');
+   const cityCell=row.querySelector('.history-city-cell');
+   const city=String(info.city||'').trim();
+   const state=String(info.state||'').trim();
+   const place=[city,state].filter(Boolean).join(', ');
+   const repName=city?`Repetidora ${city}${state?' '+state:''}`:'Repetidora '+call;
+   if(nameCell&&nameCell.dataset.missing==='1'){
+    nameCell.textContent=repName;
+    nameCell.title='Dados oficiais da repetidora '+call+' • RadioID.net';
+    nameCell.classList.add('repeater-meta-fallback');
+   }
+   if(cityCell&&cityCell.dataset.missing==='1'&&place){
+    cityCell.textContent=place;
+    cityCell.title='Localização oficial da repetidora '+call+' • RadioID.net';
+    cityCell.classList.add('repeater-meta-fallback');
+   }
+  }
+  const b=document.createElement('button');
+  b.type='button';
+  b.className='repeater-info-button';
+  b.textContent='i';
+  b.title='Ver informações da repetidora confirmada';
+  b.setAttribute('aria-label','Ver dados da repetidora '+call);
+  b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();xlxmodernOpenRepeater(call)});
+  n.appendChild(b);
+ }
+}
+
 function hotspotRepeaterMarkup(x){
  const callsign=
-  xlx026BaseCall(
+  xlxmodernBaseCall(
    (x&&x.callsign)||''
   );
 
@@ -151,13 +427,13 @@ function hotspotRepeaterMarkup(x){
   raw.toUpperCase();
 
  const gatewayCall=
-  xlx026BaseCall(raw);
+  xlxmodernBaseCall(raw);
 
  const unknown=
   !raw
   || normalized==='NÃO IDENTIFICADO'
   || normalized==='GATEWAY NÃO IDENTIFICADO'
-  || normalized==='HOTSPOT / REPETIDORA NÃO IDENTIFICADO';
+  || normalized==='GATEWAY / REPETIDORA NÃO IDENTIFICADO';
 
  if(unknown){
   return `<span class="hotspot-repeater-empty">—</span>`;
@@ -166,7 +442,7 @@ function hotspotRepeaterMarkup(x){
  /*
   * A comparação é feita pelo indicativo-base.
   *
-  * PU2PNY B = PU2PNY
+  * N0CALL B = PU2PNY
   * PY4RWC B = PY4RWC
   */
  const different=
@@ -175,17 +451,68 @@ function hotspotRepeaterMarkup(x){
   gatewayCall!==callsign;
 
  const neon=different
-  ? `<span class="gateway-neon" role="img" aria-label="Usando hotspot ou repetidora diferente do indicativo" title="Usando hotspot ou repetidora diferente do indicativo"></span>`
+  ? `<span class="gateway-neon" role="img" aria-label="Usando gateway, hotspot ou repetidora diferente do indicativo" title="Usando gateway, hotspot ou repetidora diferente do indicativo"></span>`
   : '';
 
  const displayed=
   gatewayCall||raw;
 
- return `<span class="gateway-display${different?' gateway-different':''}">${neon}<span class="gateway-value">${esc(displayed)}</span></span>`;
+ const repAttr=gatewayCall?` data-repeater-call="${esc(gatewayCall)}"`:'';
+ return `<span class="gateway-display${different?' gateway-different':''}"${repAttr}><span class="gateway-value">${esc(displayed)}</span></span>`;
 }
 
 function historyStatusMarkup(x){
- return onlineBadge(Boolean(x.online));
+ /* XLXMODERN_HISTORY_LINK_STATUS_V15B */
+
+ /*
+  * Online continua tendo prioridade.
+  */
+ if(Boolean(x&&x.online)){
+  return onlineBadge(true);
+ }
+
+ const call=
+  xlxmodernBaseCall(
+   (x&&x.callsign)||''
+  );
+
+ const gatewayRaw=
+  String(
+   (x&&x.gateway)||''
+  ).trim();
+
+ const gateway=
+  xlxmodernBaseCall(
+   gatewayRaw
+  );
+
+ const source=
+  String(
+   (x&&x.identity_source)||''
+  );
+
+ const gatewayKnown=
+  gateway!=='' &&
+  !/NÃO\s+IDENTIFICADO/i.test(
+   gatewayRaw
+  );
+
+ const stationConfirmed=
+  source.indexOf(
+   'xlxd-station'
+  )===0;
+
+ const viaLink=
+  call!=='' &&
+  gatewayKnown &&
+  gateway!==call &&
+  stationConfirmed;
+
+ if(viaLink){
+  return `<span class="history-link-badge" title="Operador ouvido através de ${esc(gateway)}" aria-label="Link através de ${esc(gateway)}">Link</span>`;
+ }
+
+ return onlineBadge(false);
 }
 
 function historyToggleMarkup(x,callKey,previousIds){
@@ -200,18 +527,16 @@ function historyToggleMarkup(x,callKey,previousIds){
  return `<button type="button" class="history-toggle" data-history-toggle="${esc(callKey)}" aria-expanded="${expanded?'true':'false'}" aria-controls="${esc(previousIds.join(' '))}" aria-label="${label} de ${esc(x.callsign)}" title="${label}"><span aria-hidden="true">▼</span></button>`;
 }
 
-/* {{REFLECTOR_NAME}}_HORARIO_TX_24H_V1 */
-function historyRowMarkup(x, options={}){
- const {
-  statusHtml='',
-  toggleHtml='',
-  attrs='',
-  position=''
- }=options;
+/* XLXMODERN_HORARIO_TX_24H_V1 */
+function historyRowMarkup(
+ x,
+ statusHtml,
+ toggleHtml='',
+ attrs='',
+ position='',
+ longPeriod=false
+){
  const rowNumber=position===''?'↳':esc(position);
- const operator=operatorDisplay(x);
- const operatorCall=esc(operator.callsign);
- const operatorHtml=operator.qrz?`<a target="_blank" rel="noopener" href="${esc(operator.qrz)}">${operatorCall}</a>`:`<span class="operator-unresolved" title="O gateway ainda não informou o operador">${operatorCall}</span>`;
 
  return `<tr ${attrs}>
 
@@ -231,16 +556,16 @@ function historyRowMarkup(x, options={}){
   </td>
 
   <td class="history-callsign-cell">
-   ${operatorHtml}
+   <a target="_blank" href="${esc(x.qrz)}">${esc(x.callsign)}</a>${xlxmodernAprsSatelliteMarkup(x.callsign)}${xlxmodernDmrTalkerAliasMarkup(x.callsign)}
   </td>
 
-  <td>${esc(operator.name)}</td>
+  <td class="history-name-cell" data-missing="${!x.name||/^N[aã]o informado$/i.test(String(x.name))?'1':'0'}">${esc(x.name||'Não informado')}</td>
 
   <td class="history-hotspot-cell">
    ${hotspotRepeaterMarkup(x)}
   </td>
 
-  <td>${esc(x.location||'Não informada')}</td>
+  <td class="history-city-cell" data-missing="${!x.location||/^N[aã]o informad[ao]$/i.test(String(x.location))?'1':'0'}">${esc(x.location||'Não informada')}</td>
 
   <td>
    <span class="protocol">${esc(x.protocol)}</span>
@@ -248,7 +573,7 @@ function historyRowMarkup(x, options={}){
 
   <td>${esc(x.module)}</td>
 
-  <td class="history-tx-time" data-label="Horário TX" title="${esc(fmtTime(x.started_at))}">${x.started_at?new Date(Number(x.started_at)*1000).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'—'}</td><td class="history-duration-cell">
+  <td class="history-tx-time" data-label="Horário TX" title="${esc(fmtTime(x.started_at))}">${x.started_at?(longPeriod?new Date(Number(x.started_at)*1000).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):new Date(Number(x.started_at)*1000).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})):'—'}</td><td class="history-duration-cell">
    <span class="history-duration-value">${duration(x.duration)}</span>
   </td>
 
@@ -268,7 +593,7 @@ function historyMarkup(d){
   );
 
  if(!rows.length){
-  return `<tr><td colspan="11">Nenhuma transmissão registrada nas últimas 24 horas.</td></tr>`;
+  return `<tr><td colspan="10">Nenhuma transmissão registrada nas últimas 24 horas.</td></tr>`;
  }
 
  const groups=new Map();
@@ -298,16 +623,17 @@ function historyMarkup(d){
    const mainAttrs=
     `class="history-primary-row${expanded?' is-expanded':''}" data-history-call="${esc(callKey)}"`;
 
-   const main=historyRowMarkup(latest,{
-    statusHtml:historyStatusMarkup(latest),
-    toggleHtml:historyToggleMarkup(
+   const main=historyRowMarkup(
+    latest,
+    historyStatusMarkup(latest),
+    historyToggleMarkup(
      latest,
      callKey,
      previousIds
     ),
-    attrs:mainAttrs,
-    position:groupIndex+1
-   });
+    mainAttrs,
+    groupIndex+1
+   );
 
    const older=previous.map((x,index)=>{
     const hidden=expanded
@@ -317,17 +643,82 @@ function historyMarkup(d){
     const attrs=
      `id="${esc(previousIds[index])}" class="history-previous-row" data-history-parent="${esc(callKey)}"${hidden}`;
 
-    return historyRowMarkup(x,{
-     statusHtml:historyStatusMarkup(x),
+    return historyRowMarkup(
+     x,
+     historyStatusMarkup(x),
+     '',
      attrs,
-     position:`${groupIndex+1}.${index+1}`
-    });
+     `${groupIndex+1}.${index+1}`
+    );
    }).join('');
 
    return main+older;
   }).join('');
 }
 
+let xlxmodernHistoryPeriodDays=1;
+let xlxmodernHistoryLongRequest=0;
+function xlxmodernHistoryPeriodText(days){return days===7?'Atividade dos últimos 7 dias':days===30?'Atividade dos últimos 30 dias':'Atividade das últimas 24 horas'}
+function xlxmodernHistoryCoverageText(data){
+ const since=Number(data&&data.coverage_since||0);
+ if(!since)return 'Base histórica iniciando agora';
+ const dt=new Date(since*1000).toLocaleDateString('pt-BR');
+ return `Base acumulada desde ${dt}`;
+}
+function historyLongToggleMarkup(x,days){
+ const count=Number(x&&x.tx_count||0),call=historyCallKey(x);
+ if(count<=1||!call)return '';
+ return `<button type="button" class="history-toggle" data-history-long-toggle="${esc(call)}" data-history-days="${days}" aria-expanded="false" aria-label="Abrir ${count} transmissões de ${esc(x.callsign)}" title="${count} transmissões no período"><span aria-hidden="true">▼</span></button>`;
+}
+function historyLongMarkup(data){
+ const days=Number(data&&data.days||xlxmodernHistoryPeriodDays||7),rows=Array.isArray(data&&data.groups)?data.groups:[];
+ if(!rows.length)return `<tr><td colspan="11">Nenhuma transmissão registrada na base dos últimos ${days} dias.</td></tr>`;
+ return rows.map((x,i)=>{
+  const y={...x,duration:Number(x.total_duration||x.duration||0)};
+  const attrs=`class="history-primary-row history-long-primary" data-history-long-call="${esc(historyCallKey(x))}"`;
+  return historyRowMarkup(y,historyStatusMarkup(y),historyLongToggleMarkup(x,days),attrs,i+1,true);
+ }).join('');
+}
+async function xlxmodernLoadLongHistory(days){
+ const seq=++xlxmodernHistoryLongRequest,rows=$('#historyRows'),title=$('#historyPeriodTitle'),note=$('#historyCoverageNote');
+ if(title)title.textContent=xlxmodernHistoryPeriodText(days);
+ if(note)note.textContent='Carregando histórico…';
+ if(rows)rows.innerHTML='<tr class="history-long-loading"><td colspan="11">Carregando histórico…</td></tr>';
+ try{
+  const r=await fetch(`/api/history-long.php?days=${days}&ts=${Date.now()}`,{cache:'no-store'}),d=await r.json();
+  if(seq!==xlxmodernHistoryLongRequest)return;
+  if(!r.ok||!d.ok)throw Error('history');
+  if(rows)rows.innerHTML=historyLongMarkup(d);
+  if(note)note.textContent=xlxmodernHistoryCoverageText(d);
+  setTimeout(()=>xlxmodernEnableRepeaterButtons(document),0);
+ }catch(_e){
+  if(rows)rows.innerHTML='<tr><td colspan="11">Não foi possível carregar o histórico longo.</td></tr>';
+  if(note)note.textContent='Histórico indisponível';
+ }
+}
+async function toggleLongHistory(button){
+ const call=String(button.dataset.historyLongToggle||''),days=Number(button.dataset.historyDays||xlxmodernHistoryPeriodDays||7),main=button.closest('tr');
+ if(!call||!main)return;
+ const expanded=button.getAttribute('aria-expanded')==='true';
+ const existing=[...document.querySelectorAll('#historyRows tr[data-history-long-parent]')].filter(r=>r.dataset.historyLongParent===call);
+ if(existing.length){
+  existing.forEach(r=>r.style.setProperty('display',expanded?'none':'table-row','important'));
+  button.setAttribute('aria-expanded',expanded?'false':'true'); main.classList.toggle('is-expanded',!expanded); return;
+ }
+ button.disabled=true;
+ try{
+  const r=await fetch(`/api/history-long.php?days=${days}&callsign=${encodeURIComponent(call)}&ts=${Date.now()}`,{cache:'no-store'}),d=await r.json();
+  if(!r.ok||!d.ok)throw Error('detail');
+  const items=Array.isArray(d.items)?d.items.slice(1):[];
+  if(items.length){
+   const html=items.map((x,i)=>historyRowMarkup(x,historyStatusMarkup(x),'',`class="history-previous-row" data-history-long-parent="${esc(call)}"`,`${main.querySelector('.history-row-number')?.textContent||''}.${i+1}`,true)).join('');
+   main.insertAdjacentHTML('afterend',html);
+   setTimeout(()=>xlxmodernEnableRepeaterButtons(document),0);
+  }
+  button.setAttribute('aria-expanded','true'); main.classList.add('is-expanded');
+ }catch(_e){button.title='Falha ao carregar transmissões anteriores';}
+ finally{button.disabled=false;}
+}
 function toggleHistoryGroup(callKey,button){
  const expanded=!historyExpandedCalls.has(callKey);
  if(expanded)historyExpandedCalls.add(callKey);else historyExpandedCalls.delete(callKey);
@@ -343,11 +734,13 @@ function toggleHistoryGroup(callKey,button){
   else row.style.setProperty('display','none','important');
  });
 }
-function moduleInfo(m){const letter=String(m.module||'');const name=String(m.name||m.configured_protocol||('Module '+letter));const protocol=String(m.configured_protocol||'');const access=String(m.access||'{{REFLECTOR_NAME}}-'+letter);return [name,protocol,access]}
+const xlxNatoModules=['Alfa','Bravo','Charlie','Delta','Echo','Foxtrot','Golf','Hotel','India','Juliett','Kilo','Lima','Mike','November','Oscar','Papa','Quebec','Romeo','Sierra','Tango','Uniform','Victor','Whiskey','X-Ray','Yankee','Zulu'];
+function xlxModulePhonetic(letter){const i=String(letter||'').toUpperCase().charCodeAt(0)-65;return xlxNatoModules[i]||String(letter||'');}
+function moduleInfo(m){const defs={A:['Envio de imagens D-STAR','Módulo A • imagens digitais','XLXMODERN-A'],B:['APRS / D-PRS','Dados digitais','XLXMODERN-B'],C:['C4FM/YSF e DMR','YSF 72426 • DMR TG 4003','XLXMODERN-C'],D:['D-STAR','XLXMODERN-D / XRF026-D','XLXMODERN-D'],E:['D-STAR Echo','Teste de áudio','XLXMODERN-E']};return defs[m.module]||[m.configured_protocol,m.access,'XLXMODERN-'+m.module]}
 function renderModules(d){$('#moduleOverview').innerHTML=Object.values(d.modules).map(m=>{const i=moduleInfo(m);return `<article class="module-mini ${m.transmission?'active':''}"><div class="module-mini-top"><span class="module-letter">${esc(m.module)}</span><span class="module-count">${m.connected_count} conectado${m.connected_count===1?'':'s'}</span></div><strong>${esc(i[0])}</strong><small>${esc(i[1])}</small><div class="module-id">${esc(i[2])}</div><div class="module-state">${m.transmission?'<i class="red"></i> Transmitindo agora':'<i></i> Aguardando transmissão'}</div></article>`}).join('');
- const functions={};
- const rows=Object.values(d.modules).map((m,idx)=>{const n=idx+1,letter=m.module;return `<tr><td><b>${esc(letter)}</b></td><td>${esc(functions[letter]||m.configured_protocol)}</td><td>${m.connected_count}</td><td>REF{{REFLECTOR_NUMBER}}${letter}L</td><td>*26${letter}</td><td>XRF{{REFLECTOR_NUMBER}}${letter}L</td><td>B{{REFLECTOR_SHORT_NUMBER}}${letter}</td><td>DCS{{REFLECTOR_NUMBER}}${letter}L</td><td>D{{REFLECTOR_SHORT_NUMBER}}${letter}</td><td>${4000+n}</td><td>${9+n}</td></tr>`}).join('');$('#moduleReferenceRows').innerHTML=rows; }
-/* {{REFLECTOR_NAME}}_CONECTADOS_UNIFICADO_V1 */
+ const functions={A:'Imagens D-STAR',B:'APRS / D-PRS',C:'C4FM/YSF/DMR',D:'D-STAR',E:'Echo / teste'};
+ const rows=Object.values(d.modules).map((m,idx)=>{const n=idx+1,letter=m.module;return `<tr><td><b>${esc(letter)}</b></td><td><strong>${esc(xlxModulePhonetic(letter))}</strong><br><span>${esc(functions[letter]||m.configured_protocol)}</span></td><td>${m.connected_count}</td><td>REF026${letter}L</td><td>*26${letter}</td><td>XRF026${letter}L</td><td>B26${letter}</td><td>DCS026${letter}L</td><td>D26${letter}</td><td>${4000+n}</td><td>${9+n}</td></tr>`}).join('');$('#moduleReferenceRows').innerHTML=rows; }
+/* XLXMODERN_CONECTADOS_UNIFICADO_V1 */
 function filterConnectedRows(d,query='',moduleFilter='',protocolFilter=''){
  const q=String(query||'').trim().toLowerCase();
  const moduleValue=String(moduleFilter||'').trim().toUpperCase();
@@ -367,7 +760,7 @@ function filterConnectedRows(d,query='',moduleFilter='',protocolFilter=''){
 function connectedRows(d,query='',moduleFilter='',protocolFilter=''){
  const rows=filterConnectedRows(d,query,moduleFilter,protocolFilter);
  return rows.length
-  ?rows.map((c,i)=>`<tr><td>${i+1}</td><td>${flag(c)}</td><td><a target="_blank" href="${esc(c.qrz)}">${esc(c.callsign)}${c.suffix?' '+esc(c.suffix):''}</a></td><td>${esc(c.name)}</td><td>${esc(c.location)}</td><td><span class="protocol">${esc(c.protocol)}</span></td><td>${esc(c.module)}</td><td>${fmtTime(c.connected_at)}</td><td data-start="${c.connected_at}">${elapsed(c.connected_at)}</td><td>${fmtTime(c.last_activity)}</td></tr>`).join('')
+  ?rows.map((c,i)=>`<tr><td>${i+1}</td><td>${flag(c)}</td><td><span class="connected-call-wrap"><a target="_blank" href="${esc(c.qrz)}">${esc(c.callsign)}${c.suffix?' '+esc(c.suffix):''}</a>${xlxmodernAprsSatelliteMarkup(c.callsign)}${xlxmodernDmrTalkerAliasMarkup(c.callsign)}</span></td><td>${esc(c.name)}</td><td>${esc(c.location)}</td><td><span class="protocol">${esc(c.protocol)}</span></td><td>${esc(c.module)}</td><td>${fmtTime(c.connected_at)}</td><td data-start="${c.connected_at}">${elapsed(c.connected_at)}</td><td>${fmtTime(c.last_activity)}</td></tr>`).join('')
   :`<tr><td colspan="10">Nenhuma estação corresponde aos filtros.</td></tr>`;
 }
 
@@ -406,10 +799,10 @@ function renderConnectedTable(d){
 
  $('#connectedRows').innerHTML=
   connectedRows(d,query,moduleFilter,protocolFilter);
+ xlxmodernEnableRepeaterButtons(document);
 }
 
 function renderConnected(d){
- renderModules(d);
  syncConnectedProtocolFilter(d);
  renderConnectedTable(d);
 }
@@ -417,7 +810,7 @@ function renderConnected(d){
 function rankList(items,valueLabel){return items.length?items.map((x,i)=>`<div class="rank-item"><span class="rank-pos">${i+1}</span><div><b>${esc(x.label)}</b><small>${esc(x.sub||'')}</small></div><strong>${esc(valueLabel(x.value))}</strong></div>`).join(''):'<div class="rank-empty">Dados insuficientes no histórico disponível.</div>'}
 function aggregate(arr,keyFn,valFn=()=>1){const m=new Map();arr.forEach(x=>{const k=keyFn(x);if(!k)return;const old=m.get(k)||{label:k,value:0,sub:''};old.value+=valFn(x);m.set(k,old)});return [...m.values()].sort((a,b)=>b.value-a.value)}
 function renderRanking(d){const h=d.history||[],c=d.connections||[];const tx=aggregate(h,x=>x.callsign);tx.forEach(x=>{const y=h.find(z=>z.callsign===x.label);x.sub=y?.name||''});const air=aggregate(h,x=>x.callsign,x=>Number(x.duration||0));air.forEach(x=>{const y=h.find(z=>z.callsign===x.label);x.sub=y?.name||''});const con=[...c].sort((a,b)=>a.connected_at-b.connected_at).slice(0,10).map(x=>({label:x.callsign,sub:x.name,value:Math.max(0,Math.floor(Date.now()/1000-x.connected_at))}));const hrs=aggregate(h,x=>String(new Date(x.started_at*1000).getHours()).padStart(2,'0')+':00');const prot=aggregate(h,x=>x.protocol);const mods=aggregate(h,x=>'Módulo '+x.module);$('#rankTx').innerHTML=rankList(tx.slice(0,10),v=>v+' TX');$('#rankAirtime').innerHTML=rankList(air.slice(0,10),v=>duration(v));$('#rankConnected').innerHTML=rankList(con,v=>elapsed(Math.floor(Date.now()/1000-v)));$('#rankHours').innerHTML=rankList(hrs.slice(0,8),v=>v+' TX');$('#rankProtocols').innerHTML=rankList(prot.slice(0,8),v=>v+' TX');$('#rankModules').innerHTML=rankList(mods.slice(0,8),v=>v+' TX');const topTx=tx[0],topAir=air[0],topHour=hrs[0];$('#rankingHighlights').innerHTML=`<article><small>Mais transmissões</small><b>${esc(topTx?.label||'—')}</b><span>${topTx?topTx.value+' transmissões':'Sem dados'}</span></article><article><small>Maior tempo no ar</small><b>${esc(topAir?.label||'—')}</b><span>${topAir?duration(topAir.value):'Sem dados'}</span></article><article><small>Horário mais ativo</small><b>${esc(topHour?.label||'—')}</b><span>${topHour?topHour.value+' transmissões':'Sem dados'}</span></article><article><small>Conectados agora</small><b>${d.connected_count}</b><span>${d.active_count} transmissão${d.active_count===1?'':'ões'} ativa${d.active_count===1?'':'s'}</span></article>`}
-/* {{REFLECTOR_NAME}}_REFLETORES_COMPLETO_V2B */
+/* XLXMODERN_REFLETORES_COMPLETO_V2B */
 let reflectorAllRows=[];
 let reflectorSort={key:'name',dir:'asc'};
 let reflectorBound=false;
@@ -434,7 +827,7 @@ function ensureReflectorUi(){
   <div class="reflector-tools">
    <div class="reflector-tools-title"><b>Refletores registrados</b><span id="reflectorSummary">Carregando lista mundial...</span></div>
    <div class="reflector-controls">
-    <label><span>Pesquisar</span><input id="reflectorSearch" type="search" placeholder="{{REFLECTOR_NAME}}, país ou descrição" autocomplete="off"></label>
+    <label><span>Pesquisar</span><input id="reflectorSearch" type="search" placeholder="XLXMODERN, país ou descrição" autocomplete="off"></label>
     <label><span>Status</span><select id="reflectorStatus"><option value="">Todos</option><option value="online">Online</option><option value="offline">Offline</option></select></label>
     <label><span>País</span><select id="reflectorCountry"><option value="">Todos os países</option></select></label>
    </div>
@@ -459,7 +852,7 @@ function renderReflectorView(){
  rows.sort((a,b)=>{const av=reflectorSort.key==='status'?reflectorState(a):String(a?.[reflectorSort.key]||''),bv=reflectorSort.key==='status'?reflectorState(b):String(b?.[reflectorSort.key]||'');return av.localeCompare(bv,'pt-BR',{numeric:true,sensitivity:'base'})*dir});
  $('#reflectorTotal').textContent=total.toLocaleString('pt-BR'); $('#reflectorOnline').textContent=online.toLocaleString('pt-BR'); $('#reflectorOffline').textContent=offline.toLocaleString('pt-BR'); $('#reflectorVisible').textContent=rows.length.toLocaleString('pt-BR'); $('#reflectorSummary').textContent=`${total.toLocaleString('pt-BR')} refletores • ${online.toLocaleString('pt-BR')} online • ${offline.toLocaleString('pt-BR')} offline`;
  reflectorSortUi();
- tb.innerHTML=rows.length?rows.map((r,i)=>{const name=String(r?.name||'—'),self=name.trim().toUpperCase()==='{{REFLECTOR_NAME}}',url=reflectorUrl(r?.dashboardurl),nameHtml=url?`<a target="_blank" rel="noopener noreferrer" href="${esc(url)}">${esc(name)}</a>`:esc(name);return `<tr class="${self?'reflector-self':''}"><td data-label="#">${i+1}</td><td data-label="Refletor"><span class="reflector-name">${nameHtml}${self?'<em>Este servidor</em>':''}</span></td><td data-label="País">${esc(r?.country||'—')}</td><td data-label="Status">${onlineBadge(reflectorState(r)==='online')}</td><td data-label="Descrição">${esc(r?.comment||'—')}</td></tr>`}).join(''):'<tr class="reflector-empty"><td colspan="5">Nenhum refletor corresponde aos filtros.</td></tr>';
+ tb.innerHTML=rows.length?rows.map((r,i)=>{const name=String(r?.name||'—'),self=name.trim().toUpperCase()===reflectorName,url=reflectorUrl(r?.dashboardurl),nameHtml=url?`<a target="_blank" rel="noopener noreferrer" href="${esc(url)}">${esc(name)}</a>`:esc(name);return `<tr class="${self?'reflector-self':''}"><td data-label="#">${i+1}</td><td data-label="Refletor"><span class="reflector-name">${nameHtml}${self?'<em>Este servidor</em>':''}</span></td><td data-label="País">${esc(r?.country||'—')}</td><td data-label="Status">${onlineBadge(reflectorState(r)==='online')}</td><td data-label="Descrição">${esc(r?.comment||'—')}</td></tr>`}).join(''):'<tr class="reflector-empty"><td colspan="5">Nenhum refletor corresponde aos filtros.</td></tr>';
 }
 function bindReflectorUi(){
  if(reflectorBound)return;
@@ -473,12 +866,13 @@ function renderReflectors(data){
  reflectorAllRows=data&&Array.isArray(data.reflectors)?data.reflectors.slice():[];
  reflectorCountries(); bindReflectorUi(); renderReflectorView();
 }
-/* /{{REFLECTOR_NAME}}_REFLETORES_COMPLETO_V2B */
+/* /XLXMODERN_REFLETORES_COMPLETO_V2B */
 
-let xlx026HistorySignature='';
-let xlx026HistoryRenderedAt=0;
+let xlxmodernHistorySignature='';
+let xlxmodernHistoryRenderedAt=0;
 function render(d){lastData=d;$('#syncState').textContent='Ao vivo';updateTitle(d);trackConnectedCountVoice(d);
- if(page==='ao-vivo'){ $('#headerConnected').textContent=d.connected_count; $('#headerActive').textContent=d.active_count; $('#widgetCount').textContent=d.active_count?`${d.active_count} no ar`:'Standby'; const active=Object.values(d.modules).filter(m=>m.transmission); const newest=[...d.history].sort((a,b)=>b.started_at-a.started_at)[0]||null; const standModule=Object.values(d.modules)[0];
+ xlxmodernIndexGatewayLocalMeta(d);
+ if(page==='ao-vivo'){ xlxmodernLoadAprsPresence(); setTimeout(()=>xlxmodernEnableRepeaterButtons(document),0); $('#headerConnected').textContent=d.connected_count; $('#headerActive').textContent=d.active_count; $('#widgetCount').textContent=d.active_count?`${d.active_count} no ar`:'Standby'; const active=Object.values(d.modules).filter(m=>m.transmission); const newest=[...d.history].sort((a,b)=>b.started_at-a.started_at)[0]||null; const standModule=Object.values(d.modules)[0];
 
  /*
   * A API geral pode preencher o box somente na carga inicial.
@@ -497,13 +891,14 @@ function render(d){lastData=d;$('#syncState').textContent='Ao vivo';updateTitle(
  ensureHistoryDropdownStyles();
  const historySignature=(d.history||[]).map(x=>[x.callsign||'',x.suffix||'',x.module||'',x.protocol||'',x.started_at||'',x.ended_at||'',x.gateway||''].join('|')).join('~');
  const now=Date.now();
- if(historySignature!==xlx026HistorySignature||now-xlx026HistoryRenderedAt>=15000){
+ if(xlxmodernHistoryPeriodDays===1&&(historySignature!==xlxmodernHistorySignature||now-xlxmodernHistoryRenderedAt>=15000)){
   $('#historyRows').innerHTML=historyMarkup(d);
-  xlx026HistorySignature=historySignature;
-  xlx026HistoryRenderedAt=now;
+  xlxmodernHistorySignature=historySignature;
+  xlxmodernHistoryRenderedAt=now;
  }
  }
- if(page==='conectados')renderConnected(d);
+ if(page==='modulos')renderModules(d);
+ if(page==='conectados'){xlxmodernLoadAprsPresence();renderConnected(d);}
  if(page==='ranking')renderRanking(d);
  const nowSet=new Set(d.connections.map(c=>`${c.callsign}|${c.suffix}|${c.protocol}|${c.module}|${c.ip}`));if(previousConnections!==null)d.connections.forEach(c=>{const k=`${c.callsign}|${c.suffix}|${c.protocol}|${c.module}|${c.ip}`;if(!previousConnections.has(k))toast(c)});previousConnections=nowSet; }
 let statusUpdateRunning=false;
@@ -541,11 +936,11 @@ let txRxAudioUnlocked=false;
  * a opção desativada.
  */
 let txRxSoundEnabled=
- localStorage.getItem('xlx026TxRxSound')!=='disabled';
+ localStorage.getItem('xlxmodernTxRxSound')!=='disabled';
 
-/* {{REFLECTOR_NAME}}_AUDIO_CONTROL_V5E */
+/* XLXMODERN_AUDIO_CONTROL_V5E */
 
-function xlx026AudioStored(key,fallback){
+function xlxmodernAudioStored(key,fallback){
  try{
   const value=localStorage.getItem(key);
 
@@ -560,28 +955,28 @@ function xlx026AudioStored(key,fallback){
  }
 }
 
-function xlx026PanelAudioEnabled(){
- return xlx026AudioStored(
-  'xlx026PanelAudio',
+function xlxmodernPanelAudioEnabled(){
+ return xlxmodernAudioStored(
+  'xlxmodernPanelAudio',
   true
  );
 }
 
-function xlx026ConnectedVoiceEnabled(){
+function xlxmodernConnectedVoiceEnabled(){
  return (
-  xlx026PanelAudioEnabled() &&
-  xlx026AudioStored(
-   'xlx026ConnectedVoice',
+  xlxmodernPanelAudioEnabled() &&
+  xlxmodernAudioStored(
+   'xlxmodernConnectedVoice',
    true
   )
  );
 }
 
-function xlx026TxBeepsEnabled(){
+function xlxmodernTxBeepsEnabled(){
  return (
-  xlx026PanelAudioEnabled() &&
-  xlx026AudioStored(
-   'xlx026TxBeeps',
+  xlxmodernPanelAudioEnabled() &&
+  xlxmodernAudioStored(
+   'xlxmodernTxBeeps',
    txRxSoundEnabled
   )
  );
@@ -592,7 +987,7 @@ function xlx026TxBeepsEnabled(){
 
 /*
  * ==========================================================
- * {{REFLECTOR_NAME}}_CONNECTED_COUNT_VOICE_V1
+ * XLXMODERN_CONNECTED_COUNT_VOICE_V1
  *
  * Fala somente o total já recebido pelo status.php.
  *
@@ -612,7 +1007,7 @@ function xlx026TxBeepsEnabled(){
  */
 
 /*
- * {{REFLECTOR_NAME}}_CONNECTED_COUNT_VOICE_V103_NO_TX
+ * XLXMODERN_CONNECTED_COUNT_VOICE_V103_NO_TX
  *
  * - conexao/desconexao: 3 segundos apos a ultima mudanca
  * - varias mudancas: somente o total final
@@ -666,13 +1061,13 @@ function chooseConnectedVoice(){
    voices.find(
     voice=>
      String(voice.lang||'')
-      .toLowerCase()===(uiEnglish?'en-us':'pt-br')
+      .toLowerCase()==='pt-br'
    )||
    voices.find(
     voice=>
      String(voice.lang||'')
       .toLowerCase()
-      .startsWith(uiEnglish?'en':'pt')
+      .startsWith('pt')
    )||
    null
   );
@@ -683,15 +1078,6 @@ function chooseConnectedVoice(){
 }
 
 
-const uiLocale=document.documentElement.lang||'pt-BR';
-const uiEnglish=/^en(?:-|$)/i.test(uiLocale);
-function reflectorVoiceName(){
- const digits=String('{{REFLECTOR_NUMBER}}').replace(/\D/g,'').split('');
- if(!digits.length)return '{{REFLECTOR_NAME}}';
- if(uiEnglish)return 'XLX '+digits.join(' ');
- const words=['zero','um','dois','três','quatro','cinco','seis','sete','oito','nove'];
- return 'XLX '+digits.map(d=>words[Number(d)]).join(' ');
-}
 function connectedVoiceValue(total){
  return Math.max(
   0,
@@ -787,7 +1173,7 @@ function connectedVoiceBuildSignature(data){
 function speakConnectedCount(total,reason='event'){
  if(
   page!=='ao-vivo'||
-  !xlx026ConnectedVoiceEnabled()||
+  !xlxmodernConnectedVoiceEnabled()||
   !connectedVoiceUserActivated||
   !connectedVoiceSupported()||
   connectedVoiceTxActive()
@@ -803,10 +1189,10 @@ function speakConnectedCount(total,reason='event'){
 
   const utterance=
    new SpeechSynthesisUtterance(
-    uiEnglish?`${reflectorVoiceName()} with ${value} connected stations.`:`${reflectorVoiceName()} com ${value} estações conectadas.`
+    `XLX zero vinte e seis com ${value} estações conectados.`
    );
 
-  utterance.lang=uiEnglish?'en-US':'pt-BR';
+  utterance.lang='pt-BR';
 
   /*
    * Rapida e mais animada.
@@ -871,7 +1257,7 @@ function scheduleConnectedVoiceEvent(){
   page!=='ao-vivo'||
   connectedVoiceCurrentTotal===null||
   !connectedVoicePendingEvent||
-  !xlx026ConnectedVoiceEnabled()||
+  !xlxmodernConnectedVoiceEnabled()||
   !connectedVoiceUserActivated||
   !connectedVoiceSupported()||
   connectedVoiceTxActive()
@@ -1048,7 +1434,7 @@ if(page==='ao-vivo'){
 }
 
 
-/* /{{REFLECTOR_NAME}}_CONNECTED_COUNT_VOICE_V101 */
+/* /XLXMODERN_CONNECTED_COUNT_VOICE_V101 */
 
 
 function updateTxRxSoundButton(){
@@ -1097,7 +1483,7 @@ function ensureTxRxSoundButton(){
   txRxSoundEnabled=!txRxSoundEnabled;
 
   localStorage.setItem(
-   'xlx026TxRxSound',
+   'xlxmodernTxRxSound',
    txRxSoundEnabled?'enabled':'disabled'
   );
 
@@ -1119,7 +1505,7 @@ function ensureTxRxSoundButton(){
 
 
 async function unlockTxRxAudio(playConfirmation=false){
- if(!txRxSoundEnabled||!xlx026PanelAudioEnabled()||!xlx026TxBeepsEnabled())return false;
+ if(!txRxSoundEnabled||!xlxmodernPanelAudioEnabled()||!xlxmodernTxBeepsEnabled())return false;
 
  const AudioContextClass=
   window.AudioContext||window.webkitAudioContext;
@@ -1224,11 +1610,11 @@ document.addEventListener(
 );
 
 /*
- * {{REFLECTOR_NAME}}_TXRX_SOUND_STRONG_V1
+ * XLXMODERN_TXRX_SOUND_STRONG_V1
  * Sinais TX/RX mais fortes e distintos.
  */
 function playTxRxTone(frequency,duration,delay){
- if(!txRxSoundEnabled||!xlx026PanelAudioEnabled()||!xlx026TxBeepsEnabled())return;
+ if(!txRxSoundEnabled||!xlxmodernPanelAudioEnabled()||!xlxmodernTxBeepsEnabled())return;
 
  const AudioContextClass=
   window.AudioContext||window.webkitAudioContext;
@@ -1281,7 +1667,7 @@ function playTxStartedSound(){
  * Final: dois bips descendentes.
  */
 /*
- * {{REFLECTOR_NAME}}_TXRX_END_DOUBLE_BEEP_V1
+ * XLXMODERN_TXRX_END_DOUBLE_BEEP_V1
  * Fim de TX com dois bips mais separados e nítidos.
  */
 function playTxEndedSound(){
@@ -1389,7 +1775,7 @@ function renderLiveTxRxOnly(live){
     .map(txCard)
     .join('');
 
-   window.XLX026MTR?.sync(
+   window.XLXMODERNMTR?.sync(
     active.slice(0,3)
    );
   }else{
@@ -1404,7 +1790,7 @@ function renderLiveTxRxOnly(live){
      standbyCard(standbyModule,newest);
    }
 
-   window.XLX026MTR?.sync([]);
+   window.XLXMODERNMTR?.sync([]);
   }
 
   lastLiveVisualSignature=visualSignature;
@@ -1416,7 +1802,7 @@ function renderLiveTxRxOnly(live){
 
 
 /* ==========================================================
-   {{REFLECTOR_NAME}}_LIVE_IDENTITY_MERGE_V10
+   XLXMODERN_LIVE_IDENTITY_MERGE_V10
 
    A API live.php continua responsável pela velocidade.
 
@@ -1425,9 +1811,9 @@ function renderLiveTxRxOnly(live){
    da mesma transmissão.
    ========================================================== */
 
-let xlx026LastIdentityRefreshKey='';
+let xlxmodernLastIdentityRefreshKey='';
 
-function xlx026BaseCall(value){
+function xlxmodernBaseCall(value){
  return String(value||'')
   .replace(/\s+/g,' ')
   .trim()
@@ -1435,7 +1821,7 @@ function xlx026BaseCall(value){
   .split(' ')[0]||'';
 }
 
-function xlx026LiveIdentityKey(tx){
+function xlxmodernLiveIdentityKey(tx){
  if(!tx)return '';
 
  return String(
@@ -1448,7 +1834,7 @@ function xlx026LiveIdentityKey(tx){
  );
 }
 
-function xlx026SameTransmission(a,b){
+function xlxmodernSameTransmission(a,b){
  if(!a||!b)return false;
 
  const sidA=Number(a.stream_id||0);
@@ -1467,7 +1853,7 @@ function xlx026SameTransmission(a,b){
  );
 }
 
-function xlx026HasStationIdentity(tx){
+function xlxmodernHasStationIdentity(tx){
  return Boolean(
   tx &&
   String(tx.identity_source||'')
@@ -1475,16 +1861,16 @@ function xlx026HasStationIdentity(tx){
  );
 }
 
-function xlx026MergeLiveIdentity(
+function xlxmodernMergeLiveIdentity(
  liveTx,
  statusTx
 ){
  if(
-  !xlx026SameTransmission(
+  !xlxmodernSameTransmission(
    liveTx,
    statusTx
   ) ||
-  !xlx026HasStationIdentity(statusTx)
+  !xlxmodernHasStationIdentity(statusTx)
  ){
   return liveTx;
  }
@@ -1521,24 +1907,24 @@ function xlx026MergeLiveIdentity(
  return merged;
 }
 
-function xlx026LiveIdentityLooksAmbiguous(tx){
+function xlxmodernLiveIdentityLooksAmbiguous(tx){
  if(!tx)return false;
 
  const call=
-  xlx026BaseCall(tx.callsign);
+  xlxmodernBaseCall(tx.callsign);
 
  const gateway=
-  xlx026BaseCall(tx.gateway);
+  xlxmodernBaseCall(tx.gateway);
 
  return Boolean(
   call &&
   gateway &&
   call===gateway &&
-  !xlx026HasStationIdentity(tx)
+  !xlxmodernHasStationIdentity(tx)
  );
 }
 
-/* /{{REFLECTOR_NAME}}_LIVE_IDENTITY_MERGE_V10 */
+/* /XLXMODERN_LIVE_IDENTITY_MERGE_V10 */
 
 
 async function updateLiveTxRx(){
@@ -1587,7 +1973,7 @@ async function updateLiveTxRx(){
    }
 
    const merged=
-    xlx026MergeLiveIdentity(
+    xlxmodernMergeLiveIdentity(
      liveTx,
      statusTx
     );
@@ -1604,19 +1990,19 @@ async function updateLiveTxRx(){
     */
    if(
     merged===liveTx &&
-    xlx026LiveIdentityLooksAmbiguous(
+    xlxmodernLiveIdentityLooksAmbiguous(
      liveTx
     )
    ){
     const refreshKey=
-     xlx026LiveIdentityKey(liveTx);
+     xlxmodernLiveIdentityKey(liveTx);
 
     if(
      refreshKey &&
      refreshKey!==
-      xlx026LastIdentityRefreshKey
+      xlxmodernLastIdentityRefreshKey
     ){
-     xlx026LastIdentityRefreshKey=
+     xlxmodernLastIdentityRefreshKey=
       refreshKey;
 
      requestIdentityRefresh=true;
@@ -1654,7 +2040,7 @@ async function updateLiveTxRx(){
  }
 }
 
-const LIVE_POLL_ACTIVE_MS=250;
+const LIVE_POLL_ACTIVE_MS=350;
 const LIVE_POLL_STANDBY_MS=500;
 
 let liveLoopEnabled=false;
@@ -1765,11 +2151,24 @@ if(!document.hidden){
 }
 loadReflectors();
 $('#historyRows')?.addEventListener('click',event=>{
+ const longButton=event.target.closest('[data-history-long-toggle]');
+ if(longButton){event.preventDefault();event.stopPropagation();toggleLongHistory(longButton);return;}
  const button=event.target.closest('[data-history-toggle]');
  if(!button)return;
  event.preventDefault();
  event.stopPropagation();
  toggleHistoryGroup(button.dataset.historyToggle||'',button);
+});
+$('#historyPeriodSelect')?.addEventListener('change',event=>{
+ const days=Number(event.target.value||1);
+ xlxmodernHistoryPeriodDays=[1,7,30].includes(days)?days:1;
+ historyExpandedCalls.clear();
+ if(xlxmodernHistoryPeriodDays===1){
+  const title=$('#historyPeriodTitle'),note=$('#historyCoverageNote');
+  if(title)title.textContent=xlxmodernHistoryPeriodText(1);
+  if(note)note.textContent='Todos os indicativos';
+  if(lastData){$('#historyRows').innerHTML=historyMarkup(lastData);xlxmodernHistorySignature='';}
+ }else xlxmodernLoadLongHistory(xlxmodernHistoryPeriodDays);
 });
 function refreshConnectedFilters(){
  if(lastData&&page==='conectados')renderConnectedTable(lastData);
@@ -1782,7 +2181,7 @@ const nav=document.querySelector('.universal-header .universal-nav');
 toggle?.addEventListener('click',()=>{if(!nav)return;const open=nav.classList.toggle('open');toggle.setAttribute('aria-expanded',String(open))});
 
 /* ==========================================================
-   {{REFLECTOR_NAME}} V39 — tabelas móveis estáveis, sem piscar
+   XLXMODERN V39 — tabelas móveis estáveis, sem piscar
    ========================================================== */
 (() => {
     'use strict';
@@ -2109,13 +2508,10 @@ toggle?.addEventListener('click',()=>{if(!nav)return;const open=nav.classList.to
     );
 
     /*
-     * Verificação leve para acompanhar a atualização dinâmica
-     * do painel sem reconstruir a página continuamente.
+     * PERFORMANCE V1B:
+     * MutationObserver já acompanha inclusão/remoção.
+     * Evita varrer todas as tabelas a cada 2 segundos.
      */
-    window.setInterval(
-        scheduleUpdate,
-        2000
-    );
 
     if (document.readyState !== 'loading') {
         scheduleUpdate();
@@ -2127,14 +2523,14 @@ toggle?.addEventListener('click',()=>{if(!nav)return;const open=nav.classList.to
 })();
 
 /* ==========================================================
-   {{REFLECTOR_NAME}}_TX_CALLSIGN_FIX_V2
+   XLXMODERN_TX_CALLSIGN_FIX_V2
    OTIMIZADO
    ========================================================== */
 (function () {
   'use strict';
 
-  if (window.__{{REFLECTOR_NAME}}_TX_CALLSIGN_FIX_V2__) return;
-  window.__{{REFLECTOR_NAME}}_TX_CALLSIGN_FIX_V2__ = true;
+  if (window.__XLXMODERN_TX_CALLSIGN_FIX_V2__) return;
+  window.__XLXMODERN_TX_CALLSIGN_FIX_V2__ = true;
 
   function normalizeLiveCallsign(raw) {
     const txt = String(raw || '')
@@ -2271,7 +2667,7 @@ toggle?.addEventListener('click',()=>{if(!nav)return;const open=nav.classList.to
 
 })();
 
-/* FIM {{REFLECTOR_NAME}}_TX_CALLSIGN_FIX_V2 */
+/* FIM XLXMODERN_TX_CALLSIGN_FIX_V2 */
 
 
 
@@ -2280,7 +2676,7 @@ toggle?.addEventListener('click',()=>{if(!nav)return;const open=nav.classList.to
 
 
 /* ==========================================================
-   {{REFLECTOR_NAME}}_MENU_MOBILE_FECHADO_V3
+   XLXMODERN_MENU_MOBILE_FECHADO_V3
    Controle do menu mobile
    ========================================================== */
 
@@ -2289,7 +2685,7 @@ toggle?.addEventListener('click',()=>{if(!nav)return;const open=nav.classList.to
 
     const MOBILE_QUERY = '(max-width: 820px)';
 
-    function init{{REFLECTOR_NAME}}MobileMenuV3(){
+    function initXLXMODERNMobileMenuV3(){
 
         const header = document.querySelector('.universal-header');
         if (!header) return;
@@ -2299,12 +2695,12 @@ toggle?.addEventListener('click',()=>{if(!nav)return;const open=nav.classList.to
 
         if (!row || !nav) return;
 
-        let wrap = header.querySelector('.xlx026-mobile-togglebar');
+        let wrap = header.querySelector('.xlxmodern-mobile-togglebar');
         let button = wrap ? wrap.querySelector('button') : null;
 
         if (!wrap){
             wrap = document.createElement('div');
-            wrap.className = 'xlx026-mobile-togglebar';
+            wrap.className = 'xlxmodern-mobile-togglebar';
         }
 
         if (!button){
@@ -2324,7 +2720,7 @@ toggle?.addEventListener('click',()=>{if(!nav)return;const open=nav.classList.to
 
         function fecharMenu(){
             nav.classList.remove('open');
-            nav.classList.remove('xlx026-mobile-open-v3');
+            nav.classList.remove('xlxmodern-mobile-open-v3');
 
             button.textContent = 'MENU';
             button.setAttribute('aria-expanded', 'false');
@@ -2333,7 +2729,7 @@ toggle?.addEventListener('click',()=>{if(!nav)return;const open=nav.classList.to
 
         function abrirMenu(){
             nav.classList.remove('open');
-            nav.classList.add('xlx026-mobile-open-v3');
+            nav.classList.add('xlxmodern-mobile-open-v3');
 
             button.textContent = 'FECHAR';
             button.setAttribute('aria-expanded', 'true');
@@ -2344,7 +2740,7 @@ toggle?.addEventListener('click',()=>{if(!nav)return;const open=nav.classList.to
             if (isMobile()){
                 fecharMenu();
             } else {
-                nav.classList.remove('xlx026-mobile-open-v3');
+                nav.classList.remove('xlxmodern-mobile-open-v3');
                 nav.classList.remove('open');
                 button.textContent = 'MENU';
                 button.setAttribute('aria-expanded', 'false');
@@ -2353,24 +2749,24 @@ toggle?.addEventListener('click',()=>{if(!nav)return;const open=nav.classList.to
 
         ajustarEstadoInicial();
 
-        if (!button.dataset.xlx026Bound){
+        if (!button.dataset.xlxmodernBound){
             button.addEventListener('click', function(ev){
                 ev.preventDefault();
                 ev.stopPropagation();
 
                 if (!isMobile()) return;
 
-                if (nav.classList.contains('xlx026-mobile-open-v3')){
+                if (nav.classList.contains('xlxmodern-mobile-open-v3')){
                     fecharMenu();
                 } else {
                     abrirMenu();
                 }
             });
 
-            button.dataset.xlx026Bound = '1';
+            button.dataset.xlxmodernBound = '1';
         }
 
-        if (!nav.dataset.xlx026Bound){
+        if (!nav.dataset.xlxmodernBound){
             nav.addEventListener('click', function(ev){
                 const link = ev.target.closest('a');
                 if (!link) return;
@@ -2380,7 +2776,7 @@ toggle?.addEventListener('click',()=>{if(!nav)return;const open=nav.classList.to
                 }
             });
 
-            nav.dataset.xlx026Bound = '1';
+            nav.dataset.xlxmodernBound = '1';
         }
 
         window.addEventListener('resize', ajustarEstadoInicial, { passive:true });
@@ -2393,19 +2789,19 @@ toggle?.addEventListener('click',()=>{if(!nav)return;const open=nav.classList.to
     }
 
     if (document.readyState === 'loading'){
-        document.addEventListener('DOMContentLoaded', init{{REFLECTOR_NAME}}MobileMenuV3, { once:true });
+        document.addEventListener('DOMContentLoaded', initXLXMODERNMobileMenuV3, { once:true });
     } else {
-        init{{REFLECTOR_NAME}}MobileMenuV3();
+        initXLXMODERNMobileMenuV3();
     }
 
 })();
 
-/* FIM {{REFLECTOR_NAME}}_MENU_MOBILE_FECHADO_V3 */
+/* FIM XLXMODERN_MENU_MOBILE_FECHADO_V3 */
 
 
-/* {{REFLECTOR_NAME}}_AUDIO_API_V5E */
+/* XLXMODERN_AUDIO_API_V5E */
 
-function xlx026StopWebAudio(){
+function xlxmodernStopWebAudio(){
 
  try{
 
@@ -2431,27 +2827,27 @@ function xlx026StopWebAudio(){
 }
 
 
-window.XLX026AudioControl={
+window.XLXMODERNAudioControl={
 
  state:function(){
 
   return {
 
    master:
-    xlx026AudioStored(
-     'xlx026PanelAudio',
+    xlxmodernAudioStored(
+     'xlxmodernPanelAudio',
      true
     ),
 
    voice:
-    xlx026AudioStored(
-     'xlx026ConnectedVoice',
+    xlxmodernAudioStored(
+     'xlxmodernConnectedVoice',
      true
     ),
 
    beeps:
-    xlx026AudioStored(
-     'xlx026TxBeeps',
+    xlxmodernAudioStored(
+     'xlxmodernTxBeeps',
      txRxSoundEnabled
     )
 
@@ -2465,7 +2861,7 @@ window.XLX026AudioControl={
 
   try{
    localStorage.setItem(
-    'xlx026PanelAudio',
+    'xlxmodernPanelAudio',
     enabled?'enabled':'disabled'
    );
   }catch(error){}
@@ -2482,14 +2878,14 @@ window.XLX026AudioControl={
     }
    }catch(error){}
 
-   xlx026StopWebAudio();
+   xlxmodernStopWebAudio();
 
    return true;
   }
 
   if(
    txRxSoundEnabled &&
-   xlx026TxBeepsEnabled()
+   xlxmodernTxBeepsEnabled()
   ){
    try{
     unlockTxRxAudio(false);
@@ -2506,7 +2902,7 @@ window.XLX026AudioControl={
 
   try{
    localStorage.setItem(
-    'xlx026ConnectedVoice',
+    'xlxmodernConnectedVoice',
     enabled?'enabled':'disabled'
    );
   }catch(error){}
@@ -2537,12 +2933,12 @@ window.XLX026AudioControl={
   try{
 
    localStorage.setItem(
-    'xlx026TxBeeps',
+    'xlxmodernTxBeeps',
     enabled?'enabled':'disabled'
    );
 
    localStorage.setItem(
-    'xlx026TxRxSound',
+    'xlxmodernTxRxSound',
     enabled?'enabled':'disabled'
    );
 
@@ -2554,12 +2950,12 @@ window.XLX026AudioControl={
 
   if(!enabled){
 
-   xlx026StopWebAudio();
+   xlxmodernStopWebAudio();
 
    return true;
   }
 
-  if(xlx026PanelAudioEnabled()){
+  if(xlxmodernPanelAudioEnabled()){
 
    try{
     unlockTxRxAudio(false);
@@ -2573,8 +2969,8 @@ window.XLX026AudioControl={
  testBeep:function(){
 
   if(
-   !xlx026PanelAudioEnabled() ||
-   !xlx026TxBeepsEnabled()
+   !xlxmodernPanelAudioEnabled() ||
+   !xlxmodernTxBeepsEnabled()
   ){
    return false;
   }
@@ -2614,10 +3010,9 @@ window.XLX026AudioControl={
    }
   }catch(error){}
 
-  xlx026StopWebAudio();
+  xlxmodernStopWebAudio();
 
   return true;
  }
 
 };
-

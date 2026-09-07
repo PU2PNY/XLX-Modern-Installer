@@ -61,7 +61,7 @@ replace_once(
 )
 
 # SEO metadata only exists when the module is installed and the route can be
-# selected. No Brazil/XLX026 identity is introduced.
+# selected. No Brazil/XLXMODERN identity is introduced.
 replace_once(
     "$meta = $seo[$page];",
     "if (is_file(__DIR__.'/certificado-view.php')) {\n"

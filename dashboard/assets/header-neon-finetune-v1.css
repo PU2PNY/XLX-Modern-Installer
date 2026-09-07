@@ -1,10 +1,10 @@
 /* ==========================================================
-   XLX026_HEADER_NEON_FINETUNE_V1
+   XLXMODERN_HEADER_NEON_FINETUNE_V1
 
    ALTERA SOMENTE:
    - header
    - logo visual do header
-   - título XLX026 Brasil
+   - título XLXMODERN Brasil
    - espaçamentos
    - efeito neon/laser
 
@@ -77,7 +77,7 @@
 
 
 /* ----------------------------------------------------------
-   XLX026 BRASIL
+   XLXMODERN BRASIL
    um pouco mais espaçado
    ---------------------------------------------------------- */
 
@@ -176,14 +176,14 @@
         0 0 38px rgba(0,216,255,.13);
 
     animation:
-        xlx026TitleLaser
+        xlxmodernTitleLaser
         12s
         linear
         infinite;
 }
 
 
-@keyframes xlx026TitleLaser{
+@keyframes xlxmodernTitleLaser{
 
     /* parado à esquerda */
     0%{
@@ -369,7 +369,7 @@
     }
 
 
-    .universal-header .xlx026-mobile-togglebar{
+    .universal-header .xlxmodern-mobile-togglebar{
         grid-column:2 !important;
         grid-row:1 !important;
 
@@ -426,4 +426,4 @@
     }
 }
 
-/* FIM XLX026_HEADER_NEON_FINETUNE_V1 */
+/* FIM XLXMODERN_HEADER_NEON_FINETUNE_V1 */

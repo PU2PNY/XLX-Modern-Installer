@@ -22,7 +22,7 @@ Uso:
   sudo bash modules/68-control-panel.sh --check
   sudo bash modules/68-control-panel.sh --dashboard-dir=/var/www/html/xlx-dashboard
 
-O Admin herda o conjunto funcional validado no XLX026:
+O Admin herda o conjunto funcional validado em produção:
   - status, portas, logs, backups e testes;
   - reinício XLXD protegido por senha e confirmação;
   - pesquisa, inclusão, edição, exclusão e atualização da base RadioID;
@@ -53,9 +53,9 @@ RADIO_HELPER="/usr/local/sbin/xlx-modern-radioid-helper"
 ACCESS_HELPER="/usr/local/sbin/xlx-modern-access-helper"
 SUDOERS="/etc/sudoers.d/xlx-modern-control"
 CONTROL_DIR="$DASHBOARD_DIR/admin"
-BASE_INDEX="$ROOT/control/xlx026-control-index-radioid-v2.php"
-PATCH_V111="$ROOT/control/patch-xlx026-control-v111.py"
-GENERICIZER="$ROOT/control/genericize-xlx-control.py"
+BASE_INDEX="$ROOT/control/current-production-admin.php"
+PATCH_V111=""
+GENERICIZER="$ROOT/control/build-admin.py"
 SOURCE_HELPER="$ROOT/control/xlx-modern-control-helper"
 SOURCE_RADIO="$ROOT/control/xlx-modern-radioid-helper"
 SOURCE_ACCESS="$ROOT/control/xlx-modern-access-helper"
@@ -73,25 +73,23 @@ version(){ sed -n 's:.*<Version>\([^<]*\)</Version>.*:\1:p' /var/log/xlxd.xml 2>
 build_admin_source(){
   local out="$1"
   cp -a "$BASE_INDEX" "$out"
-  python3 "$PATCH_V111" "$out"
   python3 "$GENERICIZER" "$out" "$UI_LANG"
   php -l "$out" >/dev/null
-  grep -Fq "const CTRL_VER='1.3.0'" "$out"
-  grep -Fq 'XLXD Access Control' "$out"
+  grep -Fq "const CTRL_VER='1.5.1'" "$out"
+  grep -Fq 'Controle de Acesso e Interlink' "$out" || grep -Fq 'Access Control and Interlink' "$out"
   grep -Fq "if(\$a==='radioid_save')" "$out"
-  grep -Fq 'Quick links' "$out"
-  grep -Fq 'googlebot|bingbot' "$out"
-  ! grep -Eq 'xlx026\.net|Controle XLX026|/etc/xlx026-control|/var/lib/xlx026-control' "$out"
+      ! grep -Eq 'example\.invalid|/etc/legacy-control|/var/lib/legacy-control' "$out"
 }
 
 validate_sources(){
-  for file in "$BASE_INDEX" "$PATCH_V111" "$GENERICIZER" "$SOURCE_HELPER" "$SOURCE_RADIO" "$SOURCE_ACCESS"; do
+  for file in "$BASE_INDEX" "$GENERICIZER" "$SOURCE_HELPER" "$SOURCE_RADIO" "$SOURCE_ACCESS"; do
     [[ -f "$file" ]] || { fail "fonte do Admin ausente: $file"; exit 3; }
   done
   bash -n "$SOURCE_HELPER"
   bash -n "$SOURCE_RADIO"
   bash -n "$SOURCE_ACCESS"
-  python3 -m py_compile "$PATCH_V111" "$GENERICIZER"
+  python3 -m py_compile "$GENERICIZER"
+  [[ -f "$ROOT/control/admin-en.json" ]] || { fail "Admin translation catalog missing"; exit 3; }
   local tmp
   tmp="$(mktemp /tmp/xlx-modern-admin-source.XXXXXX.php)"
   build_admin_source "$tmp"
@@ -108,8 +106,8 @@ validate_sources
 
 if [[ "$MODE" == check ]]; then
   section 'ADMIN XLX MODERN — CHECK'
-  ok 'baseline funcional do XLX026 pode ser convertido para instalação genérica'
-  ok 'RadioID, whitelist, blacklist, terminal, auditoria e proteção presentes'
+  ok 'baseline Admin 1.5.1 genérico validado'
+  ok 'RadioID, whitelist, blacklist, Interlink, Health, auditoria e proteção presentes'
   ok 'nenhuma credencial fixa detectada'
   exit 0
 fi
@@ -153,15 +151,15 @@ if [[ -z "$PASSWORD" ]]; then
   # operator in this credential step until the password is long enough and
   # the confirmation matches; no password is printed or persisted here.
   while :; do
-    printf '%s' "$(say 'Senha do Admin (mínimo 10 caracteres): ' 'Admin password (minimum 10 characters): ')" >&2
+    printf '%s' "$(say 'Senha do Admin (mínimo 8 caracteres): ' 'Admin password (minimum 8 characters): ')" >&2
     IFS= read -r -s PASSWORD
     printf '\n' >&2
     printf '%s' "$(say 'Repita a senha: ' 'Repeat the password: ')" >&2
     IFS= read -r -s PASSWORD2
     printf '\n' >&2
 
-    if [[ ${#PASSWORD} -lt 10 ]]; then
-      warn "$(say 'senha deve ter ao menos 10 caracteres; tente novamente.' 'Password must be at least 10 characters; try again.')"
+    if [[ ${#PASSWORD} -lt 8 ]]; then
+      warn "$(say 'senha deve ter ao menos 8 caracteres; tente novamente.' 'Password must be at least 8 characters; try again.')"
       unset PASSWORD PASSWORD2
       continue
     fi
@@ -174,7 +172,7 @@ if [[ -z "$PASSWORD" ]]; then
     break
   done
 fi
-[[ ${#PASSWORD} -ge 10 ]] || { fail 'senha fornecida sem interação deve ter ao menos 10 caracteres'; exit 22; }
+[[ ${#PASSWORD} -ge 8 ]] || { fail 'senha fornecida sem interação deve ter ao menos 8 caracteres'; exit 22; }
 PASSWORD_HASH="$(printf '%s' "$PASSWORD" | php -r '$p=stream_get_contents(STDIN); echo password_hash($p,PASSWORD_DEFAULT);')"
 [[ -n "$PASSWORD_HASH" ]] || { fail 'falha ao gerar hash'; exit 23; }
 ok "$(say 'credencial recebida localmente; senha não será exibida nem persistida em texto puro' 'Credential received locally; the password is never displayed or stored in plain text.')"
@@ -275,6 +273,7 @@ $WEBUSER ALL=(root) NOPASSWD: $HELPER status
 $WEBUSER ALL=(root) NOPASSWD: $HELPER listeners
 $WEBUSER ALL=(root) NOPASSWD: $HELPER logs
 $WEBUSER ALL=(root) NOPASSWD: $HELPER backups
+$WEBUSER ALL=(root) NOPASSWD: $HELPER health-status
 $WEBUSER ALL=(root) NOPASSWD: $HELPER restart
 $WEBUSER ALL=(root) NOPASSWD: $HELPER radioid-status
 $WEBUSER ALL=(root) NOPASSWD: $HELPER radioid-check
@@ -287,7 +286,8 @@ $WEBUSER ALL=(root) NOPASSWD: $HELPER access-add-white *
 $WEBUSER ALL=(root) NOPASSWD: $HELPER access-delete-white *
 $WEBUSER ALL=(root) NOPASSWD: $HELPER access-add-black *
 $WEBUSER ALL=(root) NOPASSWD: $HELPER access-delete-black *
-$WEBUSER ALL=(root) NOPASSWD: $HELPER access-save-terminal *
+$WEBUSER ALL=(root) NOPASSWD: $HELPER access-interlink-add *
+$WEBUSER ALL=(root) NOPASSWD: $HELPER access-interlink-delete *
 EOF
 chmod 0440 "$SUDOERS"
 visudo -cf "$SUDOERS" >/dev/null

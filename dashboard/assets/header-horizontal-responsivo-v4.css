@@ -1,10 +1,10 @@
 /* ================================================================
-   XLX026_HEADER_HORIZONTAL_RESPONSIVO_V4
+   XLXMODERN_HEADER_HORIZONTAL_RESPONSIVO_V4
 
    OBJETIVO
    ---------------------------------------------------------------
    Desktop / notebook:
-       XLX026 Brasil | D-STAR | DMR | C4FM/YSF
+       XLXMODERN Brasil | D-STAR | DMR | C4FM/YSF
 
    Linha imediatamente abaixo:
        MENU
@@ -147,7 +147,7 @@
      * Título vira a âncora esquerda.
      *
      * Mantém todo o laser V3 porque não alteramos
-     * .xlx026-brasil-title nem seus pseudo-elementos.
+     * .xlxmodern-brasil-title nem seus pseudo-elementos.
      */
     html body
     section.universal-header
@@ -592,7 +592,7 @@
 
    Deliberadamente preservado.
 
-   Os vários ajustes mobile atuais do XLX026 já tratam:
+   Os vários ajustes mobile atuais do XLXMODERN já tratam:
    - menu
    - header
    - navegadores antigos
@@ -638,4 +638,4 @@ section.universal-header
 }
 
 
-/* /XLX026_HEADER_HORIZONTAL_RESPONSIVO_V4 */
+/* /XLXMODERN_HEADER_HORIZONTAL_RESPONSIVO_V4 */

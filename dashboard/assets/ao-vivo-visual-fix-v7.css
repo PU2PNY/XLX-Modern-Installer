@@ -1,5 +1,5 @@
 /* ==========================================================
-   XLX026 — VISUAL FIX V7
+   XLXMODERN — VISUAL FIX V7
 
    1 TX:
    GIF à esquerda, com espaço seguro.
@@ -21,7 +21,7 @@
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-> .xlx026-tx-stack-v5:only-child
+> .xlxmodern-tx-stack-v5:only-child
 .tx-v30-person{
 
     display:grid !important;
@@ -40,7 +40,7 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-> .xlx026-tx-stack-v5:only-child
+> .xlxmodern-tx-stack-v5:only-child
 .tx-v30-person
 .operator-visual{
 
@@ -61,7 +61,7 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-> .xlx026-tx-stack-v5:only-child
+> .xlxmodern-tx-stack-v5:only-child
 .tx-v30-person-data{
 
     grid-column:2 !important;
@@ -85,15 +85,15 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
 .tx-v30-person,
 
 /* Segundo card de dois */
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
-~ .xlx026-tx-stack-v5
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
+~ .xlxmodern-tx-stack-v5
 .tx-v30-person{
 
     display:grid !important;
@@ -117,14 +117,14 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
 .tx-v30-person
 .operator-visual,
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
-~ .xlx026-tx-stack-v5
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
+~ .xlxmodern-tx-stack-v5
 .tx-v30-person
 .operator-visual{
 
@@ -148,14 +148,14 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
 .tx-v30-person
 .operator-visual img,
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
-~ .xlx026-tx-stack-v5
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
+~ .xlxmodern-tx-stack-v5
 .tx-v30-person
 .operator-visual img{
 
@@ -170,13 +170,13 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
 .tx-v30-person-data,
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
-~ .xlx026-tx-stack-v5
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
+~ .xlxmodern-tx-stack-v5
 .tx-v30-person-data{
 
     grid-column:1 !important;
@@ -194,13 +194,13 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
 .tx-v30-callsign,
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
-~ .xlx026-tx-stack-v5
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
+~ .xlxmodern-tx-stack-v5
 .tx-v30-callsign{
 
     display:block !important;
@@ -229,7 +229,7 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-tech-v5{
+.xlxmodern-tech-v5{
 
     position:relative !important;
 
@@ -245,7 +245,7 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-mtr-embedded-v5{
+.xlxmodern-mtr-embedded-v5{
 
     position:relative !important;
 
@@ -262,11 +262,11 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-mtr-embedded-v5:hover,
+.xlxmodern-mtr-embedded-v5:hover,
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-mtr-embedded-v5:focus-within{
+.xlxmodern-mtr-embedded-v5:focus-within{
 
     z-index:1000 !important;
 }
@@ -278,7 +278,7 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-mtr-embedded-v5
+.xlxmodern-mtr-embedded-v5
 .mtr-head{
 
     position:relative !important;
@@ -295,7 +295,7 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-tech-v5
+.xlxmodern-tech-v5
 .tx-v30-details{
 
     position:relative !important;
@@ -314,22 +314,22 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-mtr-embedded-v5
+.xlxmodern-mtr-embedded-v5
 [class*="tooltip"],
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-mtr-embedded-v5
+.xlxmodern-mtr-embedded-v5
 [class*="popover"],
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-mtr-embedded-v5
+.xlxmodern-mtr-embedded-v5
 [class*="help"],
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-.xlx026-mtr-embedded-v5
+.xlxmodern-mtr-embedded-v5
 [class*="info"]{
 
     z-index:9999 !important;
@@ -343,7 +343,7 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-> .xlx026-tx-stack-v5{
+> .xlxmodern-tx-stack-v5{
 
     position:relative !important;
 }
@@ -351,7 +351,7 @@ html body[data-page="ao-vivo"]
 
 html body[data-page="ao-vivo"]
 #moduleGrid
-> .xlx026-tx-stack-v5:hover{
+> .xlxmodern-tx-stack-v5:hover{
 
     z-index:50 !important;
 }
@@ -367,7 +367,7 @@ html body[data-page="ao-vivo"]
 
     html body[data-page="ao-vivo"]
     #moduleGrid
-    > .xlx026-tx-stack-v5
+    > .xlxmodern-tx-stack-v5
     .tx-v30-person{
 
         grid-template-columns:
@@ -380,7 +380,7 @@ html body[data-page="ao-vivo"]
 
     html body[data-page="ao-vivo"]
     #moduleGrid
-    > .xlx026-tx-stack-v5
+    > .xlxmodern-tx-stack-v5
     .tx-v30-person
     .operator-visual{
 
@@ -401,7 +401,7 @@ html body[data-page="ao-vivo"]
 
     html body[data-page="ao-vivo"]
     #moduleGrid
-    > .xlx026-tx-stack-v5
+    > .xlxmodern-tx-stack-v5
     .tx-v30-person-data{
 
         grid-column:2 !important;

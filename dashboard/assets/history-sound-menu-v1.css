@@ -1,5 +1,5 @@
 /* ==========================================================
-   XLX026_HISTORY_SOUND_MENU_V1
+   XLXMODERN_HISTORY_SOUND_MENU_V1
    - tabela Últimas transmissões sem barra horizontal
    - todas as informações preservadas
    - Bip visualmente transferido para o menu
@@ -393,7 +393,7 @@ body[data-page='ao-vivo']
  * Ele só deixa de aparecer visualmente dentro do box.
  */
 body[data-page='ao-vivo']
-.xlx026-original-sound-control{
+.xlxmodern-original-sound-control{
 
     position:absolute !important;
 
@@ -419,7 +419,7 @@ body[data-page='ao-vivo']
  * Novo controle visual dentro do menu.
  */
 .universal-nav
-.xlx026-menu-sound-control{
+.xlxmodern-menu-sound-control{
 
     display:inline-flex;
 
@@ -463,7 +463,7 @@ body[data-page='ao-vivo']
 
 
 .universal-nav
-.xlx026-menu-sound-control:hover{
+.xlxmodern-menu-sound-control:hover{
 
     color:#ffffff;
 
@@ -476,8 +476,8 @@ body[data-page='ao-vivo']
 
 
 .universal-nav
-.xlx026-menu-sound-control
-.xlx026-sound-icon{
+.xlxmodern-menu-sound-control
+.xlxmodern-sound-icon{
 
     font-size:14px;
     line-height:1;
@@ -488,7 +488,7 @@ body[data-page='ao-vivo']
  * Quando conseguimos identificar que o bip está desligado.
  */
 .universal-nav
-.xlx026-menu-sound-control.is-off{
+.xlxmodern-menu-sound-control.is-off{
 
     opacity:.72;
 }
@@ -502,7 +502,7 @@ body[data-page='ao-vivo']
 
     .universal-header
     .universal-nav
-    .xlx026-menu-sound-control{
+    .xlxmodern-menu-sound-control{
 
         width:100% !important;
 
@@ -518,4 +518,4 @@ body[data-page='ao-vivo']
 }
 
 
-/* FIM XLX026_HISTORY_SOUND_MENU_V1 */
+/* FIM XLXMODERN_HISTORY_SOUND_MENU_V1 */

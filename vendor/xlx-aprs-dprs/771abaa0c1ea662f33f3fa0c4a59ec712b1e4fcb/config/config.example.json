@@ -1,0 +1,29 @@
+{
+  "database": "/var/lib/xlx-aprs-dprs/digital-lab.sqlite",
+  "public_snapshot": "/var/lib/xlx-aprs-dprs/public.json",
+  "operator_socket": "/var/lib/xlx-aprs-dprs/operator.sock",
+  "retention_days": 7,
+  "snapshot_interval": 2,
+  "reflector": {
+    "enabled": false,
+    "host": "127.0.0.1",
+    "port": 30001,
+    "module": "B",
+    "client_callsign": "",
+    "client_module": "G"
+  },
+  "aprs": {
+    "enabled": false,
+    "host": "rotate.aprs2.net",
+    "port": 14580,
+    "login": "",
+    "passcode": "-1",
+    "filter": "",
+    "tx_enabled": false
+  },
+  "site": {
+    "title": "XLX APRS/D-PRS",
+    "reflector": "XLX",
+    "module": "B"
+  }
+}

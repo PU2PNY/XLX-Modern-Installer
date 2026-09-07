@@ -1,3 +1,32 @@
+# XLX Modern Installer
+
+A reproducible Debian 12 installer for XLXD, the modern dashboard, private Admin and integrated APRS/D-PRS. This release is designed to reproduce the production-validated feature set on a new reflector without publishing the reference server identity, credentials or private data.
+
+## Current release highlights
+
+Release: **v1.2.0**
+
+- Installer UI in **Portuguese (Brazil)** or **English**, selected at startup.
+- Dashboard in Portuguese, English, Spanish, French, German or Italian.
+- **Live**, **Connected**, and **Modules** are separate pages.
+- APRS/D-PRS is bundled in this repository and installed by default.
+- Complete private Admin with a custom URL chosen during setup and 8-character minimum password.
+- QRZ TX photos, Gateway/Repeater, live-position satellite, RadioID, Health and CallingHome.
+- Support, ANATEL simulator and News are not included in the standard public package.
+
+See [FEATURES](docs/FEATURES.md) and [CHANGELOG](CHANGELOG.md).
+
+## Quick install
+
+```bash
+git clone https://github.com/PU2PNY/XLX-Modern-Installer.git
+cd XLX-Modern-Installer
+sudo bash install.sh --check
+sudo bash install.sh
+```
+
+---
+
 # 🌐 XLX Modern Installer — Install, Configure and Recover XLX Reflectors on Debian 12
 
 <div align="center">
@@ -27,7 +56,7 @@ D-STAR • DMR • C4FM/YSF • XLX Echo • Modern Dashboard • Callsigns • 
 
 The project uses the installer maintained by **Daniel K. — PP5PK** as a reviewed technical base and adds operational safety, a modern dashboard, six-language build support, persistent callsign corrections, participation certificates and recovery documentation.
 
-The installer is generic. A new deployment uses the identity supplied by the installer — reflector name/title, domain, country, sysop callsign, YSF ID, DMR TG and other site-specific data — instead of inheriting XLX026 branding.
+The installer is generic. A new deployment uses the identity supplied by the installer — reflector name/title, domain, country, sysop callsign, YSF ID, DMR TG and other site-specific data — instead of inheriting servidor de referência branding.
 
 ---
 
@@ -41,7 +70,7 @@ The installer is generic. A new deployment uses the identity supplied by the ins
 | Live monitor | ✅ | Live transmission monitor and server status |
 | 24-hour activity | ✅ | Recent activity covering the last 24 hours, up to 40 callsigns |
 | Connected stations | ✅ | Callsign, protocol, module, location and activity data |
-| Modules A–E | ✅ | Module structure and access identifiers |
+| Modules A–Z | ✅ | Selectable module count, structure and access identifiers |
 | Activity ranking | ✅ | Ranking based on server data sources |
 | Six dashboard languages | ✅ | `pt-BR`, `en`, `es`, `fr`, `de`, `it` |
 | Persistent callsign directory | ✅ | Local corrections separated from the upstream/main user database |
@@ -99,7 +128,13 @@ DASHBOARD POST-INSTALL
     ↓
 PERSISTENT CALLSIGN DIRECTORY
     ↓
+PRIVATE ADMIN 1.5.1
+    ↓
 CERTIFICATE SYSTEM
+    ↓
+BUNDLED APRS/D-PRS
+    ↓
+DMR / YSF / HEALTH OBSERVABILITY
     ↓
 FINAL VALIDATION
 ```
@@ -117,7 +152,7 @@ cd /usr/src/XLX-Modern-Installer
 sudo bash modules/60-dashboard-modern.sh
 ```
 
-This flow also installs/checks the persistent callsign directory and certificate module.
+This flow also installs/checks the persistent callsign directory, private Admin and certificate module. The full `install.sh` additionally installs bundled APRS/D-PRS and operational observability.
 
 The installer collects values such as:
 

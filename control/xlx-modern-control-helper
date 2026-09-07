@@ -6,6 +6,7 @@ PATH=/usr/sbin:/usr/bin:/sbin:/bin
 CONF="/etc/xlx-modern-control/helper.conf"
 RADIO_HELPER="/usr/local/sbin/xlx-modern-radioid-helper"
 ACCESS_HELPER="/usr/local/sbin/xlx-modern-access-helper"
+HEALTH_SNAPSHOT="${XLX_HEALTH_SNAPSHOT:-/var/lib/xlx-modern-health-monitor/operational.json}"
 [[ -r "$CONF" ]] || { echo "ERRO: helper.conf ausente" >&2; exit 2; }
 # shellcheck disable=SC1090
 source "$CONF"
@@ -23,6 +24,11 @@ sha(){ sha256sum "$BIN" | awk '{print $1}'; }
 processes(){ pgrep -x xlxd 2>/dev/null | wc -l | tr -d ' '; }
 
 case "${1:-}" in
+  health-status)
+    [[ "$#" -eq 1 ]] || exit 64
+    [[ -r "$HEALTH_SNAPSHOT" ]] || { echo '{"ok":false,"error":"snapshot_unavailable"}'; exit 69; }
+    exec /usr/bin/cat "$HEALTH_SNAPSHOT"
+    ;;
   status)
     [[ "$#" -eq 1 ]] || exit 64
     echo "service=$(systemctl is-active "$SERVICE" 2>/dev/null || true)"
@@ -125,10 +131,15 @@ case "${1:-}" in
     [[ -x "$ACCESS_HELPER" ]] || { echo 'ERRO: helper de acesso indisponível' >&2; exit 72; }
     exec "$ACCESS_HELPER" "${1#access-}" "$2"
     ;;
-  access-save-terminal|interlink-save)
-    [[ "$#" -eq 3 ]] || exit 64
+  access-interlink-add)
+    [[ "$#" -eq 4 ]] || exit 64
     [[ -x "$ACCESS_HELPER" ]] || { echo 'ERRO: helper de acesso indisponível' >&2; exit 72; }
-    exec "$ACCESS_HELPER" save-interlink "$2" "$3"
+    exec "$ACCESS_HELPER" interlink-add "$2" "$3" "$4"
+    ;;
+  access-interlink-delete)
+    [[ "$#" -eq 2 ]] || exit 64
+    [[ -x "$ACCESS_HELPER" ]] || { echo 'ERRO: helper de acesso indisponível' >&2; exit 72; }
+    exec "$ACCESS_HELPER" interlink-delete "$2"
     ;;
 
   *)

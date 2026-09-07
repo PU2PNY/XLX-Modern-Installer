@@ -1,0 +1,4482 @@
+/* XLXMODERN AO VIVO CORE BUNDLE V1 — generated preserving production cascade order */
+
+/* ===== SOURCE: ao-vivo-top-layout-v2.css ===== */
+/* ==========================================================
+   XLXMODERN — AO VIVO TOP LAYOUT V2
+
+   Objetivos:
+
+   1 box  = 100%
+   2 boxes = 50% / 50%
+   3 boxes = 33.33% / 33.33% / 33.33%
+
+   Não interfere em:
+   - API
+   - polling
+   - MTR
+   - som
+   - histórico
+   - conectados
+   - ranking
+   ========================================================== */
+
+
+/* ==========================================================
+   ESTRUTURA DA PÁGINA
+   ========================================================== */
+
+html body[data-page="ao-vivo"] .dashboard-layout{
+
+    display:grid !important;
+
+    grid-template-columns:
+        minmax(0,1fr) !important;
+
+    align-items:start !important;
+
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+
+    gap:14px !important;
+
+    box-sizing:border-box !important;
+}
+
+
+/* Monitor primeiro */
+
+html body[data-page="ao-vivo"]
+.dashboard-layout > .live-widget{
+
+    grid-column:1 / -1 !important;
+    grid-row:1 !important;
+
+    order:1 !important;
+
+    position:static !important;
+
+    top:auto !important;
+    left:auto !important;
+    right:auto !important;
+
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+
+    margin:0 !important;
+
+    box-sizing:border-box !important;
+}
+
+
+/* Histórico depois */
+
+html body[data-page="ao-vivo"]
+.dashboard-layout > .dashboard-main{
+
+    grid-column:1 / -1 !important;
+    grid-row:2 !important;
+
+    order:2 !important;
+
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+
+    margin:0 !important;
+
+    box-sizing:border-box !important;
+}
+
+
+/* ==========================================================
+   MODULE GRID
+
+   grid-auto-flow:column faz a divisão automaticamente.
+
+   1 filho = 1 coluna  = 100%
+   2 filhos = 2 colunas = 50%
+   3 filhos = 3 colunas = 33.33%
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid.module-grid.widget-grid{
+
+    display:grid !important;
+
+    grid-template-columns:none !important;
+
+    grid-auto-flow:column !important;
+
+    grid-auto-columns:
+        minmax(0,1fr) !important;
+
+    align-items:stretch !important;
+
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+
+    gap:10px !important;
+
+    overflow:visible !important;
+
+    box-sizing:border-box !important;
+}
+
+
+/* ==========================================================
+   QUALQUER FILHO DIRETO
+
+   Funciona tanto:
+
+   antes do MTR:
+       moduleGrid > tx-card
+
+   quanto depois do MTR:
+       moduleGrid > wrapper > tx-card
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid > *{
+
+    grid-column:auto !important;
+
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+
+    margin:0 !important;
+
+    box-sizing:border-box !important;
+
+    container-type:inline-size;
+}
+
+
+/* Proteção adicional */
+
+html body[data-page="ao-vivo"]
+#moduleGrid > * > *{
+
+    max-width:100%;
+
+    min-width:0;
+
+    box-sizing:border-box;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid .tx-card{
+
+    width:100% !important;
+
+    max-width:100% !important;
+
+    min-width:0 !important;
+
+    margin:0 !important;
+
+    box-sizing:border-box !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid .mtr-mini{
+
+    width:100% !important;
+
+    max-width:100% !important;
+
+    min-width:0 !important;
+
+    box-sizing:border-box !important;
+}
+
+
+/* ==========================================================
+   CONTAINER MAIS ESTREITO
+
+   Usado automaticamente quando existem 2 ou 3 transmissões
+   ou quando a tela do visitante é menor.
+   ========================================================== */
+
+@container (max-width:420px){
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid .tx-card.live.tx-v30{
+
+        min-width:0 !important;
+
+        padding:9px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-content{
+
+        grid-template-columns:
+            minmax(0,1fr) !important;
+
+        gap:8px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-person{
+
+        grid-template-columns:
+            40px minmax(0,1fr) !important;
+
+        gap:7px !important;
+
+        min-width:0 !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .operator-visual{
+
+        width:38px !important;
+        height:38px !important;
+
+        min-width:38px !important;
+        min-height:38px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .operator-visual img{
+
+        width:26px !important;
+        height:26px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-callsign{
+
+        font-size:
+            clamp(13px,7cqw,19px) !important;
+
+        white-space:nowrap !important;
+
+        overflow:hidden !important;
+
+        text-overflow:ellipsis !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-name{
+
+        font-size:
+            clamp(9px,4cqw,13px) !important;
+
+        overflow:hidden !important;
+
+        text-overflow:ellipsis !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-location,
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-country{
+
+        font-size:
+            clamp(8px,3.2cqw,11px) !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-details{
+
+        grid-template-columns:
+            minmax(0,1fr) !important;
+
+        gap:5px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-details > div{
+
+        grid-column:auto !important;
+
+        width:100% !important;
+
+        min-width:0 !important;
+
+        min-height:0 !important;
+
+        height:auto !important;
+
+        padding:6px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-details small{
+
+        font-size:7px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-details strong{
+
+        font-size:
+            clamp(8px,3.2cqw,11px) !important;
+
+        overflow:hidden !important;
+
+        text-overflow:ellipsis !important;
+    }
+}
+
+
+/* ==========================================================
+   CONTAINER EXTREMAMENTE ESTREITO
+   Exemplo: 3 transmissões em celular.
+   ========================================================== */
+
+@container (max-width:230px){
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid .tx-card{
+
+        padding:6px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid .tx-top{
+
+        display:grid !important;
+
+        grid-template-columns:
+            minmax(0,1fr) !important;
+
+        gap:4px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-person{
+
+        grid-template-columns:
+            28px minmax(0,1fr) !important;
+
+        gap:4px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .operator-visual{
+
+        width:27px !important;
+        height:27px !important;
+
+        min-width:27px !important;
+        min-height:27px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .operator-visual img{
+
+        width:19px !important;
+        height:19px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .module-badge{
+
+        max-width:100% !important;
+
+        font-size:6px !important;
+
+        white-space:normal !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .on-air{
+
+        font-size:7px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-callsign{
+
+        font-size:
+            clamp(11px,8cqw,15px) !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-name{
+
+        font-size:8px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-location,
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-country{
+
+        font-size:7px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid .mtr-mini{
+
+        overflow:hidden !important;
+    }
+}
+
+
+/* ==========================================================
+   MOBILE
+
+   Mantém a MESMA regra solicitada:
+
+   1 = 100%
+   2 = 50%
+   3 = 33.33%
+
+   Não transforma o grid em display:block.
+   ========================================================== */
+
+@media (max-width:720px){
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid.module-grid.widget-grid{
+
+        display:grid !important;
+
+        grid-template-columns:none !important;
+
+        grid-auto-flow:column !important;
+
+        grid-auto-columns:
+            minmax(0,1fr) !important;
+
+        gap:6px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    .dashboard-layout{
+
+        display:grid !important;
+
+        grid-template-columns:
+            minmax(0,1fr) !important;
+
+        gap:10px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    .dashboard-layout > .live-widget{
+
+        grid-row:1 !important;
+
+        order:1 !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    .dashboard-layout > .dashboard-main{
+
+        grid-row:2 !important;
+
+        order:2 !important;
+    }
+}
+
+
+/* Nunca gerar largura horizontal da página */
+
+html body[data-page="ao-vivo"]{
+
+    overflow-x:hidden;
+}
+
+/* ===== SOURCE: ao-vivo-compact-v3.css ===== */
+/* ==========================================================
+   XLXMODERN — MONITOR AO VIVO COMPACTO V3
+
+   OBJETIVO:
+   reduzir altura sem remover nenhuma informação.
+
+   Desktop:
+   1 TX = 100%
+   2 TX = 50/50
+   3 TX = 33/33/33
+
+   Mobile:
+   prioriza legibilidade e preservação dos dados.
+   ========================================================== */
+
+
+/* ==========================================================
+   PAINEL EXTERNO
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+.dashboard-layout > .live-widget{
+
+    padding:10px 12px !important;
+
+    border-radius:14px !important;
+}
+
+
+/* Espaço entre transmissões e status operacional */
+
+html body[data-page="ao-vivo"]
+#moduleGrid{
+
+    gap:8px !important;
+}
+
+
+/* ==========================================================
+   STANDBY
+
+   Sai do grande painel vertical centralizado e vira um
+   resumo horizontal mais profissional.
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.standby.standby-v30{
+
+    display:grid !important;
+
+    grid-template-rows:
+        auto
+        minmax(0,1fr) !important;
+
+    width:100% !important;
+
+    min-width:0 !important;
+
+    height:auto !important;
+    min-height:142px !important;
+    max-height:none !important;
+
+    padding:10px 12px !important;
+
+    gap:7px !important;
+
+    overflow:visible !important;
+
+    box-sizing:border-box !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.standby.standby-v30
+.tx-top{
+
+    display:flex !important;
+
+    align-items:center !important;
+
+    justify-content:space-between !important;
+
+    gap:10px !important;
+
+    margin:0 !important;
+
+    min-height:24px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.standby.standby-v30
+.tx-top > div{
+
+    display:flex !important;
+
+    align-items:center !important;
+
+    gap:9px !important;
+
+    min-width:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.standby.standby-v30
+.tx-top h3{
+
+    margin:0 !important;
+
+    font-size:13px !important;
+
+    line-height:1.1 !important;
+
+    white-space:nowrap !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.standby-v30-content{
+
+    display:grid !important;
+
+    grid-template-columns:
+        58px
+        minmax(150px,.75fr)
+        minmax(0,1.35fr) !important;
+
+    align-items:center !important;
+
+    width:100% !important;
+
+    min-width:0 !important;
+
+    min-height:76px !important;
+
+    margin:0 !important;
+
+    padding:4px 2px !important;
+
+    gap:14px !important;
+
+    text-align:left !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.standby-v30-radar{
+
+    display:block !important;
+
+    width:52px !important;
+    height:52px !important;
+
+    min-width:52px !important;
+
+    margin:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.standby-v30-state{
+
+    min-width:0 !important;
+
+    font-size:
+        clamp(15px,1.7vw,22px) !important;
+
+    font-weight:850 !important;
+
+    line-height:1.1 !important;
+
+    white-space:normal !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.standby-v30-last{
+
+    min-width:0 !important;
+
+    margin:0 !important;
+
+    padding:8px 12px !important;
+
+    border-left:
+        1px solid rgba(33,234,160,.28) !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.standby-v30-last small,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.standby-v30-last strong,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.standby-v30-last span{
+
+    display:block !important;
+
+    overflow:hidden !important;
+
+    text-overflow:ellipsis !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.standby-v30-last small{
+
+    font-size:8px !important;
+
+    letter-spacing:.08em !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.standby-v30-last strong{
+
+    margin-top:3px !important;
+
+    font-size:
+        clamp(15px,1.6vw,21px) !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.standby-v30-last span{
+
+    margin-top:2px !important;
+
+    font-size:
+        clamp(10px,1vw,13px) !important;
+}
+
+
+/* ==========================================================
+   STACK MTR + CARD TX
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid > *:has(> .mtr-mini){
+
+    display:grid !important;
+
+    grid-template-rows:
+        auto
+        auto !important;
+
+    align-content:start !important;
+
+    gap:6px !important;
+
+    min-width:0 !important;
+
+    width:100% !important;
+}
+
+
+/* ==========================================================
+   MTR COMPACTO
+
+   Nenhuma métrica é removida.
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid > * > .mtr-mini{
+
+    width:100% !important;
+
+    min-width:0 !important;
+
+    height:auto !important;
+    min-height:84px !important;
+    max-height:none !important;
+
+    margin:0 !important;
+
+    padding:8px 10px !important;
+
+    border-radius:10px !important;
+
+    box-sizing:border-box !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid .mtr-head{
+
+    min-height:20px !important;
+
+    margin:0 0 6px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid .mtr-label{
+
+    padding:3px 6px !important;
+
+    font-size:8px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid .mtr-gateway{
+
+    font-size:
+        clamp(10px,1vw,13px) !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid .mtr-update{
+
+    font-size:7px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid .mtr-metrics{
+
+    display:grid !important;
+
+    grid-template-columns:
+        repeat(3,minmax(0,1fr)) !important;
+
+    gap:6px !important;
+
+    margin:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid .mtr-metric{
+
+    min-width:0 !important;
+
+    min-height:28px !important;
+
+    height:auto !important;
+
+    padding:5px 7px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid .mtr-metric small{
+
+    font-size:7px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid .mtr-metric b{
+
+    font-size:
+        clamp(10px,1vw,13px) !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid .mtr-graph-row{
+
+    min-height:20px !important;
+
+    height:auto !important;
+
+    margin-top:5px !important;
+}
+
+
+/* ==========================================================
+   CARD VERMELHO TX
+
+   Sem altura fixa: se algum dado precisar de espaço,
+   o card cresce em vez de esconder.
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.live.tx-v30{
+
+    display:grid !important;
+
+    grid-template-rows:
+        auto
+        auto
+        auto !important;
+
+    width:100% !important;
+
+    min-width:0 !important;
+
+    height:auto !important;
+    min-height:172px !important;
+    max-height:none !important;
+
+    margin:0 !important;
+
+    padding:10px 12px !important;
+
+    gap:7px !important;
+
+    overflow:hidden !important;
+
+    box-sizing:border-box !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.live.tx-v30
+.tx-top{
+
+    display:flex !important;
+
+    align-items:center !important;
+
+    justify-content:space-between !important;
+
+    gap:8px !important;
+
+    min-height:24px !important;
+
+    margin:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.live.tx-v30
+.tx-top > div{
+
+    display:flex !important;
+
+    align-items:center !important;
+
+    gap:8px !important;
+
+    min-width:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.live.tx-v30
+.tx-top h3{
+
+    margin:0 !important;
+
+    font-size:
+        clamp(10px,1vw,13px) !important;
+
+    white-space:nowrap !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.live.tx-v30
+.module-badge{
+
+    padding:4px 7px !important;
+
+    font-size:
+        clamp(7px,.7vw,9px) !important;
+}
+
+
+/* ==========================================================
+   CONTEÚDO DO TX
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.live.tx-v30
+.tx-v30-content{
+
+    display:grid !important;
+
+    grid-template-columns:
+        minmax(0,1.45fr)
+        minmax(255px,.85fr) !important;
+
+    align-items:center !important;
+
+    width:100% !important;
+
+    min-width:0 !important;
+
+    gap:12px !important;
+
+    margin:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.live.tx-v30
+.tx-v30-person{
+
+    display:grid !important;
+
+    grid-template-columns:
+        52px
+        minmax(0,1fr) !important;
+
+    align-items:center !important;
+
+    gap:10px !important;
+
+    min-width:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.live.tx-v30
+.operator-visual{
+
+    width:50px !important;
+    height:50px !important;
+
+    min-width:50px !important;
+    min-height:50px !important;
+
+    margin:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.live.tx-v30
+.operator-visual img{
+
+    width:32px !important;
+    height:32px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-v30-person-data{
+
+    min-width:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-v30-callsign{
+
+    display:block !important;
+
+    font-size:
+        clamp(18px,2vw,27px) !important;
+
+    line-height:1 !important;
+
+    white-space:nowrap !important;
+
+    overflow:hidden !important;
+
+    text-overflow:ellipsis !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-v30-name{
+
+    display:block !important;
+
+    margin-top:3px !important;
+
+    font-size:
+        clamp(11px,1.1vw,14px) !important;
+
+    line-height:1.1 !important;
+
+    overflow:hidden !important;
+
+    text-overflow:ellipsis !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-v30-location,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-v30-country{
+
+    margin-top:3px !important;
+
+    font-size:
+        clamp(9px,.9vw,12px) !important;
+
+    line-height:1.15 !important;
+}
+
+
+/* ==========================================================
+   DETALHES
+
+   Mantém Gateway, Protocolo/Módulo e Tempo.
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-v30-details{
+
+    display:grid !important;
+
+    grid-template-columns:
+        minmax(0,1fr) !important;
+
+    gap:5px !important;
+
+    min-width:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-v30-details > div{
+
+    display:flex !important;
+
+    flex-direction:column !important;
+
+    justify-content:center !important;
+
+    min-width:0 !important;
+
+    min-height:39px !important;
+
+    height:auto !important;
+
+    padding:6px 9px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-v30-details small{
+
+    margin-bottom:3px !important;
+
+    font-size:7px !important;
+
+    line-height:1 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-v30-details strong{
+
+    font-size:
+        clamp(9px,.9vw,12px) !important;
+
+    line-height:1.05 !important;
+
+    overflow:hidden !important;
+
+    text-overflow:ellipsis !important;
+}
+
+
+/* Spectrum fica visível, porém menor. */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.live.tx-v30
+.spectrum{
+
+    display:flex !important;
+
+    height:16px !important;
+
+    min-height:16px !important;
+
+    margin:1px 0 0 !important;
+
+    padding-top:3px !important;
+}
+
+
+/* ==========================================================
+   SERVIDOR OPERACIONAL
+
+   Antes ocupava outro bloco alto.
+   Agora vira uma faixa compacta.
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#opsWidget.ops-widget{
+
+    display:grid !important;
+
+    grid-template-columns:
+        auto
+        minmax(0,1fr)
+        auto !important;
+
+    align-items:center !important;
+
+    width:100% !important;
+
+    min-width:0 !important;
+
+    min-height:54px !important;
+
+    margin-top:8px !important;
+
+    padding:7px 10px !important;
+
+    gap:8px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#opsWidget > div:first-of-type{
+
+    display:flex !important;
+
+    align-items:center !important;
+
+    gap:7px !important;
+
+    min-width:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#opsWidget > div:first-of-type b,
+
+html body[data-page="ao-vivo"]
+#opsWidget > div:first-of-type small{
+
+    display:inline !important;
+
+    margin:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#opsWidget > div:first-of-type b{
+
+    font-size:12px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#opsWidget > div:first-of-type small{
+
+    font-size:9px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#opsWidget .ops-numbers{
+
+    grid-column:auto !important;
+
+    display:flex !important;
+
+    align-items:center !important;
+
+    gap:6px !important;
+
+    width:auto !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#opsWidget .ops-numbers span{
+
+    display:flex !important;
+
+    align-items:baseline !important;
+
+    min-width:118px !important;
+
+    padding:6px 9px !important;
+
+    font-size:9px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#opsWidget .ops-numbers b{
+
+    font-size:15px !important;
+
+    margin-right:4px !important;
+}
+
+
+/* ==========================================================
+   QUANDO EXISTEM 2 OU 3 TRANSMISSÕES
+
+   O container de cada coluna fica menor.
+   Reorganizamos dentro do card, mas nenhum dado some.
+   ========================================================== */
+
+@container (max-width:620px){
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30{
+
+        min-height:185px !important;
+
+        padding:8px !important;
+
+        gap:5px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-content{
+
+        grid-template-columns:
+            minmax(0,1fr) !important;
+
+        gap:7px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-person{
+
+        grid-template-columns:
+            38px
+            minmax(0,1fr) !important;
+
+        gap:7px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .operator-visual{
+
+        width:36px !important;
+        height:36px !important;
+
+        min-width:36px !important;
+        min-height:36px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .operator-visual img{
+
+        width:24px !important;
+        height:24px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-v30-callsign{
+
+        font-size:
+            clamp(14px,5cqw,20px) !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-v30-details{
+
+        grid-template-columns:
+            repeat(3,minmax(0,1fr)) !important;
+
+        gap:4px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-v30-details > div{
+
+        min-height:42px !important;
+
+        padding:5px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-v30-details small{
+
+        font-size:6px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-v30-details strong{
+
+        font-size:
+            clamp(7px,2.7cqw,10px) !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid > * > .mtr-mini{
+
+        min-height:80px !important;
+
+        padding:7px !important;
+    }
+}
+
+
+/* ==========================================================
+   TABLET / CELULAR
+
+   Aqui a prioridade é leitura.
+   3 cards de 33% em uma tela de 360px esconderiam dados.
+   Por isso cada transmissão recebe 100%.
+   ========================================================== */
+
+@media (max-width:720px){
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid.module-grid.widget-grid{
+
+        display:grid !important;
+
+        grid-template-columns:
+            minmax(0,1fr) !important;
+
+        grid-auto-flow:row !important;
+
+        grid-auto-columns:auto !important;
+
+        gap:8px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid > *{
+
+        width:100% !important;
+
+        min-width:0 !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .standby-v30-content{
+
+        grid-template-columns:
+            44px
+            minmax(0,1fr) !important;
+
+        gap:8px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .standby-v30-last{
+
+        grid-column:1 / -1 !important;
+
+        border-left:0 !important;
+
+        border-top:
+            1px solid rgba(33,234,160,.18) !important;
+
+        padding:7px 0 0 !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .standby-v30-radar{
+
+        width:40px !important;
+        height:40px !important;
+
+        min-width:40px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .standby-v30-state{
+
+        font-size:16px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #opsWidget.ops-widget{
+
+        grid-template-columns:
+            auto
+            minmax(0,1fr) !important;
+
+        min-height:0 !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #opsWidget .ops-numbers{
+
+        grid-column:1 / -1 !important;
+
+        width:100% !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #opsWidget .ops-numbers span{
+
+        flex:1 1 0 !important;
+
+        min-width:0 !important;
+    }
+}
+
+
+/* ==========================================================
+   PROTEÇÃO FINAL
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid,
+
+html body[data-page="ao-vivo"]
+#moduleGrid *,
+
+html body[data-page="ao-vivo"]
+#opsWidget,
+
+html body[data-page="ao-vivo"]
+#opsWidget *{
+
+    box-sizing:border-box;
+}
+
+html body[data-page="ao-vivo"]{
+
+    overflow-x:hidden;
+}
+
+/* ===== SOURCE: ao-vivo-tx-embed-v5.css ===== */
+/* ==========================================================
+   XLXMODERN — MTR EMBED V5
+
+   STANDBY NÃO É ALTERADO.
+
+   Durante TX:
+
+   ┌─────────────────────────────────────┐
+   │ topo TX                             │
+   │                                     │
+   │ operador        MTR                 │
+   │                 Gateway | Prot | TX │
+   │                                     │
+   │ spectrum                            │
+   └─────────────────────────────────────┘
+
+   Nenhuma informação é removida.
+   ========================================================== */
+
+
+/* ==========================================================
+   WRAPPER DA TRANSMISSÃO
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid > .xlxmodern-tx-stack-v5{
+
+    width:100% !important;
+
+    min-width:0 !important;
+    max-width:100% !important;
+
+    margin:0 !important;
+    padding:0 !important;
+
+    container-type:inline-size;
+
+    box-sizing:border-box !important;
+}
+
+
+/* ==========================================================
+   CARD TX
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.tx-card.live.tx-v30{
+
+    display:grid !important;
+
+    grid-template-rows:
+        auto
+        minmax(0,1fr)
+        14px !important;
+
+    width:100% !important;
+
+    min-width:0 !important;
+    max-width:100% !important;
+
+    height:auto !important;
+
+    min-height:178px !important;
+    max-height:none !important;
+
+    margin:0 !important;
+
+    padding:8px 10px !important;
+
+    gap:5px !important;
+
+    overflow:hidden !important;
+
+    box-sizing:border-box !important;
+}
+
+
+/* ==========================================================
+   TOPO
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.tx-top{
+
+    display:flex !important;
+
+    align-items:center !important;
+    justify-content:space-between !important;
+
+    width:100% !important;
+
+    min-width:0 !important;
+
+    min-height:21px !important;
+
+    margin:0 !important;
+    padding:0 !important;
+
+    gap:7px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.tx-top > div{
+
+    display:flex !important;
+
+    align-items:center !important;
+
+    min-width:0 !important;
+
+    gap:7px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.tx-top h3{
+
+    margin:0 !important;
+
+    font-size:
+        clamp(10px,.9vw,13px) !important;
+
+    line-height:1 !important;
+
+    white-space:nowrap !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.module-badge{
+
+    padding:3px 6px !important;
+
+    font-size:
+        clamp(6px,.58vw,8px) !important;
+
+    line-height:1 !important;
+
+    white-space:nowrap !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.on-air{
+
+    flex:0 0 auto !important;
+
+    font-size:
+        clamp(7px,.62vw,9px) !important;
+
+    line-height:1 !important;
+
+    white-space:nowrap !important;
+}
+
+
+/* ==========================================================
+   CONTEÚDO CENTRAL
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.tx-v30-content{
+
+    display:grid !important;
+
+    grid-template-columns:
+        minmax(210px,.72fr)
+        minmax(430px,1.28fr) !important;
+
+    align-items:center !important;
+
+    width:100% !important;
+
+    min-width:0 !important;
+
+    margin:0 !important;
+    padding:0 !important;
+
+    gap:12px !important;
+}
+
+
+/* ==========================================================
+   OPERADOR
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.tx-v30-person{
+
+    display:grid !important;
+
+    grid-template-columns:
+        44px
+        minmax(0,1fr) !important;
+
+    align-items:center !important;
+
+    min-width:0 !important;
+
+    gap:8px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.operator-visual{
+
+    width:40px !important;
+    height:40px !important;
+
+    min-width:40px !important;
+    min-height:40px !important;
+
+    margin:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.operator-visual img{
+
+    width:27px !important;
+    height:27px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.tx-v30-person-data{
+
+    min-width:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.tx-v30-callsign{
+
+    display:block !important;
+
+    margin:0 !important;
+
+    font-size:
+        clamp(18px,1.65vw,26px) !important;
+
+    line-height:.98 !important;
+
+    white-space:nowrap !important;
+
+    overflow:hidden !important;
+
+    text-overflow:ellipsis !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.tx-v30-name{
+
+    display:block !important;
+
+    margin-top:2px !important;
+
+    font-size:
+        clamp(10px,.95vw,13px) !important;
+
+    line-height:1.05 !important;
+
+    white-space:normal !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.tx-v30-location,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.tx-v30-country{
+
+    margin-top:2px !important;
+
+    font-size:
+        clamp(8px,.78vw,11px) !important;
+
+    line-height:1.05 !important;
+}
+
+
+/* ==========================================================
+   ÁREA TÉCNICA
+   MTR EM CIMA / CAIXAS EMBAIXO
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tech-v5{
+
+    display:grid !important;
+
+    grid-template-columns:
+        minmax(0,1fr) !important;
+
+    grid-template-rows:
+        auto
+        auto !important;
+
+    align-content:center !important;
+
+    width:100% !important;
+
+    min-width:0 !important;
+
+    gap:5px !important;
+
+    margin:0 !important;
+    padding:0 !important;
+
+    box-sizing:border-box !important;
+}
+
+
+/* ==========================================================
+   MTR EMBUTIDO
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5{
+
+    display:grid !important;
+
+    grid-template-columns:
+        minmax(0,1fr) !important;
+
+    width:100% !important;
+
+    min-width:0 !important;
+    max-width:100% !important;
+
+    height:auto !important;
+
+    min-height:66px !important;
+    max-height:none !important;
+
+    margin:0 !important;
+
+    padding:5px 6px !important;
+
+    gap:3px !important;
+
+    border-radius:8px !important;
+
+    box-sizing:border-box !important;
+}
+
+
+/* Cabeçalho */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5
+.mtr-head{
+
+    display:flex !important;
+
+    align-items:center !important;
+
+    width:100% !important;
+
+    min-width:0 !important;
+
+    min-height:16px !important;
+
+    margin:0 !important;
+
+    gap:5px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5
+.mtr-label{
+
+    padding:2px 5px !important;
+
+    font-size:7px !important;
+
+    line-height:1 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5
+.mtr-gateway{
+
+    min-width:0 !important;
+
+    font-size:
+        clamp(9px,.85vw,12px) !important;
+
+    line-height:1 !important;
+
+    white-space:nowrap !important;
+
+    overflow:hidden !important;
+
+    text-overflow:ellipsis !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5
+.mtr-update{
+
+    font-size:6px !important;
+
+    white-space:nowrap !important;
+}
+
+
+/* LAT / PER / JIT */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5
+.mtr-metrics{
+
+    display:grid !important;
+
+    grid-template-columns:
+        repeat(3,minmax(0,1fr)) !important;
+
+    width:100% !important;
+
+    min-width:0 !important;
+
+    gap:4px !important;
+
+    margin:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5
+.mtr-metric{
+
+    display:flex !important;
+
+    align-items:center !important;
+    justify-content:space-between !important;
+
+    min-width:0 !important;
+
+    min-height:23px !important;
+
+    height:auto !important;
+    max-height:none !important;
+
+    padding:3px 5px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5
+.mtr-metric small{
+
+    font-size:6px !important;
+
+    line-height:1 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5
+.mtr-metric b{
+
+    font-size:
+        clamp(8px,.8vw,11px) !important;
+
+    line-height:1 !important;
+
+    white-space:nowrap !important;
+}
+
+
+/* ==========================================================
+   GRÁFICO + ESTADO
+
+   CONTINUAM VISÍVEIS.
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5
+.mtr-graph-row{
+
+    display:grid !important;
+
+    grid-template-columns:
+        minmax(0,1fr)
+        auto !important;
+
+    align-items:center !important;
+
+    width:100% !important;
+
+    min-width:0 !important;
+
+    min-height:19px !important;
+
+    height:auto !important;
+
+    margin:0 !important;
+
+    gap:5px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5
+.mtr-chart{
+
+    display:block !important;
+
+    width:100% !important;
+
+    min-width:0 !important;
+
+    height:18px !important;
+    min-height:18px !important;
+    max-height:18px !important;
+
+    margin:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5
+.mtr-state-group{
+
+    display:flex !important;
+
+    align-items:center !important;
+
+    min-width:0 !important;
+
+    gap:4px !important;
+
+    white-space:nowrap !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5
+.mtr-quality,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5
+.mtr-route{
+
+    font-size:
+        clamp(7px,.62vw,9px) !important;
+
+    line-height:1 !important;
+}
+
+
+/* Motivo / tendência permanecem disponíveis */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5
+.mtr-reason,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5
+.mtr-trend{
+
+    display:block !important;
+
+    font-size:6px !important;
+
+    line-height:1 !important;
+
+    margin:0 !important;
+}
+
+
+/* Barra verde/amarela/vermelha */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5
+.mtr-scale{
+
+    display:block !important;
+
+    width:100% !important;
+
+    height:5px !important;
+    min-height:5px !important;
+
+    margin:1px 0 0 !important;
+}
+
+
+/* ==========================================================
+   TRÊS CAIXAS TÉCNICAS
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tech-v5
+.tx-v30-details{
+
+    display:grid !important;
+
+    grid-template-columns:
+        repeat(3,minmax(0,1fr)) !important;
+
+    align-items:stretch !important;
+
+    width:100% !important;
+
+    min-width:0 !important;
+
+    gap:5px !important;
+
+    margin:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tech-v5
+.tx-v30-details > div{
+
+    display:flex !important;
+
+    flex-direction:column !important;
+
+    justify-content:center !important;
+
+    min-width:0 !important;
+
+    min-height:42px !important;
+
+    height:auto !important;
+    max-height:none !important;
+
+    margin:0 !important;
+
+    padding:5px 7px !important;
+
+    overflow:visible !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tech-v5
+.tx-v30-details small{
+
+    display:block !important;
+
+    margin:0 0 3px !important;
+
+    font-size:
+        clamp(5px,.48vw,7px) !important;
+
+    line-height:1 !important;
+
+    white-space:nowrap !important;
+
+    overflow:hidden !important;
+
+    text-overflow:ellipsis !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tech-v5
+.tx-v30-details strong{
+
+    display:block !important;
+
+    margin:0 !important;
+
+    font-size:
+        clamp(8px,.76vw,11px) !important;
+
+    line-height:1.05 !important;
+
+    white-space:normal !important;
+
+    overflow:visible !important;
+
+    text-overflow:clip !important;
+
+    overflow-wrap:anywhere !important;
+}
+
+
+/* ==========================================================
+   SPECTRUM
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.spectrum{
+
+    display:flex !important;
+
+    align-items:end !important;
+    justify-content:center !important;
+
+    width:100% !important;
+
+    height:14px !important;
+    min-height:14px !important;
+
+    margin:0 !important;
+
+    padding:2px 0 0 !important;
+}
+
+
+/* ==========================================================
+   QUANDO TEM 2 OU 3 TRANSMISSÕES
+
+   Cada coluna fica mais estreita.
+   O operador passa para cima e a área técnica para baixo.
+   Nenhum dado é escondido.
+   ========================================================== */
+
+@container (max-width:650px){
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-tx-stack-v5
+    .tx-card.live.tx-v30{
+
+        min-height:204px !important;
+
+        padding:7px 8px !important;
+
+        gap:4px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-tx-stack-v5
+    .tx-v30-content{
+
+        grid-template-columns:
+            minmax(0,1fr) !important;
+
+        gap:5px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-tx-stack-v5
+    .tx-v30-person{
+
+        grid-template-columns:
+            34px
+            minmax(0,1fr) !important;
+
+        gap:6px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-tx-stack-v5
+    .operator-visual{
+
+        width:32px !important;
+        height:32px !important;
+
+        min-width:32px !important;
+        min-height:32px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-tx-stack-v5
+    .operator-visual img{
+
+        width:21px !important;
+        height:21px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-tx-stack-v5
+    .tx-v30-callsign{
+
+        font-size:
+            clamp(14px,4cqw,20px) !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-tx-stack-v5
+    .tx-v30-name{
+
+        font-size:
+            clamp(8px,2.3cqw,11px) !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-tx-stack-v5
+    .tx-v30-location,
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-tx-stack-v5
+    .tx-v30-country{
+
+        font-size:
+            clamp(7px,1.9cqw,9px) !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-mtr-embedded-v5{
+
+        min-height:61px !important;
+
+        padding:4px 5px !important;
+
+        gap:2px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-mtr-embedded-v5
+    .mtr-chart{
+
+        height:15px !important;
+        min-height:15px !important;
+        max-height:15px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-tech-v5
+    .tx-v30-details{
+
+        gap:3px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-tech-v5
+    .tx-v30-details > div{
+
+        min-height:39px !important;
+
+        padding:4px !important;
+    }
+}
+
+
+/* ==========================================================
+   3 COLUNAS BEM ESTREITAS
+   ========================================================== */
+
+@container (max-width:410px){
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-tx-stack-v5
+    .tx-top{
+
+        gap:4px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-tx-stack-v5
+    .module-badge{
+
+        font-size:6px !important;
+
+        padding:3px 4px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-tx-stack-v5
+    .tx-top h3{
+
+        font-size:8px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-mtr-embedded-v5
+    .mtr-gateway{
+
+        font-size:8px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-mtr-embedded-v5
+    .mtr-quality,
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-mtr-embedded-v5
+    .mtr-route{
+
+        font-size:6px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-tech-v5
+    .tx-v30-details small{
+
+        font-size:5px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-tech-v5
+    .tx-v30-details strong{
+
+        font-size:
+            clamp(7px,2.2cqw,9px) !important;
+    }
+}
+
+
+/* ==========================================================
+   MOBILE
+
+   V3 já coloca uma transmissão por linha.
+   Mantemos leitura total.
+   ========================================================== */
+
+@media (max-width:720px){
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-tx-stack-v5
+    .tx-card.live.tx-v30{
+
+        min-height:0 !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-tx-stack-v5
+    .tx-v30-content{
+
+        grid-template-columns:
+            minmax(0,1fr) !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-tech-v5
+    .tx-v30-details{
+
+        grid-template-columns:
+            repeat(3,minmax(0,1fr)) !important;
+    }
+}
+
+
+/* ==========================================================
+   CELULAR MUITO ESTREITO
+
+   Caixas podem quebrar em linhas para jamais esconder texto.
+   ========================================================== */
+
+@media (max-width:460px){
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-tech-v5
+    .tx-v30-details{
+
+        grid-template-columns:
+            minmax(0,1fr) !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-tech-v5
+    .tx-v30-details > div{
+
+        min-height:34px !important;
+    }
+}
+
+/* ===== SOURCE: ao-vivo-tx-finetune-v6.css ===== */
+/* ==========================================================
+   XLXMODERN — TX FINETUNE V6
+
+   Ajuste exclusivamente visual.
+
+   - Standby: não altera
+   - 1 TX: mais baixo
+   - 2 TX: mantém operador + técnica lado a lado
+   - 3 TX/card estreito: empilha para preservar leitura
+   - nenhuma informação removida
+   ========================================================== */
+
+
+/* ==========================================================
+   CARD TX — REDUÇÃO GERAL
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.tx-card.live.tx-v30{
+
+    min-height:154px !important;
+
+    padding:7px 9px !important;
+
+    gap:4px !important;
+
+    grid-template-rows:
+        auto
+        minmax(0,1fr)
+        10px !important;
+}
+
+
+/* ==========================================================
+   TOPO MAIS ENXUTO
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.tx-top{
+
+    min-height:18px !important;
+
+    gap:6px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.module-badge{
+
+    padding:3px 6px !important;
+
+    font-size:
+        clamp(6px,.55vw,8px) !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.tx-top h3{
+
+    font-size:
+        clamp(9px,.82vw,12px) !important;
+}
+
+
+/* ==========================================================
+   CONTEÚDO
+
+   Para cards com espaço suficiente:
+   operador esquerda + técnica direita.
+
+   Isso vale para:
+   - 1 transmissão
+   - normalmente também para 2 transmissões
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.tx-v30-content{
+
+    grid-template-columns:
+        minmax(155px,.62fr)
+        minmax(270px,1.38fr) !important;
+
+    align-items:center !important;
+
+    gap:8px !important;
+}
+
+
+/* ==========================================================
+   OPERADOR
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.tx-v30-person{
+
+    grid-template-columns:
+        38px
+        minmax(0,1fr) !important;
+
+    gap:6px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.operator-visual{
+
+    width:36px !important;
+    height:36px !important;
+
+    min-width:36px !important;
+    min-height:36px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.operator-visual img{
+
+    width:24px !important;
+    height:24px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.tx-v30-callsign{
+
+    font-size:
+        clamp(16px,1.5vw,23px) !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.tx-v30-name{
+
+    margin-top:1px !important;
+
+    font-size:
+        clamp(9px,.88vw,12px) !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.tx-v30-location,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.tx-v30-country{
+
+    margin-top:1px !important;
+
+    font-size:
+        clamp(7px,.72vw,10px) !important;
+}
+
+
+/* ==========================================================
+   ÁREA TÉCNICA
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tech-v5{
+
+    gap:3px !important;
+}
+
+
+/* ==========================================================
+   MTR MAIS COMPACTO
+
+   Não remove:
+   LAT / PER / JIT / gráfico / status / barra.
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5{
+
+    min-height:52px !important;
+
+    padding:3px 5px !important;
+
+    gap:1px !important;
+
+    border-radius:7px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5
+.mtr-head{
+
+    min-height:13px !important;
+
+    margin:0 !important;
+
+    gap:4px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5
+.mtr-label{
+
+    padding:2px 4px !important;
+
+    font-size:6px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5
+.mtr-gateway{
+
+    font-size:
+        clamp(8px,.72vw,10px) !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5
+.mtr-update{
+
+    font-size:5px !important;
+}
+
+
+/* LAT / PER / JIT */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5
+.mtr-metrics{
+
+    gap:3px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5
+.mtr-metric{
+
+    min-height:19px !important;
+
+    padding:2px 4px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5
+.mtr-metric small{
+
+    font-size:5px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5
+.mtr-metric b{
+
+    font-size:
+        clamp(7px,.7vw,10px) !important;
+}
+
+
+/* Gráfico continua visível */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5
+.mtr-graph-row{
+
+    min-height:13px !important;
+
+    gap:3px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5
+.mtr-chart{
+
+    height:12px !important;
+    min-height:12px !important;
+    max-height:12px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5
+.mtr-quality,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5
+.mtr-route{
+
+    font-size:
+        clamp(6px,.55vw,8px) !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5
+.mtr-reason,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5
+.mtr-trend{
+
+    font-size:5px !important;
+}
+
+
+/* Barra de qualidade */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5
+.mtr-scale{
+
+    height:4px !important;
+    min-height:4px !important;
+
+    margin:0 !important;
+}
+
+
+/* ==========================================================
+   GATEWAY / PROTOCOLO / TEMPO
+
+   Mais baixos, mas texto continua podendo quebrar.
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tech-v5
+.tx-v30-details{
+
+    gap:3px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tech-v5
+.tx-v30-details > div{
+
+    min-height:34px !important;
+
+    padding:4px 6px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tech-v5
+.tx-v30-details small{
+
+    margin-bottom:2px !important;
+
+    font-size:
+        clamp(5px,.43vw,6px) !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tech-v5
+.tx-v30-details strong{
+
+    font-size:
+        clamp(7px,.7vw,10px) !important;
+
+    line-height:1.05 !important;
+}
+
+
+/* ==========================================================
+   SPECTRUM
+
+   É decorativo, portanto fica mais fino.
+   Continua aparecendo.
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.spectrum{
+
+    height:10px !important;
+    min-height:10px !important;
+
+    padding:1px 0 0 !important;
+
+    margin:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.spectrum i{
+
+    max-height:8px !important;
+}
+
+
+/* ==========================================================
+   FAIXA SERVIDOR
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#opsWidget.ops-widget{
+
+    min-height:40px !important;
+
+    padding:4px 8px !important;
+
+    margin-top:6px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#opsWidget .ops-numbers span{
+
+    min-height:27px !important;
+
+    padding:4px 7px !important;
+}
+
+
+/* ==========================================================
+   PONTO PRINCIPAL DO V6
+
+   Somente quando o CARD realmente ficar estreito
+   passamos operador e área técnica para uma coluna.
+
+   Antes o V5 fazia isso em 650px.
+   Agora esperamos até 430px.
+   ========================================================== */
+
+@container (min-width:431px){
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-tx-stack-v5
+    .tx-v30-content{
+
+        grid-template-columns:
+            minmax(145px,.62fr)
+            minmax(265px,1.38fr) !important;
+
+        align-items:center !important;
+
+        gap:7px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-tx-stack-v5
+    .tx-card.live.tx-v30{
+
+        min-height:154px !important;
+    }
+}
+
+
+/* ==========================================================
+   CARD ESTREITO / 3 TRANSMISSÕES
+
+   Aí sim empilha para preservar leitura.
+   ========================================================== */
+
+@container (max-width:430px){
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-tx-stack-v5
+    .tx-v30-content{
+
+        grid-template-columns:
+            minmax(0,1fr) !important;
+
+        gap:4px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-tx-stack-v5
+    .tx-card.live.tx-v30{
+
+        min-height:188px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-tx-stack-v5
+    .tx-v30-person{
+
+        grid-template-columns:
+            30px
+            minmax(0,1fr) !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-tx-stack-v5
+    .operator-visual{
+
+        width:28px !important;
+        height:28px !important;
+
+        min-width:28px !important;
+        min-height:28px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-tx-stack-v5
+    .operator-visual img{
+
+        width:19px !important;
+        height:19px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-mtr-embedded-v5{
+
+        min-height:50px !important;
+    }
+}
+
+
+/* ==========================================================
+   MOBILE
+
+   Mantém um card por linha.
+   ========================================================== */
+
+@media (max-width:720px){
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-tx-stack-v5
+    .tx-card.live.tx-v30{
+
+        min-height:0 !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-tx-stack-v5
+    .tx-v30-content{
+
+        grid-template-columns:
+            minmax(0,1fr) !important;
+    }
+}
+
+
+/* Tela estreita: jamais sacrifica texto das caixas */
+
+@media (max-width:460px){
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-tech-v5
+    .tx-v30-details{
+
+        grid-template-columns:
+            minmax(0,1fr) !important;
+    }
+}
+
+/* ===== SOURCE: ao-vivo-visual-fix-v7.css ===== */
+/* ==========================================================
+   XLXMODERN — VISUAL FIX V7
+
+   1 TX:
+   GIF à esquerda, com espaço seguro.
+
+   2 TX:
+   GIF à direita dos dados do operador.
+
+   MTR:
+   popup de informação sempre acima das caixas técnicas.
+
+   Standby:
+   não alterado.
+   ========================================================== */
+
+
+/* ==========================================================
+   UMA TRANSMISSÃO
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlxmodern-tx-stack-v5:only-child
+.tx-v30-person{
+
+    display:grid !important;
+
+    grid-template-columns:
+        46px
+        minmax(0,1fr) !important;
+
+    align-items:center !important;
+
+    gap:9px !important;
+
+    min-width:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlxmodern-tx-stack-v5:only-child
+.tx-v30-person
+.operator-visual{
+
+    grid-column:1 !important;
+    grid-row:1 !important;
+
+    justify-self:start !important;
+
+    width:38px !important;
+    height:38px !important;
+
+    min-width:38px !important;
+    min-height:38px !important;
+
+    margin:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlxmodern-tx-stack-v5:only-child
+.tx-v30-person-data{
+
+    grid-column:2 !important;
+    grid-row:1 !important;
+
+    min-width:0 !important;
+
+    padding-left:0 !important;
+}
+
+
+/* ==========================================================
+   EXATAMENTE DUAS TRANSMISSÕES
+
+   Seletores abaixo funcionam somente quando moduleGrid
+   possui exatamente dois stacks TX.
+   ========================================================== */
+
+
+/* Primeiro card de dois */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
+.tx-v30-person,
+
+/* Segundo card de dois */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
+~ .xlxmodern-tx-stack-v5
+.tx-v30-person{
+
+    display:grid !important;
+
+    /*
+     * TEXTO | GIF
+     */
+    grid-template-columns:
+        minmax(0,1fr)
+        44px !important;
+
+    align-items:center !important;
+
+    gap:8px !important;
+
+    min-width:0 !important;
+}
+
+
+/* GIF vai para a DIREITA */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
+.tx-v30-person
+.operator-visual,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
+~ .xlxmodern-tx-stack-v5
+.tx-v30-person
+.operator-visual{
+
+    grid-column:2 !important;
+    grid-row:1 !important;
+
+    justify-self:end !important;
+    align-self:center !important;
+
+    width:30px !important;
+    height:30px !important;
+
+    min-width:30px !important;
+    min-height:30px !important;
+
+    margin:0 4px 0 0 !important;
+}
+
+
+/* GIF interno menor */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
+.tx-v30-person
+.operator-visual img,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
+~ .xlxmodern-tx-stack-v5
+.tx-v30-person
+.operator-visual img{
+
+    width:21px !important;
+    height:21px !important;
+
+    object-fit:contain !important;
+}
+
+
+/* Dados ocupam toda a área esquerda */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
+.tx-v30-person-data,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
+~ .xlxmodern-tx-stack-v5
+.tx-v30-person-data{
+
+    grid-column:1 !important;
+    grid-row:1 !important;
+
+    min-width:0 !important;
+
+    width:100% !important;
+
+    padding:0 4px 0 0 !important;
+}
+
+
+/* Indicativo nunca fica embaixo do círculo */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
+.tx-v30-callsign,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
+~ .xlxmodern-tx-stack-v5
+.tx-v30-callsign{
+
+    display:block !important;
+
+    max-width:100% !important;
+
+    padding:0 !important;
+    margin:0 !important;
+
+    white-space:nowrap !important;
+
+    overflow:hidden !important;
+
+    text-overflow:ellipsis !important;
+}
+
+
+/* ==========================================================
+   MTR — CORREÇÃO DO POPUP DO BOTÃO "i"
+   ========================================================== */
+
+
+/*
+ * Área técnica precisa permitir camadas internas.
+ */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tech-v5{
+
+    position:relative !important;
+
+    z-index:20 !important;
+
+    overflow:visible !important;
+}
+
+
+/*
+ * O MTR fica acima das caixas Gateway/Protocolo/Tempo.
+ */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5{
+
+    position:relative !important;
+
+    z-index:100 !important;
+
+    overflow:visible !important;
+}
+
+
+/*
+ * Quando o mouse ou teclado entra no MTR,
+ * ele recebe prioridade máxima dentro do card.
+ */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5:hover,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5:focus-within{
+
+    z-index:1000 !important;
+}
+
+
+/*
+ * Cabeçalho onde fica o botão "i".
+ */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5
+.mtr-head{
+
+    position:relative !important;
+
+    z-index:1100 !important;
+
+    overflow:visible !important;
+}
+
+
+/*
+ * Caixas técnicas ficam em camada inferior.
+ */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tech-v5
+.tx-v30-details{
+
+    position:relative !important;
+
+    z-index:1 !important;
+}
+
+
+/*
+ * Compatibilidade defensiva com nomes comuns
+ * usados no popup/help do MTR.
+
+ * Não altera posição do elemento.
+ * Somente sua camada.
+ */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5
+[class*="tooltip"],
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5
+[class*="popover"],
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5
+[class*="help"],
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-mtr-embedded-v5
+[class*="info"]{
+
+    z-index:9999 !important;
+}
+
+
+/*
+ * O próprio stack ganha prioridade ao passar o mouse,
+ * evitando que o popup fique atrás do card vizinho.
+ */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlxmodern-tx-stack-v5{
+
+    position:relative !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlxmodern-tx-stack-v5:hover{
+
+    z-index:50 !important;
+}
+
+
+/* ==========================================================
+   PROTEÇÃO MOBILE
+
+   No celular a disposição V6 continua soberana.
+   ========================================================== */
+
+@media (max-width:720px){
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    > .xlxmodern-tx-stack-v5
+    .tx-v30-person{
+
+        grid-template-columns:
+            38px
+            minmax(0,1fr) !important;
+
+        gap:7px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    > .xlxmodern-tx-stack-v5
+    .tx-v30-person
+    .operator-visual{
+
+        grid-column:1 !important;
+        grid-row:1 !important;
+
+        justify-self:start !important;
+
+        width:34px !important;
+        height:34px !important;
+
+        min-width:34px !important;
+        min-height:34px !important;
+
+        margin:0 !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    > .xlxmodern-tx-stack-v5
+    .tx-v30-person-data{
+
+        grid-column:2 !important;
+        grid-row:1 !important;
+
+        padding:0 !important;
+    }
+}
+
+/* ===== SOURCE: ao-vivo-gif-scale-v8.css ===== */
+/* ==========================================================
+   XLXMODERN — GIF SCALE V8
+
+   SOMENTE TAMANHO DO AVATAR/GIF.
+
+   1 transmissão:
+   círculo 42px
+   GIF 29px
+
+   2 transmissões:
+   círculo 38px
+   GIF 27px
+
+   Posição existente preservada.
+   ========================================================== */
+
+
+/* ==========================================================
+   1 TRANSMISSÃO
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlxmodern-tx-stack-v5:only-child
+.tx-v30-person
+.operator-visual{
+
+    width:42px !important;
+    height:42px !important;
+
+    min-width:42px !important;
+    min-height:42px !important;
+
+    margin:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlxmodern-tx-stack-v5:only-child
+.tx-v30-person
+.operator-visual img{
+
+    width:29px !important;
+    height:29px !important;
+
+    object-fit:contain !important;
+}
+
+
+/*
+ * Mantém espaço suficiente entre círculo e texto.
+ */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlxmodern-tx-stack-v5:only-child
+.tx-v30-person{
+
+    grid-template-columns:
+        50px
+        minmax(0,1fr) !important;
+
+    gap:8px !important;
+}
+
+
+/* ==========================================================
+   EXATAMENTE 2 TRANSMISSÕES
+   GIF PERMANECE À DIREITA
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
+.tx-v30-person
+.operator-visual,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
+~ .xlxmodern-tx-stack-v5
+.tx-v30-person
+.operator-visual{
+
+    width:38px !important;
+    height:38px !important;
+
+    min-width:38px !important;
+    min-height:38px !important;
+
+    margin:0 3px 0 0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
+.tx-v30-person
+.operator-visual img,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
+~ .xlxmodern-tx-stack-v5
+.tx-v30-person
+.operator-visual img{
+
+    width:27px !important;
+    height:27px !important;
+
+    object-fit:contain !important;
+}
+
+
+/*
+ * Aumenta a coluna reservada ao GIF,
+ * evitando qualquer contato com o nome.
+ */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
+.tx-v30-person,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
+~ .xlxmodern-tx-stack-v5
+.tx-v30-person{
+
+    grid-template-columns:
+        minmax(0,1fr)
+        46px !important;
+
+    gap:7px !important;
+}
+
+
+/* ==========================================================
+   MOBILE
+
+   Não aumenta demais em telas pequenas.
+   ========================================================== */
+
+@media (max-width:720px){
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    > .xlxmodern-tx-stack-v5
+    .tx-v30-person
+    .operator-visual{
+
+        width:36px !important;
+        height:36px !important;
+
+        min-width:36px !important;
+        min-height:36px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    > .xlxmodern-tx-stack-v5
+    .tx-v30-person
+    .operator-visual img{
+
+        width:25px !important;
+        height:25px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    > .xlxmodern-tx-stack-v5
+    .tx-v30-person{
+
+        grid-template-columns:
+            42px
+            minmax(0,1fr) !important;
+    }
+}
+
+/* ===== SOURCE: ao-vivo-gif-position-v9.css ===== */
+/* ==========================================================
+   XLXMODERN — GIF POSITION V9
+
+   Ajuste fino:
+   - somente para EXATAMENTE 2 transmissões
+   - aumenta o círculo/GIF
+   - traz um pouco mais para a esquerda
+   - não altera altura do card
+   ========================================================== */
+
+
+/* ==========================================================
+   EXATAMENTE 2 TRANSMISSÕES
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
+.tx-v30-person,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
+~ .xlxmodern-tx-stack-v5
+.tx-v30-person{
+
+    /*
+     * coluna do GIF maior e um pouco mais folgada
+     */
+    grid-template-columns:
+        minmax(0,1fr)
+        56px !important;
+
+    gap:8px !important;
+}
+
+
+/* círculo/gif maior */
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
+.tx-v30-person
+.operator-visual,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
+~ .xlxmodern-tx-stack-v5
+.tx-v30-person
+.operator-visual{
+
+    grid-column:2 !important;
+    grid-row:1 !important;
+
+    /*
+     * antes estava muito colado à direita;
+     * agora fica mais para dentro.
+     */
+    justify-self:center !important;
+    align-self:center !important;
+
+    width:44px !important;
+    height:44px !important;
+
+    min-width:44px !important;
+    min-height:44px !important;
+
+    margin:0 !important;
+}
+
+
+/* gif interno maior */
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
+.tx-v30-person
+.operator-visual img,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
+~ .xlxmodern-tx-stack-v5
+.tx-v30-person
+.operator-visual img{
+
+    width:31px !important;
+    height:31px !important;
+
+    object-fit:contain !important;
+}
+
+
+/* texto continua totalmente livre na esquerda */
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
+.tx-v30-person-data,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
+~ .xlxmodern-tx-stack-v5
+.tx-v30-person-data{
+
+    grid-column:1 !important;
+    grid-row:1 !important;
+
+    min-width:0 !important;
+    width:100% !important;
+
+    padding:0 2px 0 0 !important;
+}
+
+
+/* segurança: callsign não encosta no gif */
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
+.tx-v30-callsign,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlxmodern-tx-stack-v5:first-child:nth-last-child(2)
+~ .xlxmodern-tx-stack-v5
+.tx-v30-callsign{
+
+    max-width:100% !important;
+
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+}
+
+
+/* ==========================================================
+   MOBILE
+   No celular, mantém o comportamento anterior.
+   ========================================================== */
+
+@media (max-width:720px){
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    > .xlxmodern-tx-stack-v5
+    .tx-v30-person
+    .operator-visual{
+
+        width:36px !important;
+        height:36px !important;
+
+        min-width:36px !important;
+        min-height:36px !important;
+
+        justify-self:start !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    > .xlxmodern-tx-stack-v5
+    .tx-v30-person
+    .operator-visual img{
+
+        width:25px !important;
+        height:25px !important;
+    }
+}
+
+/* ===== SOURCE: ao-vivo-gif-anchor-v12.css ===== */
+/* ==========================================================
+   XLXMODERN — GIF ANCHOR V12
+
+   CORREÇÃO:
+
+   O GIF pertence à área:
+       .tx-v30-person
+
+   Portanto:
+   - .tx-v30-person é o ponto de referência;
+   - .operator-visual fica absoluto DENTRO dessa área;
+   - nunca usa o card inteiro como referência;
+   - nunca entra na área técnica.
+
+   ADAPTAÇÃO AUTOMÁTICA:
+
+   box largo:
+       64px
+
+   box médio:
+       56px
+
+   box estreito:
+       44px
+
+   Nenhuma alteração em:
+   - altura do card
+   - MTR
+   - Gateway
+   - Protocolo
+   - Tempo TX
+   - spectrum
+   ========================================================== */
+
+
+/* ==========================================================
+   O STACK É O CONTAINER RESPONSIVO
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlxmodern-tx-stack-v5{
+
+    container-type:inline-size !important;
+
+    min-width:0 !important;
+}
+
+
+/* ==========================================================
+   ÁREA DO OPERADOR
+
+   ESTE É O NOVO PONTO DE REFERÊNCIA DO GIF.
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.tx-v30-person{
+
+    /*
+     * Fundamental:
+     *
+     * Agora o GIF absoluto usa ESTA área
+     * como referência.
+     */
+    position:relative !important;
+
+    /*
+     * Remove as colunas antigas reservadas ao GIF.
+     *
+     * O GIF não ocupa mais coluna da grade.
+     */
+    display:block !important;
+
+    width:100% !important;
+
+    min-width:0 !important;
+
+    margin:0 !important;
+
+    padding:0 !important;
+
+    overflow:visible !important;
+
+    box-sizing:border-box !important;
+}
+
+
+/* ==========================================================
+   DADOS DO OPERADOR
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.tx-v30-person-data{
+
+    position:relative !important;
+
+    display:block !important;
+
+    width:100% !important;
+
+    min-width:0 !important;
+
+    /*
+     * Reserva a área do GIF.
+     *
+     * Assim um nome muito grande também
+     * não entra debaixo do círculo.
+     */
+    padding-right:96px !important;
+
+    margin:0 !important;
+
+    z-index:2 !important;
+
+    box-sizing:border-box !important;
+
+    grid-column:auto !important;
+    grid-row:auto !important;
+}
+
+
+/* ==========================================================
+   GIF — BOX LARGO / 1 TRANSMISSÃO
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.tx-v30-person
+.operator-visual{
+
+    position:absolute !important;
+
+    /*
+     * Centralizado verticalmente SOMENTE
+     * dentro do bloco do operador.
+     */
+    top:50% !important;
+
+    right:18px !important;
+
+    bottom:auto !important;
+    left:auto !important;
+
+    transform:
+        translateY(-50%) !important;
+
+    width:64px !important;
+    height:64px !important;
+
+    min-width:64px !important;
+    min-height:64px !important;
+
+    max-width:64px !important;
+    max-height:64px !important;
+
+    margin:0 !important;
+
+    display:grid !important;
+
+    place-items:center !important;
+
+    z-index:4 !important;
+
+    pointer-events:none !important;
+
+    box-sizing:border-box !important;
+
+    grid-column:auto !important;
+    grid-row:auto !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.tx-v30-person
+.operator-visual img{
+
+    display:block !important;
+
+    width:46px !important;
+    height:46px !important;
+
+    max-width:46px !important;
+    max-height:46px !important;
+
+    object-fit:contain !important;
+}
+
+
+/* ==========================================================
+   PROTEÇÃO DO TEXTO
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.tx-v30-callsign,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.tx-v30-name,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.tx-v30-location,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.tx-v30-country{
+
+    position:relative !important;
+
+    z-index:2 !important;
+
+    max-width:100% !important;
+}
+
+
+/* ==========================================================
+   BOX MÉDIO
+
+   É o tamanho típico quando existem 2 transmissões.
+
+   A regra depende da largura REAL do box,
+   não da quantidade de filhos no DOM.
+   ========================================================== */
+
+@container (max-width:650px){
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-tx-stack-v5
+    .tx-v30-person-data{
+
+        padding-right:80px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-tx-stack-v5
+    .tx-v30-person
+    .operator-visual{
+
+        top:50% !important;
+
+        right:14px !important;
+
+        width:56px !important;
+        height:56px !important;
+
+        min-width:56px !important;
+        min-height:56px !important;
+
+        max-width:56px !important;
+        max-height:56px !important;
+
+        transform:
+            translateY(-50%) !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-tx-stack-v5
+    .tx-v30-person
+    .operator-visual img{
+
+        width:40px !important;
+        height:40px !important;
+
+        max-width:40px !important;
+        max-height:40px !important;
+    }
+}
+
+
+/* ==========================================================
+   BOX ESTREITO
+
+   É o tamanho típico quando existem 3 transmissões.
+   ========================================================== */
+
+@container (max-width:430px){
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-tx-stack-v5
+    .tx-v30-person-data{
+
+        padding-right:62px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-tx-stack-v5
+    .tx-v30-person
+    .operator-visual{
+
+        top:50% !important;
+
+        right:8px !important;
+
+        width:44px !important;
+        height:44px !important;
+
+        min-width:44px !important;
+        min-height:44px !important;
+
+        max-width:44px !important;
+        max-height:44px !important;
+
+        transform:
+            translateY(-50%) !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-tx-stack-v5
+    .tx-v30-person
+    .operator-visual img{
+
+        width:31px !important;
+        height:31px !important;
+
+        max-width:31px !important;
+        max-height:31px !important;
+    }
+}
+
+
+/* ==========================================================
+   SEGURANÇA CONTRA COLISÕES
+
+   O GIF está restrito ao bloco do operador.
+
+   MTR e detalhes permanecem em seus próprios níveis.
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.xlxmodern-tech-v5{
+
+    position:relative !important;
+
+    z-index:5 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.tx-v30-details{
+
+    position:relative !important;
+
+    z-index:5 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.xlxmodern-tx-stack-v5
+.spectrum{
+
+    position:relative !important;
+
+    z-index:5 !important;
+}
+
+
+/* ==========================================================
+   CELULAR
+
+   Continua usando a largura real do card.
+   Não cria outra posição paralela.
+   ========================================================== */
+
+@media (max-width:720px){
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .xlxmodern-tx-stack-v5
+    .tx-v30-person{
+
+        position:relative !important;
+
+        display:block !important;
+    }
+}

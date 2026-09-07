@@ -1,5 +1,5 @@
 /* ================================================================
-   XLX026_HEADER_BRASIL_REFINO_V3
+   XLXMODERN_HEADER_BRASIL_REFINO_V3
 
    Somente acabamento visual sobre a V2 aprovada.
 
@@ -28,11 +28,11 @@
 @media (min-width:821px){
 
     /*
-     * XLX026 continua sendo a parte tecnológica da marca.
+     * XLXMODERN continua sendo a parte tecnológica da marca.
      */
     html body
     section.universal-header
-    .xlx026-title-code{
+    .xlxmodern-title-code{
 
         color:#00d8ff !important;
 
@@ -50,7 +50,7 @@
      */
     html body
     section.universal-header
-    .xlx026-title-country{
+    .xlxmodern-title-country{
 
         color:#e7f8ff !important;
 
@@ -73,7 +73,7 @@
      */
     html body
     section.universal-header
-    .xlx026-brasil-title{
+    .xlxmodern-brasil-title{
 
         text-shadow:
             0 0 7px rgba(0,216,255,.11) !important;
@@ -89,7 +89,7 @@
 
     html body
     section.universal-header
-    .xlx026-brasil-title::before{
+    .xlxmodern-brasil-title::before{
 
         width:18px !important;
 
@@ -119,7 +119,7 @@
         opacity:0;
 
         animation:
-            xlx026BrasilLensV3
+            xlxmodernBrasilLensV3
             30s
             ease-in-out
             infinite !important;
@@ -135,7 +135,7 @@
 
     html body
     section.universal-header
-    .xlx026-brasil-title::after{
+    .xlxmodern-brasil-title::after{
 
         content:
             attr(data-title) !important;
@@ -186,7 +186,7 @@
         opacity:0;
 
         animation:
-            xlx026BrasilSweepV3
+            xlxmodernBrasilSweepV3
             30s
             ease-in-out
             infinite !important;
@@ -259,7 +259,7 @@
    - longa pausa antes do próximo ciclo
    ================================================================ */
 
-@keyframes xlx026BrasilSweepV3{
+@keyframes xlxmodernBrasilSweepV3{
 
     /* repouso */
     0%,
@@ -328,7 +328,7 @@
 }
 
 
-@keyframes xlx026BrasilLensV3{
+@keyframes xlxmodernBrasilLensV3{
 
     0%,
     25%{
@@ -381,7 +381,7 @@
 @media (min-width:1121px){
 
     html body
-    .xlx026-fixed-inner-v2{
+    .xlxmodern-fixed-inner-v2{
 
         /*
          * Em telas grandes alinha melhor com
@@ -400,7 +400,7 @@
 @media (min-width:821px) and (max-width:1120px){
 
     html body
-    .xlx026-fixed-inner-v2{
+    .xlxmodern-fixed-inner-v2{
 
         /*
          * Em desktop mais estreito mantemos
@@ -419,7 +419,7 @@
      * Marca do compacto sem gradiente permanente.
      */
     html body
-    .xlx026-fixed-code-v2{
+    .xlxmodern-fixed-code-v2{
 
         color:#dff9ff !important;
 
@@ -429,7 +429,7 @@
 
 
     html body
-    .xlx026-fixed-country-v2{
+    .xlxmodern-fixed-country-v2{
 
         color:#e8f8ff !important;
 
@@ -451,7 +451,7 @@
      * de 2px/forte para uma assinatura de 1px.
      */
     html body
-    .xlx026-fixed-header-v2::after{
+    .xlxmodern-fixed-header-v2::after{
 
         height:1px !important;
 
@@ -489,11 +489,11 @@
 
     html body
     section.universal-header
-    .xlx026-brasil-title::before,
+    .xlxmodern-brasil-title::before,
 
     html body
     section.universal-header
-    .xlx026-brasil-title::after{
+    .xlxmodern-brasil-title::after{
 
         animation:none !important;
         opacity:0 !important;
@@ -504,11 +504,11 @@
 
 .high-contrast
 section.universal-header
-.xlx026-brasil-title::before,
+.xlxmodern-brasil-title::before,
 
 .high-contrast
 section.universal-header
-.xlx026-brasil-title::after{
+.xlxmodern-brasil-title::after{
 
     display:none !important;
 }
@@ -520,4 +520,4 @@ section.universal-header
  */
 
 
-/* /XLX026_HEADER_BRASIL_REFINO_V3 */
+/* /XLXMODERN_HEADER_BRASIL_REFINO_V3 */

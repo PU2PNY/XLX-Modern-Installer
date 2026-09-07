@@ -1,4 +1,4 @@
-/* XLX026 HAM WEATHER WIDGET V2 */
+/* XLXMODERN HAM WEATHER WIDGET V2 */
 .hamwx-panel,.hamwx-panel *{box-sizing:border-box}
 body[data-page='ao-vivo'] .hamwx-panel{margin-top:15px;padding:16px;position:relative;overflow:hidden;max-width:100%;min-width:0;container-type:inline-size}
 body[data-page='ao-vivo'] .hamwx-panel:before{content:"";position:absolute;inset:-120px -160px auto auto;width:320px;height:320px;border-radius:50%;background:radial-gradient(circle,rgba(0,216,255,.13),transparent 68%);pointer-events:none}

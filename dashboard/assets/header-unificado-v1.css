@@ -1,6 +1,6 @@
 
 /* ==========================================================
-   XLX026_HEADER_UNIFICADO_V1
+   XLXMODERN_HEADER_UNIFICADO_V1
 
    Usa o visual atual do header AO VIVO
    como padrão para TODAS as páginas.
@@ -34,7 +34,7 @@ body[data-page]
 
 body[data-page]
 .universal-nav
-.xlx026-universal-bip{
+.xlxmodern-universal-bip{
 
     display:inline-flex !important;
 
@@ -86,7 +86,7 @@ body[data-page]
 
     body[data-page]
     .universal-nav
-    .xlx026-universal-bip:hover{
+    .xlxmodern-universal-bip:hover{
 
         color:#ffffff !important;
 
@@ -110,7 +110,7 @@ body[data-page]
 
 body[data-page]
 .universal-nav
-.xlx026-universal-bip.is-off{
+.xlxmodern-universal-bip.is-off{
 
     opacity:.72;
 }
@@ -127,7 +127,7 @@ body[data-page]
 
     body[data-page]
     .universal-nav
-    .xlx026-universal-bip{
+    .xlxmodern-universal-bip{
 
         width:100% !important;
 
@@ -142,4 +142,4 @@ body[data-page]
 }
 
 
-/* FIM XLX026_HEADER_UNIFICADO_V1 */
+/* FIM XLXMODERN_HEADER_UNIFICADO_V1 */

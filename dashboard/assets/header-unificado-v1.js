@@ -1,6 +1,6 @@
 
 /* ==========================================================
-   XLX026_HEADER_UNIFICADO_V1
+   XLXMODERN_HEADER_UNIFICADO_V1
 
    Garante botão Bip em todas as páginas.
 
@@ -16,7 +16,7 @@
     'use strict';
 
     const STORAGE_KEY =
-        'xlx026TxRxSound';
+        'xlxmodernTxRxSound';
 
 
     function enabled(){
@@ -87,8 +87,8 @@
 
 
         button.className =
-            'xlx026-menu-sound-control '
-            + 'xlx026-universal-bip';
+            'xlxmodern-menu-sound-control '
+            + 'xlxmodern-universal-bip';
 
 
         update(button);
@@ -165,7 +165,7 @@
 
             const existing =
                 nav.querySelector(
-                    '.xlx026-menu-sound-control'
+                    '.xlxmodern-menu-sound-control'
                 );
 
 
@@ -177,7 +177,7 @@
                  */
 
                 existing.classList.add(
-                    'xlx026-universal-bip'
+                    'xlxmodern-universal-bip'
                 );
             }
 
@@ -194,7 +194,7 @@
 
         let button =
             nav.querySelector(
-                '.xlx026-universal-bip'
+                '.xlxmodern-universal-bip'
             );
 
 
@@ -248,4 +248,4 @@
 
 })();
 
-/* FIM XLX026_HEADER_UNIFICADO_V1 */
+/* FIM XLXMODERN_HEADER_UNIFICADO_V1 */

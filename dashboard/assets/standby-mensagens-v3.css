@@ -1,5 +1,5 @@
 /* ==========================================================
-   XLX026 — STANDBY DENTRO DO BOX V3.1
+   XLXMODERN — STANDBY DENTRO DO BOX V3.1
    Refino visual:
    - box da última transmissão sobe e ganha destaque
    - aviso fica mais integrado
@@ -151,11 +151,11 @@ html body[data-page="ao-vivo"]
     box-sizing:border-box !important;
 
     animation:
-      xlx026StandbyInsideAdvice 14s steps(1,end) infinite !important;
+      xlxmodernStandbyInsideAdvice 14s steps(1,end) infinite !important;
 }
 
 /* alternância das mensagens */
-@keyframes xlx026StandbyInsideAdvice{
+@keyframes xlxmodernStandbyInsideAdvice{
     0%,49%{
         content:"⚠ DMR — Priorize o rádio • Aplicativos são uma alternativa complementar, não o meio preferencial.";
     }
@@ -244,4 +244,4 @@ html body[data-page="ao-vivo"]
     }
 }
 
-/* FIM XLX026 — STANDBY DENTRO DO BOX V3.1 */
+/* FIM XLXMODERN — STANDBY DENTRO DO BOX V3.1 */

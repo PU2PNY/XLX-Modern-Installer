@@ -1,6 +1,6 @@
 /*
  * ==========================================================
- * XLX026 — MTR EMBED V5
+ * XLXMODERN — MTR EMBED V5
  *
  * Função:
  * colocar o MTR real dentro da área técnica do card TX,
@@ -23,11 +23,11 @@
 (() => {
     'use strict';
 
-    if (window.__XLX026_MTR_EMBED_V5__) {
+    if (window.__XLXMODERN_MTR_EMBED_V5__) {
         return;
     }
 
-    window.__XLX026_MTR_EMBED_V5__ = true;
+    window.__XLXMODERN_MTR_EMBED_V5__ = true;
 
     const grid =
         document.getElementById('moduleGrid');
@@ -70,7 +70,7 @@
 
         card
             .querySelectorAll(
-                '.xlx026-mtr-dock-v4, .xlx-mtr-dock'
+                '.xlxmodern-mtr-dock-v4, .xlx-mtr-dock'
             )
             .forEach(dock => {
 
@@ -121,7 +121,7 @@
 
         let tech =
             content.querySelector(
-                ':scope > .xlx026-tech-v5'
+                ':scope > .xlxmodern-tech-v5'
             );
 
 
@@ -167,7 +167,7 @@
                 document.createElement('div');
 
             tech.className =
-                'xlx026-tech-v5';
+                'xlxmodern-tech-v5';
 
 
             /*
@@ -177,7 +177,7 @@
              *
              * tx-v30-content
              * ├── tx-v30-person
-             * └── xlx026-tech-v5
+             * └── xlxmodern-tech-v5
              *     ├── mtr-mini
              *     └── tx-v30-details
              */
@@ -244,11 +244,11 @@
 
 
         stack.classList.add(
-            'xlx026-tx-stack-v5'
+            'xlxmodern-tx-stack-v5'
         );
 
         mtr.classList.add(
-            'xlx026-mtr-embedded-v5'
+            'xlxmodern-mtr-embedded-v5'
         );
 
 

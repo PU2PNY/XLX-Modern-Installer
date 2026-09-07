@@ -1,0 +1,110 @@
+/* XLXMODERN QRZ TX PHOTO FINAL V13 */
+@keyframes xlxmodernQrzNeonPulseRed {
+  0%,100%{box-shadow:0 0 5px rgba(255,49,92,.62),0 0 10px rgba(255,49,92,.28);border-color:#ff315c}
+  50%{box-shadow:0 0 9px rgba(255,49,92,.95),0 0 16px rgba(255,49,92,.52);border-color:#ff9aae}
+}
+html body[data-page="ao-vivo"] #moduleGrid .operator-visual.qrz-photo-active{
+  background:none !important;
+  border:0 !important;
+  outline:0 !important;
+  box-shadow:none !important;
+  padding:0 !important;
+  overflow:visible !important;
+}
+html body[data-page="ao-vivo"] #moduleGrid .operator-visual.qrz-photo-active .signal-ring,
+html body[data-page="ao-vivo"] #moduleGrid .operator-visual.qrz-photo-active::before,
+html body[data-page="ao-vivo"] #moduleGrid .operator-visual.qrz-photo-active::after{
+  display:none !important;
+  content:none !important;
+  opacity:0 !important;
+  border:0 !important;
+  box-shadow:none !important;
+  animation:none !important;
+}
+html body[data-page="ao-vivo"] #moduleGrid .operator-visual.qrz-photo-active img.is-qrz-photo{
+  display:block !important;
+  width:100% !important;
+  height:100% !important;
+  min-width:100% !important;
+  min-height:100% !important;
+  max-width:100% !important;
+  max-height:100% !important;
+  object-fit:cover !important;
+  object-position:center center !important;
+  border-radius:50% !important;
+  border:3px solid #ff315c !important;
+  box-sizing:border-box !important;
+  animation:xlxmodernQrzNeonPulseRed 1.35s ease-in-out infinite !important;
+}
+
+/* Desktop com 1 TX: foto -> identidade -> técnico, conjunto centralizado. */
+@media (min-width:721px){
+  html body[data-page="ao-vivo"] #moduleGrid
+  .tx-v30-person:has(.operator-visual.qrz-photo-active.qrz-size-1){
+    display:grid !important;
+    grid-template-columns:132px minmax(0,1fr) !important;
+    align-items:center !important;
+    gap:18px !important;
+    width:100% !important;
+    position:relative !important;
+    padding-left:26px !important;
+  }
+  html body[data-page="ao-vivo"] #moduleGrid
+  .tx-v30-person:has(.operator-visual.qrz-photo-active.qrz-size-1)
+  .operator-visual.qrz-photo-active.qrz-size-1{
+    position:relative !important;
+    top:auto !important;
+    right:auto !important;
+    bottom:auto !important;
+    left:auto !important;
+    transform:none !important;
+    justify-self:start !important;
+    align-self:center !important;
+    margin:0 !important;
+    width:120px !important;
+    height:120px !important;
+    min-width:120px !important;
+    min-height:120px !important;
+    max-width:120px !important;
+    max-height:120px !important;
+    z-index:3 !important;
+  }
+  html body[data-page="ao-vivo"] #moduleGrid
+  .tx-v30-person:has(.operator-visual.qrz-photo-active.qrz-size-1)
+  .tx-v30-person-data{
+    padding-right:0 !important;
+    margin:0 !important;
+    min-width:0 !important;
+    position:relative !important;
+    z-index:3 !important;
+  }
+  html body[data-page="ao-vivo"] #moduleGrid
+  .tx-card.live.tx-v30:has(.operator-visual.qrz-photo-active.qrz-size-1)
+  .tx-v30-content{
+    width:82% !important;
+    max-width:1220px !important;
+    margin-left:auto !important;
+    margin-right:auto !important;
+    grid-template-columns:minmax(390px,.96fr) minmax(500px,1.04fr) !important;
+    gap:34px !important;
+    align-items:center !important;
+  }
+  html body[data-page="ao-vivo"] #moduleGrid
+  .tx-card.live.tx-v30:has(.operator-visual.qrz-photo-active.qrz-size-1)
+  .xlxmodern-tech-v5{
+    justify-self:end !important;
+    width:100% !important;
+    max-width:540px !important;
+  }
+}
+
+@media (max-width:720px){
+  html body[data-page="ao-vivo"] #moduleGrid .operator-visual.qrz-photo-active{
+    width:72px !important;
+    height:72px !important;
+    min-width:72px !important;
+    min-height:72px !important;
+    max-width:72px !important;
+    max-height:72px !important;
+  }
+}

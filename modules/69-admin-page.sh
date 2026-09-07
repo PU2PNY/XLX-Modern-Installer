@@ -33,9 +33,8 @@ fail(){ printf '\033[0;31m[ERRO]\033[0m %s\n' "$*" >&2; exit 1; }
 [[ -f "$DASHBOARD_DIR/index.php" ]] || fail "$(say 'index.php do dashboard ausente.' 'Dashboard index.php not found.')"
 for file in \
   "$ROOT/modules/68-control-panel.sh" \
-  "$ROOT/control/xlx026-control-index-radioid-v2.php" \
-  "$ROOT/control/patch-xlx026-control-v111.py" \
-  "$ROOT/control/genericize-xlx-control.py" \
+  "$ROOT/control/current-production-admin.php" \
+  "$ROOT/control/build-admin.py" \
   "$ROOT/control/xlx-modern-control-helper" \
   "$ROOT/control/xlx-modern-radioid-helper" \
   "$ROOT/control/xlx-modern-access-helper"
@@ -146,6 +145,7 @@ $WEBUSER ALL=(root) NOPASSWD: $HELPER status
 $WEBUSER ALL=(root) NOPASSWD: $HELPER listeners
 $WEBUSER ALL=(root) NOPASSWD: $HELPER logs
 $WEBUSER ALL=(root) NOPASSWD: $HELPER backups
+$WEBUSER ALL=(root) NOPASSWD: $HELPER health-status
 $WEBUSER ALL=(root) NOPASSWD: $HELPER restart
 $WEBUSER ALL=(root) NOPASSWD: $HELPER radioid-status
 $WEBUSER ALL=(root) NOPASSWD: $HELPER radioid-check
@@ -158,20 +158,21 @@ $WEBUSER ALL=(root) NOPASSWD: $HELPER access-add-white *
 $WEBUSER ALL=(root) NOPASSWD: $HELPER access-delete-white *
 $WEBUSER ALL=(root) NOPASSWD: $HELPER access-add-black *
 $WEBUSER ALL=(root) NOPASSWD: $HELPER access-delete-black *
+$WEBUSER ALL=(root) NOPASSWD: $HELPER access-interlink-add *
+$WEBUSER ALL=(root) NOPASSWD: $HELPER access-interlink-delete *
 EOF
 chmod 0440 "$SUDOERS"
 visudo -cf "$SUDOERS" >/dev/null
 
-# Build from the audited XLX026 control baseline, then remove every production-
+# Build from the audited production control baseline, then remove every production-
 # specific identity/path and add the generic access/quick-links layer.
-cp -a "$ROOT/control/xlx026-control-index-radioid-v2.php" "$WORK/index.php"
-python3 "$ROOT/control/patch-xlx026-control-v111.py" "$WORK/index.php"
+cp -a "$ROOT/control/current-production-admin.php" "$WORK/index.php"
 # Admin intentionally supports two complete interfaces only.  The dashboard
 # can use six languages, while the private operational screen stays PT-BR or
 # English so its safety prompts and maintenance actions remain unambiguous.
 ADMIN_UI_LANG='en'
 [[ "$UI_LANG" == pt || "$UI_LANG" == pt-BR || "$UI_LANG" == pt_BR ]] && ADMIN_UI_LANG='pt-BR'
-python3 "$ROOT/control/genericize-xlx-control.py" "$WORK/index.php" "$ADMIN_UI_LANG"
+python3 "$ROOT/control/build-admin.py" "$WORK/index.php" "$ADMIN_UI_LANG"
 php -l "$WORK/index.php" >/dev/null
 
 rm -rf "$ADMIN_DIR"

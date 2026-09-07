@@ -71,7 +71,7 @@ XLX reflector installer for Debian 12 with modern multilingual dashboard — D-S
 Recommended website:
 
 ```text
-https://xlx026.net
+https://example.invalid
 ```
 
 Recommended topics:

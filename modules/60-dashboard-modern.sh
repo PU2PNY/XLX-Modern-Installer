@@ -3,7 +3,7 @@ set -Eeuo pipefail
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 DEFAULT_DASH_DEST="/var/www/html/xlxd"
 DASH_DEST="${INSTALL_DIR:-$DEFAULT_DASH_DEST}"
-CERT_MODE="${XLX_CERTIFICATES_MODE:-no}"
+CERT_MODE="${XLX_CERTIFICATES_MODE:-yes}"
 UI_LANG="${XLX_UI_LANG:-pt-BR}"
 
 say() {
@@ -40,27 +40,5 @@ bash "$ROOT/modules/65-callsign-directory.sh"
 XLX_DASHBOARD_DIR="$DASH_DEST" bash "$ROOT/modules/69-admin-page.sh" --dashboard-dir="$DASH_DEST"
 XLX_DASHBOARD_DIR="$DASH_DEST" XLX_UI_LANG="$UI_LANG" bash "$ROOT/modules/70-production-parity.sh"
 
-case "${CERT_MODE,,}" in
-  yes|sim|s|y|1|true) CERT_MODE="yes" ;;
-  no|nao|não|n|0|false|"") CERT_MODE="no" ;;
-  ask)
-    if [ -t 0 ]; then
-      printf '\n%s' "$(say "Instalar também o módulo opcional de Certificados? [s/N]: " "Install the optional Certificate module too? [y/N]: ")"
-      read -r answer || answer=""
-      case "${answer,,}" in s|sim|y|yes) CERT_MODE="yes" ;; *) CERT_MODE="no" ;; esac
-    else
-      CERT_MODE="no"
-    fi
-    ;;
-  *)
-    printf '%s\n' "$(say "[ERRO] XLX_CERTIFICATES_MODE inválido: $CERT_MODE. Use ask, yes ou no." "[ERROR] Invalid XLX_CERTIFICATES_MODE: $CERT_MODE. Use ask, yes, or no.")" >&2
-    exit 2
-    ;;
-esac
-
-if [ "$CERT_MODE" = "yes" ]; then
-  printf '%s\n' "$(say "[INFO] Instalando o módulo opcional XLX Certificate Generator." "[INFO] Installing the optional XLX Certificate Generator module.")"
-  XLX_DASHBOARD_DIR="$DASH_DEST" bash "$ROOT/modules/66-certificates.sh" "--dashboard-dir=$DASH_DEST"
-else
-  printf '%s\n' "$(say "[INFO] Certificados não fazem parte da instalação pública padrão." "[INFO] Certificates are not part of the standard public installation.")"
-fi
+printf '%s\n' "$(say "[INFO] Instalando o módulo padrão de Certificados." "[INFO] Installing the standard Certificate module.")"
+XLX_DASHBOARD_DIR="$DASH_DEST" bash "$ROOT/modules/66-certificates.sh" "--dashboard-dir=$DASH_DEST"

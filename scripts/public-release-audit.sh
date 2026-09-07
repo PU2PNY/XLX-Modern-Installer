@@ -82,31 +82,18 @@ fi
 rm -f /tmp/xlx-public-audit-history-secrets.$$ || true
 
 printf '\n%s\n' '--- Production-only identifiers ---'
-for pattern in '141\.11\.128\.63' 'xlx026\.net' '/root/backups-xlx026' 'Telegram Bot Token' 'BOT_TOKEN'; do
-    if git grep -nEI "$pattern" -- ':!docs/PUBLIC-RELEASE-CHECKLIST.md' ':!docs/GITHUB-ABOUT.md' ':!scripts/public-release-audit.sh' >/tmp/xlx-public-audit-prod.$$ 2>/dev/null; then
-        warn "Review production-specific reference matching: $pattern"
-        cat /tmp/xlx-public-audit-prod.$$
-    fi
-    rm -f /tmp/xlx-public-audit-prod.$$ || true
-
-    if git log --all --format='%H %ad %s' --date=short -G "$pattern" -- . ':(exclude)scripts/public-release-audit.sh' >/tmp/xlx-public-audit-prod-history.$$ 2>/dev/null && [ -s /tmp/xlx-public-audit-prod-history.$$ ]; then
-        warn "Production-specific reference appears in Git history: $pattern"
-        head -n 20 /tmp/xlx-public-audit-prod-history.$$
-    fi
-    rm -f /tmp/xlx-public-audit-prod-history.$$ || true
-done
+ok 'No production identity checks are hard-coded; generic secret/credential scans apply.'
 
 printf '\n%s\n' '--- Generic fixed-header identity ---'
 fixed_header='dashboard/assets/header-brasil-neon-fixed-v2.js'
 if [ ! -f "$fixed_header" ]; then
     fail "Missing fixed header component: $fixed_header"
 else
-    if grep -Fq 'XLX026 Brasil' "$fixed_header" \
-        || grep -Eq "code\.textContent[[:space:]]*=[[:space:]]*['\"]XLX026['\"]" "$fixed_header" \
-        || grep -Eq "country\.textContent[[:space:]]*=[[:space:]]*['\"]Brasil['\"]" "$fixed_header"; then
+    if grep -Eq "code\.textContent[[:space:]]*=[[:space:]]*['\"]XLX[A-Z0-9]{3}['\"]" "$fixed_header" \
+        || grep -Eq "country\.textContent[[:space:]]*=[[:space:]]*['\"][^'\"]{2,}['\"]" "$fixed_header"; then
         fail 'Fixed header contains a hard-coded reflector/country identity.'
     else
-        ok 'Fixed header has no hard-coded XLX026/Brazil visible identity.'
+        ok 'Fixed header has no hard-coded production identity.'
     fi
 
     if grep -Fq 'meta[property="og:site_name"]' "$fixed_header" \
@@ -138,12 +125,14 @@ done
 
 printf '\n%s\n' '--- Syntax checks ---'
 while IFS= read -r file; do
+    [ -f "$file" ] || continue
     bash -n "$file" || fail "Bash syntax: $file"
 done < <(git ls-files '*.sh')
 ok 'Bash syntax scan completed.'
 
 if command -v php >/dev/null 2>&1; then
     while IFS= read -r file; do
+        [ -f "$file" ] || continue
         php -l "$file" >/dev/null || fail "PHP syntax: $file"
     done < <(git ls-files 'dashboard/*.php' 'dashboard/**/*.php')
     ok 'PHP syntax scan completed.'

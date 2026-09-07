@@ -222,6 +222,7 @@ load_existing_dashboard_values() {
     [ -n "${SYSOP_CALLSIGN:-}" ] || SYSOP_CALLSIGN="$(dashboard_site_value reflector.sysop_callsign)"
     [ -n "${LOCATION:-}" ] || LOCATION="$(dashboard_site_value reflector.location)"
     [ -n "${COUNTRY:-}" ] || COUNTRY="$(dashboard_site_value reflector.country)"
+    [ -n "${TIMEZONE:-}" ] || TIMEZONE="$(dashboard_site_value timezone)"
     [ -n "${DOMAIN:-}" ] || DOMAIN="$(dashboard_site_value reflector.domain)"
     [ -n "${CONTACT_EMAIL:-}" ] || CONTACT_EMAIL="$(dashboard_site_value reflector.contact_email)"
     [ -n "${YSF_ID:-}" ] || YSF_ID="$(dashboard_site_value radio.ysf_id)"
@@ -253,6 +254,7 @@ load_existing_dashboard_values
 choose_language
 
 MODULE_COUNT="${MODULE_COUNT:-5}"
+TIMEZONE="${TIMEZONE:-UTC}"
 if [[ ! "$MODULE_COUNT" =~ ^[0-9]+$ ]] || [ "$MODULE_COUNT" -lt 1 ] || [ "$MODULE_COUNT" -gt 26 ]; then
     echo "ERROR / ERRO: invalid XLXD module count / quantidade de módulos XLXD inválida: $MODULE_COUNT" >&2
     exit 2
@@ -288,7 +290,7 @@ esac
 REFLECTOR_NAME="$(printf '%s' "$REFLECTOR_NAME" | tr '[:lower:]' '[:upper:]')"
 
 if [[ ! "$REFLECTOR_NAME" =~ ^XLX([A-Z0-9]{3})$ ]]; then
-    echo "ERROR / ERRO: reflector identifier must use XLX + 3 alphanumeric characters (A-Z/0-9), examples XLX026 or XLXPNY." >&2
+    echo "ERROR / ERRO: reflector identifier must use XLX + 3 alphanumeric characters (A-Z/0-9), examples XLX123 or XLXPNY." >&2
     exit 2
 fi
 
@@ -338,7 +340,7 @@ rsync -a --delete --exclude='install/' --exclude='config/site.php' "$ROOT/" "$DE
 mkdir -p "$DEST/config"
 
 # Every installed reflector receives its own neutral logo. This avoids the
-# broken XLX026-specific image reference on a fresh installation.
+# broken production-specific image reference on a fresh installation.
 cat > "$DEST/assets/logo-$REFLECTOR_NAME.svg" <<SVG
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-label="$REFLECTOR_NAME">
   <defs><radialGradient id="g" cx="35%" cy="25%"><stop stop-color="#12d8ff"/><stop offset="1" stop-color="#062433"/></radialGradient></defs>
@@ -360,6 +362,7 @@ cat > "$DEST/config/site.php" <<PHP
 <?php
 declare(strict_types=1);
 return [
+ 'timezone'=>'$(escape "$TIMEZONE")',
  'reflector'=>[
   'name'=>'$(escape "$REFLECTOR_NAME")','title'=>'$(escape "$REFLECTOR_TITLE")',
   'description'=>'$(escape "$REFLECTOR_DESCRIPTION")',

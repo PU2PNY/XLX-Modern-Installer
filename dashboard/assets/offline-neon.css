@@ -1,9 +1,9 @@
 /* ==========================================================
-   XLX026 — somente o status Offline
+   XLXMODERN — somente o status Offline
    Elemento real: .state-pill.offline
    ========================================================== */
 
-@keyframes xlx026-offline-red-pulse {
+@keyframes xlxmodern-offline-red-pulse {
     0%,
     100% {
         color: #ff304f;
@@ -64,6 +64,6 @@
     font-weight: 900 !important;
 
     animation:
-        xlx026-offline-red-pulse
+        xlxmodern-offline-red-pulse
         1.15s ease-in-out infinite !important;
 }

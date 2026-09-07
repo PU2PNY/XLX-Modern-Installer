@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+set -u
+export LANG=C
+CONF=/etc/xlx-modern-health/config.json
+DOMAIN="$(python3 -c 'import json;print(json.load(open("/etc/xlx-modern-health/config.json"))["domain"])' 2>/dev/null || echo localhost)"
+BASE_URL="https://$DOMAIN"
+REPORT_DIR="/var/lib/xlx-modern-self-test"
+mkdir -p "$REPORT_DIR"
+chmod 0750 "$REPORT_DIR" 2>/dev/null || true
+STAMP="$(date +%Y%m%d_%H%M%S)"
+TXT="$REPORT_DIR/self-test-$STAMP.txt"
+JSON="$REPORT_DIR/latest.json"
+PASS=0 WARN=0 FAIL=0
+rows=()
+add(){ local level="$1" name="$2" detail="$3"; case "$level" in PASS) PASS=$((PASS+1));; WARN) WARN=$((WARN+1));; FAIL) FAIL=$((FAIL+1));; esac; rows+=("$level|$name|$detail"); printf '[%s] %s — %s\n' "$level" "$name" "$detail"; }
+check_service(){ local s="$1" critical="${2:-1}"; if systemctl is-active --quiet "$s"; then add PASS "service:$s" active; else if [ "$critical" = 1 ]; then add FAIL "service:$s" inactive; else add WARN "service:$s" inactive; fi; fi; }
+{
+ echo "XLX Modern Regression Self-Test"
+ echo "timestamp=$(date --iso-8601=seconds)"
+ echo
+} > "$TXT"
+exec > >(tee -a "$TXT") 2>&1
+
+check_service xlxd.service 1
+check_service apache2.service 1
+for s in xlxecho.service xlx_log.service xlx-aprs-dprs.service xlx-modern-dmr-data-monitor.service xlx-modern-dmr-meta-monitor.service xlx-modern-ysf-data-monitor.service; do check_service "$s" 0; done
+
+pid="$(systemctl show -p MainPID --value xlxd.service 2>/dev/null || echo 0)"
+if [[ "$pid" =~ ^[1-9][0-9]*$ ]] && [ -d "/proc/$pid" ]; then add PASS xlxd_pid "$pid"; else add FAIL xlxd_pid invalid; fi
+if [ -x /xlxd/xlxd ]; then sha="$(sha256sum /xlxd/xlxd | awk '{print $1}')"; add PASS xlxd_sha256 "$sha"; else add FAIL xlxd_binary missing; fi
+
+fixed_ports=(10001 10002 10100 12345 12346 20001 21110 30001 30051 40000 42000 62030 8880)
+ssout="$(ss -H -lunp 2>/dev/null || true)"
+for p in "${fixed_ports[@]}"; do
+ if grep -Eq "xlxd.*|:${p}[[:space:]].*xlxd" <<<"$ssout" && grep -Eq ":${p}[[:space:]]" <<<"$ssout"; then add PASS "udp:$p" listening; else add FAIL "udp:$p" missing; fi
+done
+
+# UDP 10001 runtime health: fila e drops do socket XLXD.
+udp10001="$(ss -H -u -a -n -p -m 2>/dev/null | grep -A1 ':10001' | head -n 2 || true)"
+recvq="$(awk 'NR==1{print $2}' <<<"$udp10001")"
+sendq="$(awk 'NR==1{print $3}' <<<"$udp10001")"
+drops="$(sed -n '2p' <<<"$udp10001" | grep -o 'd[0-9][0-9]*' | tail -1 | tr -dc '0-9')"
+recvq="${recvq:-0}"; sendq="${sendq:-0}"; drops="${drops:-0}"
+if [[ "$recvq" =~ ^[0-9]+$ ]] && [[ "$sendq" =~ ^[0-9]+$ ]] && [[ "$drops" =~ ^[0-9]+$ ]]; then
+ if [ "$drops" -gt 0 ] || [ "$recvq" -gt 262144 ]; then
+  add WARN udp10001_runtime "recv_q=$recvq send_q=$sendq drops=$drops"
+ else
+  add PASS udp10001_runtime "recv_q=$recvq send_q=$sendq drops=$drops"
+ fi
+else
+ add WARN udp10001_runtime "unable_to_parse"
+fi
+
+if [ -s /var/log/xlxd.xml ]; then
+ age=$(( $(date +%s) - $(stat -c %Y /var/log/xlxd.xml) ))
+ if [ "$age" -le 30 ]; then add PASS xlxd_xml "age=${age}s"; elif [ "$age" -le 90 ]; then add WARN xlxd_xml "age=${age}s"; else add FAIL xlxd_xml "age=${age}s"; fi
+else add FAIL xlxd_xml missing; fi
+
+http_json(){ local path="$1" required="${2:-1}" tmp; tmp=$(mktemp); code=$(curl -kfsS --resolve $DOMAIN:443:127.0.0.1 --connect-timeout 3 --max-time 8 -o "$tmp" -w '%{http_code}' "$BASE_URL$path" 2>/dev/null || echo 000); if [ "$code" = 200 ] && python3 - "$tmp" >/dev/null 2>&1 <<'PY'
+import json,sys
+json.load(open(sys.argv[1],encoding='utf-8'))
+PY
+ then add PASS "api:$path" "HTTP 200 JSON"; else if [ "$required" = 1 ]; then add FAIL "api:$path" "HTTP=$code"; else add WARN "api:$path" "HTTP=$code"; fi; fi; rm -f "$tmp"; }
+http_page(){ local path="$1" tmp; tmp=$(mktemp); code=$(curl -kfsS --resolve $DOMAIN:443:127.0.0.1 --connect-timeout 3 --max-time 8 -o "$tmp" -w '%{http_code}' "$BASE_URL$path" 2>/dev/null || echo 000); bytes=$(wc -c < "$tmp" 2>/dev/null || echo 0); if [ "$code" = 200 ] && [ "$bytes" -ge 500 ]; then add PASS "page:$path" "HTTP 200 bytes=$bytes"; else add FAIL "page:$path" "HTTP=$code bytes=$bytes"; fi; rm -f "$tmp"; }
+
+http_json /api/status.php 1
+http_json /api/live.php 1
+# mtr.php exige key/module/callsign. Sem parametros, HTTP 400 com JSON e contrato valido.
+tmp=$(mktemp)
+code=$(curl -ksS --resolve $DOMAIN:443:127.0.0.1 --connect-timeout 3 --max-time 8 -o "$tmp" -w '%{http_code}' "$BASE_URL/api/mtr.php" 2>/dev/null || true)
+if [ "$code" = 400 ] && python3 - "$tmp" >/dev/null 2>&1 <<'PY'
+import json,sys
+json.load(open(sys.argv[1],encoding='utf-8'))
+PY
+then add PASS "api:/api/mtr.php" "HTTP 400 JSON contract"; else add WARN "api:/api/mtr.php" "HTTP=$code"; fi
+rm -f "$tmp"
+for p in /ao-vivo /modulos /conectados /aprs-dprs /ranking /certificado /refletores; do http_page "$p"; done
+
+avail_kb=$(df -Pk / | awk 'NR==2{print $4}')
+if [ "${avail_kb:-0}" -ge 1048576 ]; then add PASS disk "free_kb=$avail_kb"; else add WARN disk "free_kb=$avail_kb"; fi
+avail_mb=$(awk '/MemAvailable:/{printf "%d",$2/1024}' /proc/meminfo)
+if [ "${avail_mb:-0}" -ge 300 ]; then add PASS memory "available_mb=$avail_mb"; else add WARN memory "available_mb=$avail_mb"; fi
+
+recent="$(journalctl -u xlxd.service --since '-10 minutes' --no-pager 2>/dev/null | grep -Ei 'segmentation fault|core dumped|fatal error|out of memory|oom-kill|assertion.*failed' | tail -n 5 || true)"
+if [ -z "$recent" ]; then add PASS recent_fatal_errors none; else add FAIL recent_fatal_errors "$(tr '\n' ';' <<<"$recent" | cut -c1-500)"; fi
+
+python3 - "$JSON" "$PASS" "$WARN" "$FAIL" "${rows[@]}" <<'PY'
+import json,sys,datetime
+out=sys.argv[1]; p,w,f=map(int,sys.argv[2:5]); rows=[]
+for r in sys.argv[5:]:
+    level,name,detail=r.split('|',2); rows.append({'level':level,'check':name,'detail':detail})
+obj={'generated_at':datetime.datetime.now(datetime.timezone.utc).astimezone().isoformat(),'ok':f==0,'pass':p,'warn':w,'fail':f,'checks':rows}
+open(out+'.tmp','w',encoding='utf-8').write(json.dumps(obj,ensure_ascii=False,separators=(',',':'))+'\n')
+PY
+mv -f "$JSON.tmp" "$JSON"
+chmod 0640 "$JSON"
+ln -sfn "$(basename "$TXT")" "$REPORT_DIR/latest.txt"
+echo
+if [ "$FAIL" -eq 0 ]; then echo "RESULT=PASS pass=$PASS warn=$WARN fail=$FAIL"; exit 0; else echo "RESULT=FAIL pass=$PASS warn=$WARN fail=$FAIL"; exit 1; fi

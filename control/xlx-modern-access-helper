@@ -3,123 +3,32 @@ set -Eeuo pipefail
 export LANG=C
 PATH=/usr/sbin:/usr/bin:/sbin:/bin
 umask 027
-
 STATE="${XLX_CONTROL_STATE:-/var/lib/xlx-modern-control}"
-BACKROOT="${XLX_ACCESS_BACKUPS:-/var/backups/xlx-reflector/control-access}"
+BACKROOT="${XLX_ACCESS_BACKUPS:-/var/backups/xlx-reflector/control-interlink}"
 WL="${XLX_WHITELIST:-/xlxd/xlxd.whitelist}"
 BL="${XLX_BLACKLIST:-/xlxd/xlxd.blacklist}"
 IL="${XLX_INTERLINK:-/xlxd/xlxd.interlink}"
-LOCK="${XLX_ACCESS_LOCK:-/run/lock/xlx-modern-control-access.lock}"
-
+LOCK="${XLX_ACCESS_LOCK:-/run/lock/xlx-modern-control-interlink.lock}"
 fail(){ printf 'ERRO: %s\n' "$*" >&2; exit 64; }
-need(){
-  for f in "$WL" "$BL" "$IL"; do [[ -f "$f" ]] || fail "arquivo ausente: $f"; done
-  command -v flock >/dev/null 2>&1 || fail 'flock ausente'
-  command -v python3 >/dev/null 2>&1 || fail 'python3 ausente'
-}
-lock_access(){
-  install -d -m 0755 "$(dirname "$LOCK")"
-  exec 9>"$LOCK"
-  flock -n 9 || fail 'outra alteração de acesso está em andamento'
-}
-clean_rule(){
-  local x="${1^^}"
-  x="${x//[[:space:]]/}"
-  [[ "$x" == '*' || "$x" =~ ^[A-Z0-9]{1,8}\*?$ ]] || return 1
-  if [[ "$x" == *'*'* && "$x" != '*' ]]; then
-    [[ "$x" =~ ^[A-Z0-9]{1,8}\*$ ]] || return 1
-  fi
-  printf '%s' "$x"
-}
-read_rules(){ sed -E '/^[[:space:]]*($|#)/d;s/[[:space:]]//g' "$1"; }
-json_string(){ python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))'; }
-status(){
-  printf '{"whitelist":['
-  local first=1 x
-  while IFS= read -r x; do
-    [[ -n "$x" ]] || continue
-    (( first )) || printf ','
-    first=0
-    printf '%s' "$(printf '%s' "$x" | json_string)"
-  done < <(read_rules "$WL")
-  printf '],"blacklist":['
-  first=1
-  while IFS= read -r x; do
-    [[ -n "$x" ]] || continue
-    (( first )) || printf ','
-    first=0
-    printf '%s' "$(printf '%s' "$x" | json_string)"
-  done < <(read_rules "$BL")
-  printf '],"interlink":%s}\n' "$(python3 -c 'import json,sys; print(json.dumps([x.split() for x in open(sys.argv[1]) if x.strip() and not x.lstrip().startswith("#")]))' "$IL")"
-}
-backup_files(){
-  local stamp dir
-  stamp="$(date -u +%Y%m%d_%H%M%S)"
-  dir="$BACKROOT/$stamp"
-  install -d -m 0700 "$dir"
-  cp -a "$WL" "$BL" "$IL" "$dir/"
-  sha256sum "$dir/$(basename "$WL")" "$dir/$(basename "$BL")" "$dir/$(basename "$IL")" > "$dir/SHA256_BEFORE.txt"
-  printf '%s' "$dir"
-}
-write_rules(){
-  local file="$1" rule="$2" op="$3" tmp
-  tmp="$(mktemp "${file}.new.XXXXXX")"
-  {
-    grep -E '^[[:space:]]*#|^[[:space:]]*$' "$file" || true
-    if [[ "$op" == add ]]; then
-      read_rules "$file"
-      printf '%s\n' "$rule"
-    else
-      while IFS= read -r x; do [[ "$x" != "$rule" ]] && printf '%s\n' "$x"; done < <(read_rules "$file")
-    fi
-  } | awk '!seen[$0]++' > "$tmp"
-  chown --reference="$file" "$tmp" 2>/dev/null || chown www-data:www-data "$tmp"
-  chmod --reference="$file" "$tmp" 2>/dev/null || chmod 0644 "$tmp"
-  mv -f "$tmp" "$file"
-}
-audit(){
-  install -d -m 0770 -o root -g www-data "$STATE"
-  printf '%s action=%s detail=%s backup=%s\n' "$(date -Is)" "$1" "$2" "$3" >> "$STATE/audit.log"
-  chown root:www-data "$STATE/audit.log" 2>/dev/null || true
-  chmod 0660 "$STATE/audit.log" 2>/dev/null || true
-}
-
+need(){ for f in "$WL" "$BL" "$IL"; do [[ -f "$f" ]] || fail "arquivo ausente: $f"; done; command -v flock >/dev/null||fail 'flock ausente'; command -v python3 >/dev/null||fail 'python3 ausente'; }
+lock_access(){ install -d -m 0755 "$(dirname "$LOCK")"; exec 9>"$LOCK"; flock -n 9 || fail 'outra alteração está em andamento'; }
+json(){ python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))'; }
+read_rules(){ local line; while IFS= read -r line||[[ -n "$line" ]]; do line="${line%$'\r'}"; [[ "$line" =~ ^[[:space:]]*($|#) ]]&&continue; line="${line//[[:space:]]/}"; [[ -n "$line" ]]&&printf '%s\n' "$line"; done <"$1"; }
+read_interlinks(){ local line call host modules extra; while IFS= read -r line||[[ -n "$line" ]]; do line="${line%$'\r'}"; [[ "$line" =~ ^[[:space:]]*($|#) ]]&&continue; read -r call host modules extra<<<"$line"; [[ -n "$call"&&-n "$host"&&-n "$modules"&&-z "$extra" ]]||fail 'linha inválida no arquivo Interlink'; printf '%s\t%s\t%s\n' "$call" "$host" "$modules"; done <"$IL"; }
+clean_rule(){ local v="${1^^}";v="${v//[[:space:]]/}";[[ "$v" == '*'||"$v" =~ ^[A-Z0-9]{1,8}\*?$ ]]||return 1;printf '%s' "$v"; }
+clean_call(){ local v="${1^^}";[[ "$v" =~ ^XLX[A-Z0-9]{3}$|^[A-Z0-9]{1,8}$ ]]||return 1;printf '%s' "$v"; }
+clean_host(){ local v="$1";[[ "$v" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$|^[A-Za-z0-9][A-Za-z0-9.-]{0,252}$|^[0-9A-Fa-f:]+$ ]]||return 1;printf '%s' "$v"; }
+clean_modules(){ local v="${1^^}";[[ "$v" =~ ^\*$|^[A-Z]{1,26}$ ]]||return 1;printf '%s' "$v"; }
+backup(){ local d="$BACKROOT/$(date -u +%Y%m%d_%H%M%S)";install -d -m 0700 "$d";cp -a "$WL" "$BL" "$IL" "$d/";printf '%s' "$d"; }
+write_rules(){ local file="$1" op="$2" target="$3" tmp;tmp="$(mktemp "${file}.new.XXXXXX")";grep -E '^[[:space:]]*#' "$file">"$tmp"||true;while IFS= read -r r||[[ -n "$r" ]];do [[ "$r" == "$target" ]]&&continue;printf '%s\n' "$r">>"$tmp";done < <(read_rules "$file");[[ "$op" == add ]]&&printf '%s\n' "$target">>"$tmp";awk '!seen[$0]++' "$tmp">"${tmp}.x";mv "${tmp}.x" "$tmp";chown --reference="$file" "$tmp" 2>/dev/null||chown www-data:www-data "$tmp";chmod --reference="$file" "$tmp" 2>/dev/null||chmod 0644 "$tmp";mv -f "$tmp" "$file"; }
+write_interlinks(){ local op="$1" target="$2" address="${3:-}" modules="${4:-}" tmp call host mods found=0;tmp="$(mktemp "${IL}.new.XXXXXX")";grep -E '^[[:space:]]*#' "$IL">"$tmp"||true;while IFS=$'\t' read -r call host mods;do if [[ "$call" == "$target" ]];then found=1;continue;fi;printf '%s %s %s\n' "$call" "$host" "$mods">>"$tmp";done < <(read_interlinks);if [[ "$op" == add ]];then printf '%s %s %s\n' "$target" "$address" "$modules">>"$tmp";elif [[ "$found" -eq 0 ]];then rm -f "$tmp";fail 'Interlink não encontrado';fi;awk 'NF==3&&!seen[$0]++{print}' "$tmp">"${tmp}.x";mv "${tmp}.x" "$tmp";chown --reference="$IL" "$tmp" 2>/dev/null||chown www-data:www-data "$tmp";chmod --reference="$IL" "$tmp" 2>/dev/null||chmod 0644 "$tmp";mv -f "$tmp" "$IL"; }
+status(){ printf '{"whitelist":[';local first=1 x c h m;while IFS= read -r x;do [[ -n "$x" ]]||continue;((first))||printf ',';first=0;printf '%s' "$(printf '%s' "$x"|json)";done < <(read_rules "$WL");printf '],"blacklist":[';first=1;while IFS= read -r x;do [[ -n "$x" ]]||continue;((first))||printf ',';first=0;printf '%s' "$(printf '%s' "$x"|json)";done < <(read_rules "$BL");printf '],"interlinks":[';first=1;while IFS=$'\t' read -r c h m;do ((first))||printf ',';first=0;printf '{"callsign":%s,"address":%s,"modules":%s}' "$(printf '%s' "$c"|json)" "$(printf '%s' "$h"|json)" "$(printf '%s' "$m"|json)";done < <(read_interlinks);printf ']}\n'; }
+audit(){ install -d -m 0770 -o root -g www-data "$STATE";printf '%s action=%s detail=%s backup=%s\n' "$(date -Is)" "$1" "$2" "$3">>"$STATE/audit.log";chown root:www-data "$STATE/audit.log" 2>/dev/null||true;chmod 0660 "$STATE/audit.log" 2>/dev/null||true; }
 need
 case "${1:-}" in
-  status)
-    [[ "$#" -eq 1 ]] || fail 'uso inválido'
-    status
-    ;;
-  add-white|delete-white|add-black|delete-black)
-    [[ "$#" -eq 2 ]] || fail 'uso inválido'
-    lock_access
-    rule="$(clean_rule "$2")" || fail 'indicativo/prefixo inválido'
-    backup="$(backup_files)"
-    case "$1" in
-      add-white) write_rules "$WL" "$rule" add ;;
-      delete-white) write_rules "$WL" "$rule" delete ;;
-      add-black) write_rules "$BL" "$rule" add ;;
-      delete-black) write_rules "$BL" "$rule" delete ;;
-    esac
-    audit "$1" "$rule" "$backup"
-    status
-    ;;
-  save-interlink)
-    [[ "$#" -eq 3 ]] || fail 'uso inválido'
-    lock_access
-    address="$2"; modules="${3^^}"
-    [[ -z "$address" || "$address" =~ ^[A-Za-z0-9._:-]{1,253}$ ]] || fail 'endereço Interlink inválido'
-    [[ "$modules" =~ ^([A-E*]+)$ ]] || fail 'módulos Interlink inválidos'
-    backup="$(backup_files)"
-    tmp="$(mktemp "${IL}.new.XXXXXX")"
-    printf '%s %s\n' "$address" "$modules" > "$tmp"
-    chown --reference="$IL" "$tmp" 2>/dev/null || chown www-data:www-data "$tmp"
-    chmod --reference="$IL" "$tmp" 2>/dev/null || chmod 0644 "$tmp"
-    mv -f "$tmp" "$IL"
-    audit 'interlink-save' "$address" "$backup"
-    status
-    ;;
-  *)
-    fail 'ação não permitida'
-    ;;
+ status) [[ $# -eq 1 ]]||fail 'uso inválido';status;;
+ add-white|delete-white|add-black|delete-black) [[ $# -eq 2 ]]||fail 'uso inválido';lock_access;rule="$(clean_rule "$2")"||fail 'indicativo/prefixo inválido';saved="$(backup)";case "$1" in add-white)write_rules "$WL" add "$rule";;delete-white)write_rules "$WL" delete "$rule";;add-black)write_rules "$BL" add "$rule";;delete-black)write_rules "$BL" delete "$rule";;esac;audit "$1" "$rule" "$saved";status;;
+ interlink-add) [[ $# -eq 4 ]]||fail 'uso inválido';lock_access;call="$(clean_call "$2")"||fail 'indicativo XLX inválido';host="$(clean_host "$3")"||fail 'IP ou domínio inválido';mods="$(clean_modules "$4")"||fail 'módulos inválidos';saved="$(backup)";write_interlinks add "$call" "$host" "$mods";audit interlink-add "$call $host $mods" "$saved";status;;
+ interlink-delete) [[ $# -eq 2 ]]||fail 'uso inválido';lock_access;call="$(clean_call "$2")"||fail 'indicativo XLX inválido';saved="$(backup)";write_interlinks delete "$call";audit interlink-delete "$call" "$saved";status;;
+ *) fail 'ação não permitida';;
 esac

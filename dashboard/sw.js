@@ -9,7 +9,7 @@ self.addEventListener('activate', event => {
         caches.keys()
             .then(keys => Promise.all(
                 keys
-                    .filter(key => (key.startsWith('xlx-modern-pwa-') || key.startsWith('xlx026-pwa-')) && key !== CACHE_VERSION)
+                    .filter(key => (key.startsWith('xlx-modern-pwa-') || key.startsWith('xlxmodern-pwa-')) && key !== CACHE_VERSION)
                     .map(key => caches.delete(key))
             ))
             .then(() => self.clients.claim())

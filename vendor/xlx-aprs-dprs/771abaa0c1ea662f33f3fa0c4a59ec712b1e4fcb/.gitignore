@@ -1,0 +1,39 @@
+# Runtime / secrets
+config.json
+*.sqlite
+*.sqlite3
+*.db
+*.sqlite-wal
+*.sqlite-shm
+*.db-wal
+*.db-shm
+operator-rate.json
+public.json
+*.sock
+
+# Credentials / environment
+.env
+.env.*
+*.key
+*.pem
+secrets/
+credentials/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Logs / backups / archives
+*.log
+*.bak
+*.old
+*.orig
+*.save
+*.tar
+*.tar.gz
+*.zip
+backups/
+
+# Editors / OS
+.DS_Store
+*.swp

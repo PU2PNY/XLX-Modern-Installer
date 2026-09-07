@@ -63,7 +63,7 @@ xlx-aprs-dprs.service
 
 ## Migração de instalações legadas
 
-Uma instalação que ainda utiliza `xlx026-digital-lab.service` não é convertida automaticamente. O instalador independente aborta se esse serviço legado estiver ativo para impedir dois gateways concorrentes no mesmo módulo.
+Uma instalação que ainda utiliza um serviço legado de Digital Lab não é convertida automaticamente. O instalador independente aborta se esse serviço legado estiver ativo para impedir dois gateways concorrentes no mesmo módulo.
 
 A migração deve ser uma operação separada, com backup dos bancos/configuração, mapeamento de contas, janela controlada e rollback.
 

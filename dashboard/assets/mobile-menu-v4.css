@@ -1,5 +1,5 @@
 /* ==========================================================
-   XLX026_MOBILE_MENU_V4
+   XLXMODERN_MOBILE_MENU_V4
    ARQUIVO EXCLUSIVO PARA DISPOSITIVOS MOVEIS
    ========================================================== */
 
@@ -129,8 +129,8 @@
 
     body .universal-header .universal-nav,
     body .universal-header .universal-nav.open,
-    body .universal-header .universal-nav.xlx026-mobile-open,
-    body .universal-header .universal-nav.xlx026-mobile-open-v3{
+    body .universal-header .universal-nav.xlxmodern-mobile-open,
+    body .universal-header .universal-nav.xlxmodern-mobile-open-v3{
 
         display:none !important;
 
@@ -168,7 +168,7 @@
      */
 
     body .universal-header
-    .universal-nav.xlx026-v4-open{
+    .universal-nav.xlxmodern-v4-open{
 
         display:flex !important;
     }
@@ -179,7 +179,7 @@
        ====================================================== */
 
     body .universal-header
-    .universal-nav.xlx026-v4-open a{
+    .universal-nav.xlxmodern-v4-open a{
 
         display:flex !important;
 
@@ -307,15 +307,15 @@
 }
 
 
-/* FIM XLX026_MOBILE_MENU_V4 */
+/* FIM XLXMODERN_MOBILE_MENU_V4 */
 
 
 /* ==========================================================
-   XLX026_MENU_POSITION_V41
+   XLXMODERN_MENU_POSITION_V41
 
    SOMENTE POSICAO DO BOTAO MENU NO MOBILE
 
-   [ LOGO ] [ XLX026 Brasil ] [ MENU ]
+   [ LOGO ] [ XLXMODERN Brasil ] [ MENU ]
 
    Nenhum outro componente e alterado.
    ========================================================== */
@@ -333,7 +333,7 @@
 
         /*
          * Alinha no lado direito da mesma linha
-         * onde aparece XLX026 Brasil.
+         * onde aparece XLXMODERN Brasil.
          */
         justify-self:end !important;
         align-self:center !important;
@@ -374,5 +374,5 @@
 }
 
 
-/* FIM XLX026_MENU_POSITION_V41 */
+/* FIM XLXMODERN_MENU_POSITION_V41 */
 
