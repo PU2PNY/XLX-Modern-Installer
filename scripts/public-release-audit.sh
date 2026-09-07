@@ -62,13 +62,22 @@ fi
 rm -f /tmp/xlx-public-audit-creds.$$ || true
 
 printf '\n%s\n' '--- High-risk filenames anywhere in Git history ---'
-if git rev-list --objects --all | grep -Ei '\.(key|pem|p12|pfx|jks|keystore|sqlite|sqlite3|db|bak|dump|sql|tar|tgz|tar\.gz|zip|7z|rar|env)([[:space:]]|$)' >/tmp/xlx-public-audit-history-files.$$; then
-    cat /tmp/xlx-public-audit-history-files.$$
-    warn 'High-risk filename exists in Git history. Content must be reviewed before publication.'
+history_allowlist='^(0e242fe8622d14ceeae3a861a6d5d98c4cc971ff|5377b5b590d3945c9d9a304758a1297bce393dae)[[:space:]]'
+# Two historical ZIP blobs were manually reviewed on 2026-09-07: one contains only
+# app.js and the other only common.php, with no key/env/credential files. Keep an
+# exact object-hash allowlist so any different archive still triggers review.
+if git rev-list --objects --all | grep -Ei '\.(key|pem|p12|pfx|jks|keystore|sqlite|sqlite3|db|bak|dump|sql|tar|tgz|tar\.gz|zip|7z|rar|env)([[:space:]]|$)' >/tmp/xlx-public-audit-history-files.$$.all; then
+    grep -Ev "$history_allowlist" /tmp/xlx-public-audit-history-files.$$.all >/tmp/xlx-public-audit-history-files.$$ || true
+    if [ -s /tmp/xlx-public-audit-history-files.$$ ]; then
+        cat /tmp/xlx-public-audit-history-files.$$
+        warn 'Unreviewed high-risk filename exists in Git history. Content must be reviewed before publication.'
+    else
+        ok 'Historical archive filenames are limited to exact, manually reviewed blobs.'
+    fi
 else
     ok 'No obvious high-risk filenames found in Git history.'
 fi
-rm -f /tmp/xlx-public-audit-history-files.$$ || true
+rm -f /tmp/xlx-public-audit-history-files.$$ /tmp/xlx-public-audit-history-files.$$.all || true
 
 printf '\n%s\n' '--- Secret signatures anywhere in Git history ---'
 # git log -G examines historical patches as well as the current tree. Keep the

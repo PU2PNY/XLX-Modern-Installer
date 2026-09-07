@@ -1,6 +1,14 @@
 # Changelog
 
 
+## v1.2.2 — 2026-09-07
+
+### Fixed
+- Fixed fresh-install rollback after a successful Admin 8/8 installation.
+- Private Admin route validation now checks stable functional markers instead of translated UI labels.
+- Admin wrapper now reports the exact failed invariant instead of a generic rollback message.
+- Public release audit now recognizes only two exact historical ZIP blobs that were manually reviewed and contain no credentials or secret files; any different archive still triggers review.
+
 ## 1.2.1 — 2026-09-07
 
 - Fixed fresh-install Admin rollback at step 6/8 caused by a crawler-protection validation mismatch.

@@ -261,11 +261,20 @@ sudo -u "$WEBUSER" sudo -n "$HELPER" radioid-status > "$WORK/radioid.json"
 sudo -u "$WEBUSER" sudo -n "$HELPER" access-status > "$WORK/access.json"
 python3 -m json.tool "$WORK/radioid.json" >/dev/null
 python3 -m json.tool "$WORK/access.json" >/dev/null
-grep -Fq 'X-Robots-Tag: noindex, nofollow, noarchive, nosnippet' "$ADMIN_DIR/index.php"
-grep -Fq 'googlebot|bingbot' "$ADMIN_DIR/index.php"
-grep -Fq 'XLXD Access Control' "$ADMIN_DIR/index.php"
-grep -Fq 'radioid_save' "$ADMIN_DIR/index.php"
-grep -Fq 'Quick links' "$ADMIN_DIR/index.php"
+validate_admin_marker(){
+  local label="$1" marker="$2"
+  if grep -Fq "$marker" "$ADMIN_DIR/index.php"; then
+    ok "$label"
+  else
+    fail "$(say "Falha na validação do Admin: $label" "Admin validation failed: $label")"
+  fi
+}
+validate_admin_marker "X-Robots-Tag noindex" 'X-Robots-Tag: noindex, nofollow, noarchive, nosnippet'
+validate_admin_marker "Known crawler deny" 'googlebot|bingbot'
+validate_admin_marker "Access Control section" 'id="access"'
+validate_admin_marker "RadioID section" 'id="radioid"'
+validate_admin_marker "Interlink action" 'access-interlink-add'
+validate_admin_marker "RadioID save action" 'radioid_save'
 
 # Quando o HTTPS já está disponível, confirme a rota nova antes de declarar
 # sucesso. Isso impede concluir uma atualização que criou os arquivos, mas
