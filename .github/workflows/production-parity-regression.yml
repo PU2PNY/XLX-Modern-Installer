@@ -30,4 +30,4 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y php-cli python3 sudo
       - name: Run production parity regression
-        run: bash tests/regression-production-parity.sh
+        run: sudo bash tests/regression-production-parity.sh
