@@ -65,22 +65,23 @@ export XLX_CONTROL_STATE="$TMP/state"
 export XLX_ACCESS_LOCK="$TMP/access.lock"
 
 H="$ROOT/control/xlx-modern-access-helper-v2"
-"$H" add-white 'PU2*' >/dev/null
+runh(){ bash "$H" "$@"; }
+runh add-white 'PU2*' >/dev/null
 grep -Fxq 'PU2*' "$TMP/whitelist" || fail 'whitelist format failed'
-"$H" add-black 'PY4ABC' >/dev/null
+runh add-black 'PY4ABC' >/dev/null
 grep -Fxq 'PY4ABC' "$TMP/blacklist" || fail 'blacklist format failed'
-"$H" save-interlink XLX123 reflector.example BCD >/dev/null
+runh save-interlink XLX123 reflector.example BCD >/dev/null
 grep -Fxq 'XLX123 reflector.example BCD' "$TMP/interlink" || fail 'first Interlink line failed'
-"$H" save-interlink XLX456 203.0.113.5 C >/dev/null
+runh save-interlink XLX456 203.0.113.5 C >/dev/null
 grep -Fxq 'XLX123 reflector.example BCD' "$TMP/interlink" || fail 'existing Interlink line was lost'
 grep -Fxq 'XLX456 203.0.113.5 C' "$TMP/interlink" || fail 'second Interlink line failed'
-"$H" save-interlink XLX123 new.example CD >/dev/null
+runh save-interlink XLX123 new.example CD >/dev/null
 [[ "$(grep -c '^XLX123 ' "$TMP/interlink")" -eq 1 ]] || fail 'Interlink update duplicated reflector'
 grep -Fxq 'XLX123 new.example CD' "$TMP/interlink" || fail 'Interlink update failed'
-"$H" delete-interlink XLX123 >/dev/null
+runh delete-interlink XLX123 >/dev/null
 ! grep -q '^XLX123 ' "$TMP/interlink" || fail 'Interlink delete failed'
 
-json="$($H status)"
+json="$(runh status)"
 python3 - "$json" <<'PY'
 import json,sys
 j=json.loads(sys.argv[1])
