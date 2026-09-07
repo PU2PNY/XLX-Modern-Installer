@@ -1,5 +1,13 @@
 # Changelog
 
+
+## 1.2.1 — 2026-09-07
+
+- Fixed fresh-install Admin rollback at step 6/8 caused by a crawler-protection validation mismatch.
+- Added real known-crawler denial to the private Admin while keeping X-Robots-Tag and meta noindex protections.
+- Step 6 now reports each credential/security validation separately instead of ending with an opaque rc=1.
+- Added regression coverage for PT-BR and English Admin crawler/security markers.
+
 ## v1.2.0 — 2026-09-07 — Production parity release
 
 ### Dashboard

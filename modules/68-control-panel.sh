@@ -303,14 +303,16 @@ python3 -m json.tool "$TMP/access.json" >/dev/null
 ok 'www-data limitado à allowlist administrativa validada'
 
 section '6/8 — VALIDAR CREDENCIAL E SEGURANÇA'
-php -r '$c=require $argv[1]; exit(($c["username"]===$argv[2] && password_verify($argv[3],$c["password_hash"]))?0:1);' "$CFG_FILE" "$USERNAME" "$PASSWORD"
-if grep -Fq "$PASSWORD" "$CFG_FILE"; then fail 'senha em texto puro detectada após instalação'; exit 60; fi
-grep -Fq 'X-Robots-Tag: noindex, nofollow, noarchive, nosnippet' "$CONTROL_DIR/index.php"
-grep -Fq 'googlebot|bingbot' "$CONTROL_DIR/index.php"
-grep -Fq 'session.use_strict_mode' "$CONTROL_DIR/index.php"
-grep -Fq 'fail_login' "$CONTROL_DIR/index.php"
-grep -Fq 'csrf_ok' "$CONTROL_DIR/index.php"
-ok 'credencial, noindex, crawler deny, rate-limit, sessão e CSRF validados'
+step6_check(){ local label="$1"; shift; if "$@"; then ok "$label"; else fail "$label"; return 1; fi; }
+step6_check "$(say 'credencial Admin validada' 'Admin credential validated')" php -r '$c=require $argv[1]; exit(($c["username"]===$argv[2] && password_verify($argv[3],$c["password_hash"]))?0:1);' "$CFG_FILE" "$USERNAME" "$PASSWORD"
+if grep -Fq "$PASSWORD" "$CFG_FILE"; then fail "$(say 'senha em texto puro detectada após instalação' 'Plain-text password detected after installation')"; exit 60; fi
+ok "$(say 'senha armazenada somente como hash' 'Password stored as hash only')"
+step6_check 'X-Robots-Tag noindex' grep -Fq 'X-Robots-Tag: noindex, nofollow, noarchive, nosnippet' "$CONTROL_DIR/index.php"
+step6_check "$(say 'bloqueio de crawlers conhecidos' 'Known crawler deny')" grep -Fq 'googlebot|bingbot' "$CONTROL_DIR/index.php"
+step6_check "$(say 'sessão estrita' 'Strict session mode')" grep -Fq 'session.use_strict_mode' "$CONTROL_DIR/index.php"
+step6_check 'rate-limit' grep -Fq 'fail_login' "$CONTROL_DIR/index.php"
+step6_check 'CSRF' grep -Fq 'csrf_ok' "$CONTROL_DIR/index.php"
+ok "$(say 'credencial e proteções do Admin validadas' 'Admin credential and security protections validated')"
 
 section '7/8 — TESTE WEB LOCAL'
 WEB_OK=0

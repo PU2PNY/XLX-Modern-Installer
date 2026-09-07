@@ -6,6 +6,11 @@ const STATE='/var/lib/xlx-modern-control';
 const HELPER='/usr/local/sbin/xlx-modern-control-helper';
 
 header('X-Robots-Tag: noindex, nofollow, noarchive, nosnippet');
+$ua=strtolower((string)($_SERVER['HTTP_USER_AGENT']??''));
+if($ua!=='' && preg_match('/googlebot|bingbot|duckduckbot|baiduspider|yandex(bot)?|facebookexternalhit|twitterbot|linkedinbot|applebot/i',$ua)){
+ http_response_code(404);
+ exit;
+}
 header('X-Frame-Options: DENY');
 header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: no-referrer');

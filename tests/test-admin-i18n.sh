@@ -27,3 +27,12 @@ for bad in '/etc/legacy-control' '/var/lib/legacy-control' '/usr/local/sbin/lega
   ! grep -Fq "$bad" "$tmp/pt-BR.php" "$tmp/en.php" || fail "production marker leaked into Admin: $bad"
 done
 ok 'Admin 1.5.1 generator produces validated Portuguese and English interfaces'
+
+# Admin crawler protection must survive both language builds.
+for locale in pt-BR en; do
+  tmp="$(mktemp /tmp/xlx-admin-crawler.XXXXXX.php)"
+  cp control/current-production-admin.php "$tmp"
+  python3 control/build-admin.py "$tmp" "$locale"
+  grep -Fq 'googlebot|bingbot' "$tmp"
+  rm -f "$tmp"
+done
