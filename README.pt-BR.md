@@ -103,11 +103,14 @@ O objetivo é permitir que uma VPS nova seja configurada com a identidade do ref
 
 Use uma VPS/servidor limpo com **Debian 12 x86_64**.
 
-### 1. Instale Git
+### 1. Prepare uma VPS Debian limpa
+
+> Copie este bloco completo. Em instalações mínimas, o Debian pode não trazer `git` instalado.
+
 
 ```bash
 sudo apt update
-sudo apt install -y git
+sudo apt install -y git ca-certificates
 ```
 
 ### 2. Clone o projeto

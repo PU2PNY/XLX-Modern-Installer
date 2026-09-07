@@ -85,11 +85,11 @@ The installer is generic. A new deployment uses the identity supplied by the ins
 
 # Quick installation
 
-Use a clean **Debian 12 x86_64** VPS/server.
+Use a clean **Debian 12 x86_64** VPS/server. Copy the complete block below; minimal Debian images may not include `git`.
 
 ```bash
 sudo apt update
-sudo apt install -y git
+sudo apt install -y git ca-certificates
 cd /usr/src
 sudo git clone https://github.com/PU2PNY/XLX-Modern-Installer.git
 cd XLX-Modern-Installer
