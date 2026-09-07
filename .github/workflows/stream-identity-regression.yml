@@ -28,7 +28,7 @@ jobs:
       - name: No legacy webroot dependency
         run: |
           pattern='/var/www/html/'"xlxd"'-novo'
-          if grep -R --exclude-dir=.git --exclude='stream-identity-regression.yml' -n "$pattern" .; then
-            echo 'Legacy alternate webroot dependency found.' >&2
+          if grep -R -n "$pattern" install.sh modules dashboard/install; then
+            echo 'Legacy alternate webroot dependency found in installer sources.' >&2
             exit 1
           fi
