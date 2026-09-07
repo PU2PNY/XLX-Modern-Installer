@@ -1,0 +1,33 @@
+name: Stream identity regression
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: PHP syntax
+        run: |
+          php -l dashboard/api/identity-safe.php
+          php -l dashboard/api/status.php
+          php -l dashboard/api/live.php
+          php -l tests/regression-stream-identity.php
+      - name: JavaScript syntax
+        run: node --check dashboard/assets/ao-vivo-authorized-sync-v1.js
+      - name: Shell syntax
+        run: bash -n modules/60-dashboard-modern.sh
+      - name: Regression suite
+        run: php tests/regression-stream-identity.php
+      - name: No legacy webroot dependency
+        run: |
+          if grep -R --exclude-dir=.git -n '/var/www/html/xlxd-novo' .; then
+            echo 'Legacy xlxd-novo dependency found.' >&2
+            exit 1
+          fi
