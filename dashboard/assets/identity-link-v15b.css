@@ -1,0 +1,41 @@
+/* XLX Modern — validated 24h table order and Link state. */
+body[data-page='ao-vivo'] .state-pill.link{
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ gap:4px;
+ border:1px solid rgba(255,202,40,.78);
+ background:rgba(255,202,40,.08);
+ color:#ffd65a;
+ box-shadow:0 0 9px rgba(255,202,40,.12);
+ white-space:nowrap;
+}
+body[data-page='ao-vivo'] .state-pill.link i{
+ display:inline-block;
+ width:5px;
+ height:5px;
+ border-radius:50%;
+ background:#ffd24a;
+ box-shadow:0 0 7px rgba(255,210,74,.65);
+}
+body[data-page='ao-vivo'] table.home-history{table-layout:fixed;width:100%}
+body[data-page='ao-vivo'] table.home-history th:nth-child(1),body[data-page='ao-vivo'] table.home-history td:nth-child(1){width:6%}
+body[data-page='ao-vivo'] table.home-history th:nth-child(2),body[data-page='ao-vivo'] table.home-history td:nth-child(2){width:5%}
+body[data-page='ao-vivo'] table.home-history th:nth-child(3),body[data-page='ao-vivo'] table.home-history td:nth-child(3){width:8%}
+body[data-page='ao-vivo'] table.home-history th:nth-child(4),body[data-page='ao-vivo'] table.home-history td:nth-child(4){width:10%}
+body[data-page='ao-vivo'] table.home-history th:nth-child(5),body[data-page='ao-vivo'] table.home-history td:nth-child(5){width:14%}
+body[data-page='ao-vivo'] table.home-history th:nth-child(6),body[data-page='ao-vivo'] table.home-history td:nth-child(6){width:14%}
+body[data-page='ao-vivo'] table.home-history th:nth-child(7),body[data-page='ao-vivo'] table.home-history td:nth-child(7){width:15%}
+body[data-page='ao-vivo'] table.home-history th:nth-child(8),body[data-page='ao-vivo'] table.home-history td:nth-child(8){width:12%}
+body[data-page='ao-vivo'] table.home-history th:nth-child(9),body[data-page='ao-vivo'] table.home-history td:nth-child(9){width:6%}
+body[data-page='ao-vivo'] table.home-history th:nth-child(10),body[data-page='ao-vivo'] table.home-history td:nth-child(10){width:10%}
+@media(max-width:820px){
+ body[data-page='ao-vivo'] table.home-history{table-layout:auto}
+ body[data-page='ao-vivo'] table.home-history td.history-number-cell{display:flex;align-items:center;justify-content:space-between}
+ body[data-page='ao-vivo'] table.home-history td.history-number-cell::before{content:'Nº'}
+ body[data-page='ao-vivo'] table.home-history td.history-country-cell::before{content:'País'}
+ body[data-page='ao-vivo'] table.home-history td.history-status-cell::before{content:'Status'}
+ body[data-page='ao-vivo'] table.home-history td.history-callsign-cell::before{content:'Indicativo'}
+ body[data-page='ao-vivo'] table.home-history td.history-hotspot-cell::before{content:'Hotspot / Repetidora'}
+ body[data-page='ao-vivo'] table.home-history td.history-duration-cell::before{content:'Tempo de transmissão'}
+}
