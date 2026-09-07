@@ -213,16 +213,14 @@ jobs:
           php -l extras/certificados/api/certificado.php >/dev/null
           grep -F 'XLX_PROJECT_LINK_BUNDLE_V1' dashboard/install/post-install.sh
 
-      - name: Validate optional APRS/D-PRS pin and source
+      - name: Validate bundled APRS/D-PRS source
         shell: bash
         run: |
           set -Eeuo pipefail
-          grep -F -- '--with-aprs-dprs' install.sh
-          grep -F -- '--without-aprs-dprs' install.sh
+          grep -F 'APRS_DPRS_MODE="yes"' install.sh
           grep -F 'modules/67-aprs-dprs.sh' install.sh
-          grep -F '56a44f23c4a9d182dbfc685df7622a471b3bc636' modules/67-aprs-dprs.sh
-          grep -F '9759940f32850a779cfd0ef4405898f81f8707173d4f60849fc38c1bab381a7a' modules/67-aprs-dprs.sh
-          grep -F '2a8e46fc61e6c8b52e121e80b209c12faef0ee42a368e4bb525a9056d7f19240' modules/67-aprs-dprs.sh
+          grep -F 'vendor/xlx-aprs-dprs/' modules/67-aprs-dprs.sh
+          grep -F 'SOURCE-MANIFEST.sha256' modules/67-aprs-dprs.sh
           sudo bash modules/67-aprs-dprs.sh --check
 
       - name: Test safe dashboard updater dry-run
