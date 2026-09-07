@@ -1,0 +1,190 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+export LANG=C
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+umask 027
+
+STATE="${XLX_CONTROL_STATE:-/var/lib/xlx-modern-control}"
+BACKROOT="${XLX_ACCESS_BACKUPS:-/var/backups/xlx-reflector/control-access}"
+WL="${XLX_WHITELIST:-/xlxd/xlxd.whitelist}"
+BL="${XLX_BLACKLIST:-/xlxd/xlxd.blacklist}"
+IL="${XLX_INTERLINK:-/xlxd/xlxd.interlink}"
+LOCK="${XLX_ACCESS_LOCK:-/run/lock/xlx-modern-control-access.lock}"
+
+fail(){ printf 'ERROR: %s\n' "$*" >&2; exit 64; }
+need(){
+  for f in "$WL" "$BL" "$IL"; do [[ -f "$f" ]] || fail "missing file: $f"; done
+  command -v flock >/dev/null 2>&1 || fail 'flock missing'
+  command -v python3 >/dev/null 2>&1 || fail 'python3 missing'
+}
+lock_access(){
+  install -d -m 0755 "$(dirname "$LOCK")"
+  exec 9>"$LOCK"
+  flock -n 9 || fail 'another access change is in progress'
+}
+clean_rule(){
+  local x="${1^^}"
+  x="${x//[[:space:]]/}"
+  [[ "$x" == '*' || "$x" =~ ^[A-Z0-9]{1,8}\*?$ ]] || return 1
+  if [[ "$x" == *'*'* && "$x" != '*' ]]; then [[ "$x" =~ ^[A-Z0-9]{1,8}\*$ ]] || return 1; fi
+  printf '%s' "$x"
+}
+clean_reflector(){
+  local x="${1^^}"
+  x="${x//[[:space:]]/}"
+  [[ "$x" =~ ^XLX[A-Z0-9]{3}$ ]] || return 1
+  printf '%s' "$x"
+}
+clean_modules(){
+  local x="${1^^}"
+  x="${x//[[:space:]]/}"
+  [[ "$x" =~ ^[A-Z]{1,26}$ ]] || return 1
+  [[ "$x" != *"*"* ]] || return 1
+  python3 - "$x" <<'PY'
+import sys
+s=sys.argv[1]
+if len(set(s)) != len(s): raise SystemExit(1)
+if any(not ('A' <= c <= 'Z') for c in s): raise SystemExit(1)
+print(''.join(sorted(s)), end='')
+PY
+}
+clean_address(){
+  local x="$1"
+  x="${x//[[:space:]]/}"
+  [[ -n "$x" && ${#x} -le 253 && "$x" =~ ^[A-Za-z0-9._:-]+$ ]] || return 1
+  printf '%s' "$x"
+}
+read_rules(){ sed -E '/^[[:space:]]*($|#)/d;s/[[:space:]]//g' "$1"; }
+json_string(){ python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))'; }
+status(){
+  python3 - "$WL" "$BL" "$IL" <<'PY'
+import json,sys
+wl,bl,il=sys.argv[1:]
+def rules(path):
+    out=[]
+    with open(path,encoding='utf-8',errors='replace') as f:
+        for raw in f:
+            s=raw.strip().replace(' ','').replace('\t','')
+            if s and not s.startswith('#') and s not in out: out.append(s)
+    return out
+links=[]
+with open(il,encoding='utf-8',errors='replace') as f:
+    for raw in f:
+        s=raw.strip()
+        if not s or s.startswith('#'): continue
+        p=s.split()
+        if len(p) >= 3:
+            links.append({'reflector':p[0].upper(),'address':p[1],'modules':p[2].upper()})
+print(json.dumps({'whitelist':rules(wl),'blacklist':rules(bl),'interlinks':links},ensure_ascii=False,separators=(',',':')))
+PY
+}
+backup_files(){
+  local stamp dir
+  stamp="$(date -u +%Y%m%d_%H%M%S)"
+  dir="$BACKROOT/$stamp"
+  install -d -m 0700 "$dir"
+  cp -a "$WL" "$BL" "$IL" "$dir/"
+  sha256sum "$dir/$(basename "$WL")" "$dir/$(basename "$BL")" "$dir/$(basename "$IL")" > "$dir/SHA256_BEFORE.txt"
+  printf '%s' "$dir"
+}
+write_rules(){
+  local file="$1" rule="$2" op="$3" tmp
+  tmp="$(mktemp "${file}.new.XXXXXX")"
+  {
+    grep -E '^[[:space:]]*#|^[[:space:]]*$' "$file" || true
+    if [[ "$op" == add ]]; then
+      read_rules "$file"
+      printf '%s\n' "$rule"
+    else
+      while IFS= read -r x; do [[ "$x" != "$rule" ]] && printf '%s\n' "$x"; done < <(read_rules "$file")
+    fi
+  } | awk '!seen[$0]++' > "$tmp"
+  chown --reference="$file" "$tmp" 2>/dev/null || chown root:root "$tmp"
+  chmod --reference="$file" "$tmp" 2>/dev/null || chmod 0644 "$tmp"
+  mv -f "$tmp" "$file"
+}
+write_interlink(){
+  local reflector="$1" address="$2" modules="$3" op="$4" tmp
+  tmp="$(mktemp "${IL}.new.XXXXXX")"
+  python3 - "$IL" "$tmp" "$reflector" "$address" "$modules" "$op" <<'PY'
+import sys
+src,dst,ref,address,modules,op=sys.argv[1:]
+comments=[]; rows=[]; found=False
+with open(src,encoding='utf-8',errors='replace') as f:
+    for raw in f:
+        line=raw.rstrip('\n')
+        s=line.strip()
+        if not s or s.startswith('#'):
+            comments.append(line); continue
+        p=s.split()
+        if len(p) < 3: continue
+        key=p[0].upper()
+        if key == ref:
+            found=True
+            if op == 'save': rows.append(f'{ref} {address} {modules}')
+        else:
+            rows.append(f'{p[0].upper()} {p[1]} {p[2].upper()}')
+if op == 'save' and not found: rows.append(f'{ref} {address} {modules}')
+seen=set(); clean=[]
+for row in rows:
+    key=row.split()[0]
+    if key in seen: continue
+    seen.add(key); clean.append(row)
+with open(dst,'w',encoding='utf-8') as f:
+    for c in comments:
+        if c: f.write(c+'\n')
+    for row in clean: f.write(row+'\n')
+PY
+  chown --reference="$IL" "$tmp" 2>/dev/null || chown root:root "$tmp"
+  chmod --reference="$IL" "$tmp" 2>/dev/null || chmod 0644 "$tmp"
+  mv -f "$tmp" "$IL"
+}
+audit(){
+  install -d -m 0770 -o root -g www-data "$STATE"
+  printf '%s action=%s detail=%s backup=%s\n' "$(date -Is)" "$1" "$2" "$3" >> "$STATE/audit.log"
+  chown root:www-data "$STATE/audit.log" 2>/dev/null || true
+  chmod 0660 "$STATE/audit.log" 2>/dev/null || true
+}
+
+need
+case "${1:-}" in
+  status)
+    [[ "$#" -eq 1 ]] || fail 'invalid usage'
+    status
+    ;;
+  add-white|delete-white|add-black|delete-black)
+    [[ "$#" -eq 2 ]] || fail 'invalid usage'
+    lock_access
+    rule="$(clean_rule "$2")" || fail 'invalid callsign/prefix'
+    backup="$(backup_files)"
+    case "$1" in
+      add-white) write_rules "$WL" "$rule" add ;;
+      delete-white) write_rules "$WL" "$rule" delete ;;
+      add-black) write_rules "$BL" "$rule" add ;;
+      delete-black) write_rules "$BL" "$rule" delete ;;
+    esac
+    audit "$1" "$rule" "$backup"
+    status
+    ;;
+  save-interlink)
+    [[ "$#" -eq 4 ]] || fail 'invalid usage'
+    lock_access
+    reflector="$(clean_reflector "$2")" || fail 'invalid XLX reflector; use XLX plus 3 alphanumeric characters'
+    address="$(clean_address "$3")" || fail 'invalid Interlink IP/domain'
+    modules="$(clean_modules "$4")" || fail 'invalid Interlink modules'
+    backup="$(backup_files)"
+    write_interlink "$reflector" "$address" "$modules" save
+    audit 'interlink-save' "$reflector $address $modules" "$backup"
+    status
+    ;;
+  delete-interlink)
+    [[ "$#" -eq 2 ]] || fail 'invalid usage'
+    lock_access
+    reflector="$(clean_reflector "$2")" || fail 'invalid XLX reflector'
+    backup="$(backup_files)"
+    write_interlink "$reflector" '' '' delete
+    audit 'interlink-delete' "$reflector" "$backup"
+    status
+    ;;
+  *) fail 'action not allowed' ;;
+esac

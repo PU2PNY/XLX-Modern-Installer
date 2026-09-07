@@ -38,6 +38,7 @@ INSTALL_DIR="$DASH_DEST" bash "$ROOT/dashboard/install/install-dashboard.sh" "$@
 INSTALL_DIR="$DASH_DEST" bash "$ROOT/dashboard/install/post-install.sh"
 bash "$ROOT/modules/65-callsign-directory.sh"
 XLX_DASHBOARD_DIR="$DASH_DEST" bash "$ROOT/modules/69-admin-page.sh" --dashboard-dir="$DASH_DEST"
+XLX_DASHBOARD_DIR="$DASH_DEST" XLX_UI_LANG="$UI_LANG" bash "$ROOT/modules/70-production-parity.sh"
 
 case "${CERT_MODE,,}" in
   yes|sim|s|y|1|true) CERT_MODE="yes" ;;
