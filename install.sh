@@ -11,12 +11,11 @@ readonly ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
 readonly REPOSITORY="local:vendor/pp5pk-installer"
 readonly REVIEWED_COMMIT="vendor-pinned-PP5PK-20b4893"
-readonly EXPECTED_INSTALLER_SHA256="bddb6789d8a59db4c3d337747eb2dd1f855af621543cbbefebb88da916411c47"
+readonly EXPECTED_INSTALLER_SHA256="703f4d6450f6c9b45f7b20177a3409d7bd5ddc3696bd865dd7a83fc647c91285"
 readonly WORK_ROOT="/opt/xlx-modern-installer"
 readonly SOURCE_DIR="${WORK_ROOT}/vendor/pp5pk-installer"
 readonly BACKUP_ROOT="/var/backups/xlx-reflector"
 readonly LOG_ROOT="/var/log/xlx-reflector/installer"
-readonly CONFIRMATION="INSTALL"
 readonly DEFAULT_DASHBOARD_DIR="/var/www/html/xlxd"
 
 MODE="install"
@@ -26,8 +25,6 @@ DASHBOARD_LANG=""
 UI_LANG="pt-BR"
 APRS_DPRS_MODE="yes"
 CHECK_READY="yes"
-DASHBOARD_LOCATION=""
-DASHBOARD_YSF_ID=""
 
 for arg in "$@"; do
     case "$arg" in
@@ -119,42 +116,6 @@ validate_options() {
 
 require_root() {
     [ "$(id -u)" -eq 0 ] || fatal "$(msg "Execute como root: sudo bash $0" "Run as root: sudo bash $0")"
-}
-
-collect_dashboard_inputs() {
-    [ "$MODE" = "install" ] || return 0
-    [ -t 0 ] || return 0
-    section "$(msg "DADOS ADICIONAIS DO PAINEL" "ADDITIONAL DASHBOARD DETAILS")"
-    while [ -z "$DASHBOARD_LOCATION" ]; do
-        printf '%s' "$(msg "Cidade e estado/região: " "City and state/region: ")"
-        read -r DASHBOARD_LOCATION || DASHBOARD_LOCATION=""
-    done
-    while :; do
-        printf '%s' "$(msg "ID do refletor YSF exibido no painel: " "YSF reflector ID shown on the dashboard: ")"
-        read -r DASHBOARD_YSF_ID || DASHBOARD_YSF_ID=""
-        [[ "$DASHBOARD_YSF_ID" =~ ^[0-9]{1,8}$ ]] && break
-        warn "$(msg "ID YSF inválido. Use de 1 a 8 dígitos." "Invalid YSF ID. Use 1 to 8 digits.")"
-    done
-    section "$(msg "ADMINISTRAÇÃO PRIVADA" "PRIVATE ADMINISTRATION")"
-    while :; do
-      printf '%s' "$(msg "Usuário do Admin: " "Admin username: ")"; read -r XLX_CONTROL_USERNAME || XLX_CONTROL_USERNAME=""
-      [[ "$XLX_CONTROL_USERNAME" =~ ^[A-Za-z0-9._-]{3,64}$ ]] && break
-      warn "$(msg "Use 3 a 64 caracteres: letras, números, ponto, _ ou -." "Use 3 to 64 characters: letters, numbers, dot, _ or -.")"
-    done
-    while :; do
-      printf '%s' "$(msg "Nome da URL privada do Admin [admin]: " "Private Admin URL name [admin]: ")"; read -r XLX_ADMIN_SLUG || XLX_ADMIN_SLUG=""
-      XLX_ADMIN_SLUG="${XLX_ADMIN_SLUG:-admin}"; XLX_ADMIN_SLUG="$(printf '%s' "$XLX_ADMIN_SLUG"|tr '[:upper:]' '[:lower:]')"
-      [[ "$XLX_ADMIN_SLUG" =~ ^[a-z0-9][a-z0-9-]{1,31}$ ]] && break
-      warn "$(msg "Use 2 a 32 caracteres: letras, números e hífen." "Use 2 to 32 characters: letters, numbers, and hyphens.")"
-    done
-    while :; do
-      printf '%s' "$(msg "Senha do Admin (mínimo 8 caracteres): " "Admin password (minimum 8 characters): ")" >&2; IFS= read -r -s XLX_CONTROL_PASSWORD; printf '\n' >&2
-      printf '%s' "$(msg "Repita a senha: " "Repeat the password: ")" >&2; IFS= read -r -s XLX_CONTROL_PASSWORD2; printf '\n' >&2
-      [[ ${#XLX_CONTROL_PASSWORD} -ge 8 ]] || { warn "$(msg "A senha precisa ter pelo menos 8 caracteres." "Password must contain at least 8 characters.")"; continue; }
-      [[ "$XLX_CONTROL_PASSWORD" == "$XLX_CONTROL_PASSWORD2" ]] || { warn "$(msg "As senhas não coincidem; tente novamente." "Passwords do not match; try again.")"; continue; }
-      unset XLX_CONTROL_PASSWORD2; break
-    done
-    export XLX_CONTROL_USERNAME XLX_CONTROL_PASSWORD XLX_ADMIN_SLUG
 }
 
 select_ui_language() {
@@ -376,10 +337,13 @@ if [ -n "${XLX_MODERN_STATE_FILE:-}" ]; then
         printf "TIMEZONE=%q\\n" "$TIMEZONE"
         printf "DOMAIN=%q\\n" "$XLXDOMAIN"
         printf "CONTACT_EMAIL=%q\\n" "$EMAIL"
-        printf "LOCATION=%q\\n" "${XLX_MODERN_LOCATION:-}"
-        printf "YSF_ID=%q\\n" "${XLX_MODERN_YSF_ID:-}"
+        printf "LOCATION=%q\\n" "${MODERN_LOCATION:-}"
+        printf "YSF_ID=%q\\n" "${MODERN_YSF_ID:-}"
         printf "MODULE_COUNT=%q\\n" "$MODQTD"
         printf "ENABLE_HTTPS=%q\\n" "$INSTALL_SSL"
+        printf "XLX_CONTROL_USERNAME=%q\\n" "${CONTROL_USERNAME:-}"
+        printf "XLX_CONTROL_PASSWORD=%q\\n" "${CONTROL_PASSWORD:-}"
+        printf "XLX_ADMIN_SLUG=%q\\n" "${ADMIN_SLUG:-admin}"
     } > "$XLX_MODERN_STATE_FILE"
     chmod 0600 "$XLX_MODERN_STATE_FILE"
 fi
@@ -421,6 +385,16 @@ HOOK
         -e 's|14\. YSF Wires-X frequency\. In Hertz, 9 digits\.|14. Frequência YSF Wires-X, em Hertz, 9 dígitos.|' \
         -e 's|15\. Auto-link YSF to a module? (Y/N)|15. Vincular YSF automaticamente a um módulo? (S/N)|' \
         -e 's|16\. Module to Auto-link YSF\.|16. Módulo para vínculo automático do YSF.|' \
+        -e 's|17\. City and state/region shown on the dashboard\.|17. Cidade e estado/região exibidos no painel.|' \
+        -e 's|18\. YSF reflector ID shown on the dashboard\. (1-8 digits)|18. ID do refletor YSF exibido no painel. (1-8 dígitos)|' \
+        -e 's|19\. Private Admin username\. (3-64 characters)|19. Usuário do Admin privado. (3-64 caracteres)|' \
+        -e 's|20\. Private Admin URL name\.|20. Nome da URL privada do Admin.|' \
+        -e 's|21\. Private Admin password\. (minimum 8 characters)|21. Senha do Admin privado. (mínimo 8 caracteres)|' \
+        -e 's|Repeat password:|Repita a senha:|' \
+        -e 's|password defined (not displayed)|senha definida (não exibida)|g' \
+        -e 's|City / region:|Cidade / região:|' \
+        -e 's|Admin username:|Usuário Admin:|' \
+        -e 's|Admin password:|Senha Admin:|' \
         -e 's|PLEASE REVIEW YOUR SETTINGS:|REVISE AS CONFIGURAÇÕES:|' \
         -e 's|Settings correct? Press \[ENTER\] to confirm, type a question number to edit it, or \[X\] to cancel the installation\.|Configurações corretas? Pressione [ENTER] para confirmar, informe o número para editar ou [X] para cancelar.|' \
         "$translated"
@@ -557,22 +531,6 @@ execute_dashboard_only() {
     ok "$(msg "Painel moderno validado e XLXD preservado." "Modern dashboard validated and XLXD preserved.")"
 }
 
-confirm_real_installation() {
-    local typed
-    section "$(msg "CONFIRMAÇÃO FINAL" "FINAL CONFIRMATION")"
-    warn "$(msg "A próxima etapa inicia uma instalação REAL." "The next step starts a REAL installation.")"
-    warn "$(msg "Pacotes, Apache, PHP, systemd e firewall poderão ser alterados." "Packages, Apache, PHP, systemd, and firewall may be changed.")"
-    printf '\n%s\n' "$(msg "Para continuar, digite INSTALL (maiúsculas ou minúsculas)." "To continue, type INSTALL (upper- or lowercase).")"
-    printf '%s\n' "$(msg "Para cancelar com segurança, pressione Ctrl+C ou digite qualquer outra coisa." "To cancel safely, press Ctrl+C or type anything else.")"
-    while :; do
-        printf '\n%s' "$(msg "Confirmação [INSTALL]: " "Confirmation [INSTALL]: ")"
-        read -r typed || typed=""
-        [ "${typed^^}" = "$CONFIRMATION" ] && break
-        warn "$(msg "Confirmação não reconhecida. Nenhuma alteração foi feita; tente novamente ou pressione Ctrl+C para cancelar." "Confirmation not recognized. No changes were made; try again or press Ctrl+C to cancel.")"
-    done
-    ok "$(msg "Confirmação aceita. Iniciando instalação real." "Confirmation accepted. Starting real installation.")"
-}
-
 resolve_aprs_choice() {
     local answer
     case "$APRS_DPRS_MODE" in
@@ -608,12 +566,13 @@ execute_installer() {
     chmod 0600 "$state_file"
 
     set +e
-    XLX_MODERN_STATE_FILE="$state_file" XLX_MODERN_LOCATION="$DASHBOARD_LOCATION" XLX_MODERN_YSF_ID="$DASHBOARD_YSF_ID" bash "$base_installer" 2>&1 | tee -a "$logfile"
+    XLX_MODERN_STATE_FILE="$state_file" bash "$base_installer" 2>&1 | tee -a "$logfile"
     installer_rc=${PIPESTATUS[0]}
     set -e
     [ "$installer_rc" -eq 0 ] || fatal "$(msg "O instalador base terminou com código $installer_rc. Consulte o log: $logfile" "The base installer exited with code $installer_rc. Check the log: $logfile")"
 
     source "$state_file"
+    export XLX_CONTROL_USERNAME XLX_CONTROL_PASSWORD XLX_ADMIN_SLUG
     [ -n "${DOMAIN:-}" ] || fatal "$(msg "O instalador base não gravou o domínio para validação final." "The base installer did not save the domain for final validation.")"
 
     section "$(msg "INSTALANDO XLX MODERN DASHBOARD" "INSTALLING XLX MODERN DASHBOARD")"
@@ -724,16 +683,13 @@ main() {
             exit 0
         fi
         create_inventory_and_backup
-        confirm_real_installation
         execute_dashboard_only
         exit 0
     fi
-    collect_dashboard_inputs
     prepare_source
     show_plan
     if [ "$MODE" = "check" ]; then run_check; exit 0; fi
     create_inventory_and_backup
-    confirm_real_installation
     execute_installer
 }
 

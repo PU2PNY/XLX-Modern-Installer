@@ -1,5 +1,19 @@
 # Changelog
 
+## v1.2.5 — 2026-09-08
+
+### Fixed
+- Unified all installation data questions into the main reflector questionnaire: city/region, YSF reflector ID, Admin username, private Admin URL and Admin password now appear before the single settings review.
+- Removed the separate `INSTALL` confirmation; pressing ENTER on the reviewed settings is the only normal installation confirmation before execution continues.
+- Fixed bundled APRS/D-PRS integrity validation by regenerating `SOURCE-MANIFEST.sha256` after the bundled README/install changes.
+- Added a regression guard that verifies every bundled APRS/D-PRS file against its manifest.
+- Restored the production visual separation between **Modules** and **Connected**: standalone menu items and independent page layouts.
+- **Modules** now follows production order: access-identification table first, then module cards.
+- **Connected** now follows production layout: filters plus station table, without the merged summary-card block.
+- Restored the production 1240 px dashboard content width.
+- Removed hard-coded reference-server identifiers from the public Modules JavaScript; REF/XRF/DCS/YSF labels now derive from installation data.
+
+
 ## v1.2.4 — 2026-09-07
 
 ### Fixed

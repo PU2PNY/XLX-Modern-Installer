@@ -30,11 +30,25 @@ expect_absent() {
     fi
 }
 
+if grep -Eq 'confirm_real_installation|readonly CONFIRMATION="INSTALL"|type INSTALL|digite INSTALL' "$INSTALLER"; then
+    printf 'FAIL | obsolete second INSTALL confirmation still exists\n' >&2
+    failures=$((failures + 1))
+else
+    printf 'OK | reflector review is the single installation confirmation\n'
+fi
+if grep -Fq 'collect_dashboard_inputs' "$INSTALLER"; then
+    printf 'FAIL | additional dashboard questions still exist outside the main reflector questionnaire\n' >&2
+    failures=$((failures + 1))
+else
+    printf 'OK | no additional question block exists after reflector review\n'
+fi
+expect 'unified questionnaire captures city in base flow' '17. City and state/region shown on the dashboard.' "$ROOT/vendor/pp5pk-installer/installer.sh"
+expect 'unified questionnaire captures YSF ID in base flow' '18. YSF reflector ID shown on the dashboard.' "$ROOT/vendor/pp5pk-installer/installer.sh"
+expect 'unified questionnaire captures Admin username in base flow' '19. Private Admin username.' "$ROOT/vendor/pp5pk-installer/installer.sh"
+expect 'unified questionnaire captures Admin URL in base flow' '20. Private Admin URL name.' "$ROOT/vendor/pp5pk-installer/installer.sh"
+expect 'unified questionnaire captures Admin password in base flow' '21. Private Admin password.' "$ROOT/vendor/pp5pk-installer/installer.sh"
 expect 'language is selected before installation checks' 'select_ui_language' "$INSTALLER"
 expect 'dashboard language is selected before installation checks' 'select_dashboard_language' "$INSTALLER"
-expect 'clear final confirmation uses INSTALL' 'readonly CONFIRMATION="INSTALL"' "$INSTALLER"
-expect 'confirmation accepts upper or lower case' '[ "${typed^^}" = "$CONFIRMATION" ]' "$INSTALLER"
-expect 'invalid confirmation returns to the same safe prompt' 'tente novamente ou pressione Ctrl+C' "$INSTALLER"
 expect 'invalid language selection is retried instead of silently changing language' 'Digite 1 para Português ou 2 para English' "$INSTALLER"
 expect 'legacy dashboard section is disabled in runtime copy' 'XLX_MODERN_SKIPPED' "$INSTALLER"
 expect 'modern dashboard runs after base XLXD installation' 'modules/60-dashboard-modern.sh' "$INSTALLER"
@@ -78,6 +92,43 @@ else
     failures=$((failures + 1))
 fi
 rm -rf "$tmp_cert"
+
+
+if grep -Fq 'id="connectedCards"' "$ROOT/dashboard/index.php"; then
+    printf 'FAIL | Connected page still contains summary cards from the merged layout\n' >&2
+    failures=$((failures + 1))
+else
+    printf 'OK | Connected page is table-only like the production reference\n'
+fi
+python3 - "$ROOT/dashboard/index.php" <<'PYTEST'
+from pathlib import Path
+import sys
+s=Path(sys.argv[1]).read_text()
+mi=s.index("<?php elseif ($page === 'modulos'): ?>")
+ci=s.index("<?php elseif ($page === 'conectados'): ?>")
+ri=s.index('id="moduleReferenceRows"',mi,ci)
+oi=s.index('id="moduleOverview"',mi,ci)
+if not ri < oi:
+    raise SystemExit('Modules page order mismatch: access table must precede module cards')
+PYTEST
+if [ "$?" -eq 0 ]; then printf 'OK | Modules page matches production order: access table before module cards\n'; else failures=$((failures + 1)); fi
+if (cd "$ROOT/vendor/xlx-aprs-dprs/771abaa0c1ea662f33f3fa0c4a59ec712b1e4fcb" && sha256sum -c SOURCE-MANIFEST.sha256 >/dev/null); then
+    printf 'OK | bundled APRS/D-PRS manifest matches every shipped file\n'
+else
+    printf 'FAIL | bundled APRS/D-PRS manifest mismatch\n' >&2
+    failures=$((failures + 1))
+fi
+
+
+if grep -Eq 'REF026|XRF026|DCS026|YSF 72426' "$ROOT/dashboard/assets/app.js"; then
+    printf 'FAIL | production reflector identifiers remain hard-coded in public Modules page\n' >&2
+    failures=$((failures + 1))
+else
+    printf 'OK | Modules page identifiers are derived from installation data\n'
+fi
+expect 'public dashboard uses production 1240px content width' 'width:min(1240px,calc(100% - 32px))' "$ROOT/dashboard/assets/app.css"
+expect 'Modules is a standalone navigation item' "'modulos' => 'Módulos'," "$ROOT/dashboard/index.php"
+expect 'Connected is a standalone navigation item' "'conectados' => 'Conectados'," "$ROOT/dashboard/index.php"
 
 printf 'failures=%d\n' "$failures"
 exit "$failures"

@@ -735,11 +735,16 @@ function toggleHistoryGroup(callKey,button){
  });
 }
 const xlxNatoModules=['Alfa','Bravo','Charlie','Delta','Echo','Foxtrot','Golf','Hotel','India','Juliett','Kilo','Lima','Mike','November','Oscar','Papa','Quebec','Romeo','Sierra','Tango','Uniform','Victor','Whiskey','X-Ray','Yankee','Zulu'];
+const xlxReflectorName='{{REFLECTOR_NAME}}';
+const xlxReflectorNumber='{{REFLECTOR_NUMBER}}';
+const xlxReflectorShort='{{REFLECTOR_SHORT_NUMBER}}';
+const xlxYsfId='{{YSF_ID}}';
 function xlxModulePhonetic(letter){const i=String(letter||'').toUpperCase().charCodeAt(0)-65;return xlxNatoModules[i]||String(letter||'');}
-function moduleInfo(m){const defs={A:['Envio de imagens D-STAR','Módulo A • imagens digitais','XLXMODERN-A'],B:['APRS / D-PRS','Dados digitais','XLXMODERN-B'],C:['C4FM/YSF e DMR','YSF 72426 • DMR TG 4003','XLXMODERN-C'],D:['D-STAR','XLXMODERN-D / XRF026-D','XLXMODERN-D'],E:['D-STAR Echo','Teste de áudio','XLXMODERN-E']};return defs[m.module]||[m.configured_protocol,m.access,'XLXMODERN-'+m.module]}
+function moduleInfo(m){const defs={A:['Envio de imagens D-STAR','Módulo A • imagens digitais',`${xlxReflectorName}-A`],B:['APRS / D-PRS','Dados digitais',`${xlxReflectorName}-B`],C:['C4FM/YSF e DMR',`YSF ${xlxYsfId} • DMR TG 4003`,`${xlxReflectorName}-C`],D:['D-STAR',`${xlxReflectorName}-D / XRF${xlxReflectorNumber}-D`,`${xlxReflectorName}-D`],E:['D-STAR Echo','Teste de áudio',`${xlxReflectorName}-E`]};return defs[m.module]||[m.configured_protocol,m.access,`${xlxReflectorName}-${m.module}`]}
 function renderModules(d){$('#moduleOverview').innerHTML=Object.values(d.modules).map(m=>{const i=moduleInfo(m);return `<article class="module-mini ${m.transmission?'active':''}"><div class="module-mini-top"><span class="module-letter">${esc(m.module)}</span><span class="module-count">${m.connected_count} conectado${m.connected_count===1?'':'s'}</span></div><strong>${esc(i[0])}</strong><small>${esc(i[1])}</small><div class="module-id">${esc(i[2])}</div><div class="module-state">${m.transmission?'<i class="red"></i> Transmitindo agora':'<i></i> Aguardando transmissão'}</div></article>`}).join('');
  const functions={A:'Imagens D-STAR',B:'APRS / D-PRS',C:'C4FM/YSF/DMR',D:'D-STAR',E:'Echo / teste'};
- const rows=Object.values(d.modules).map((m,idx)=>{const n=idx+1,letter=m.module;return `<tr><td><b>${esc(letter)}</b></td><td><strong>${esc(xlxModulePhonetic(letter))}</strong><br><span>${esc(functions[letter]||m.configured_protocol)}</span></td><td>${m.connected_count}</td><td>REF026${letter}L</td><td>*26${letter}</td><td>XRF026${letter}L</td><td>B26${letter}</td><td>DCS026${letter}L</td><td>D26${letter}</td><td>${4000+n}</td><td>${9+n}</td></tr>`}).join('');$('#moduleReferenceRows').innerHTML=rows; }
+ const dtmfBase=/^[0-9]+$/.test(xlxReflectorShort)?xlxReflectorShort:'';
+ const rows=Object.values(d.modules).map((m,idx)=>{const n=idx+1,letter=m.module;const refDtmf=dtmfBase?`*${dtmfBase}${letter}`:'—';const xrfDtmf=dtmfBase?`B${dtmfBase}${letter}`:'—';const dcsDtmf=dtmfBase?`D${dtmfBase}${letter}`:'—';return `<tr><td><b>${esc(letter)}</b></td><td><strong>${esc(xlxModulePhonetic(letter))}</strong><br><span>${esc(functions[letter]||m.configured_protocol)}</span></td><td>${m.connected_count}</td><td>REF${esc(xlxReflectorNumber)}${letter}L</td><td>${refDtmf}</td><td>XRF${esc(xlxReflectorNumber)}${letter}L</td><td>${xrfDtmf}</td><td>DCS${esc(xlxReflectorNumber)}${letter}L</td><td>${dcsDtmf}</td><td>${4000+n}</td><td>${9+n}</td></tr>`}).join('');$('#moduleReferenceRows').innerHTML=rows; }
 /* XLXMODERN_CONECTADOS_UNIFICADO_V1 */
 function filterConnectedRows(d,query='',moduleFilter='',protocolFilter=''){
  const q=String(query||'').trim().toLowerCase();

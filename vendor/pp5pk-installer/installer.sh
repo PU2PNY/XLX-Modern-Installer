@@ -869,6 +869,94 @@ question_16() {
     echo ""
 }
 
+
+question_17() {
+    echo ""
+    echo "$SEPQUE"
+    echo ""
+    print_red "$ICON_WARN Mandatory"
+    print_wrapped "17. City and state/region shown on the dashboard."
+    while true; do
+        read_or_abort MODERN_LOCATION
+        MODERN_LOCATION="$(printf '%s' "$MODERN_LOCATION" | xargs)"
+        if [[ -n "$MODERN_LOCATION" ]]; then break; fi
+        msg_caution "This field is mandatory and cannot be empty. Try again!"
+    done
+    print_yellow "Using: $MODERN_LOCATION"
+}
+
+question_18() {
+    echo ""
+    echo "$SEPQUE"
+    echo ""
+    print_red "$ICON_WARN Mandatory"
+    print_wrapped "18. YSF reflector ID shown on the dashboard. (1-8 digits)"
+    while true; do
+        read_or_abort MODERN_YSF_ID
+        if [[ "$MODERN_YSF_ID" =~ ^[0-9]{1,8}$ ]]; then break; fi
+        msg_caution "Invalid YSF ID. Use 1 to 8 digits."
+    done
+    print_yellow "Using: $MODERN_YSF_ID"
+}
+
+question_19() {
+    echo ""
+    echo "$SEPQUE"
+    echo ""
+    print_red "$ICON_WARN Mandatory"
+    print_wrapped "19. Private Admin username. (3-64 characters)"
+    while true; do
+        read_or_abort CONTROL_USERNAME
+        if [[ "$CONTROL_USERNAME" =~ ^[A-Za-z0-9._-]{3,64}$ ]]; then break; fi
+        msg_caution "Use 3 to 64 characters: letters, numbers, dot, underscore or hyphen."
+    done
+    print_yellow "Using: $CONTROL_USERNAME"
+}
+
+question_20() {
+    echo ""
+    echo "$SEPQUE"
+    echo ""
+    print_wrapped "20. Private Admin URL name."
+    print_gray "Suggested: admin $ACCEPT"
+    while true; do
+        read_or_abort ADMIN_SLUG
+        ADMIN_SLUG="${ADMIN_SLUG:-admin}"
+        ADMIN_SLUG="$(printf '%s' "$ADMIN_SLUG" | tr '[:upper:]' '[:lower:]')"
+        if [[ "$ADMIN_SLUG" =~ ^[a-z0-9][a-z0-9-]{1,31}$ ]]; then break; fi
+        msg_caution "Use 2 to 32 characters: lowercase letters, numbers and hyphens."
+    done
+    print_yellow "Using: /$ADMIN_SLUG/"
+}
+
+question_21() {
+    echo ""
+    echo "$SEPQUE"
+    echo ""
+    print_red "$ICON_WARN Mandatory"
+    print_wrapped "21. Private Admin password. (minimum 8 characters)"
+    while true; do
+        printf "> "
+        IFS= read -r -s CONTROL_PASSWORD || CONTROL_PASSWORD=""
+        printf "\n"
+        [[ "${CONTROL_PASSWORD^^}" == "X" ]] && { msg_caution "Installation cancelled by user."; exit 1; }
+        printf "Repeat password: "
+        IFS= read -r -s CONTROL_PASSWORD_CONFIRM || CONTROL_PASSWORD_CONFIRM=""
+        printf "\n"
+        if [[ ${#CONTROL_PASSWORD} -lt 8 ]]; then
+            msg_caution "Password must contain at least 8 characters."
+            continue
+        fi
+        if [[ "$CONTROL_PASSWORD" != "$CONTROL_PASSWORD_CONFIRM" ]]; then
+            msg_caution "Passwords do not match. Try again."
+            continue
+        fi
+        unset CONTROL_PASSWORD_CONFIRM
+        break
+    done
+    print_yellow "Using: password defined (not displayed)"
+}
+
 collect_all_questions() {
     question_01
     question_02
@@ -890,6 +978,11 @@ collect_all_questions() {
     if [[ "$AUTOLINK" -eq 1 ]]; then
         question_16
     fi
+    question_17
+    question_18
+    question_19
+    question_20
+    question_21
 }
 
 # Data input verification
@@ -919,6 +1012,11 @@ review_settings() {
     if [[ "$AUTOLINK" -eq 1 ]]; then
         print_wrapped "16. YSF module:          $MODAUTO"
     fi
+    print_wrapped "17. City / region:       $MODERN_LOCATION"
+    print_wrapped "18. YSF reflector ID:    $MODERN_YSF_ID"
+    print_wrapped "19. Admin username:      $CONTROL_USERNAME"
+    print_wrapped "20. Admin URL:           /$ADMIN_SLUG/"
+    print_wrapped "21. Admin password:      defined (not displayed)"
 
     echo ""
 }
@@ -1007,8 +1105,13 @@ while true; do
                     msg_caution "Question 16 is not active."
                 fi
                 ;;
+            17) question_17 ;;
+            18) question_18 ;;
+            19) question_19 ;;
+            20) question_20 ;;
+            21) question_21 ;;
             *)
-                msg_caution "Invalid input. Press [ENTER] to confirm, enter a question number (1-16), or [X] to cancel."
+                msg_caution "Invalid input. Press [ENTER] to confirm, enter a question number (1-21), or [X] to cancel."
                 ;;
         esac
 
