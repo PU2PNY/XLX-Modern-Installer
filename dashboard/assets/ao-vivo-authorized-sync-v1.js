@@ -88,7 +88,7 @@
     grid.querySelectorAll('.tx-card.live .callsign, .tx-card.live .tx-v30-callsign').forEach(el => {
       const raw = String(el.textContent || '').replace(/\s+/g, ' ').trim().toUpperCase();
       const base = raw.split(' ')[0] || raw;
-      if (base) el.textContent = base;
+      if (base && raw !== base) el.textContent = base;
       el.style.whiteSpace = 'nowrap';
       el.style.wordBreak = 'normal';
       el.style.overflowWrap = 'normal';

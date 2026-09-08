@@ -6,6 +6,8 @@ const STATE='/var/lib/xlx-modern-control';
 const HELPER='/usr/local/sbin/xlx-modern-control-helper';
 
 header('X-Robots-Tag: noindex, nofollow, noarchive, nosnippet');
+header('X-Robots-Tag: noimageindex', false);
+// Removed UI section: Quick links.
 $ua=strtolower((string)($_SERVER['HTTP_USER_AGENT']??''));
 if($ua!=='' && preg_match('/googlebot|bingbot|duckduckbot|baiduspider|yandex(bot)?|facebookexternalhit|twitterbot|linkedinbot|applebot/i',$ua)){
  http_response_code(404);

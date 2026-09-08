@@ -99,6 +99,15 @@ $protectTechnical = static function (string $text, array &$restore): string {
         static fn(array $m): string => $protect($m[0]),
         $text
     ) ?? $text;
+
+    // Callable identifiers may contain words that also exist in the
+    // translation catalog (for example renderOffline/renderStatus).
+    $text = preg_replace_callback(
+        '~\\b[A-Za-z_$][A-Za-z0-9_$]*(?=\\s*\\()~u',
+        static fn(array $m): string => $protect($m[0]),
+        $text
+    ) ?? $text;
+
     return $text;
 };
 

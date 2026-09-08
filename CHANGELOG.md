@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.2.6 — 2026-09-08
+
+### Fixed
+- Made live transmission keys unique across legitimate DMR/YSF Stream ID reuse by including the stream start time.
+- Prevented the dashboard translator from changing callable JavaScript identifiers in Spanish and French builds.
+- Prevented the live callsign MutationObserver from rewriting identical text and retriggering itself.
+- Connected the persistent callsign directory to status connections, active transmissions and history.
+- Aligned access-list backups and Interlink audit events with the validated Admin contract.
+- Added the `noimageindex` crawler directive without restoring the removed Quick Guide.
+- Added regression checks for callable identifiers and identical live callsign rewrites.
+
+
 ## v1.2.5 — 2026-09-08
 
 ### Fixed

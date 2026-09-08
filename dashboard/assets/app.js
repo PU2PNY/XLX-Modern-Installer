@@ -1683,7 +1683,7 @@ function playTxEndedSound(){
 function detectTxRxSound(active){
  const currentKeys=new Set(
   Object.values(active||{}).map(tx=>
-   String(tx.key||`${tx.module}:${tx.stream_id}`)
+   String(tx.key||`${tx.module}:${tx.stream_id}:${tx.started_at||''}`)
   )
  );
 
