@@ -82,6 +82,10 @@ function xlxmodernSyncQrzPhotoSizes(root=document){
 }
 function operatorVisual(call=''){
  const c=String(call||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+ const cached=xlxmodernQrzPhotoCache.get(c);
+ if(typeof cached==='string'&&cached!==''){
+  return `<div class="operator-visual qrz-photo-active"><img class="tx-qrz-photo-target is-qrz-photo" data-qrz-call="${esc(c)}" data-qrz-state="photo" src="${esc(cached)}" alt="Foto pública do QRZ de ${esc(c)}"><span class="signal-ring"></span></div>`;
+ }
  return `<div class="operator-visual"><img class="tx-qrz-photo-target" data-qrz-call="${esc(c)}" src="assets/talking-radio.gif" alt="Indicador de transmissão"><span class="signal-ring"></span></div>`
 }
 async function xlxmodernLoadQrzPhoto(img){
@@ -933,6 +937,42 @@ setInterval(()=>document.querySelectorAll('[data-start]').forEach(e=>e.textConte
 let liveUpdateRunning=false;
 let liveUpdateTimer=null;
 let previousLiveKeys=null;
+
+/*
+ * XLXMODERN_LIVE_STABILITY_V1
+ *
+ * Uma leitura rápida isolada não pode apagar um TX confirmado.
+ * Mantém o último estado por 900 ms quando somente um poll perde
+ * temporariamente o stream. Evita foto/GIF piscando e falso bip de fim.
+ */
+const XLXMODERN_LIVE_END_GRACE_MS=900;
+let xlxmodernStableLiveActive={};
+const xlxmodernLiveMissingSince=new Map();
+
+function xlxmodernStabilizeLiveState(live){
+ const now=Date.now();
+ const next=Object.assign({},live,{active:Object.assign({},live?.active||{})});
+
+ Object.keys(next.active).forEach(module=>{
+  xlxmodernLiveMissingSince.delete(module);
+ });
+
+ Object.entries(xlxmodernStableLiveActive).forEach(([module,tx])=>{
+  if(next.active[module])return;
+  const since=xlxmodernLiveMissingSince.get(module)??now;
+  xlxmodernLiveMissingSince.set(module,since);
+  if(now-since<XLXMODERN_LIVE_END_GRACE_MS){
+   next.active[module]=tx;
+  }else{
+   xlxmodernLiveMissingSince.delete(module);
+  }
+ });
+
+ next.active_count=Object.keys(next.active).length;
+ xlxmodernStableLiveActive=Object.assign({},next.active);
+ return next;
+}
+
 let txRxAudioContext=null;
 let txRxAudioUnlocked=false;
 /*
@@ -1957,10 +1997,11 @@ async function updateLiveTxRx(){
    }
   );
 
-  const live=await response.json();
+  let live=await response.json();
 
   if(!live.ok)throw Error();
 
+  live=xlxmodernStabilizeLiveState(live);
   detectTxRxSound(live.active);
 
   let requestIdentityRefresh=false;

@@ -1,0 +1,2122 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{REFLECTOR_NAME}} - Painel Compativel</title>
+
+<style>
+html,
+body{
+    margin:0;
+    padding:0;
+    min-height:100%;
+    background:#05131d;
+    color:#eef8fb;
+    font-family:Arial,Helvetica,sans-serif;
+    -webkit-text-size-adjust:100%;
+}
+
+body{
+    background-color:#05131d;
+    background-image:
+        radial-gradient(
+            circle at 15% 0%,
+            #12384a 0,
+            #071923 36%,
+            #05131d 72%
+        );
+}
+
+*{
+    box-sizing:border-box;
+}
+
+.wrap{
+    width:94%;
+    max-width:980px;
+    margin:0 auto;
+    padding:22px 0 38px;
+}
+
+h1{
+    margin:0;
+    color:#ffffff;
+    font-size:31px;
+    font-weight:bold;
+    line-height:1.05;
+    letter-spacing:2px;
+}
+
+h1:before{
+    content:"MONITOR AO VIVO";
+    display:block;
+    margin-bottom:7px;
+    color:#42d9ff;
+    font-size:9px;
+    font-weight:bold;
+    line-height:1;
+    letter-spacing:2.4px;
+}
+
+.subtitle{
+    margin:8px 0 20px;
+    color:#89acbc;
+    font-size:12px;
+    font-weight:bold;
+    line-height:1.4;
+    letter-spacing:.5px;
+}
+
+.card{
+    position:relative;
+    margin-bottom:12px;
+    padding:15px;
+    overflow:hidden;
+    background:#0a202c;
+    border:1px solid #1e4557;
+    border-radius:9px;
+    box-shadow:0 5px 16px rgba(0,0,0,.25);
+}
+
+.card > strong{
+    display:block;
+    margin-bottom:10px;
+    color:#8ddff2;
+    font-size:10px;
+    font-weight:bold;
+    line-height:1;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+}
+
+.card:first-of-type{
+    border-left:3px solid #39e7a7;
+}
+
+.ok{
+    color:#3de5a6;
+}
+
+.warn{
+    color:#ffc857;
+}
+
+.err{
+    color:#ff617b;
+}
+
+/* {{REFLECTOR_NAME}}_LEGACY_SUMMARY_V1 */
+.legacy-summary-card{
+    text-align:center;
+    white-space:nowrap;
+}
+
+.legacy-summary-number{
+    display:inline-block;
+    margin:0 4px 0 0;
+    color:#51dcff;
+    font-size:30px;
+    font-weight:bold;
+    line-height:1;
+    vertical-align:middle;
+}
+
+.legacy-summary-label,
+.legacy-summary-separator,
+.legacy-tx-state{
+    display:inline-block;
+    vertical-align:middle;
+}
+
+.legacy-summary-label{
+    color:#d9e8ee;
+    font-size:16px;
+    font-weight:bold;
+}
+
+.legacy-summary-separator{
+    margin:0 8px;
+    color:#557985;
+}
+
+.legacy-tx-state{
+    color:#76d9a9;
+    font-size:16px;
+    font-weight:bold;
+}
+
+.legacy-tx-state.tx-active{
+    color:#ff5f78;
+}
+
+.legacy-system-state{
+    display:none;
+    margin-top:8px;
+    font-size:12px;
+    font-weight:bold;
+    white-space:normal;
+}
+
+.legacy-system-state.err{
+    display:block;
+    color:#ff617b;
+}
+
+@media (max-width:420px){
+    .legacy-summary-number{
+        font-size:25px;
+    }
+    .legacy-summary-label,
+    .legacy-tx-state{
+        font-size:14px;
+    }
+    .legacy-summary-separator{
+        margin:0 5px;
+    }
+}
+/* /{{REFLECTOR_NAME}}_LEGACY_SUMMARY_V1 */
+
+#modules{
+    margin:-4px;
+    text-align:center;
+}
+
+.module{
+    display:inline-block;
+    vertical-align:top;
+    width:28%;
+    min-height:86px;
+    margin:4px;
+    padding:11px 10px;
+    text-align:left;
+    background:#071923;
+    border:1px solid #1a4455;
+    border-radius:8px;
+}
+
+.module b{
+    display:block;
+    margin-bottom:8px;
+    color:#4ee1ff;
+    font-size:23px;
+    font-weight:bold;
+    line-height:1;
+}
+
+.module span{
+    display:block;
+    color:#a4c5d1;
+    font-size:11px;
+    line-height:1.35;
+}
+
+#live{
+    min-height:38px;
+    padding:10px 12px;
+    background:#071923;
+    border:1px solid #19485a;
+    border-radius:7px;
+    color:#dff8f3;
+    font-size:12px;
+    line-height:1.45;
+}
+
+.tx{
+    margin-top:0;
+    padding:10px 12px;
+    background:#24141a;
+    border:1px solid #713145;
+    border-left:4px solid #ff4567;
+    border-radius:6px;
+}
+
+.tx strong{
+    color:#ffffff;
+    font-size:17px;
+}
+
+/* {{REFLECTOR_NAME}}_LEGACY_LIVE_FOCUS_V2 */
+.legacy-live-head{
+    margin-bottom:8px;
+    color:#ff8da0;
+    font-size:10px;
+    font-weight:bold;
+    letter-spacing:1.2px;
+    text-transform:uppercase;
+}
+
+.legacy-live-callsign{
+    display:block;
+    margin:2px 0 4px;
+    color:#ffffff;
+    font-size:31px;
+    font-weight:bold;
+    line-height:1.05;
+    letter-spacing:1px;
+    text-decoration:none;
+}
+
+a.legacy-live-callsign:link,
+a.legacy-live-callsign:visited{
+    color:#ffffff;
+    text-decoration:none;
+}
+
+.legacy-live-name{
+    display:block;
+    margin-bottom:5px;
+    color:#61e5ff;
+    font-size:18px;
+    font-weight:bold;
+    line-height:1.2;
+}
+
+.legacy-live-location{
+    display:block;
+    margin-bottom:9px;
+    color:#b7d2dc;
+    font-size:12px;
+    line-height:1.35;
+}
+
+.legacy-live-badges{
+    margin:-2px 0 7px;
+}
+
+.legacy-live-badge{
+    display:inline-block;
+    margin:2px 4px 2px 0;
+    padding:5px 7px;
+    background:#321921;
+    border:1px solid #713145;
+    border-radius:5px;
+    color:#ffd8df;
+    font-size:10px;
+    font-weight:bold;
+}
+
+.legacy-live-detail{
+    display:block;
+    margin-top:5px;
+    color:#d5e8ee;
+    font-size:11px;
+    line-height:1.4;
+}
+
+.legacy-live-detail b{
+    color:#ffffff;
+}
+
+.legacy-standby{
+    padding:11px 12px;
+    background:#071923;
+    border:1px solid #245269;
+    border-left:4px solid #39e7a7;
+    border-radius:6px;
+}
+
+.legacy-standby-title{
+    display:block;
+    margin-bottom:7px;
+    color:#3de5a6;
+    font-size:13px;
+    font-weight:bold;
+}
+
+.legacy-last-tx{
+    display:block;
+    margin-top:8px;
+    padding-top:8px;
+    border-top:1px solid #173d4d;
+    color:#a9c8d3;
+    font-size:11px;
+    line-height:1.45;
+}
+
+.legacy-last-tx b{
+    color:#ffffff;
+    font-size:14px;
+}
+/* /{{REFLECTOR_NAME}}_LEGACY_LIVE_FOCUS_V2 */
+
+/* {{REFLECTOR_NAME}}_LEGACY_HISTORY_24H_GROUPED_V2 */
+.legacy-history-list{
+    margin-top:9px;
+    border:1px solid #163c4c;
+    border-radius:6px;
+    overflow:hidden;
+    background:#071923;
+}
+
+.legacy-history-group{
+    display:block;
+    border-bottom:1px solid #143644;
+}
+
+.legacy-history-group:last-child{
+    border-bottom:0;
+}
+
+.legacy-history-toggle{
+    display:block;
+    width:100%;
+    margin:0;
+    padding:10px;
+    border:0;
+    background:#071923;
+    color:#d5e8ee;
+    font-family:Arial,Helvetica,sans-serif;
+    text-align:left;
+    cursor:pointer;
+    -webkit-appearance:none;
+}
+
+.legacy-history-toggle:active{
+    background:#0b2532;
+}
+
+.legacy-history-top{
+    display:block;
+    overflow:hidden;
+    line-height:1.25;
+}
+
+.legacy-history-number{
+    display:inline-block;
+    width:24px;
+    color:#6f9aaa;
+    font-size:10px;
+    font-weight:bold;
+}
+
+.legacy-history-call{
+    color:#ffffff;
+    font-size:15px;
+    font-weight:bold;
+}
+
+.legacy-history-time{
+    float:right;
+    margin-right:7px;
+    color:#8eb1bf;
+    font-size:10px;
+}
+
+.legacy-history-arrow{
+    float:right;
+    width:16px;
+    color:#57ddff;
+    font-size:12px;
+    font-weight:bold;
+    text-align:center;
+}
+
+.legacy-history-name{
+    display:block;
+    margin:3px 0 4px 24px;
+    color:#61e5ff;
+    font-size:12px;
+    font-weight:bold;
+    line-height:1.25;
+}
+
+.legacy-history-meta{
+    display:block;
+    margin-left:24px;
+    color:#a9c8d3;
+    font-size:10px;
+    line-height:1.35;
+}
+
+.legacy-history-count{
+    color:#44e3a6;
+    font-weight:bold;
+}
+
+.legacy-history-details{
+    display:none;
+    padding:4px 10px 8px 34px;
+    background:#04131c;
+    border-top:1px solid #173d4d;
+}
+
+.legacy-history-detail{
+    display:block;
+    padding:8px 0;
+    border-bottom:1px solid #12313d;
+    color:#bdd3db;
+    font-size:10px;
+    line-height:1.4;
+}
+
+.legacy-history-detail:last-child{
+    border-bottom:0;
+}
+
+.legacy-history-detail-time{
+    display:inline-block;
+    min-width:82px;
+    color:#ffffff;
+    font-weight:bold;
+}
+
+.legacy-history-detail-meta{
+    color:#a9c8d3;
+}
+
+.legacy-history-qrz{
+    display:inline-block;
+    margin-left:7px;
+    color:#57ddff;
+    font-weight:bold;
+    text-decoration:none;
+}
+
+.legacy-history-empty{
+    padding:12px;
+    color:#8eb1bf;
+    font-size:11px;
+}
+
+.legacy-history-note{
+    display:block;
+    margin-top:7px;
+    color:#6f9aaa;
+    font-size:9px;
+    line-height:1.35;
+}
+/* /{{REFLECTOR_NAME}}_LEGACY_HISTORY_24H_GROUPED_V2 */
+
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    background:#071923;
+    border:1px solid #163c4c;
+}
+
+th{
+    padding:8px 7px;
+    background:#0c2937;
+    border-bottom:1px solid #245269;
+    color:#55dcff;
+    text-align:left;
+    font-size:10px;
+    font-weight:bold;
+    letter-spacing:.6px;
+    text-transform:uppercase;
+}
+
+td{
+    padding:8px 7px;
+    border-bottom:1px solid #143644;
+    color:#d5e8ee;
+    text-align:left;
+    font-size:12px;
+    line-height:1.3;
+}
+
+tbody tr:last-child td{
+    border-bottom:0;
+}
+
+#debug{
+    padding:10px;
+    background:#06151e;
+    border:1px solid #173746;
+    border-radius:6px;
+    color:#7fabb9;
+    white-space:pre-wrap;
+    word-break:break-word;
+    font-family:"Courier New",monospace;
+    font-size:10px;
+    line-height:1.45;
+}
+
+.wrap:after{
+    content:"{{REFLECTOR_NAME}} - Painel XLX-Modern - modo compativel";
+    display:block;
+    padding-top:10px;
+    color:#557887;
+    text-align:center;
+    font-size:9px;
+    font-weight:bold;
+    letter-spacing:.7px;
+}
+
+@media screen and (max-width:700px){
+    .wrap{
+        width:95%;
+        padding-top:17px;
+    }
+
+    h1{
+        font-size:26px;
+    }
+
+    .module{
+        width:43%;
+    }
+
+    .big{
+        font-size:27px;
+    }
+
+    th,
+    td{
+        padding:7px 5px;
+    }
+}
+
+@media screen and (max-width:420px){
+    .module{
+        width:94%;
+    }
+
+    h1{
+        font-size:23px;
+    }
+
+    .card{
+        padding:12px;
+    }
+
+    th{
+        font-size:9px;
+    }
+
+    td{
+        font-size:11px;
+    }
+}
+
+
+/* {{REFLECTOR_NAME}}_LEGACY_MENU_V1 */
+
+.legacy-menu{
+    margin:-6px 0 16px;
+    padding:7px;
+
+    background:#071923;
+
+    border:1px solid #1e4557;
+    border-radius:9px;
+
+    box-shadow:
+        0 4px 14px rgba(0,0,0,.22);
+
+    overflow:hidden;
+}
+
+.legacy-menu-track{
+    display:block;
+
+    width:100%;
+
+    white-space:nowrap;
+
+    overflow-x:auto;
+    overflow-y:hidden;
+
+    -webkit-overflow-scrolling:touch;
+
+    padding:1px 0 4px;
+}
+
+.legacy-menu-item{
+    display:inline-block;
+
+    vertical-align:middle;
+
+    margin:0 4px 0 0;
+    padding:9px 12px;
+
+    background:#0a202c;
+
+    border:1px solid #1a4455;
+    border-radius:7px;
+
+    color:#bad5df;
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    font-size:11px;
+    font-weight:bold;
+
+    line-height:1;
+
+    text-decoration:none;
+
+    white-space:nowrap;
+}
+
+a.legacy-menu-item:link,
+a.legacy-menu-item:visited{
+    color:#bad5df;
+    text-decoration:none;
+}
+
+a.legacy-menu-item:active{
+    background:#103444;
+
+    border-color:#42d9ff;
+
+    color:#ffffff;
+}
+
+.legacy-menu-active{
+    background:#103344;
+
+    border-color:#37cce9;
+
+    color:#58e3ff;
+}
+
+a.legacy-menu-active:link,
+a.legacy-menu-active:visited{
+    color:#58e3ff;
+}
+
+.legacy-menu-disabled{
+    color:#567480;
+
+    border-color:#173644;
+
+    background:#071720;
+
+    opacity:.62;
+}
+
+.legacy-menu-hint{
+    padding:4px 4px 0;
+
+    color:#557887;
+
+    font-size:8px;
+    font-weight:bold;
+
+    line-height:1.2;
+
+    letter-spacing:.8px;
+
+    text-align:right;
+
+    text-transform:uppercase;
+}
+
+@media screen and (max-width:700px){
+
+    .legacy-menu{
+        margin-top:-7px;
+        margin-bottom:13px;
+        padding:6px;
+    }
+
+    .legacy-menu-item{
+        padding:9px 11px;
+        font-size:10px;
+    }
+
+}
+
+/* /{{REFLECTOR_NAME}}_LEGACY_MENU_V1 */
+
+
+
+/* {{REFLECTOR_NAME}}_LEGACY_COMPLETO_V1 */
+
+.legacy-extra-section{
+    scroll-margin-top:10px;
+}
+
+.legacy-stat-row{
+    margin:-4px;
+    text-align:center;
+}
+
+.legacy-stat{
+    display:inline-block;
+    vertical-align:top;
+
+    width:28%;
+
+    min-height:67px;
+
+    margin:4px;
+    padding:9px 6px;
+
+    background:#071923;
+
+    border:1px solid #19485a;
+    border-radius:7px;
+
+    text-align:left;
+}
+
+.legacy-stat small{
+    display:block;
+
+    margin-bottom:6px;
+
+    color:#789ead;
+
+    font-size:9px;
+    font-weight:bold;
+
+    text-transform:uppercase;
+}
+
+.legacy-stat b{
+    display:block;
+
+    color:#51dcff;
+
+    font-size:19px;
+
+    line-height:1.15;
+}
+
+.legacy-longest{
+    margin:11px 0;
+
+    padding:10px;
+
+    background:#071923;
+
+    border:1px solid #19485a;
+    border-left:3px solid #3de5a6;
+    border-radius:7px;
+}
+
+.legacy-longest small{
+    display:block;
+
+    margin-bottom:4px;
+
+    color:#789ead;
+
+    font-size:9px;
+
+    text-transform:uppercase;
+}
+
+.legacy-longest b{
+    color:#ffffff;
+
+    font-size:14px;
+}
+
+.legacy-ranking-column{
+    display:inline-block;
+
+    vertical-align:top;
+
+    width:46%;
+
+    margin:5px 1%;
+
+    padding:10px;
+
+    background:#071923;
+
+    border:1px solid #173d4d;
+    border-radius:7px;
+}
+
+.legacy-ranking-column h3,
+.legacy-news-source h3{
+    margin:0 0 8px;
+
+    color:#55dcff;
+
+    font-size:11px;
+
+    text-transform:uppercase;
+}
+
+.legacy-rank-row{
+    padding:6px 0;
+
+    border-bottom:1px solid #143644;
+
+    font-size:11px;
+}
+
+.legacy-rank-row:last-child{
+    border-bottom:0;
+}
+
+.legacy-rank-row b{
+    display:inline-block;
+
+    width:64%;
+
+    color:#e7f6fa;
+}
+
+.legacy-rank-row span{
+    display:inline-block;
+
+    width:34%;
+
+    color:#92b8c5;
+
+    text-align:right;
+}
+
+.legacy-news-state{
+    margin-bottom:10px;
+
+    color:#779dac;
+
+    font-size:10px;
+}
+
+.legacy-news-source{
+    display:inline-block;
+
+    vertical-align:top;
+
+    width:46%;
+
+    margin:5px 1%;
+    padding:10px;
+
+    background:#071923;
+
+    border:1px solid #173d4d;
+    border-radius:7px;
+}
+
+.legacy-news-item{
+    padding:8px 0;
+
+    border-bottom:1px solid #143644;
+}
+
+.legacy-news-item:last-child{
+    border-bottom:0;
+}
+
+.legacy-news-item a{
+    display:block;
+
+    color:#56ddff;
+
+    font-size:11px;
+    font-weight:bold;
+
+    line-height:1.35;
+
+    text-decoration:none;
+}
+
+.legacy-news-item p{
+    margin:4px 0;
+
+    color:#aac5ce;
+
+    font-size:10px;
+
+    line-height:1.4;
+}
+
+.legacy-news-item small{
+    color:#688b99;
+
+    font-size:9px;
+}
+
+.legacy-support-item{
+    display:inline-block;
+
+    vertical-align:top;
+
+    width:46%;
+
+    min-height:70px;
+
+    margin:5px 1%;
+    padding:10px;
+
+    background:#071923;
+
+    border:1px solid #173d4d;
+    border-radius:7px;
+}
+
+.legacy-support-item b{
+    display:block;
+
+    margin-bottom:6px;
+
+    color:#51dcff;
+
+    font-size:13px;
+}
+
+.legacy-support-item span{
+    color:#aec8d1;
+
+    font-size:10px;
+
+    line-height:1.4;
+}
+
+.legacy-support-links{
+    margin-top:10px;
+
+    text-align:center;
+}
+
+.legacy-support-links a{
+    display:inline-block;
+
+    margin:4px;
+    padding:8px 11px;
+
+    background:#0b2b39;
+
+    border:1px solid #276078;
+    border-radius:6px;
+
+    color:#5fe0ff;
+
+    font-size:10px;
+    font-weight:bold;
+
+    text-decoration:none;
+}
+
+.legacy-note{
+    clear:both;
+
+    margin:10px 0 0;
+
+    color:#638693;
+
+    font-size:9px;
+
+    line-height:1.4;
+}
+
+@media screen and (max-width:600px){
+
+    .legacy-stat{
+        width:28%;
+    }
+
+    .legacy-ranking-column,
+    .legacy-news-source,
+    .legacy-support-item{
+        width:94%;
+        margin-left:2%;
+        margin-right:2%;
+    }
+
+}
+
+/* /{{REFLECTOR_NAME}}_LEGACY_COMPLETO_V1 */
+
+</style>
+<!-- {{REFLECTOR_NAME}}-A11Y-CSS -->
+<link rel="stylesheet" href="assets/xlxmodern-accessibility.css?v=A11Y_AUDIO_V5E_20260823_143453">
+<!-- /{{REFLECTOR_NAME}}-A11Y-CSS -->
+<style id="xlxmodernLegacyModernV1">
+/* {{REFLECTOR_NAME}}_LEGACY_MODERN_V1 — visual moderno, compatível com Safari antigo */
+html,body{background:#06131d;color:#eefaff}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:linear-gradient(#0a2230,#06131d 420px,#050d13)}
+.wrap{width:auto;max-width:1180px;margin:0 auto;padding:24px 28px 40px}
+.wrap>h1{margin:0;color:#fff;font-size:38px;line-height:1.05;letter-spacing:.01em;text-shadow:0 0 18px rgba(0,216,255,.18)}
+.subtitle{margin:8px 0 20px;color:#b9d6e2;font-size:14px}
+.legacy-menu{margin:0 0 18px;padding:12px 14px;border:1px solid #23536a;border-radius:14px;background:#081a25;box-shadow:0 12px 28px rgba(0,0,0,.22)}
+.legacy-menu-track{white-space:normal}
+.legacy-menu-item{display:inline-block;margin:3px 4px 3px 0;padding:10px 15px;border:1px solid #315b6f;border-radius:9px;background:#0b2230;color:#d9eef7!important;font-weight:bold;text-decoration:none}
+.legacy-menu-item:active,.legacy-menu-active{border-color:#00d8ff;background:#0c3041;color:#fff!important;box-shadow:0 0 14px rgba(0,216,255,.22)}
+.legacy-menu-hint{margin-top:8px;color:#8fb1c0;font-size:10px;letter-spacing:.12em;text-transform:uppercase;text-align:right}
+.card{margin:0 0 16px;padding:16px 18px;border:1px solid #1e4558;border-radius:15px;background:#091b26;box-shadow:0 16px 36px rgba(0,0,0,.18)}
+.card>strong{display:block;margin-bottom:12px;color:#6fe7ff;font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+.legacy-summary-card{padding:16px 18px;border-left:4px solid #21eaa0;text-align:center;background:#0a202b}
+.legacy-summary-number{font-size:30px;font-weight:bold;color:#fff}
+.legacy-summary-label{font-size:13px;color:#c8dfe8}
+.legacy-summary-separator{padding:0 10px;color:#5f8291}
+.legacy-tx-state{font-size:18px;font-weight:bold;color:#21eaa0}
+.legacy-system-state{display:block;margin-top:5px;color:#88a9b9;font-size:11px}
+#live{padding:14px 16px;border:1px solid #214a5d;border-left:4px solid #21eaa0;border-radius:11px;background:#071923;color:#dff8ef;font-size:15px;font-weight:bold}
+.legacy-history-note{display:block;margin:-4px 0 10px;color:#8fb1c0;font-size:11px}
+.legacy-history-list{border:1px solid #173b4c;border-radius:11px;overflow:hidden;background:#071923}
+.legacy-history-group{margin:0!important;padding:0!important;border-bottom:1px solid #173545!important;background:#081b26!important}
+.legacy-history-group:last-child{border-bottom:0!important}
+.legacy-history-toggle{display:block;width:100%;padding:12px 14px!important;border:0!important;background:#081b26!important;color:#eefaff!important;text-align:left}
+.legacy-history-toggle:active{background:#0c2a38!important}
+.legacy-history-number{display:inline-block;min-width:28px;color:#64e4ff;font-weight:bold}
+.legacy-history-call{font-size:19px!important;font-weight:bold;color:#fff!important}
+.legacy-history-time{float:right;color:#bcd4de!important;font-size:12px!important}
+.legacy-history-name{display:block;margin:5px 0 3px 30px;color:#72e8ff!important;font-size:13px!important;font-weight:bold}
+.legacy-history-meta{display:block;margin-left:30px;color:#b6ccd5!important;font-size:11px!important}
+.legacy-history-count{display:block;margin:5px 0 0 30px;color:#39e6a2!important;font-size:13px!important;font-weight:bold}
+.legacy-history-details{background:#06151e!important;border-top:1px solid #183d4e!important}
+.legacy-history-detail{padding:9px 12px!important;border-bottom:1px solid #14323f!important;color:#d8edf5!important}
+table{width:100%;border-collapse:collapse;border:1px solid #173b4c;border-radius:10px;background:#071923}
+th{padding:10px 12px;background:#0c2a38;color:#67e6ff;font-size:11px;text-align:left;letter-spacing:.07em;text-transform:uppercase}
+td{padding:10px 12px;border-top:1px solid #173545;color:#e5f4f8;font-size:12px}
+.legacy-stat-row{margin:0 -4px 10px;overflow:hidden}
+.legacy-stat{float:left;width:31%;min-height:74px;margin:0 1%;padding:11px 12px;border:1px solid #1c4455;border-radius:10px;background:#071923;box-sizing:border-box}
+.legacy-stat small{display:block;color:#8fb1c0;font-size:10px;text-transform:uppercase}
+.legacy-stat b{display:block;margin-top:4px;color:#fff;font-size:22px}
+.legacy-longest{clear:both;margin:10px 0;padding:12px 14px;border-left:3px solid #21eaa0;border-radius:8px;background:#071923}
+.legacy-longest small{display:block;color:#8fb1c0;font-size:10px}.legacy-longest b{display:block;margin-top:4px;color:#fff;font-size:16px}
+.legacy-ranking-column,.legacy-news-source,.legacy-support-item{margin-top:10px;padding:12px 14px;border:1px solid #173b4c;border-radius:10px;background:#071923}
+.legacy-ranking-column h3,.legacy-news-source h3{margin:0 0 8px;color:#62e1ff;font-size:12px;text-transform:uppercase}
+.legacy-rank-row{padding:8px 0;border-bottom:1px solid #14323f}.legacy-rank-row:last-child{border-bottom:0}.legacy-rank-row b{color:#fff}.legacy-rank-row span{float:right;color:#3ce7a4}
+.legacy-note{color:#829fac!important;font-size:10px!important}
+#debug{margin-top:14px;color:#6f8e9c!important;font-size:10px!important}
+@media screen and (max-width:700px){
+ .wrap{padding:16px 10px 28px}.wrap>h1{font-size:30px}.subtitle{font-size:12px}.legacy-menu{padding:10px}.legacy-menu-item{padding:9px 11px;font-size:12px}.card{padding:13px 12px}.legacy-summary-number{font-size:25px}.legacy-stat{float:none;width:auto;margin:8px 0}.legacy-history-time{float:none;display:block;margin:3px 0 0 30px}.legacy-rank-row span{float:none;display:block;margin-top:3px}
+}
+
+/* {{REFLECTOR_NAME}}_LEGACY_COMPACT_LIVE_V2 — menos espaço vazio */
+.legacy-menu{padding:9px 11px!important;margin-bottom:10px!important;overflow:hidden!important}
+.legacy-menu-track{display:inline!important}
+.legacy-menu-hint{float:right!important;margin:10px 2px 0 10px!important;text-align:right!important}
+.legacy-summary-card{padding:11px 14px!important;margin-bottom:10px!important}
+.card{padding:12px 14px!important;margin-bottom:10px!important}
+.card>strong{margin-bottom:8px!important}
+#live{padding:10px 12px!important;min-height:0!important}
+.legacy-live-layout{display:block;overflow:hidden}
+.legacy-live-multi{margin:0 0 8px;padding:0 0 8px;border-bottom:1px solid #173b4c}
+.legacy-live-multi:last-child{margin-bottom:0;padding-bottom:0;border-bottom:0}
+.legacy-live-photo-wrap{float:left;width:86px;height:86px;margin:0 12px 0 0;border:1px solid #2f6578;border-radius:12px;overflow:hidden;background:#07131c;text-align:center}
+.legacy-live-photo{width:86px;height:86px;object-fit:cover;border:0}
+.legacy-live-copy{overflow:hidden;min-height:86px}
+.legacy-live-callsign{font-size:24px!important;line-height:1.05!important}
+.legacy-live-name{margin-top:4px!important}
+.legacy-last-inline{display:block;overflow:hidden}
+.legacy-last-label{display:block;margin-bottom:4px;color:#6fe7ff;font-size:10px;font-weight:bold;letter-spacing:.1em;text-transform:uppercase}
+.legacy-last-call{display:inline-block;margin-right:8px;color:#fff;font-size:21px;font-weight:bold;text-decoration:none}
+.legacy-last-name{display:inline;color:#72e8ff;font-size:13px;font-weight:bold}
+.legacy-last-meta{display:block;margin-top:5px;color:#b6ccd5;font-size:11px}
+.legacy-last-time{display:block;margin-top:4px;color:#39e6a2;font-size:11px;font-weight:bold}
+@media screen and (max-width:700px){
+ .legacy-menu-hint{float:none!important;display:block!important;margin:6px 0 0!important;text-align:left!important}
+ .legacy-live-photo-wrap{width:72px;height:72px;margin-right:9px}.legacy-live-photo{width:72px;height:72px}.legacy-live-copy{min-height:72px}.legacy-live-callsign{font-size:20px!important}
+}
+/* /{{REFLECTOR_NAME}}_LEGACY_COMPACT_LIVE_V2 */
+
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+
+<h1>{{REFLECTOR_NAME}}</h1>
+<p class="subtitle">
+Painel leve e compativel para navegadores antigos
+</p>
+
+<!-- {{REFLECTOR_NAME}}_LEGACY_MENU_V1 -->
+<nav class="legacy-menu"
+     aria-label="Menu do painel {{REFLECTOR_NAME}} compativel">
+  <div class="legacy-menu-track">
+
+    <a class="legacy-menu-item legacy-menu-active"
+       href="#live">
+      Ao vivo
+    </a>
+
+    <a class="legacy-menu-item"
+       href="#connections">
+      Conectados
+    </a>
+
+    <a class="legacy-menu-item"
+       href="#legacyRanking">
+      Ranking
+    </a>
+
+
+
+    <!-- {{REFLECTOR_NAME}}_A11Y_LEGACY_V5E -->
+    <a class="legacy-menu-item xlx-a11y-menu-icon"
+       href="#acessibilidade"
+       aria-label="Abrir acessibilidade"
+       title="Acessibilidade">
+      ♿
+    </a>
+    <!-- /{{REFLECTOR_NAME}}_A11Y_LEGACY_V5E -->
+
+    <a class="legacy-menu-item"
+       href="#legacySupport">
+      Suporte
+    </a>
+
+  </div>
+
+  <div class="legacy-menu-hint">
+    {{REFLECTOR_NAME}} · modo compatível
+  </div>
+</nav>
+<!-- /{{REFLECTOR_NAME}}_LEGACY_MENU_V1 -->
+
+
+<!-- {{REFLECTOR_NAME}}_LEGACY_SUMMARY_V1 -->
+<div class="card legacy-summary-card">
+    <span id="connected" class="legacy-summary-number">--</span>
+    <span class="legacy-summary-label">conectados</span>
+    <span class="legacy-summary-separator">•</span>
+    <span id="active" class="legacy-tx-state">Standby</span>
+    <span id="state" class="legacy-system-state" aria-live="polite"></span>
+</div>
+<!-- /{{REFLECTOR_NAME}}_LEGACY_SUMMARY_V1 -->
+
+<div class="card">
+    <strong>Ao vivo</strong>
+
+    <div id="live" aria-live="polite">
+        aguardando transmissao...
+    </div>
+</div>
+
+
+
+<!-- {{REFLECTOR_NAME}}_LEGACY_HISTORY_24H_GROUPED_V2 -->
+<div class="card" id="legacyHistoryCard">
+    <strong>Atividade das últimas 24 horas</strong>
+    <span class="legacy-history-note">Até 15 indicativos · toque em um indicativo para abrir todas as transmissões dele</span>
+    <div id="legacyHistory15" class="legacy-history-list">
+        <div class="legacy-history-empty">aguardando histórico...</div>
+    </div>
+</div>
+<!-- /{{REFLECTOR_NAME}}_LEGACY_HISTORY_24H_GROUPED_V2 -->
+
+<div class="card">
+    <strong>Estacoes conectadas</strong>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Indicativo</th>
+                <th>Modulo</th>
+                <th>Protocolo</th>
+            </tr>
+        </thead>
+
+        <tbody id="connections">
+            <tr>
+                <td colspan="3">
+                    aguardando...
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+
+<!-- {{REFLECTOR_NAME}}_LEGACY_COMPLETO_V1 -->
+
+<div class="card legacy-extra-section"
+     id="legacyRanking">
+
+    <strong>Ranking recente</strong>
+
+    <div class="legacy-stat-row">
+
+        <div class="legacy-stat">
+            <small>Transmissões</small>
+            <b id="legacyRankTxTotal">--</b>
+        </div>
+
+        <div class="legacy-stat">
+            <small>Tempo no ar</small>
+            <b id="legacyRankAirTotal">--</b>
+        </div>
+
+        <div class="legacy-stat">
+            <small>Indicativos</small>
+            <b id="legacyRankPeople">--</b>
+        </div>
+
+    </div>
+
+    <div class="legacy-longest">
+        <small>Mais tempo conectado agora</small>
+        <b id="legacyRankLongest">--</b>
+    </div>
+
+    <div class="legacy-ranking-column">
+        <h3>Mais transmissões</h3>
+        <div id="legacyRankTx">carregando...</div>
+    </div>
+
+    <div class="legacy-ranking-column">
+        <h3>Mais tempo falando</h3>
+        <div id="legacyRankAir">carregando...</div>
+    </div>
+
+    <div class="legacy-ranking-column">
+        <h3>Módulos mais utilizados</h3>
+        <div id="legacyRankModules">carregando...</div>
+    </div>
+
+    <div class="legacy-ranking-column">
+        <h3>Protocolos</h3>
+        <div id="legacyRankProtocols">carregando...</div>
+    </div>
+
+    <p class="legacy-note">
+        Ranking simplificado usando os dados recentes
+        já recebidos pelo painel compatível.
+    </p>
+
+</div>
+
+
+<div class="card legacy-extra-section"
+     id="legacyNews">
+
+    <strong>Notícias</strong>
+
+    <div
+        id="legacyNewsState"
+        class="legacy-news-state"
+    >
+        carregando notícias...
+    </div>
+
+    <div class="legacy-news-source">
+
+        <h3>ANATEL</h3>
+
+        <div id="legacyNewsAnatel">
+            aguardando...
+        </div>
+
+    </div>
+
+    <div class="legacy-news-source">
+
+        <h3>LABRE</h3>
+
+        <div id="legacyNewsLabre">
+            aguardando...
+        </div>
+
+    </div>
+
+    <p class="legacy-note">
+        Notícias oficiais atualizadas automaticamente.
+    </p>
+
+</div>
+
+
+<div class="card legacy-extra-section"
+     id="legacySupport">
+
+    <strong>Suporte {{REFLECTOR_NAME}}</strong>
+
+    <div class="legacy-support-item">
+        <b>DMR</b>
+        <span>
+            {{REFLECTOR_NAME}}-C · TG 6 no rádio ·
+            TG 4003 nos aplicativos.
+        </span>
+    </div>
+
+    <div class="legacy-support-item">
+        <b>D-STAR</b>
+        <span>
+            Operação principal no módulo D ·
+            {{REFLECTOR_NAME}}-D / XRF026-D.
+        </span>
+    </div>
+
+    <div class="legacy-support-item">
+        <b>C4FM / YSF</b>
+        <span>
+            Refletor YSF72426 · módulo C.
+        </span>
+    </div>
+
+    <div class="legacy-support-item">
+        <b>Teste / Echo</b>
+        <span>
+            Módulo E para testes de áudio.
+        </span>
+    </div>
+
+    <div class="legacy-support-links">
+
+        <a
+            href="https://wpsd.radio/"
+            target="_blank"
+            rel="noopener noreferrer"
+        >
+            WPSD
+        </a>
+
+        <a
+            href="https://manual.wpsd.radio/"
+            target="_blank"
+            rel="noopener noreferrer"
+        >
+            Manual WPSD
+        </a>
+
+        <a
+            href="https://pi-star.de/"
+            target="_blank"
+            rel="noopener noreferrer"
+        >
+            Pi-Star
+        </a>
+
+    </div>
+
+    <p class="legacy-note">
+        Esta é a versão leve do suporte para
+        navegadores antigos.
+    </p>
+
+</div>
+
+<!-- /{{REFLECTOR_NAME}}_LEGACY_COMPLETO_V1 -->
+
+<!-- Diagnóstico técnico mantido oculto no legado. -->
+<div id="debug" style="display:none" aria-hidden="true">iniciando...</div>
+
+</div>
+
+<script>
+(function(){
+
+    var statusUrl = "/api/status.php?history_hours=24";
+    var liveUrl = "/api/live.php";
+
+    var statusTimer = null;
+    var liveTimer = null;
+    var legacyNewsTimer = null;
+    var lastStatusData = null;
+    var legacyLiveVisualSignature = "";
+    var legacyHistoryGroups = [];
+    var legacyHistoryOpenCall = "";
+
+    function el(id){
+        return document.getElementById(id);
+    }
+
+    function esc(value){
+        var div = document.createElement("div");
+        div.appendChild(
+            document.createTextNode(
+                value === null ||
+                value === undefined
+                ? ""
+                : String(value)
+            )
+        );
+        return div.innerHTML;
+    }
+
+    function xhrJson(url,callback){
+        var xhr;
+
+        try{
+            xhr = new XMLHttpRequest();
+        }catch(e){
+            callback(
+                new Error("XMLHttpRequest indisponivel")
+            );
+            return;
+        }
+
+        xhr.onreadystatechange = function(){
+
+            if(xhr.readyState !== 4){
+                return;
+            }
+
+            if(
+                xhr.status < 200 ||
+                xhr.status >= 300
+            ){
+                callback(
+                    new Error(
+                        "HTTP " + xhr.status
+                    )
+                );
+                return;
+            }
+
+            try{
+                callback(
+                    null,
+                    JSON.parse(xhr.responseText)
+                );
+            }catch(e){
+                callback(
+                    new Error(
+                        "JSON invalido"
+                    )
+                );
+            }
+        };
+
+        xhr.onerror = function(){
+            callback(
+                new Error("erro de rede")
+            );
+        };
+
+        xhr.open(
+            "GET",
+            url +
+                (url.indexOf("?") === -1 ? "?" : "&") +
+                "legacy=" + new Date().getTime(),
+            true
+        );
+
+        xhr.setRequestHeader(
+            "Cache-Control",
+            "no-cache"
+        );
+
+        xhr.send(null);
+    }
+
+
+    /* {{REFLECTOR_NAME}}_LEGACY_COMPLETO_V1 */
+
+    function own(obj,key){
+        return Object.prototype.hasOwnProperty.call(
+            obj,
+            key
+        );
+    }
+
+    function legacyTime(seconds){
+
+        var value=parseInt(
+            seconds,
+            10
+        );
+
+        var h;
+        var m;
+        var s;
+
+        if(
+            !isFinite(value) ||
+            value < 0
+        ){
+            value=0;
+        }
+
+        h=Math.floor(value/3600);
+        m=Math.floor((value%3600)/60);
+        s=Math.floor(value%60);
+
+        function pad(v){
+            return v < 10
+                ? "0" + v
+                : String(v);
+        }
+
+        return (
+            pad(h)
+            + ":"
+            + pad(m)
+            + ":"
+            + pad(s)
+        );
+    }
+
+    function legacyTop(map){
+
+        var rows=[];
+        var key;
+
+        for(key in map){
+
+            if(!own(map,key)){
+                continue;
+            }
+
+            rows.push({
+                label:key,
+                value:map[key]
+            });
+        }
+
+        rows.sort(
+            function(a,b){
+                return b.value-a.value;
+            }
+        );
+
+        return rows.slice(0,5);
+    }
+
+    function legacyRankHtml(
+        rows,
+        mode
+    ){
+
+        var html="";
+        var i;
+        var value;
+
+        if(!rows.length){
+            return (
+                '<div class="legacy-rank-row">'
+                + 'Sem dados'
+                + '</div>'
+            );
+        }
+
+        for(i=0;i<rows.length;i++){
+
+            value=rows[i].value;
+
+            if(mode === "time"){
+                value=legacyTime(value);
+            }else if(mode === "tx"){
+                value=value + " TX";
+            }
+
+            html +=
+                '<div class="legacy-rank-row">'
+                + '<b>'
+                + esc(rows[i].label)
+                + '</b>'
+                + '<span>'
+                + esc(value)
+                + '</span>'
+                + '</div>';
+        }
+
+        return html;
+    }
+
+    function renderLegacyRanking(data){
+
+        var history=data.history || [];
+        var connections=data.connections || [];
+
+        var tx={};
+        var air={};
+        var modules={};
+        var protocols={};
+        var calls={};
+
+        var totalAir=0;
+        var i;
+        var row;
+        var call;
+        var duration;
+        var moduleName;
+        var protocolName;
+
+        var oldest=null;
+        var connectedAt;
+        var now=Math.floor(
+            new Date().getTime()/1000
+        );
+
+        for(i=0;i<history.length;i++){
+
+            row=history[i] || {};
+
+            call=String(
+                row.callsign || ""
+            );
+
+            if(call){
+
+                calls[call]=true;
+
+                tx[call]=
+                    (tx[call] || 0)
+                    + 1;
+
+                duration=parseInt(
+                    row.duration,
+                    10
+                );
+
+                if(
+                    !isFinite(duration) ||
+                    duration < 0
+                ){
+                    duration=0;
+                }
+
+                air[call]=
+                    (air[call] || 0)
+                    + duration;
+
+                totalAir += duration;
+            }
+
+            moduleName=String(
+                row.module || ""
+            );
+
+            if(moduleName){
+
+                moduleName=
+                    "Módulo "
+                    + moduleName;
+
+                modules[moduleName]=
+                    (modules[moduleName] || 0)
+                    + 1;
+            }
+
+            protocolName=String(
+                row.protocol || ""
+            );
+
+            if(protocolName){
+
+                protocols[protocolName]=
+                    (protocols[protocolName] || 0)
+                    + 1;
+            }
+        }
+
+        for(i=0;i<connections.length;i++){
+
+            row=connections[i] || {};
+
+            connectedAt=parseInt(
+                row.connected_at,
+                10
+            );
+
+            if(
+                !isFinite(connectedAt) ||
+                connectedAt <= 0
+            ){
+                continue;
+            }
+
+            if(
+                oldest === null ||
+                connectedAt <
+                oldest.connected_at
+            ){
+                oldest={
+                    callsign:
+                        String(
+                            row.callsign || ""
+                        ),
+                    connected_at:
+                        connectedAt
+                };
+            }
+        }
+
+        el("legacyRankTxTotal").innerHTML=
+            esc(history.length);
+
+        el("legacyRankAirTotal").innerHTML=
+            esc(
+                legacyTime(totalAir)
+            );
+
+        var people=0;
+        var key;
+
+        for(key in calls){
+            if(own(calls,key)){
+                people++;
+            }
+        }
+
+        el("legacyRankPeople").innerHTML=
+            esc(people);
+
+        if(oldest){
+
+            el("legacyRankLongest").innerHTML=
+                esc(oldest.callsign)
+                + " &middot; "
+                + esc(
+                    legacyTime(
+                        Math.max(
+                            0,
+                            now-oldest.connected_at
+                        )
+                    )
+                );
+
+        }else{
+
+            el("legacyRankLongest").innerHTML=
+                "Nenhuma estação";
+
+        }
+
+        el("legacyRankTx").innerHTML=
+            legacyRankHtml(
+                legacyTop(tx),
+                "tx"
+            );
+
+        el("legacyRankAir").innerHTML=
+            legacyRankHtml(
+                legacyTop(air),
+                "time"
+            );
+
+        el("legacyRankModules").innerHTML=
+            legacyRankHtml(
+                legacyTop(modules),
+                "tx"
+            );
+
+        el("legacyRankProtocols").innerHTML=
+            legacyRankHtml(
+                legacyTop(protocols),
+                "tx"
+            );
+    }
+
+
+    /* {{REFLECTOR_NAME}}_LEGACY_DATA_RESTORE_V1 — ES5 only */
+
+    function legacyClock(epoch){
+        var n=parseInt(epoch,10);
+        var d;
+        var h;
+        var m;
+        if(!isFinite(n) || n<=0){ return "--:--"; }
+        d=new Date(n*1000);
+        h=d.getHours();
+        m=d.getMinutes();
+        return (h<10?"0":"")+h+":"+(m<10?"0":"")+m;
+    }
+
+    function renderLegacyConnections(data){
+        var rows=data.connections || [];
+        var html="";
+        var i;
+        var row;
+        var max=rows.length > 80 ? 80 : rows.length;
+
+        if(!rows.length){
+            el("connections").innerHTML='<tr><td colspan="3">Nenhuma estação conectada</td></tr>';
+            return;
+        }
+
+        for(i=0;i<max;i++){
+            row=rows[i] || {};
+            html += '<tr>'
+                + '<td>'+esc(row.callsign || "-")+'</td>'
+                + '<td>'+esc(row.module || "-")+'</td>'
+                + '<td>'+esc(row.protocol || "-")+'</td>'
+                + '</tr>';
+        }
+        el("connections").innerHTML=html;
+    }
+
+    function renderLegacyHistory(data){
+        var rows=data.history || [];
+        var seen={};
+        var groups=[];
+        var i;
+        var row;
+        var call;
+        var g;
+        var html="";
+
+        for(i=0;i<rows.length;i++){
+            row=rows[i] || {};
+            call=String(row.callsign || "");
+            if(!call){ continue; }
+
+            if(!own(seen,call)){
+                g={
+                    callsign:call,
+                    name:String(row.name || ""),
+                    location:String(row.location || ""),
+                    module:String(row.module || ""),
+                    protocol:String(row.protocol || ""),
+                    started_at:parseInt(row.started_at,10) || 0,
+                    duration:parseInt(row.duration,10) || 0,
+                    count:1
+                };
+                seen[call]=g;
+                groups.push(g);
+            }else{
+                seen[call].count++;
+            }
+        }
+
+        groups.sort(function(a,b){ return b.started_at-a.started_at; });
+        groups=groups.slice(0,15);
+        legacyHistoryGroups=groups;
+
+        if(!groups.length){
+            el("legacyHistory15").innerHTML='<div class="legacy-history-empty">Sem transmissões nas últimas 24 horas</div>';
+            return;
+        }
+
+        for(i=0;i<groups.length;i++){
+            g=groups[i];
+            html += '<div class="legacy-history-group">'
+                + '<div class="legacy-history-top">'
+                + '<span class="legacy-history-number">'+esc(i+1)+'</span>'
+                + '<b class="legacy-history-call">'+esc(g.callsign)+'</b>'
+                + '<span class="legacy-history-time">'+esc(legacyClock(g.started_at))+'</span>'
+                + '</div>'
+                + (g.name ? '<div class="legacy-history-name">'+esc(g.name)+'</div>' : '')
+                + '<div class="legacy-history-meta">'
+                + esc(g.location || "Local não informado")
+                + ' · Módulo '+esc(g.module || "-")
+                + ' · '+esc(g.protocol || "-")
+                + '</div>'
+                + '<div class="legacy-history-count">'
+                + esc(g.count)+' transmissão'+(g.count===1?'':'ões')
+                + ' · '+esc(legacyTime(g.duration))
+                + '</div>'
+                + '</div>';
+        }
+        el("legacyHistory15").innerHTML=html;
+    }
+
+    function renderLegacyStatus(data){
+        var count=parseInt(data.connected_count,10);
+        var active=parseInt(data.active_count,10);
+
+        if(!isFinite(count)){ count=0; }
+        if(!isFinite(active)){ active=0; }
+
+        el("connected").innerHTML=esc(count);
+        el("active").innerHTML=active>0 ? esc(active+" TX ativa"+(active===1?'':'s')) : "Standby";
+        el("active").className=active>0 ? "legacy-tx-state tx-active" : "legacy-tx-state";
+        el("state").innerHTML="online";
+        el("state").className="legacy-system-state";
+
+        renderLegacyConnections(data);
+        renderLegacyHistory(data);
+        renderLegacyRanking(data);
+    }
+
+    function legacyCleanCall(value){
+        return String(value || "").toUpperCase().replace(/[^A-Z0-9]/g,"");
+    }
+
+    function legacyNewestHistory(){
+        var history=(lastStatusData && lastStatusData.history) ? lastStatusData.history : [];
+        var newest=null;
+        var i;
+        var started;
+        for(i=0;i<history.length;i++){
+            started=parseInt(history[i].started_at,10);
+            if(!isFinite(started)){ started=0; }
+            if(newest===null || started>parseInt(newest.started_at,10)){
+                newest=history[i];
+            }
+        }
+        return newest;
+    }
+
+    function legacyFormatClock(epoch){
+        var n=parseInt(epoch,10);
+        var d;
+        var h;
+        var m;
+        if(!isFinite(n) || n<=0){ return ""; }
+        d=new Date(n*1000);
+        h=d.getHours();
+        m=d.getMinutes();
+        return (h<10?"0":"")+h+":"+(m<10?"0":"")+m;
+    }
+
+    function legacyLoadQrzPhoto(call,imgId){
+        var clean=legacyCleanCall(call);
+        var img=el(imgId);
+        if(!clean || !img){ return; }
+        xhrJson('/api/qrz-photo.php?callsign='+encodeURIComponent(clean),function(error,result){
+            var current=el(imgId);
+            if(!current || current.getAttribute('data-call') !== clean || error || !result || !result.ok || !result.photo || !result.url){ return; }
+            current.onerror=function(){
+                current.onerror=null;
+                current.src='assets/talking-radio.gif';
+            };
+            current.src=String(result.url);
+            current.alt='Foto pública do QRZ de '+clean;
+        });
+    }
+
+    function renderLegacyStandbyLast(){
+        var row=legacyNewestHistory();
+        var call;
+        var html;
+        var when;
+        if(!row){
+            el("live").innerHTML='<div class="legacy-standby"><b class="legacy-standby-title">Aguardando transmissão...</b></div>';
+            return;
+        }
+        call=row.callsign || "";
+        when=legacyFormatClock(row.started_at);
+        html='<div class="legacy-last-inline">'
+            + '<span class="legacy-last-label">Última transmissão</span>'
+            + '<a class="legacy-last-call" href="https://www.qrz.com/db/'+encodeURIComponent(call)+'" target="_blank">'+esc(call || "-")+'</a>'
+            + (row.name ? '<span class="legacy-last-name">'+esc(row.name)+'</span>' : '')
+            + '<span class="legacy-last-meta">'
+            + esc(row.location || "Local não informado")
+            + ' · Módulo '+esc(row.module || "-")
+            + ' · '+esc(row.protocol || "-")
+            + '</span>'
+            + '<span class="legacy-last-time">'+(when ? esc(when)+' · ' : '')+esc(legacyTime(row.duration || 0))+'</span>'
+            + '</div>';
+        el("live").innerHTML=html;
+    }
+
+    function renderLegacyLive(data){
+        var active=data.active || {};
+        var rows=[];
+        var key;
+        var i;
+        var row;
+        var call;
+        var html="";
+        var signatures=[];
+
+        for(key in active){
+            if(own(active,key) && active[key]){
+                rows.push({ key:key, row:active[key] });
+            }
+        }
+
+        if(!rows.length){
+            if(legacyLiveVisualSignature !== "standby"){
+                renderLegacyStandbyLast();
+                legacyLiveVisualSignature = "standby";
+            }
+            return;
+        }
+
+        for(i=0;i<rows.length;i++){
+            row=rows[i].row || {};
+            call=row.callsign || row.call || "";
+            signatures.push([
+                rows[i].key || "",
+                row.stream_id || "",
+                row.started_at || "",
+                call,
+                row.module || "",
+                row.protocol || ""
+            ].join(":"));
+        }
+
+        signatures.sort();
+        var signature=signatures.join("|");
+
+        if(signature === legacyLiveVisualSignature){
+            return;
+        }
+
+        legacyLiveVisualSignature = signature;
+
+        for(i=0;i<rows.length;i++){
+            row=rows[i].row || {};
+            key=rows[i].key || "";
+            call=row.callsign || row.call || "";
+            var imgId="legacyLivePhoto"+i;
+
+            html += '<div class="legacy-live-layout legacy-live-multi">'
+                + '<div class="legacy-live-photo-wrap"><img id="'+imgId+'" class="legacy-live-photo" data-call="'+esc(legacyCleanCall(call))+'" src="assets/talking-radio.gif" alt="Indicador de transmissão"></div>'
+                + '<div class="legacy-live-copy">'
+                + '<div class="legacy-live-head"><b class="legacy-live-callsign">'+esc(call || "No ar")+'</b></div>'
+                + (row.name ? '<div class="legacy-live-name">'+esc(row.name)+'</div>' : '')
+                + (row.location ? '<div class="legacy-live-location">'+esc(row.location)+'</div>' : '')
+                + '<div class="legacy-live-badges">'
+                + '<span class="legacy-live-badge">Módulo '+esc(row.module || key || "-")+'</span>'
+                + '<span class="legacy-live-badge">'+esc(row.protocol || "-")+'</span>'
+                + '</div>'
+                + '</div></div>';
+        }
+
+        el("live").innerHTML=html;
+
+        for(i=0;i<rows.length;i++){
+            row=rows[i].row || {};
+            call=row.callsign || row.call || "";
+            legacyLoadQrzPhoto(call,"legacyLivePhoto"+i);
+        }
+    }
+
+    function loadStatus(){
+        xhrJson(statusUrl,function(error,data){
+            if(error || !data || data.ok === false){
+                el("state").innerHTML="dados indisponíveis";
+                el("state").className="legacy-system-state err";
+                return;
+            }
+            lastStatusData=data;
+            renderLegacyStatus(data);
+        });
+    }
+
+    function loadLive(){
+        xhrJson(liveUrl,function(error,data){
+            if(error || !data || data.ok === false){
+                return;
+            }
+            renderLegacyLive(data);
+        });
+    }
+
+    /* /{{REFLECTOR_NAME}}_LEGACY_DATA_RESTORE_V1 */
+
+    function start(){
+
+        el("debug").innerHTML =
+            "JavaScript ES5 iniciou.";
+
+        loadStatus();
+        loadLive();
+
+        statusTimer =
+            window.setInterval(
+                loadStatus,
+                5000
+            );
+
+        liveTimer =
+            window.setInterval(
+                loadLive,
+                1000
+            );
+
+    }
+
+    if(
+        document.readyState === "loading"
+    ){
+        document.addEventListener(
+            "DOMContentLoaded",
+            start,
+            false
+        );
+    }else{
+        start();
+    }
+
+})();
+</script>
+
+<!-- {{REFLECTOR_NAME}}-A11Y-JS -->
+<script src="assets/xlxmodern-accessibility.js?v=A11Y_AUDIO_V5E_20260823_143453" defer></script>
+<!-- /{{REFLECTOR_NAME}}-A11Y-JS -->
+</body>
+</html>
