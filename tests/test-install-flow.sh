@@ -65,5 +65,19 @@ expect 'HTTPS recovery helper is installed' 'xlx-modern-https-retry' "$DASHBOARD
 expect 'CallingHome follows actual HTTPS readiness' '[ "$HTTPS_READY" -eq 1 ] && CALLINGHOME_SCHEME="https"' "$DASHBOARD_INSTALLER"
 expect 'final validation treats pending HTTPS as warning' 'certificate is still pending' "$INSTALLER"
 
+tmp_cert="$(mktemp -d)"
+cp "$ROOT/dashboard/index.php" "$tmp_cert/index.php"
+if python3 "$ROOT/dashboard/install/ensure-certificate-hook.py" "$tmp_cert/index.php" >/dev/null \
+   && python3 "$ROOT/dashboard/install/ensure-certificate-hook.py" "$tmp_cert/index.php" >/dev/null \
+   && grep -Fq "\$allowed[] = 'certificado';" "$tmp_cert/index.php" \
+   && grep -Fq "\$items['certificado']" "$tmp_cert/index.php" \
+   && grep -Fq "require __DIR__.'/certificado-view.php';" "$tmp_cert/index.php"; then
+    printf 'OK | certificate hook integrates with current dashboard structure and is idempotent\n'
+else
+    printf 'FAIL | certificate hook integrates with current dashboard structure and is idempotent\n' >&2
+    failures=$((failures + 1))
+fi
+rm -rf "$tmp_cert"
+
 printf 'failures=%d\n' "$failures"
 exit "$failures"

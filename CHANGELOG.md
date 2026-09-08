@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.2.4 — 2026-09-07
+
+### Fixed
+- Replaced the fragile Certificate route hook with a semantic, idempotent integration compatible with the current dashboard page structure and module ordering.
+- Added a regression test that applies the Certificate hook twice to the current dashboard and validates route, navigation and view integration.
+- Dashboard footer version is now rendered from the installer VERSION instead of a stale hard-coded v1.2.0 label.
+- Corrected the Admin installation report: no terminal route is provided (`terminal_route_admin=no`), and the reported Admin baseline is 1.5.1.
+- Propagated the selected installer language into runtime-data, callsign-directory, Admin and Certificate modules and translated their active PT/EN operational messages.
+
 ## v1.2.3 — 2026-09-07
 
 ### Fixed

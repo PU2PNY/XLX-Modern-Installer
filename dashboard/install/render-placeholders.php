@@ -32,6 +32,7 @@ if (!is_array($config)) {
 
 $reflector = $config['reflector'] ?? [];
 $radio = $config['radio'] ?? [];
+$software = $config['software'] ?? [];
 
 $required = [
     'reflector.name' => $reflector['name'] ?? '',
@@ -98,6 +99,9 @@ $replacements = [
 
     '{{DMR_TG}}' =>
         (string)$radio['dmr_tg'],
+
+    '{{XLX_MODERN_VERSION}}' =>
+        (string)($software['version'] ?? 'unknown'),
 ];
 
 $allowedExtensions = [

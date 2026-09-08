@@ -40,7 +40,7 @@ podem ser fornecidas somente no processo local.
 HELP
       exit 0
       ;;
-    *) echo "[ERRO] opção desconhecida: $arg" >&2; exit 2 ;;
+    *) echo "$(say '[ERRO] opção desconhecida:' '[ERROR] unknown option:') $arg" >&2; exit 2 ;;
   esac
 done
 
@@ -67,7 +67,7 @@ warn(){ printf '\033[1;33m%s\033[0m %s\n' "$(say '[ATENÇÃO]' '[WARNING]')" "$*
 fail(){ printf '\033[0;31m%s\033[0m %s\n' "$(say '[ERRO]' '[ERROR]')" "$*" >&2; }
 section(){ printf '\n============================================================\n%s\n============================================================\n' "$*"; }
 
-require_root(){ [[ "$(id -u)" -eq 0 ]] || { fail 'execute como root'; exit 1; }; }
+require_root(){ [[ "$(id -u)" -eq 0 ]] || { fail "$(say 'execute como root' 'run as root')"; exit 1; }; }
 version(){ sed -n 's:.*<Version>\([^<]*\)</Version>.*:\1:p' /var/log/xlxd.xml 2>/dev/null | head -1; }
 
 build_admin_source(){
@@ -95,7 +95,7 @@ validate_sources(){
   build_admin_source "$tmp"
   rm -f "$tmp"
   grep -Fq 'Uso permitido: status|listeners|logs|backups|restart|radioid-*|access-*' "$SOURCE_HELPER"
-  ok 'fonte completa do Admin, helpers e sintaxe aprovados'
+  ok "$(say 'fonte completa do Admin, helpers e sintaxe aprovados' 'complete Admin source, helpers and syntax approved')"
 }
 
 require_root
@@ -105,10 +105,10 @@ done
 validate_sources
 
 if [[ "$MODE" == check ]]; then
-  section 'ADMIN XLX MODERN — CHECK'
-  ok 'baseline Admin 1.5.1 genérico validado'
-  ok 'RadioID, whitelist, blacklist, Interlink, Health, auditoria e proteção presentes'
-  ok 'nenhuma credencial fixa detectada'
+  section "$(say 'ADMIN XLX MODERN — VERIFICAÇÃO' 'XLX MODERN ADMIN — CHECK')"
+  ok "$(say 'baseline Admin 1.5.1 genérico validado' 'generic Admin 1.5.1 baseline validated')"
+  ok "$(say 'RadioID, whitelist, blacklist, Interlink, Health, auditoria e proteção presentes' 'RadioID, whitelist, blacklist, Interlink, Health, audit and protection present')"
+  ok "$(say 'nenhuma credencial fixa detectada' 'no fixed credential detected')"
   exit 0
 fi
 
@@ -116,23 +116,23 @@ id "$WEBUSER" >/dev/null 2>&1 || { fail "usuário web $WEBUSER ausente"; exit 6;
 [[ -d "$DASHBOARD_DIR" ]] || { fail "dashboard ausente: $DASHBOARD_DIR"; exit 7; }
 SITE_CFG="$DASHBOARD_DIR/config/site.php"
 [[ -f "$SITE_CFG" ]] || { fail "configuração do dashboard ausente: $SITE_CFG"; exit 8; }
-[[ -x /xlxd/xlxd ]] || { fail 'binário XLXD ausente'; exit 9; }
-systemctl is-active --quiet xlxd.service || { fail 'xlxd.service inativo'; exit 10; }
-[[ "$(pgrep -x xlxd | wc -l)" -eq 1 ]] || { fail 'quantidade de processos XLXD inesperada'; exit 11; }
+[[ -x /xlxd/xlxd ]] || { fail "$(say 'binário XLXD ausente' 'XLXD binary missing')"; exit 9; }
+systemctl is-active --quiet xlxd.service || { fail "$(say 'xlxd.service inativo' 'xlxd.service inactive')"; exit 10; }
+[[ "$(pgrep -x xlxd | wc -l)" -eq 1 ]] || { fail "$(say 'quantidade de processos XLXD inesperada' 'unexpected XLXD process count')"; exit 11; }
 for file in /xlxd/xlxd.whitelist /xlxd/xlxd.blacklist /xlxd/xlxd.terminal /xlxd/users_db/users_base.csv /xlxd/users_db/users.db /xlxd/users_db/create_user_db.php; do
   [[ -f "$file" ]] || { fail "dependência do Admin ausente: $file"; exit 12; }
 done
 
 REFLECTOR_NAME="$(php -r '$c=require $argv[1]; echo (string)($c["reflector"]["name"]??"");' "$SITE_CFG")"
 DOMAIN="$(php -r '$c=require $argv[1]; echo (string)($c["reflector"]["domain"]??"");' "$SITE_CFG")"
-[[ -n "$REFLECTOR_NAME" ]] || { fail 'nome do refletor não encontrado'; exit 13; }
-[[ -n "$DOMAIN" ]] || { fail 'domínio não encontrado'; exit 14; }
+[[ -n "$REFLECTOR_NAME" ]] || { fail "$(say 'nome do refletor não encontrado' 'reflector name not found')"; exit 13; }
+[[ -n "$DOMAIN" ]] || { fail "$(say 'domínio não encontrado' 'domain not found')"; exit 14; }
 DOMAIN="$(printf '%s' "$DOMAIN" | sed -E 's#^https?://##; s#/*$##')"
 BASE_URL="${XLX_CONTROL_BASE_URL:-https://$DOMAIN}"
 TITLE="Admin $REFLECTOR_NAME"
 CORE_SHA="$(sha256sum /xlxd/xlxd | awk '{print $1}')"
 CORE_VERSION="$(version)"
-[[ -n "$CORE_VERSION" ]] || { fail 'versão do XLXD não encontrada em /var/log/xlxd.xml'; exit 15; }
+[[ -n "$CORE_VERSION" ]] || { fail "$(say 'versão do XLXD não encontrada em /var/log/xlxd.xml' 'XLXD version not found in /var/log/xlxd.xml')"; exit 15; }
 
 section "$(say '1/8 — CREDENCIAL LOCAL' '1/8 — LOCAL CREDENTIAL')"
 USERNAME="${XLX_CONTROL_USERNAME:-}"
@@ -143,7 +143,7 @@ if [[ -z "$USERNAME" ]]; then
     echo "$(say 'Use 3-64 caracteres: letras, números, ponto, _ ou -.' 'Use 3-64 characters: letters, numbers, dot, _ or -.')"
   done
 fi
-[[ "$USERNAME" =~ ^[A-Za-z0-9._-]{3,64}$ ]] || { fail 'usuário inválido'; exit 20; }
+[[ "$USERNAME" =~ ^[A-Za-z0-9._-]{3,64}$ ]] || { fail "$(say 'usuário inválido' 'invalid username')"; exit 20; }
 
 PASSWORD="${XLX_CONTROL_PASSWORD:-}"
 if [[ -z "$PASSWORD" ]]; then
@@ -172,9 +172,9 @@ if [[ -z "$PASSWORD" ]]; then
     break
   done
 fi
-[[ ${#PASSWORD} -ge 8 ]] || { fail 'senha fornecida sem interação deve ter ao menos 8 caracteres'; exit 22; }
+[[ ${#PASSWORD} -ge 8 ]] || { fail "$(say 'senha fornecida sem interação deve ter ao menos 8 caracteres' 'non-interactive password must contain at least 8 characters')"; exit 22; }
 PASSWORD_HASH="$(printf '%s' "$PASSWORD" | php -r '$p=stream_get_contents(STDIN); echo password_hash($p,PASSWORD_DEFAULT);')"
-[[ -n "$PASSWORD_HASH" ]] || { fail 'falha ao gerar hash'; exit 23; }
+[[ -n "$PASSWORD_HASH" ]] || { fail "$(say 'falha ao gerar hash' 'failed to generate password hash')"; exit 23; }
 ok "$(say 'credencial recebida localmente; senha não será exibida nem persistida em texto puro' 'Credential received locally; the password is never displayed or stored in plain text.')"
 
 STAMP="$(date +%Y%m%d_%H%M%S)"
@@ -204,7 +204,7 @@ rollback(){
 }
 trap 'rc=$?; if [[ $rc -ne 0 && $SUCCESS -ne 1 && $MUTATED -eq 1 ]]; then rollback "falha rc=$rc"; fi' EXIT
 
-section '2/8 — BACKUP'
+section "$(say '2/8 — BACKUP' '2/8 — BACKUP')"
 [[ -d "$CONTROL_DIR" ]] && tar -C "$DASHBOARD_DIR" -czf "$BACKUP/control.before.tar.gz" admin
 [[ -d "$CFG_DIR" ]] && tar -C / -czf "$BACKUP/config.before.tar.gz" "${CFG_DIR#/}"
 [[ -f "$HELPER" ]] && cp -a "$HELPER" "$BACKUP/helper.before"
@@ -214,7 +214,7 @@ section '2/8 — BACKUP'
 sha256sum /xlxd/xlxd > "$BACKUP/core.before.sha256"
 ok "backup preparado em $BACKUP"
 
-section '3/8 — PREPARAR ADMIN COMPLETO'
+section "$(say '3/8 — PREPARAR ADMIN COMPLETO' '3/8 — PREPARE COMPLETE ADMIN')"
 build_admin_source "$TMP/index.php"
 php -r '
 $u=$argv[1];$h=$argv[2];$sha=$argv[3];$ver=$argv[4];$base=$argv[5];$title=$argv[6];
@@ -249,10 +249,10 @@ LOG="/var/log/xlx.log"
 BACKUPS="/var/backups/xlx-reflector"
 EOF
 php -l "$TMP/config.php" >/dev/null
-if grep -Fq "$PASSWORD" "$TMP/config.php"; then fail 'senha em texto puro detectada'; exit 30; fi
-ok 'candidato completo e configuração protegida preparados'
+if grep -Fq "$PASSWORD" "$TMP/config.php"; then fail "$(say 'senha em texto puro detectada' 'plain-text password detected')"; exit 30; fi
+ok "$(say 'candidato completo e configuração protegida preparados' 'complete candidate and protected configuration prepared')"
 
-section '4/8 — INSTALAR'
+section "$(say '4/8 — INSTALAR' '4/8 — INSTALL')"
 MUTATED=1
 install -d -o root -g www-data -m 0755 "$CONTROL_DIR"
 install -d -o root -g www-data -m 0750 "$CFG_DIR"
@@ -267,7 +267,7 @@ php -l "$CONTROL_DIR/index.php" >/dev/null
 bash -n "$HELPER" "$RADIO_HELPER" "$ACCESS_HELPER"
 ok "Admin completo instalado temporariamente em $CONTROL_DIR"
 
-section '5/8 — SUDOERS RESTRITO'
+section "$(say '5/8 — SUDOERS RESTRITO' '5/8 — RESTRICTED SUDOERS')"
 cat > "$SUDOERS" <<EOF
 $WEBUSER ALL=(root) NOPASSWD: $HELPER status
 $WEBUSER ALL=(root) NOPASSWD: $HELPER listeners
@@ -300,9 +300,9 @@ sudo -u "$WEBUSER" sudo -n "$HELPER" radioid-status > "$TMP/radioid.json"
 sudo -u "$WEBUSER" sudo -n "$HELPER" access-status > "$TMP/access.json"
 python3 -m json.tool "$TMP/radioid.json" >/dev/null
 python3 -m json.tool "$TMP/access.json" >/dev/null
-ok 'www-data limitado à allowlist administrativa validada'
+ok "$(say 'www-data limitado à allowlist administrativa validada' 'www-data limited to the validated administrative allowlist')"
 
-section '6/8 — VALIDAR CREDENCIAL E SEGURANÇA'
+section "$(say '6/8 — VALIDAR CREDENCIAL E SEGURANÇA' '6/8 — VALIDATE CREDENTIAL AND SECURITY')"
 step6_check(){ local label="$1"; shift; if "$@"; then ok "$label"; else fail "$label"; return 1; fi; }
 step6_check "$(say 'credencial Admin validada' 'Admin credential validated')" php -r '$c=require $argv[1]; exit(($c["username"]===$argv[2] && password_verify($argv[3],$c["password_hash"]))?0:1);' "$CFG_FILE" "$USERNAME" "$PASSWORD"
 if grep -Fq "$PASSWORD" "$CFG_FILE"; then fail "$(say 'senha em texto puro detectada após instalação' 'Plain-text password detected after installation')"; exit 60; fi
@@ -314,28 +314,28 @@ step6_check 'rate-limit' grep -Fq 'fail_login' "$CONTROL_DIR/index.php"
 step6_check 'CSRF' grep -Fq 'csrf_ok' "$CONTROL_DIR/index.php"
 ok "$(say 'credencial e proteções do Admin validadas' 'Admin credential and security protections validated')"
 
-section '7/8 — TESTE WEB LOCAL'
+section "$(say '7/8 — TESTE WEB LOCAL' '7/8 — LOCAL WEB TEST')"
 WEB_OK=0
 if curl --silent --show-error --insecure --resolve "$DOMAIN:443:127.0.0.1" --connect-timeout 5 --max-time 12 "$BASE_URL/admin/" -o "$TMP/web.html" 2>/dev/null; then
   if grep -Fq "$TITLE" "$TMP/web.html" && grep -Fq 'Restricted access' "$TMP/web.html"; then WEB_OK=1; fi
 fi
 if [[ "$WEB_OK" -eq 1 ]]; then
-  ok 'tela privada respondeu localmente via HTTPS'
+  ok "$(say 'tela privada respondeu localmente via HTTPS' 'private page responded locally over HTTPS')"
 else
-  warn 'não foi possível provar a URL HTTPS localmente; PHP, helpers e credencial foram validados'
+  warn "$(say 'não foi possível provar a URL HTTPS localmente; PHP, helpers e credencial foram validados' 'local HTTPS URL could not be proven; PHP, helpers and credential were validated')"
 fi
 
-section '8/8 — RELATÓRIO'
+section "$(say '8/8 — RELATÓRIO' '8/8 — REPORT')"
 cat > "$BACKUP/CONTROL_INSTALL_COMPLETE" <<EOF
 status=CONTROL_INSTALL_OK
-control_version=1.3.0
+control_version=1.5.1
 reflector=$REFLECTOR_NAME
 url=$BASE_URL/admin/
 username=$USERNAME
 password_storage=hash_only
 radioid_admin=yes
 whitelist_blacklist_admin=yes
-terminal_route_admin=yes
+terminal_route_admin=no
 bot_indexing=no
 core_version=$CORE_VERSION
 core_sha=$CORE_SHA
@@ -353,7 +353,7 @@ SUCCESS=1
 MUTATED=0
 trap - EXIT
 cleanup
-ok 'ADMIN XLX MODERN COMPLETO INSTALADO'
+ok "$(say 'ADMIN XLX MODERN COMPLETO INSTALADO' 'COMPLETE XLX MODERN ADMIN INSTALLED')"
 echo "Temporary URL: $BASE_URL/admin/"
-echo "Usuário: $USERNAME"
-echo 'Senha: definida pelo operador e não exibida'
+echo "$(say 'Usuário' 'Username'): $USERNAME"
+echo "$(say 'Senha: definida pelo operador e não exibida' 'Password: defined by the operator and not displayed')"

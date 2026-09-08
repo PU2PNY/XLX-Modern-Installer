@@ -4,7 +4,7 @@ Instalador reproduzível para Debian 12 que instala XLXD, painel moderno, Admin 
 
 ## Destaques da versão atual
 
-Versão: **v1.2.0**
+Versão: **v1.2.4**
 
 - Instalador em **Português (Brasil)** ou **English**, escolhido no início.
 - Painel em Português, English, Español, Français, Deutsch ou Italiano.

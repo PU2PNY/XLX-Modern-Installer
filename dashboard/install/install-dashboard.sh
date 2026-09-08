@@ -7,6 +7,7 @@ ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 DEST="${INSTALL_DIR:-/var/www/html/xlxd}"
 BACKUPS="${BACKUP_ROOT:-/var/backups/xlx-reflector}"
 DASHBOARD_LANG="${DASHBOARD_LANG:-}"
+PROJECT_VERSION="$(cat "$ROOT/../VERSION" 2>/dev/null || printf 'unknown')"
 
 for arg in "$@"; do
     case "$arg" in
@@ -387,6 +388,9 @@ return [
  ],
  'locale'=>[
   'default'=>'$(escape "$DASHBOARD_LANG")',
+ ],
+ 'software'=>[
+  'version'=>'$(escape "$PROJECT_VERSION")',
  ],
 ];
 PHP

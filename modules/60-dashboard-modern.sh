@@ -33,12 +33,12 @@ if [ "$DASH_DEST" = "$DEFAULT_DASH_DEST" ] && [ ! -d "$DASH_DEST" ] && [ -d /etc
   fi
 fi
 
-bash "$ROOT/modules/64-runtime-data.sh"
-INSTALL_DIR="$DASH_DEST" bash "$ROOT/dashboard/install/install-dashboard.sh" "$@"
-INSTALL_DIR="$DASH_DEST" bash "$ROOT/dashboard/install/post-install.sh"
-bash "$ROOT/modules/65-callsign-directory.sh"
-XLX_DASHBOARD_DIR="$DASH_DEST" bash "$ROOT/modules/69-admin-page.sh" --dashboard-dir="$DASH_DEST"
+XLX_UI_LANG="$UI_LANG" bash "$ROOT/modules/64-runtime-data.sh"
+XLX_UI_LANG="$UI_LANG" INSTALL_DIR="$DASH_DEST" bash "$ROOT/dashboard/install/install-dashboard.sh" "$@"
+XLX_UI_LANG="$UI_LANG" INSTALL_DIR="$DASH_DEST" bash "$ROOT/dashboard/install/post-install.sh"
+XLX_UI_LANG="$UI_LANG" bash "$ROOT/modules/65-callsign-directory.sh"
+XLX_DASHBOARD_DIR="$DASH_DEST" XLX_UI_LANG="$UI_LANG" bash "$ROOT/modules/69-admin-page.sh" --dashboard-dir="$DASH_DEST"
 XLX_DASHBOARD_DIR="$DASH_DEST" XLX_UI_LANG="$UI_LANG" bash "$ROOT/modules/70-production-parity.sh"
 
 printf '%s\n' "$(say "[INFO] Instalando o módulo padrão de Certificados." "[INFO] Installing the standard Certificate module.")"
-XLX_DASHBOARD_DIR="$DASH_DEST" bash "$ROOT/modules/66-certificates.sh" "--dashboard-dir=$DASH_DEST"
+XLX_DASHBOARD_DIR="$DASH_DEST" XLX_UI_LANG="$UI_LANG" bash "$ROOT/modules/66-certificates.sh" "--dashboard-dir=$DASH_DEST"
