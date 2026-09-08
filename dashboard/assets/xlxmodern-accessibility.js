@@ -760,13 +760,9 @@
     event.preventDefault();
    }
 
-   if(event.stopPropagation){
-    event.stopPropagation();
-   }
-
    openPanel();
   },
-  false
+  true
  );
 
 

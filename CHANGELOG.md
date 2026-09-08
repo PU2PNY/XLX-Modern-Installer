@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.2.7 — 2026-09-08
+
+### Painel sincronizado e estabilidade do TX
+
+- Corrige a alternância entre foto do QRZ e GIF causada por leituras rápidas transitórias do estado de TX.
+- Evita falso bip de encerramento ao exigir 900 ms de estabilidade antes de remover uma transmissão confirmada.
+- Reutiliza imediatamente a foto pública do QRZ já carregada, sem retornar ao GIF entre atualizações.
+- Inclui os ajustes móveis mais recentes do XLX026, correção do botão de acessibilidade e fallback para navegadores antigos.
+- Mantém o painel global e configurável, sem dados privados ou identidade fixa do XLX026.
+- As páginas Suporte e Simulado ANATEL permanecem excluídas da distribuição pública.
+
 ## v1.2.6 — 2026-09-08
 
 ### Fixed

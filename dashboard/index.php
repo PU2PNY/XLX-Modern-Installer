@@ -34,7 +34,73 @@ $meta = $seo[$page];
 $canonical = 'https://{{REFLECTOR_DOMAIN}}/' . ($page === 'ao-vivo' ? '' : '?page=' . rawurlencode($page));
 ?>
 <!doctype html>
-<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="pt-BR"><head>
+<script id="xlxmodernLegacyMobileGateV12">
+(function(){
+    var ua = navigator.userAgent || "";
+    var isAppleMobile = /iPad|iPhone|iPod/.test(ua);
+    var isIOS9 = /OS 9_[0-9_]+/.test(ua);
+    var hasSafari = /Safari\//.test(ua);
+    var isVersion9 = /Version\/9/.test(ua);
+
+    var isAndroid = /Android/.test(ua);
+    var chromeMatch = ua.match(/Chrome\/([0-9]+)/);
+    var firefoxMatch = ua.match(/Firefox\/([0-9]+)/);
+    var androidMatch = ua.match(/Android[ \/]([0-9]+)/);
+    var chromeMajor = chromeMatch
+        ? parseInt(chromeMatch[1],10)
+        : 0;
+    var firefoxMajor = firefoxMatch
+        ? parseInt(firefoxMatch[1],10)
+        : 0;
+    var androidMajor = androidMatch
+        ? parseInt(androidMatch[1],10)
+        : 0;
+
+    var oldIOS9Safari =
+        isAppleMobile &&
+        isIOS9 &&
+        hasSafari &&
+        isVersion9;
+
+    /*
+     * O painel moderno usa sintaxe como ?. e ??.
+     * No Android, encaminhamos somente engines anteriores
+     * ao suporte dessa sintaxe. Navegadores atuais permanecem
+     * exatamente no painel moderno.
+     */
+    var oldAndroidChrome =
+        isAndroid &&
+        chromeMajor > 0 &&
+        chromeMajor < 80;
+
+    var oldAndroidFirefox =
+        isAndroid &&
+        firefoxMajor > 0 &&
+        firefoxMajor < 74;
+
+    var oldAndroidStock =
+        isAndroid &&
+        chromeMajor === 0 &&
+        firefoxMajor === 0 &&
+        (
+            androidMajor > 0 &&
+            androidMajor <= 4
+        );
+
+    if (
+        oldIOS9Safari ||
+        oldAndroidChrome ||
+        oldAndroidFirefox ||
+        oldAndroidStock
+    ) {
+        window.location.replace(
+            "/safari9-test.html?automatico=1"
+        );
+    }
+}());
+</script>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#06131d"><meta name="description" content="<?=htmlspecialchars($meta['description'], ENT_QUOTES, 'UTF-8')?>">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
 <link rel="canonical" href="<?=htmlspecialchars($canonical, ENT_QUOTES, 'UTF-8')?>">
@@ -75,6 +141,7 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}/' . ($page === 'ao-vivo' ? '' : '?pag
 <link rel="stylesheet" href="assets/header-menu-breakpoint-fix-v1.css?v=1">
 <link rel="stylesheet" href="assets/xlxmodern-accessibility.css?v=1">
 <link rel="stylesheet" href="assets/xlxmodern-accessibility-compact-v1.css?v=1">
+<link rel="stylesheet" href="assets/mobile-visual-v1.css?v=20260908">
 
 <?php if ($authorizedPage): ?>
 <link rel="stylesheet" href="assets/authorized-pages-v1.css?v=1">
