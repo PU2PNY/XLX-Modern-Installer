@@ -21,7 +21,7 @@
 
         return String(
             tx.key
-            || `${module.module}:${tx.stream_id || ''}`
+            || `${module.module}:${tx.stream_id || ''}:${tx.started_at || ''}`
         );
     }
 

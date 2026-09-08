@@ -311,7 +311,7 @@ foreach ($lines as $line) {
         }
 
         $active[$module] = [
-            'key' => $module . ':' . $streamId,
+            'key' => $module . ':' . $streamId . ':' . ($timestamp ?: time()),
             'module' => $module,
             'stream_id' => $streamId,
             'callsign' => $call,
