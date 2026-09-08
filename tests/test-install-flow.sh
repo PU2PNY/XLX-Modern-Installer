@@ -66,6 +66,8 @@ expect 'generic alphanumeric reflector example is documented' 'examples XLX123 o
 expect 'callinghome client is installed automatically' 'xlx-callinghome.php' "$DASHBOARD_INSTALLER"
 expect 'callinghome timer is enabled automatically' 'enable --now xlx-callinghome.timer' "$DASHBOARD_INSTALLER"
 expect 'i18n builder protects technical identifiers from translation' 'protectTechnical' "$I18N_BUILDER"
+expect 'i18n builder protects callable identifiers from translation' 'A-Za-z0-9_$]*(?=\\s*\\()' "$I18N_BUILDER"
+expect 'live callsign observer avoids identical text rewrites' 'if (base && raw !== base) el.textContent = base;' "$ROOT/dashboard/assets/ao-vivo-authorized-sync-v1.js"
 expect 'standby CSS does not force Portuguese text' 'content:none !important;' "$STANDBY_CSS"
 expect 'Admin route defaults to admin and can be changed' 'Hidden administrative page name [admin]' "$ADMIN_MODULE"
 expect 'Admin installation passes the selected language to its builder' 'XLX_UI_LANG="$UI_LANG"' "$ADMIN_MODULE"
