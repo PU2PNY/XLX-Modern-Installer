@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require __DIR__ . '/common.php';
+require_once __DIR__ . '/user-directory.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
@@ -137,8 +138,15 @@ try {
         exit;
     }
 
-    $connections = parse_xml_connections();
+    $connections = array_map(
+        'xlx_user_directory_apply',
+        parse_xml_connections()
+    );
     $tx = active_and_history($connections, $historyLimit, $historySince);
+    $tx['active'] = array_map(
+        'xlx_user_directory_apply',
+        $tx['active']
+    );
     $online = online_index($connections);
     $modules = [];
 
@@ -182,6 +190,7 @@ try {
 
     $history = array_map(
         static function (array $historyItem) use ($online): array {
+            $historyItem = xlx_user_directory_apply($historyItem);
             $historyItem['online'] =
                 !empty($online[$historyItem['callsign']]);
 
