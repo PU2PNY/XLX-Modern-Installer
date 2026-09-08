@@ -1022,7 +1022,7 @@ center_wrap_color $BLUE "=================="
 echo ""
 
 apt update || error_exit "Failed to update package lists. Check your internet connection or package manager configuration."
-apt full-upgrade -y || error_exit "Failed to upgrade packages. Check your internet connection or package manager configuration."
+print_gray "Full operating-system upgrade skipped by design; only required dependencies will be installed."
 
 #  Apply timezone only if it's NOT the system timezone.
 echo ""

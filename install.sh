@@ -11,7 +11,7 @@ readonly ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
 readonly REPOSITORY="local:vendor/pp5pk-installer"
 readonly REVIEWED_COMMIT="vendor-pinned-PP5PK-20b4893"
-readonly EXPECTED_INSTALLER_SHA256="a2710d17d7d51c547c81fce3b5f184a423f20cd361abd0401066f8981acdfaac"
+readonly EXPECTED_INSTALLER_SHA256="bddb6789d8a59db4c3d337747eb2dd1f855af621543cbbefebb88da916411c47"
 readonly WORK_ROOT="/opt/xlx-modern-installer"
 readonly SOURCE_DIR="${WORK_ROOT}/vendor/pp5pk-installer"
 readonly BACKUP_ROOT="/var/backups/xlx-reflector"
@@ -676,14 +676,14 @@ execute_installer() {
     fi
 
     local dashboard_scheme="http"
-    case "${ENABLE_HTTPS:-}" in Y|y|yes|YES) dashboard_scheme="https" ;; esac
-    if [ "$dashboard_scheme" = "https" ]; then
-        if [ -s "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ] && [ -s "/etc/letsencrypt/live/$DOMAIN/privkey.pem" ]; then
-            ok "$(msg "Certificado HTTPS encontrado para $DOMAIN." "HTTPS certificate found for $DOMAIN.")"
-        else
-            warn "$(msg "Certificado HTTPS ausente para $DOMAIN." "HTTPS certificate missing for $DOMAIN.")"
-            failures=$((failures + 1))
-        fi
+    local https_requested=0
+    case "${ENABLE_HTTPS:-}" in Y|y|yes|YES) https_requested=1 ;; esac
+    if [ -s "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ] && [ -s "/etc/letsencrypt/live/$DOMAIN/privkey.pem" ]; then
+        dashboard_scheme="https"
+        ok "$(msg "Certificado HTTPS encontrado para $DOMAIN." "HTTPS certificate found for $DOMAIN.")"
+    elif [ "$https_requested" -eq 1 ]; then
+        warn "$(msg "HTTPS foi solicitado, mas o certificado ainda está pendente. O painel continuará disponível em HTTP e a instalação não será descartada." "HTTPS was requested, but the certificate is still pending. The dashboard remains available over HTTP and the installation will not be discarded.")"
+        info "$(msg "Nova tentativa: xlx-modern-https-retry $DOMAIN $CONTACT_EMAIL" "Retry: xlx-modern-https-retry $DOMAIN $CONTACT_EMAIL")"
     fi
     local dashboard_port="80"
     [ "$dashboard_scheme" = "https" ] && dashboard_port="443"

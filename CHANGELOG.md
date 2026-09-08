@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.2.3 — 2026-09-07
+
+### Fixed
+- Removed the mandatory `apt full-upgrade` from clean-server installation; only the package index and required dependencies are handled by the installer.
+- HTTPS certificate issuance is now non-destructive: a Certbot/ACME failure no longer aborts or discards an otherwise valid reflector installation.
+- Added explicit handling for the Debian 12 Certbot 2.1.x / Python 3.11 `AttributeError: can't set attribute` reporting bug.
+- Added `xlx-modern-https-retry DOMAIN EMAIL` for controlled HTTPS recovery without reinstalling the reflector.
+- CallingHome uses HTTPS only after a valid certificate actually exists; otherwise it remains on HTTP until TLS is ready.
+- Final validation now tests the protocol actually available and reports HTTPS as pending instead of failing the whole installation.
+- HTTPS diagnostics no longer falsely claim DNS/port failure without evidence; relevant ACME diagnostics are surfaced when available.
+- Added regression tests preventing mandatory full OS upgrades and fatal HTTPS behavior from returning.
+
 
 ## v1.2.2 — 2026-09-07
 

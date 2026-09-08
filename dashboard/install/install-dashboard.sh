@@ -442,13 +442,77 @@ a2enconf xlx-modern-servername >/dev/null
 apache2ctl configtest
 systemctl enable --now apache2
 
+HTTPS_READY=0
+HTTPS_STATUS_DIR="/var/lib/xlx-modern"
+HTTPS_STATUS_FILE="$HTTPS_STATUS_DIR/https-status"
+HTTPS_RETRY="/usr/local/sbin/xlx-modern-https-retry"
+install -d -o root -g root -m 0755 "$HTTPS_STATUS_DIR"
+
+cat > "$HTTPS_RETRY" <<'HTTPSRETRY'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+DOMAIN="${1:-}"
+EMAIL="${2:-}"
+[[ -n "$DOMAIN" && -n "$EMAIL" ]] || { echo "Usage: xlx-modern-https-retry DOMAIN EMAIL" >&2; exit 2; }
+LOG="$(mktemp /tmp/xlx-modern-certbot.XXXXXX.log)"
+trap 'rm -f "$LOG"' EXIT
+if certbot --apache --non-interactive --agree-tos --email "$EMAIL" -d "$DOMAIN" 2>&1 | tee "$LOG"; then
+    [[ -s "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" && -s "/etc/letsencrypt/live/$DOMAIN/privkey.pem" ]] || { echo "Certbot returned success but certificate files are missing." >&2; exit 3; }
+    apache2ctl configtest
+    systemctl reload apache2
+    echo "HTTPS_OK domain=$DOMAIN"
+    exit 0
+fi
+rc=${PIPESTATUS[0]}
+echo "HTTPS_FAILED rc=$rc" >&2
+if grep -Fq "AttributeError: can't set attribute" "$LOG"; then
+    echo "Debian 12 Certbot 2.1.x masked the ACME error with a known Python 3.11 bug." >&2
+fi
+if [[ -f /var/log/letsencrypt/letsencrypt.log ]]; then
+    echo "Last relevant Let's Encrypt diagnostics:" >&2
+    grep -Ei 'too many|rate.?limit|unauthor|invalid|nxdomain|timeout|connection|error creating new order|detail:|failed authorization|acme:error' /var/log/letsencrypt/letsencrypt.log | tail -n 12 >&2 || true
+fi
+exit "$rc"
+HTTPSRETRY
+chmod 0755 "$HTTPS_RETRY"
+
 if [ "$ENABLE_HTTPS" = "yes" ]; then
     if [ -s "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ] \
         && [ -s "/etc/letsencrypt/live/$DOMAIN/privkey.pem" ]; then
         printf 'HTTPS certificate already present / certificado HTTPS já existente: %s\n' "$DOMAIN"
+        HTTPS_READY=1
     else
-        certbot --apache --non-interactive --agree-tos --email "$CONTACT_EMAIL" -d "$DOMAIN" \
-            || { echo "ERROR / ERRO: não foi possível emitir o certificado HTTPS. Confirme que o DNS de $DOMAIN aponta para esta VPS e que as portas 80/443 estão liberadas." >&2; exit 1; }
+        CERTBOT_LOG="$(mktemp /tmp/xlx-modern-certbot.XXXXXX.log)"
+        set +e
+        certbot --apache --non-interactive --agree-tos --email "$CONTACT_EMAIL" -d "$DOMAIN" 2>&1 | tee "$CERTBOT_LOG"
+        CERTBOT_RC=${PIPESTATUS[0]}
+        set -e
+        if [ "$CERTBOT_RC" -eq 0 ] \
+            && [ -s "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ] \
+            && [ -s "/etc/letsencrypt/live/$DOMAIN/privkey.pem" ]; then
+            HTTPS_READY=1
+            printf 'HTTPS_OK domain=%s\n' "$DOMAIN" > "$HTTPS_STATUS_FILE"
+            printf '[OK] HTTPS enabled / HTTPS ativado: %s\n' "$DOMAIN"
+        else
+            {
+                printf 'HTTPS_PENDING domain=%s rc=%s\n' "$DOMAIN" "$CERTBOT_RC"
+                if grep -Fq "AttributeError: can't set attribute" "$CERTBOT_LOG"; then
+                    printf 'reason=debian12_certbot_2.1_acme_error_masked\n'
+                fi
+            } > "$HTTPS_STATUS_FILE"
+            printf '[WARNING] HTTPS certificate could not be issued now; installation will continue over HTTP.\n' >&2
+            printf '[ATENÇÃO] O certificado HTTPS não pôde ser emitido agora; a instalação continuará em HTTP.\n' >&2
+            if grep -Fq "AttributeError: can't set attribute" "$CERTBOT_LOG"; then
+                printf '[WARNING] Debian 12 Certbot 2.1.x hit its known Python 3.11 error while reporting an ACME failure.\n' >&2
+                printf '[ATENÇÃO] O Certbot 2.1.x do Debian 12 encontrou o erro conhecido do Python 3.11 ao reportar uma falha ACME.\n' >&2
+            fi
+            if [[ -f /var/log/letsencrypt/letsencrypt.log ]]; then
+                printf '%s\n' "--- Let's Encrypt diagnostics ---" >&2
+                grep -Ei 'too many|rate.?limit|unauthor|invalid|nxdomain|timeout|connection|error creating new order|detail:|failed authorization|acme:error' /var/log/letsencrypt/letsencrypt.log | tail -n 12 >&2 || true
+            fi
+            printf '[INFO] Retry later / tente novamente depois: %s %q %q\n' "$HTTPS_RETRY" "$DOMAIN" "$CONTACT_EMAIL" >&2
+        fi
+        rm -f "$CERTBOT_LOG"
     fi
 fi
 
@@ -473,7 +537,7 @@ if [[ ! "$CALLINGHOME_HASH" =~ ^[a-f0-9]{32,128}$ ]]; then
 fi
 
 CALLINGHOME_SCHEME="http"
-[ "$ENABLE_HTTPS" = "yes" ] && CALLINGHOME_SCHEME="https"
+[ "$HTTPS_READY" -eq 1 ] && CALLINGHOME_SCHEME="https"
 CALLINGHOME_COMMENT="${REFLECTOR_DESCRIPTION:0:100}"
 
 cat > "$CALLINGHOME_CONFIG" <<PHP

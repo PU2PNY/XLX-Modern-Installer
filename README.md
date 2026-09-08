@@ -4,7 +4,7 @@ A reproducible Debian 12 installer for XLXD, the modern dashboard, private Admin
 
 ## Current release highlights
 
-Release: **v1.2.0**
+Release: **v1.2.3**
 
 - Installer UI in **Portuguese (Brazil)** or **English**, selected at startup.
 - Dashboard in Portuguese, English, Spanish, French, German or Italian.

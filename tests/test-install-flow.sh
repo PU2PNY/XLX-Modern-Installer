@@ -20,6 +20,15 @@ expect() {
         failures=$((failures + 1))
     fi
 }
+expect_absent() {
+    local description="$1" pattern="$2" file="$3"
+    if grep -Fq -- "$pattern" "$file"; then
+        printf 'FAIL | %s\n' "$description" >&2
+        failures=$((failures + 1))
+    else
+        printf 'OK | %s\n' "$description"
+    fi
+}
 
 expect 'language is selected before installation checks' 'select_ui_language' "$INSTALLER"
 expect 'dashboard language is selected before installation checks' 'select_dashboard_language' "$INSTALLER"
@@ -49,6 +58,12 @@ expect 'Admin installation passes the selected language to its builder' 'XLX_UI_
 expect 'Admin source is localized for English installations' 'usage: build-admin.py INDEX.php [pt-BR|en]' "$ROOT/control/build-admin.py"
 expect 'Admin temporary route uses the safe admin default' '"$BASE_URL/admin/"' "$ADMIN_BUILDER"
 expect 'Custom Admin slug removes the bootstrap admin route' 'BOOTSTRAP_DIR' "$ADMIN_MODULE"
+expect 'base installer skips mandatory full OS upgrade' 'Full operating-system upgrade skipped by design' "$ROOT/vendor/pp5pk-installer/installer.sh"
+expect_absent 'base installer has no active apt full-upgrade' 'apt full-upgrade -y' "$ROOT/vendor/pp5pk-installer/installer.sh"
+expect 'HTTPS failure keeps installation available over HTTP' 'installation will continue over HTTP' "$DASHBOARD_INSTALLER"
+expect 'HTTPS recovery helper is installed' 'xlx-modern-https-retry' "$DASHBOARD_INSTALLER"
+expect 'CallingHome follows actual HTTPS readiness' '[ "$HTTPS_READY" -eq 1 ] && CALLINGHOME_SCHEME="https"' "$DASHBOARD_INSTALLER"
+expect 'final validation treats pending HTTPS as warning' 'certificate is still pending' "$INSTALLER"
 
 printf 'failures=%d\n' "$failures"
 exit "$failures"
