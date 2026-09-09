@@ -73,7 +73,6 @@ foreach ($routeSlugs as $routeIndex => $routeSlug) {
     $routeRestore[$sentinel] = $routeSlug;
 }
 
-
 /*
  * Protect technical identifiers before translation. Public copy may contain
  * words that are also used inside route slugs, asset filenames, element IDs,
@@ -114,6 +113,43 @@ $protectTechnical = static function (string $text, array &$restore): string {
     ) ?? $text;
 
     return $text;
+};
+
+/*
+ * The translator works on source text, so a catalog value containing an ASCII
+ * apostrophe can invalidate a PHP single-quoted literal if injected raw. For
+ * PHP files, protect exact catalog string literals first and restore them with
+ * delimiter-aware escaping after the general visible-text translation pass.
+ * This keeps strings such as French "d'appel" syntactically valid without
+ * changing the user-facing translation.
+ */
+$protectPhpTranslatedLiterals = static function (
+    string $text,
+    array $replacements,
+    array &$restore
+): string {
+    $protect = [];
+    $n = 0;
+    foreach ($replacements as $sourceText => $translatedText) {
+        $singleSource = "'" . addcslashes($sourceText, "\\'") . "'";
+        $singleTarget = "'" . addcslashes($translatedText, "\\'") . "'";
+        $doubleSource = '"' . addcslashes($sourceText, "\\\"$") . '"';
+        $doubleTarget = '"' . addcslashes($translatedText, "\\\"$") . '"';
+
+        foreach ([[$singleSource, $singleTarget], [$doubleSource, $doubleTarget]] as [$sourceLiteral, $targetLiteral]) {
+            if (!str_contains($text, $sourceLiteral)) {
+                continue;
+            }
+            $token = '__XLX_I18N_LITERAL_' . $n++ . '__';
+            $protect[$sourceLiteral] = $token;
+            $restore[$token] = $targetLiteral;
+        }
+    }
+    if ($protect === []) {
+        return $text;
+    }
+    uksort($protect, static fn(string $a, string $b): int => strlen($b) <=> strlen($a));
+    return strtr($text, $protect);
 };
 
 $filesChanged = 0;
@@ -174,7 +210,21 @@ foreach ($iterator as $fileInfo) {
         // "País" inside "País não identificado".
         uksort($replacements, static fn(string $a, string $b): int => strlen($b) <=> strlen($a));
         $beforeTranslation = $contents;
+
+        $phpLiteralRestore = [];
+        if ($extension === 'php') {
+            $contents = $protectPhpTranslatedLiterals($contents, $replacements, $phpLiteralRestore);
+        }
+
         $contents = strtr($contents, $replacements);
+        if ($phpLiteralRestore) {
+            $contents = strtr($contents, $phpLiteralRestore);
+        }
+        if (preg_match('/__XLX_I18N_LITERAL_[A-Z0-9_]+__/', $contents, $literalLeak)) {
+            fwrite(STDERR, "ERROR: unresolved protected PHP literal {$literalLeak[0]} in {$path}\n");
+            exit(8);
+        }
+
         if ($contents !== $beforeTranslation) {
             // Exact replacement count is informational only; file integrity is
             // validated by the post-build tests below.
