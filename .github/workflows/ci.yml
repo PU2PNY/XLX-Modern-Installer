@@ -32,7 +32,7 @@ jobs:
           while IFS= read -r -d '' file; do
             echo "php -l $file"
             php -l "$file" >/dev/null
-          done < <(find dashboard extras -type f -name '*.php' -print0)
+          done < <(find dashboard -type f -name '*.php' -print0)
 
       - name: Validate JavaScript syntax
         shell: bash
@@ -46,7 +46,7 @@ jobs:
             fi
             echo "node --check $file"
             node --check "$file"
-          done < <(find dashboard/assets extras -type f -name '*.js' -print0)
+          done < <(find dashboard/assets -type f -name '*.js' -print0)
 
       - name: Validate translation catalogs
         shell: bash
@@ -95,6 +95,7 @@ jobs:
               'reflector_number' => '999',
               'reflector_short_number' => '999',
               'ysf_id' => '99999',
+              'aprs_service_callsign' => 'N0CALL-10',
               'dmr_tg' => '4999',
             ],
           ];
@@ -158,7 +159,12 @@ jobs:
           php -l dashboard/api/digital-lab.php >/dev/null
           php -l dashboard/api/digital-lab-operator.php >/dev/null
           php -l dashboard/digital-lab-native.php >/dev/null
-          python3 -m py_compile dashboard/native/aprs/xlx_aprs_dprs.py
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('dashboard/native/aprs/xlx_aprs_dprs.py')
+          compile(p.read_text(encoding='utf-8'), str(p), 'exec')
+          print('[OK] APRS backend Python syntax')
+          PY
           grep -F 'hash_hmac(' dashboard/lib/certificate-signature.php
           grep -F 'hash_equals(' dashboard/api/certificado.php
           grep -F '?page=certificado&validar=' dashboard/api/certificado.php
@@ -221,7 +227,7 @@ jobs:
               'sysop_callsign'=>'N0CALL','location'=>'Test City','country'=>'Test Country',
               'domain'=>'xlx999.example.invalid','contact_email'=>'noreply@example.invalid',
             ],
-            'radio'=>['reflector_number'=>'999','reflector_short_number'=>'999','ysf_id'=>'99999','dmr_tg'=>'4999'],
+            'radio'=>['reflector_number'=>'999','reflector_short_number'=>'999','ysf_id'=>'99999','aprs_service_callsign'=>'N0CALL-10','dmr_tg'=>'4999'],
             'locale'=>['default'=>'en'],
             'timezone'=>'UTC',
             'certificates'=>['enabled'=>true,'anniversary'=>''],

@@ -27,8 +27,24 @@ grep -Fq 'access-interlink-delete' "$TMP/admin-en.php" || fail 'Interlink delete
 grep -Fq 'health-status' "$TMP/admin-en.php" || fail 'Health action missing'
 grep -Fq 'radioid_api_search' "$TMP/admin-en.php" || fail 'RadioID.net action missing'
 ! grep -Eq 'Terminal XLXD|Terminal SSH' "$TMP/admin-en.php" || fail 'forbidden terminal feature present'
-grep -Fq "\$allowed = ['ao-vivo','modulos','conectados','ranking','refletores'];" "$ROOT/dashboard/index.php" || fail 'Modules route not independent'
+# Modules and Connected must remain separate first-class routes. Validate the
+# actual $allowed assignment instead of accepting unrelated occurrences.
+python3 - "$ROOT/dashboard/index.php" <<'PY'
+import re,sys
+text=open(sys.argv[1],encoding='utf-8').read()
+m=re.search(r"\$allowed\s*=\s*\[(.*?)\];", text, re.S)
+if not m:
+    raise SystemExit('dashboard $allowed assignment not found')
+routes=set(re.findall(r"['\"]([^'\"]+)['\"]", m.group(1)))
+missing={'modulos','conectados'}-routes
+if missing:
+    raise SystemExit('dashboard $allowed missing: '+', '.join(sorted(missing)))
+print('[OK] dashboard $allowed contains modulos and conectados')
+PY
+grep -Fq "'modulos' => 'Módulos'" "$ROOT/dashboard/index.php" || fail 'Modules navigation item missing'
+grep -Fq "'conectados' => 'Conectados'" "$ROOT/dashboard/index.php" || fail 'Connected navigation item missing'
 grep -Fq "<?php elseif (\$page === 'modulos'): ?>" "$ROOT/dashboard/index.php" || fail 'Modules page missing'
+grep -Fq "<?php elseif (\$page === 'conectados'): ?>" "$ROOT/dashboard/index.php" || fail 'Connected page missing'
 ok 'Admin and public page structure'
 
 : > "$TMP/whitelist"; : > "$TMP/blacklist"; : > "$TMP/interlink"
