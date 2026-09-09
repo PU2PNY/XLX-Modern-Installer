@@ -1,3 +1,9 @@
+## v1.2.11 — 2026-09-09
+
+- Fixes a fresh-install regression introduced in v1.2.10 where `LE_LOG` referenced itself before initialization under `set -u`, aborting the dashboard install before Certbot ran.
+- Initializes the Let's Encrypt log path safely in both the dashboard installer and the generated HTTPS retry helper.
+- Adds a regression test preventing the unbound-variable pattern from returning while preserving automatic Certbot retry after Let's Encrypt rate limits.
+
 ## v1.2.10 — 2026-09-09
 
 - Added explicit handling of Let's Encrypt rate limits without replacing Certbot.

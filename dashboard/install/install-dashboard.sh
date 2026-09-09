@@ -451,7 +451,7 @@ HTTPS_READY=0
 HTTPS_STATUS_DIR="/var/lib/xlx-modern"
 HTTPS_STATUS_FILE="$HTTPS_STATUS_DIR/https-status"
 HTTPS_RETRY="/usr/local/sbin/xlx-modern-https-retry"
-LE_LOG="${XLX_LETSENCRYPT_LOG:-$LE_LOG}"
+LE_LOG="${XLX_LETSENCRYPT_LOG:-/var/log/letsencrypt/letsencrypt.log}"
 SYSTEMD_DIR="${XLX_SYSTEMD_DIR:-/etc/systemd/system}"
 install -d -o root -g root -m 0755 "$HTTPS_STATUS_DIR"
 
@@ -460,6 +460,7 @@ cat > "$HTTPS_RETRY" <<'HTTPSRETRY'
 set -Eeuo pipefail
 DOMAIN="${1:-}"
 EMAIL="${2:-}"
+LE_LOG="${XLX_LETSENCRYPT_LOG:-/var/log/letsencrypt/letsencrypt.log}"
 [[ -n "$DOMAIN" && -n "$EMAIL" ]] || { echo "Usage: xlx-modern-https-retry DOMAIN EMAIL" >&2; exit 2; }
 LOG="$(mktemp /tmp/xlx-modern-certbot.XXXXXX.log)"
 trap 'rm -f "$LOG"' EXIT

@@ -10,6 +10,15 @@ cat > "$log" <<'LOG'
 "detail": "too many certificates (5) already issued for this exact set of identifiers in the last 168h0m0s, retry after 2030-01-02 03:04:05 UTC"
 LOG
 # Static invariants: production defaults and automatic timer generation are present.
+
+# Regression: LE_LOG must be initialized before any use under set -u, both in
+# the installer and in the generated retry helper.
+grep -Fq 'LE_LOG="${XLX_LETSENCRYPT_LOG:-/var/log/letsencrypt/letsencrypt.log}"' "$ROOT/dashboard/install/install-dashboard.sh"
+if grep -Fq 'LE_LOG="${XLX_LETSENCRYPT_LOG:-$LE_LOG}"' "$ROOT/dashboard/install/install-dashboard.sh"; then
+  echo '[FAIL] LE_LOG self-reference reintroduced' >&2
+  exit 1
+fi
+[ "$(grep -Fc 'LE_LOG="${XLX_LETSENCRYPT_LOG:-/var/log/letsencrypt/letsencrypt.log}"' "$ROOT/dashboard/install/install-dashboard.sh")" -ge 2 ]
 grep -Fq 'retry_at_utc=' "$ROOT/dashboard/install/install-dashboard.sh"
 grep -Fq 'xlx-modern-https-retry.timer' "$ROOT/dashboard/install/install-dashboard.sh"
 grep -Fq 'OnCalendar=$retry_at' "$ROOT/dashboard/install/install-dashboard.sh"
