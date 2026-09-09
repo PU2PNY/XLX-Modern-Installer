@@ -1,0 +1,87 @@
+name: Debian 12 runtime gate
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  debian12-runtime:
+    runs-on: ubuntu-latest
+    container:
+      image: debian:12
+    steps:
+      - name: Install runtime dependencies
+        run: |
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            git ca-certificates bash coreutils file python3 php-cli php-sqlite3 \
+            php-curl php-mbstring php-xml sqlite3 curl iproute2 systemd
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run repository regression suite
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          bash tests/run-all.sh
+          bash tests/regression-production-parity.sh
+          bash modules/66-certificates.sh --check
+          bash modules/67-aprs-dprs.sh --check
+          bash modules/71-observability.sh --check
+
+      - name: Execute Health one-shot and require operational snapshot
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          install -d -m 0755 /etc/xlx-modern-health
+          install -d -m 0700 /var/lib/xlx-modern-health-monitor
+          cat >/etc/xlx-modern-health/config.json <<'JSON'
+          {
+            "domain": "localhost",
+            "base_url": "http://127.0.0.1:18080",
+            "dashboard_dir": "/tmp/xlx-runtime-dashboard",
+            "timezone": "UTC",
+            "module_count": 5
+          }
+          JSON
+          mkdir -p /tmp/xlx-runtime-dashboard
+          printf 'XLX runtime gate\n' >/tmp/xlx-runtime-dashboard/index.html
+          python3 -m http.server 18080 --bind 127.0.0.1 --directory /tmp/xlx-runtime-dashboard >/tmp/xlx-runtime-http.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          sleep 1
+          curl -fsS http://127.0.0.1:18080/ >/dev/null
+          timeout 90 python3 observability/health/health_monitor.py --test
+          test -s /var/lib/xlx-modern-health-monitor/operational.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('/var/lib/xlx-modern-health-monitor/operational.json')
+          data=json.loads(p.read_text())
+          assert data.get('version') == 'XLX_MODERN_OPERATIONAL_HEALTH_V2'
+          assert isinstance(data.get('checks'), dict)
+          assert data.get('generated_at')
+          print('[OK] operational.json runtime snapshot validated')
+          PY
+
+      - name: Verify fresh-install Health contract
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          grep -Fq 'timeout 90 /usr/bin/python3 /opt/xlx-modern-health-monitor/health_monitor.py --test' modules/71-observability.sh
+          grep -Fq 'Health snapshot was not created by the synchronous bootstrap.' modules/71-observability.sh
+          grep -Fq 'systemctl enable --now xlx-modern-health-monitor.service' modules/71-observability.sh
+          python3 - <<'PY'
+          from pathlib import Path
+          s=Path('modules/71-observability.sh').read_text()
+          one=s.index('health_monitor.py --test')
+          continuous=s.index('systemctl enable --now xlx-modern-health-monitor.service')
+          assert one < continuous, 'continuous Health service starts before synchronous snapshot'
+          print('[OK] synchronous Health snapshot precedes continuous service')
+          PY
