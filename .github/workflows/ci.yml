@@ -146,38 +146,29 @@ jobs:
           sudo env XLX_USERS_DB="$main_db" XLX_OVERRIDE_DB="$override_db" XLX_BACKUP_ROOT="$work/backups" bash tools/xlx-user-directory.sh check
           test "$(sudo sqlite3 "$override_db" 'PRAGMA integrity_check;')" = ok
 
-      - name: Test generic certificate install
+      - name: Validate native Certificates and APRS/D-PRS
         shell: bash
         run: |
           set -Eeuo pipefail
-          work="$(mktemp -d)"
-          target="$work/dashboard"
-          data="$work/cert-data"
-          conf="$work/cert-conf"
-          cp -a dashboard "$target"
-          mkdir -p "$target/config"
-          cat > "$target/config/site.php" <<'PHP'
-          <?php
-          declare(strict_types=1);
-          return [
-            'reflector'=>[
-              'name'=>'XLX999','title'=>'XLX999 Community','description'=>'Test reflector',
-              'sysop_callsign'=>'N0CALL','location'=>'Lisbon','country'=>'Portugal',
-              'domain'=>'xlx999.example.invalid','contact_email'=>'noreply@example.invalid',
-            ],
-            'radio'=>['reflector_number'=>'999','reflector_short_number'=>'999','ysf_id'=>'99999','dmr_tg'=>'4999'],
-            'locale'=>['default'=>'en'],
-          ];
-          PHP
-          sudo env XLX_DASHBOARD_DIR="$target" XLX_CERT_DATA_DIR="$data" XLX_CERT_CONF_DIR="$conf" XLX_CERT_KEY_FILE="$conf/hmac.key" XLX_CERT_SKIP_PACKAGES=1 XLX_TIMEZONE=Europe/Lisbon XLX_REFLECTOR_ANNIVERSARY=07-22 bash extras/certificados/install.sh
-          sudo test -s "$target/certificado.php"
-          sudo test -s "$target/certificado-validar.php"
-          sudo test -s "$target/api/certificado.php"
-          sudo test -s "$conf/hmac.key"
-          sudo test -e "$data/emissoes.jsonl"
-          sudo grep -F 'XLX_CERTIFICATE_MENU_V1' "$target/assets/app.js"
-          sudo php -r '$c=require $argv[1]; if(($c["timezone"]??"")!=="Europe/Lisbon") exit(1); if(($c["certificates"]["anniversary"]??"")!=="07-22") exit(2);' "$target/config/site.php"
-          sudo env XLX_CERT_DATA_DIR="$data" XLX_CERT_KEY_FILE="$conf/hmac.key" php -r 'require $argv[1]; $c=cert_current_campaign(new DateTimeImmutable("2026-08-09 12:00:00", new DateTimeZone("Europe/Lisbon"))); if(str_contains($c["title"],"Dia dos Pais")) exit(1); if(cert_reflector()["title"]!=="XLX999 Community") exit(2);' "$target/certificado-config.php"
+          sudo bash modules/66-certificates.sh --check
+          sudo bash modules/67-aprs-dprs.sh --check
+          php -l dashboard/api/certificado.php >/dev/null
+          php -l dashboard/certificado-config.php >/dev/null
+          php -l dashboard/certificado-view.php >/dev/null
+          php -l dashboard/api/digital-lab.php >/dev/null
+          php -l dashboard/api/digital-lab-operator.php >/dev/null
+          php -l dashboard/digital-lab-native.php >/dev/null
+          python3 -m py_compile dashboard/native/aprs/xlx_aprs_dprs.py
+          grep -F 'hash_hmac(' dashboard/lib/certificate-signature.php
+          grep -F 'hash_equals(' dashboard/api/certificado.php
+          grep -F '?page=certificado&validar=' dashboard/api/certificado.php
+          grep -F "if (\$action === 'register')" dashboard/api/digital-lab-operator.php
+          grep -F 'birthday_mismatch' dashboard/api/digital-lab-operator.php
+          grep -F '$password = newPassword();' dashboard/api/digital-lab-operator.php
+          test -s dashboard/assets/vendor/qrcode.min.js
+          test -s dashboard/native/aprs/xlx-aprs-dprs.service
+          ! grep -Fq 'vendor/xlx-aprs-dprs' modules/67-aprs-dprs.sh
+          ! grep -Eq 'XLX-Certificate-Generator|github.com/.*/XLX-Certificate' modules/66-certificates.sh
 
       - name: Validate fresh-install wiring and runtime fallbacks
         shell: bash
@@ -204,24 +195,14 @@ jobs:
           bash -n tools/xlx-user-directory.sh
           bash -n tools/xlx-modern-users-refresh.sh
           bash -n modules/64-runtime-data.sh
-          bash -n extras/certificados/install.sh
+          bash -n modules/66-certificates.sh
+          bash -n modules/67-aprs-dprs.sh
           php -l tools/create-user-db.php >/dev/null
           php -l dashboard/install/render-template.php >/dev/null
           php -l dashboard/install/render-placeholders.php >/dev/null
           php -l dashboard/api/ranking-v2.php >/dev/null
           php -l dashboard/api/user-directory.php >/dev/null
-          php -l extras/certificados/api/certificado.php >/dev/null
           grep -F 'XLX_PROJECT_LINK_BUNDLE_V1' dashboard/install/post-install.sh
-
-      - name: Validate bundled APRS/D-PRS source
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          grep -F 'APRS_DPRS_MODE="yes"' install.sh
-          grep -F 'modules/67-aprs-dprs.sh' install.sh
-          grep -F 'vendor/xlx-aprs-dprs/' modules/67-aprs-dprs.sh
-          grep -F 'SOURCE-MANIFEST.sha256' modules/67-aprs-dprs.sh
-          sudo bash modules/67-aprs-dprs.sh --check
 
       - name: Test safe dashboard updater dry-run
         shell: bash
