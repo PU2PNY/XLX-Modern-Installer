@@ -1,22 +1,68 @@
-# XLX Modern — installed features
+# XLX Modern Installer — Public Feature Set
 
-The standard installation includes the modern multi-protocol dashboard and its operational components.
+Version: **1.2.8**
 
-- Separate **Live**, **Connected**, **Modules**, **Ranking**, and **XLX Reflectors** pages.
-- Module range from A through Z, with NATO phonetic names (Alfa through Zulu) and protocol/access identifiers.
-- Live transmission cards with protocol, module, gateway/repeater identification and transmission time.
-- Public QRZ profile photo when available, with local proxy/cache and animated fallback.
-- APRS / D-PRS / GPS Digital Lab installed by default, including live-position satellite links.
-- DMR Talker Alias and passive DMR metadata/data observability when available.
-- YSF/C4FM DG-ID, Wires-X, GPS and observed VD1/DW/VD2/VW mode monitoring when the compatible sidecars are installed.
-- D-STAR D-PRS/GPS and slow-data support through the APRS/D-PRS collector.
-- 24-hour activity history with grouped callsign rows.
-- RadioID directory enrichment and safe local RadioID management.
-- Whitelist, blacklist and XLX Interlink management in the private Admin page.
-- Operational Health, listeners, logs, backups, integrity tests and protected XLXD restart.
-- CallingHome installed and validated by the installation flow.
-- Six dashboard languages: Portuguese (Brazil), English, Spanish, French, German and Italian.
-- Installer interface available completely in Portuguese (Brazil) or English.
-- Hidden Admin URL chosen during installation; password hash only, minimum 8 characters.
+## Server
 
-Not included in the public standard package: Support page, ANATEL simulator, News page and private production-only data/components.
+- Debian 12 x86_64 fresh installation.
+- XLXD core and configurable active modules.
+- Optional XLX Echo on module E.
+- Apache/PHP dashboard stack.
+- RadioID/callsign database with persistent local overrides.
+- Timer-based CallingHome.
+- Health, DMR data/meta, YSF data, history collection and regression self-test.
+- Preventive backups and component-level rollback where supported.
+- Recoverable HTTPS failure handling with `xlx-modern-https-retry`.
+
+## Public dashboard
+
+- Live TX monitor and 24-hour activity.
+- QRZ public TX profile photo when available.
+- Connected stations as an independent page.
+- Modules/access identifiers as an independent page; configured module range and NATO names.
+- Ranking and worldwide XLX reflector list.
+- Exact Gateway/Repeater semantics; no proximity-based identity guessing.
+- RadioID identity, supplemental DMR Talker Alias and observed APRS/D-PRS/GPS status.
+- Native APRS/D-PRS Digital Lab.
+- Native activity-based certificates with QR + HMAC verification.
+- Dashboard languages: PT-BR, EN, ES, FR, DE, IT.
+- Support, ANATEL simulator and News are intentionally excluded from the generic public package.
+
+## Native APRS/D-PRS
+
+- APRS-IS/D-PRS background gateway and local SQLite state.
+- Callsign account creation after qualifying recent activity.
+- Day/month birthday consent used by the authorized password-recovery flow.
+- Cryptographically generated passwords; hash-only persistence.
+- Reset rotates auth version and revokes remembered tokens.
+- Message/ACK/operator-state support as provided by the production-derived Digital Lab implementation.
+
+## Native Certificates
+
+- Certificate issue/preview/verification inside the dashboard.
+- Requires eligible recorded activity.
+- Unique issuance ID.
+- Versioned HMAC-SHA256 payload.
+- Constant-time verification and tamper rejection.
+- QR returns to the same dashboard validation route.
+- Secret stored outside the webroot.
+
+## Private Admin
+
+- Configurable private slug, username and password (minimum 8 characters).
+- PT-BR or English UI.
+- Status/listeners/logs/backups/Health.
+- RadioID check/refresh/search/save/delete.
+- Whitelist/blacklist and Interlink management.
+- Protected XLXD restart.
+- No SSH/Linux browser terminal and no XLXD terminal UI.
+- CSRF/session/rate-limit/audit controls and limited sudo helpers.
+
+## Installer UX
+
+- PT-BR or English installer.
+- One consolidated questionnaire and one final ENTER confirmation.
+- Edit individual answers by question number.
+- No late city/YSF/Admin prompts and no `INSTALL` confirmation.
+- No mandatory OS full-upgrade.
+- Explicit final `INSTALLATION COMPLETE` only after essential post-install checks pass.

@@ -1,4 +1,4 @@
-/* XLXMODERN DIGITAL LAB V1.1 — operador APRS */
+/* {{REFLECTOR_NAME}} DIGITAL LAB V1.1 — operador APRS */
 
 .dlab-command-action{
   appearance:none;
@@ -316,7 +316,7 @@
   }
 }
 
-/* XLXMODERN DIGITAL LAB V1.2 — contas */
+/* {{REFLECTOR_NAME}} DIGITAL LAB V1.2 — contas */
 
 .dlab-account-form{
   display:grid;
@@ -665,7 +665,7 @@
 }
 
 /* =========================================================
-   XLXMODERN DIGITAL LAB V1.2.1
+   {{REFLECTOR_NAME}} DIGITAL LAB V1.2.1
    LOGIN COMPACTO / PROFISSIONAL
    ========================================================= */
 
@@ -805,7 +805,7 @@
 }
 
 /* =========================================================
-   XLXMODERN APRS / D-PRS FINAL V1.2.3
+   {{REFLECTOR_NAME}} APRS / D-PRS FINAL V1.2.3
    ========================================================= */
 
 .dlab-ssid-note{

@@ -1,5 +1,14 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# XLX_ERROR_TRACE_V1 — never return silently to the shell on an unexpected failure.
+_xlx_error_trace(){
+  local rc=$?
+  printf '\n[ERROR] file=%s line=%s rc=%s command=%q\n' \
+    "${BASH_SOURCE[1]:-${BASH_SOURCE[0]}}" \
+    "${BASH_LINENO[0]:-$LINENO}" "$rc" "$BASH_COMMAND" >&2
+  return "$rc"
+}
+trap _xlx_error_trace ERR
 IFS=$'\n\t'
 umask 077
 
@@ -74,11 +83,13 @@ build_admin_source(){
   local out="$1"
   cp -a "$BASE_INDEX" "$out"
   python3 "$GENERICIZER" "$out" "$UI_LANG"
-  php -l "$out" >/dev/null
-  grep -Fq "const CTRL_VER='1.5.1'" "$out"
-  grep -Fq 'Controle de Acesso e Interlink' "$out" || grep -Fq 'Access Control and Interlink' "$out"
-  grep -Fq "if(\$a==='radioid_save')" "$out"
-      ! grep -Eq 'example\.invalid|/etc/legacy-control|/var/lib/legacy-control' "$out"
+  php -l "$out" >/dev/null || { fail "Admin PHP syntax validation failed"; return 1; }
+  grep -Fq "const CTRL_VER='1.5.1'" "$out" || { fail "Admin version marker missing"; return 1; }
+  grep -Fq 'id="access"' "$out" || { fail "Admin access section missing"; return 1; }
+  grep -Fq 'id="radioid"' "$out" || { fail "Admin RadioID section missing"; return 1; }
+  grep -Fq 'access-interlink-add' "$out" || { fail "Admin Interlink action missing"; return 1; }
+  grep -Fq "if(\$a==='radioid_save')" "$out" || { fail "Admin RadioID save action missing"; return 1; }
+  ! grep -Eq 'example\.invalid|/etc/legacy-control|/var/lib/legacy-control' "$out" || { fail "Legacy Admin identity/path found"; return 1; }
 }
 
 validate_sources(){

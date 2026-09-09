@@ -167,16 +167,12 @@ function body(): array
 function sameOrigin(): void
 {
     $origin = (string)($_SERVER['HTTP_ORIGIN'] ?? '');
-
-    if (
-        $origin !== '' &&
-        $origin !== 'https://{{REFLECTOR_DOMAIN}}' &&
-        false
-    ) {
-        respond(
-            ['ok' => false, 'error' => 'origin_denied'],
-            403
-        );
+    if ($origin === '') return;
+    $normalized = rtrim($origin, '/');
+    $allowedHttps = 'https://{{REFLECTOR_DOMAIN}}';
+    $allowedHttp = 'http://{{REFLECTOR_DOMAIN}}';
+    if (!hash_equals($allowedHttps, $normalized) && !hash_equals($allowedHttp, $normalized)) {
+        respond(['ok' => false, 'error' => 'origin_denied'], 403);
     }
 }
 
@@ -915,7 +911,7 @@ if ($action === 'register') {
                 'ok' => false,
                 'error' => 'not_recently_seen',
                 'message' =>
-                    'Faça um beacon D-PRS ou envie uma mensagem APRS para o indicativo configurado e tente novamente em até 15 minutos.',
+                    'Faça um beacon D-PRS no módulo B ou envie uma mensagem APRS para {{APRS_SERVICE_CALLSIGN}} e tente novamente em até 15 minutos.',
             ],
             409
         );
@@ -976,8 +972,7 @@ if ($action === 'register') {
         'SELF_REGISTER',
         $call,
         [
-            'birth_day' => $day,
-            'birth_month' => $month,
+            'birthday_verified' => true,
         ]
     );
 

@@ -46,6 +46,7 @@ $required = [
     'radio.reflector_number' => $radio['reflector_number'] ?? '',
     'radio.reflector_short_number' => $radio['reflector_short_number'] ?? '',
     'radio.ysf_id' => $radio['ysf_id'] ?? '',
+    'radio.aprs_service_callsign' => $radio['aprs_service_callsign'] ?? '',
     'radio.dmr_tg' => $radio['dmr_tg'] ?? '',
 ];
 
@@ -96,6 +97,9 @@ $replacements = [
 
     '{{YSF_ID}}' =>
         (string)$radio['ysf_id'],
+
+    '{{APRS_SERVICE_CALLSIGN}}' =>
+        (string)$radio['aprs_service_callsign'],
 
     '{{DMR_TG}}' =>
         (string)$radio['dmr_tg'],

@@ -1,410 +1,190 @@
 # XLX Modern Installer
 
-A reproducible Debian 12 installer for XLXD, the modern dashboard, private Admin and integrated APRS/D-PRS. This release is designed to reproduce the production-validated feature set on a new reflector without publishing the reference server identity, credentials or private data.
+**Current release: v1.2.8**
 
-## Current release highlights
+Public, reproducible installer for a fresh **Debian 12 x86_64** server. It installs the XLXD core, Echo Test when selected, the modern multi-protocol dashboard, private Admin, native APRS/D-PRS, native verifiable certificates, CallingHome and operational observability.
 
-Release: **v1.2.7**
+The repository is generic: it uses the reflector identity entered during installation and does not publish production credentials, private data or production-only implementation details.
 
-- Installer UI in **Portuguese (Brazil)** or **English**, selected at startup.
-- Dashboard in Portuguese, English, Spanish, French, German or Italian.
-- **Live**, **Connected**, and **Modules** are separate pages.
-- APRS/D-PRS is bundled in this repository and installed by default.
-- Complete private Admin with a custom URL chosen during setup and 8-character minimum password.
-- QRZ TX photos, Gateway/Repeater, live-position satellite, RadioID, Health and CallingHome.
-- Support, ANATEL simulator and News are not included in the standard public package.
-
-See [FEATURES](docs/FEATURES.md) and [CHANGELOG](CHANGELOG.md).
+[Português (Brasil)](README.pt-BR.md) · [English](README.en.md) · [Changelog](CHANGELOG.md) · [Features](docs/FEATURES.md)
 
 ## Quick install
 
+Use a clean Debian 12 VPS. Minimal images may not include Git.
+
 ```bash
+apt-get update
+apt-get install -y git ca-certificates
+cd /usr/src
 git clone https://github.com/PU2PNY/XLX-Modern-Installer.git
 cd XLX-Modern-Installer
-sudo bash install.sh --check
-sudo bash install.sh
+bash install.sh
 ```
 
----
+`install.sh --check` performs the read-only preflight without installing.
 
-# 🌐 XLX Modern Installer — Install, Configure and Recover XLX Reflectors on Debian 12
+## Installation behavior
 
-<div align="center">
+The normal installer asks for all required site data in one questionnaire, shows one complete review screen and waits for **ENTER** once to start. A question number edits that answer; `X` cancels. No second `INSTALL` confirmation and no late city/Admin/YSF questionnaire is expected.
 
-![Debian 12](https://img.shields.io/badge/Debian-12-red?logo=debian&logoColor=white)
-![Architecture](https://img.shields.io/badge/Architecture-x86__64-blue)
-![XLX](https://img.shields.io/badge/XLX-D--STAR%20%7C%20DMR%20%7C%20C4FM%2FYSF-00c8ff)
-![Dashboard](https://img.shields.io/badge/Dashboard-Modern-success)
-![Languages](https://img.shields.io/badge/Dashboard-6%20languages-blueviolet)
-![Callsigns](https://img.shields.io/badge/Callsigns-Persistent%20overrides-2ea44f)
-![Certificates](https://img.shields.io/badge/Certificates-QR%20%2B%20HMAC-d4a72c)
-![License](https://img.shields.io/badge/Project-MIT-yellow)
+The collected data includes reflector ID, FQDN, sysop email/callsign, country, timezone, public description/title/footer, HTTPS choice, Echo Test, number of active modules, YSF UDP/frequency/autolink, city/region, YSF reflector ID and the private Admin username/slug/password. The Admin password must be at least 8 characters and is never displayed in the summary.
 
-**Installer and maintenance toolkit for XLX reflectors on Debian 12 with pre-flight validation, preventive backup, a modern dashboard, persistent callsign corrections, verifiable participation certificates, internationalization, diagnostics and recovery guidance.**
+The installer does **not** run a mandatory full OS upgrade. It updates package indexes and installs only required dependencies using `apt-get`.
 
-D-STAR • DMR • C4FM/YSF • XLX Echo • Modern Dashboard • Callsigns • Certificates • Debian 12
+## Installed server components
 
-🇺🇸 **English** | 🇧🇷 [Português](README.md) | 📚 [Documentation](docs/README.md)
-
-</div>
-
----
-
-## What is XLX Modern Installer?
-
-**XLX Modern Installer** helps deploy, configure, maintain and recover a multi-protocol XLX reflector on Debian 12 x86_64.
-
-The project uses the installer maintained by **Daniel K. — PP5PK** as a reviewed technical base and adds operational safety, a modern dashboard, six-language build support, persistent callsign corrections, participation certificates and recovery documentation.
-
-The installer is generic. A new deployment uses the identity supplied by the installer — reflector name/title, domain, country, sysop callsign, YSF ID, DMR TG and other site-specific data — instead of inheriting servidor de referência branding.
-
----
-
-## Main features
-
-| Feature | Status | Description |
-|---|:---:|---|
-| Fresh XLX + dashboard installation | ✅ | Installs XLXD and then the modern dashboard |
-| Pre-flight validation | ✅ | Validates Debian, architecture, resources, network and existing installs |
-| Dashboard-only installation | ✅ | Installs/reinstalls the dashboard separately |
-| Live monitor | ✅ | Live transmission monitor and server status |
-| 24-hour activity | ✅ | Recent activity covering the last 24 hours, up to 40 callsigns |
-| Connected stations | ✅ | Callsign, protocol, module, location and activity data |
-| Modules A–Z | ✅ | Selectable module count, structure and access identifiers |
-| Activity ranking | ✅ | Ranking based on server data sources |
-| Six dashboard languages | ✅ | `pt-BR`, `en`, `es`, `fr`, `de`, `it` |
-| Persistent callsign directory | ✅ | Local corrections separated from the upstream/main user database |
-| Callsign aliases | ✅ | Administrative old → new callsign mapping |
-| SQLite safety | ✅ | Backup, integrity check and rollback when refreshing the main database |
-| Participation certificates | ✅ | Activity-based issuance, local QR and HMAC validation |
-| Automatic campaigns | ✅ | Global campaigns plus country-specific campaigns |
-| Preventive backup | ✅ | Protects files before real changes |
-| GitHub CI / public audit | ✅ | Validates Bash, PHP, JavaScript, translations, generic installs, callsigns and certificates |
-
----
-
-# Quick installation
-
-Use a clean **Debian 12 x86_64** VPS/server. Copy the complete block below; minimal Debian images may not include `git`.
-
-```bash
-sudo apt update
-sudo apt install -y git ca-certificates
-cd /usr/src
-sudo git clone https://github.com/PU2PNY/XLX-Modern-Installer.git
-cd XLX-Modern-Installer
-sudo bash install.sh --check
-sudo bash install.sh
-```
-
-Install with a predefined dashboard language:
-
-```bash
-sudo bash install.sh --lang=en
-```
-
-Available languages:
-
-```text
-pt-BR  en  es  fr  de  it
-```
-
----
-
-# How installation works
-
-The complete flow is:
-
-```text
-PRE-FLIGHT VALIDATION
-    ↓
-PREVENTIVE BACKUP
-    ↓
-XLXD CORE INSTALLATION
-    ↓
-MODERN DASHBOARD
-    ↓
-DASHBOARD POST-INSTALL
-    ↓
-PERSISTENT CALLSIGN DIRECTORY
-    ↓
-PRIVATE ADMIN 1.5.1
-    ↓
-CERTIFICATE SYSTEM
-    ↓
-BUNDLED APRS/D-PRS
-    ↓
-DMR / YSF / HEALTH OBSERVABILITY
-    ↓
-FINAL VALIDATION
-```
-
-The dashboard installer uses the identity configured for the current reflector. Generic builds are tested to avoid fixed strings such as `BR-XLX999` or `XLX999 Brasil`.
-
----
-
-# Modern dashboard
-
-To install or reinstall only the dashboard:
-
-```bash
-cd /usr/src/XLX-Modern-Installer
-sudo bash modules/60-dashboard-modern.sh
-```
-
-This flow also installs/checks the persistent callsign directory, private Admin and certificate module. The full `install.sh` additionally installs bundled APRS/D-PRS and operational observability.
-
-The installer collects values such as:
-
-- reflector identifier, for example `XLX724`;
-- display title;
-- description;
-- sysop callsign;
-- city/region;
-- country;
-- domain;
-- contact email;
-- YSF ID;
-- DMR TG;
-- dashboard language;
-- server timezone;
-- optional reflector anniversary for certificate campaigns.
-
----
-
-# Persistent callsign directory
-
-The main XLX user database remains:
-
-```text
-/xlxd/users_db/users.db
-```
-
-Local corrections are stored separately:
-
-```text
-/var/lib/xlx-user-directory/overrides.db
-```
-
-Examples:
-
-```bash
-sudo xlx-user-directory --help
-sudo xlx-user-directory lookup N0CALL
-sudo xlx-user-directory set N0CALL "Operator Name" "City, Region"
-sudo xlx-user-directory alias OLDCALL NEWCALL
-sudo xlx-user-directory delete N0CALL
-sudo xlx-user-directory check
-sudo xlx-user-directory refresh
-```
-
-`refresh` performs:
-
-```text
-BACKUP CURRENT DATABASE
-        ↓
-VALIDATE BACKUP
-        ↓
-RUN XLX USER DATABASE GENERATOR
-        ↓
-PRAGMA integrity_check
-        ↓
-SUCCESS → keep new database
-FAILURE → restore previous database
-```
-
-Local overrides remain separate and are not removed by `refresh`.
-
-> Callsign aliases do **not** change what a radio actually transmits. Radio/hotspot programming must still be corrected separately.
-
-Detailed guide: [docs/CALLSIGNS-CERTIFICATES.en.md](docs/CALLSIGNS-CERTIFICATES.en.md).
-
----
-
-# Participation certificates
-
-User page:
-
-```text
-https://YOUR-DOMAIN/certificado.php
-```
-
-A certificate is available only when an actual transmission is found during the active campaign period. Being present in the user database alone is not enough.
-
-User flow:
-
-1. Open `certificado.php`.
-2. Enter the callsign.
-3. The server checks eligible activity.
-4. If eligible, a preview is shown.
-5. Issue the certificate.
-6. The server stores the issuance and returns a unique ID and QR code.
-7. The user can print or save as PDF from the browser.
-
-Issuance is unique per:
-
-```text
-campaign + callsign
-```
-
-Issuance records:
-
-```text
-/var/lib/xlx-certificates/emissoes.jsonl
-```
-
-Private HMAC key:
-
-```text
-/etc/xlx-certificates/hmac.key
-```
-
-QR codes are generated locally with `qrencode` and point to:
-
-```text
-/certificado-validar.php?id=...&sig=...
-```
-
-## Campaigns
-
-For all countries:
-
-- daily participation certificate;
-- World Amateur Radio Day — April 18;
-- reflector anniversary week when configured.
-
-Brazil-only campaigns are enabled only when the configured country is Brazil:
-
-- Mother's Day;
-- Father's Day;
-- Brazil Independence Day;
-- Brazilian Amateur Radio Day.
-
-A reflector configured in Portugal or another country does not inherit Brazilian campaigns.
-
-Detailed guide: [docs/CALLSIGNS-CERTIFICATES.en.md](docs/CALLSIGNS-CERTIFICATES.en.md).
-
----
-
-# Important files and persistent data
-
-```text
-/xlxd/
-/xlxd/users_db/users.db
-/etc/systemd/system/xlxd.service
-/etc/systemd/system/xlxecho.service
-/etc/apache2/
-/var/www/html/xlx-dashboard/
-/usr/src/XLX-Modern-Installer/
-/var/lib/xlx-user-directory/overrides.db
-/var/backups/xlx-reflector/callsign-directory/
-/var/lib/xlx-certificates/emissoes.jsonl
-/etc/xlx-certificates/hmac.key
-/var/backups/xlx-reflector/
-/var/log/xlx-reflector/installer/
-```
-
-Do not publish real user databases, override databases, issuance records, HMAC keys, production backups, passwords or tokens.
-
----
-
-# Backup and disaster recovery
-
-A full recovery backup should include the normal XLX files plus:
-
-```text
-/var/lib/xlx-user-directory/
-/var/lib/xlx-certificates/
-/etc/xlx-certificates/
-```
-
-The HMAC key is especially important because previously issued certificates depend on it for future validation.
-
-Recommended workflow:
-
-```text
-DIAGNOSE → INVENTORY → VERIFIED BACKUP → MINIMAL CHANGE → VALIDATE → ROLLBACK
-```
-
----
-
-# Project structure
-
-```text
-XLX-Modern-Installer/
-├── install.sh
-├── README.md
-├── README.en.md
-├── dashboard/
-│   ├── api/
-│   ├── assets/
-│   ├── config/
-│   ├── i18n/
-│   └── install/
-├── extras/
-│   └── certificados/
-├── modules/
-│   ├── 60-dashboard-modern.sh
-│   ├── 65-callsign-directory.sh
-│   └── 66-certificates.sh
-├── tools/
-│   └── xlx-user-directory.sh
-├── docs/
-├── scripts/
-├── tests/
-└── .github/workflows/
-```
-
----
-
-# Documentation
-
-- [Documentation index](docs/README.md)
-- [Callsign directory and certificates](docs/CALLSIGNS-CERTIFICATES.en.md)
-- [Install XLX on Debian 12](docs/INSTALL-XLX-DEBIAN-12.en.md)
-- [Update and recover XLX](docs/UPDATE-RECOVER-XLX.en.md)
-- [Firewall and ports](docs/XLX-FIREWALL-PORTS.en.md)
-- [Files and logs](docs/XLX-FILES-LOGS.en.md)
-- [Post-installation](docs/XLX-POST-INSTALL.en.md)
-- [Internationalization](docs/INTERNATIONALIZATION.md)
-
----
-
-# Security
-
-Never publish:
-
-- passwords or access tokens;
-- private keys;
-- `/etc/xlx-certificates/hmac.key`;
-- real `users.db` or `overrides.db` files;
-- real `emissoes.jsonl` files;
-- production backups;
-- sensitive production logs.
-
-See [SECURITY.md](SECURITY.md).
-
----
-
-# Credits
-
-| Project / resource | Relationship |
+| Component | What it does |
 |---|---|
-| [LX3JL/xlxd](https://github.com/LX3JL/xlxd) | XLXD core and protocol reference |
-| [PP5PK/XLX_Installer](https://github.com/PP5PK/XLX_Installer) | Reviewed installer base |
-| [narspt/XLXEcho](https://github.com/narspt/XLXEcho) | Echo/parrot service |
-| [Certbot](https://certbot.eff.org/) | HTTPS certificate tooling |
-| [DVRef](https://dvref.com/) | Related reflector directory/service |
-| **Dario — PU2PNY** | Maintenance, documentation, safety layer and modern dashboard |
+| XLXD core | Multi-protocol reflector service and configured active modules |
+| XLX Echo | Optional echo test service on module E when selected |
+| Apache + PHP | Serves the dashboard and APIs |
+| Callsign database | Builds and refreshes the RadioID/callsign directory with persistent local overrides |
+| CallingHome | Timer-based reflector registration/heartbeat using the actually available HTTP/HTTPS scheme |
+| Native APRS/D-PRS | D-PRS/GPS observation, APRS-IS integration, messaging/ACK state and account management |
+| Native certificates | Activity-based participation certificates with public QR verification and HMAC authenticity |
+| Observability | Health, DMR data/meta, YSF data, history collector and regression self-test services/timers |
+| Private Admin | Status, ports, logs, backups, Health, RadioID, whitelist/blacklist, Interlink and protected XLXD restart |
 
-See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+## Dashboard
 
----
+The public dashboard keeps these areas independent:
 
-<div align="center">
+- **Live** — real-time TX boxes, protocol/module state, QRZ public profile photo when available and 24-hour activity.
+- **Connected** — filters plus connected-station table; it is not merged with Modules.
+- **Modules** — access-identification table followed by module cards. Active modules follow the configured count and use NATO names Alfa–Zulu where applicable.
+- **Ranking** — recent activity indicators from available server history.
+- **Reflectors** — worldwide XLX reflector listing.
+- **APRS / D-PRS** — native Digital Lab interface.
+- **Certificates** — native participation certificate generation and verification.
 
-**XLX Modern Installer — universal installation, modern dashboard, persistent callsign data and verifiable certificates for the amateur-radio community.**
+The standard public package intentionally excludes **Support**, **ANATEL simulator** and **News**.
 
-🇧🇷 [Leia em Português](README.md)
+### Live identity and status semantics
 
-</div>
+The dashboard follows the production-validated identity rules:
+
+- the callsign from the XLXD log is the transmitting source;
+- a different gateway/repeater is shown only when supported by exact station/gateway evidence;
+- `Online` means actually connected;
+- `Link` is used only when a verified gateway relationship exists for an otherwise offline operator;
+- Talker Alias is supplemental radio-reported metadata and never replaces RadioID identity;
+- registered hotspot/repeater coordinates are not treated as live operator GPS;
+- APRS/D-PRS/GPS indicators only use observed position data.
+
+Visible history is limited to the last **24 hours**.
+
+## APRS / D-PRS accounts
+
+APRS/D-PRS is native and mandatory in the normal installation. The web interface and APIs ship inside `dashboard/`; only the background gateway/service and SQLite state are provisioned outside the webroot.
+
+Account behavior follows the validated XLX026 model:
+
+- callsign is normalized and validated;
+- self-registration requires a recent qualifying APRS/D-PRS activity check;
+- the user provides the real **day and month** of birth and explicit consent;
+- the password is generated with cryptographic randomness;
+- only `password_hash()` output is stored;
+- the generated password is displayed only at creation/reset time;
+- password resets validate callsign + day/month through an authorized Admin/Collaborator workflow;
+- a reset generates a new password, increments the authentication version and revokes remembered tokens;
+- raw birthday values are not written into the audit-event detail payload.
+
+The APRS service callsign is derived from the configured sysop using the dedicated `-10` SSID, rather than a fixed production callsign.
+
+## Native certificates and QR validation
+
+Certificates are part of this repository and dashboard; the normal install does **not** download or execute a second certificate-generator repository.
+
+A certificate is issued only when eligible activity exists for the active campaign. Each issuance has a unique ID and a keyed HMAC token. The QR points back to the same installed dashboard, for example:
+
+```text
+https://YOUR-DOMAIN/?page=certificado&validar=ID&token=SIGNATURE
+```
+
+Validation retrieves the stored issuance, recomputes the token and uses `hash_equals()` for constant-time comparison. A changed token is rejected. The HMAC secret is created outside the webroot under `/etc/xlx-certificates/`.
+
+## Private Admin
+
+The Admin is not linked from public navigation and uses the private slug selected during setup. It includes:
+
+- XLXD/service status and listeners;
+- logs and backups;
+- Health status;
+- RadioID status, check, refresh, search, save and delete;
+- whitelist and blacklist management;
+- Interlink add/delete/status;
+- protected XLXD restart;
+- CSRF, session protection, rate limiting and audit controls;
+- no browser SSH/Linux terminal and no XLXD terminal UI.
+
+Functional validation uses stable code/DOM markers such as `id="access"`, `id="radioid"`, `access-interlink-add` and `radioid_save`; translated UI wording is not used as an installation contract.
+
+## HTTPS and Let's Encrypt
+
+HTTPS is requested when selected, but an ACME failure does not destroy an otherwise valid reflector installation. The installer records the real Certbot/ACME diagnostics and leaves the public dashboard available over HTTP while the certificate is pending.
+
+For repeated development tests, use Let's Encrypt staging rather than repeatedly issuing production certificates. The retry helper is installed as:
+
+```bash
+xlx-modern-https-retry YOUR-DOMAIN YOUR-EMAIL
+```
+
+Private session cookies are Secure; do not treat HTTP fallback as a replacement for HTTPS for authenticated use.
+
+## Languages
+
+- Installer: Portuguese (Brazil) or English.
+- Private Admin: Portuguese (Brazil) or English.
+- Dashboard: Portuguese (Brazil), English, Spanish, French, German and Italian.
+
+Routes, filenames, IDs, API paths and other technical contracts are protected from translation.
+
+## Backups, diagnostics and failure reporting
+
+Changes create preventive backups under `/var/backups/xlx-reflector/`. Critical scripts use `set -Eeuo pipefail` and report unexpected failures with file, line, return code and failing command instead of silently returning to the shell. Component-level rollback is used where applicable.
+
+A successful full installation must reach **INSTALLATION COMPLETE** after post-install validation. The validation checks essential services, Apache configuration, XLXD binary, required dashboard files, VirtualHost, CallingHome and the locally reachable dashboard protocol.
+
+## Persistent callsign corrections
+
+The main generated database remains under `/xlxd/users_db/`. Local corrections and aliases are stored separately in `/var/lib/xlx-user-directory/overrides.db`, so refreshing upstream data does not erase local changes.
+
+Useful command:
+
+```bash
+xlx-user-directory --help
+```
+
+## Testing and release gate
+
+Before a public tag, the repository runs Bash/PHP syntax checks, installer-flow regressions, Admin PT/EN builds, six dashboard-language builds, public-release secret/identity audit, native APRS/certificate checks and production-parity regressions.
+
+A release candidate is not considered operationally complete until a clean Debian 12 install reaches the final success message. Reinstallation/idempotence is also part of the expected release validation.
+
+## Security boundaries
+
+- no fixed Admin password is stored in Git;
+- no production credentials/private data are shipped;
+- no broad `777` permission model;
+- private Admin actions use limited sudo helpers rather than arbitrary browser sudo;
+- Certificate HMAC secrets stay outside the webroot;
+- APRS passwords are hashed;
+- Support/ANATEL simulator/News are not part of the generic deployment.
+
+## Project layout
+
+```text
+install.sh                 top-level installer
+vendor/pp5pk-installer/    reviewed XLXD base installer
+dashboard/                 native public dashboard, APRS/D-PRS and certificates
+control/                   private Admin source/builders/helpers
+modules/                   controlled installation/provisioning stages
+observability/             Health, DMR/YSF/history/self-test components
+tests/                     regression suite
+scripts/                   audits, backup and maintenance helpers
+docs/                      technical documentation
+```
+
+## License and credits
+
+See [LICENSE](LICENSE), [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) and [CONTRIBUTING.md](CONTRIBUTING.md). The XLXD base lineage and upstream projects retain their respective licenses and attribution.

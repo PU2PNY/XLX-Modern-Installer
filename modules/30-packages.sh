@@ -2,7 +2,7 @@
 set -Eeuo pipefail
 MODE="${1:-dry-run}"
 case "$MODE" in dry-run|plan) ;; *) echo "ERROR: package installation is blocked in this development build." >&2; exit 20;; esac
-PACKAGES=(apache2 build-essential ca-certificates certbot curl git libapache2-mod-php libjson-c-dev libsqlite3-dev libssl-dev nftables php php-cli php-curl php-mbstring php-sqlite3 pv unzip wget zip)
+PACKAGES=(apache2 build-essential ca-certificates certbot curl git iproute2 libapache2-mod-php libjson-c-dev libsqlite3-dev libssl-dev nftables openssl php php-cli php-curl php-mbstring php-sqlite3 php-xml procps python3 python3-certbot-apache pv rsync sqlite3 sudo unzip util-linux vnstat wget zip)
 echo "mode=DRY_RUN"
 echo "package_installation=BLOCKED"
 missing=0; installed=0

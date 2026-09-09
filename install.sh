@@ -1,5 +1,14 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# XLX_ERROR_TRACE_V1 — never return silently to the shell on an unexpected failure.
+_xlx_error_trace(){
+  local rc=$?
+  printf '\n[ERROR] file=%s line=%s rc=%s command=%q\n' \
+    "${BASH_SOURCE[1]:-${BASH_SOURCE[0]}}" \
+    "${BASH_LINENO[0]:-$LINENO}" "$rc" "$BASH_COMMAND" >&2
+  return "$rc"
+}
+trap _xlx_error_trace ERR
 IFS=$'\n\t'
 umask 077
 
@@ -11,7 +20,7 @@ readonly ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
 readonly REPOSITORY="local:vendor/pp5pk-installer"
 readonly REVIEWED_COMMIT="vendor-pinned-PP5PK-20b4893"
-readonly EXPECTED_INSTALLER_SHA256="703f4d6450f6c9b45f7b20177a3409d7bd5ddc3696bd865dd7a83fc647c91285"
+readonly EXPECTED_INSTALLER_SHA256="8e252dfb0ffcee76c65f189d84ffd503951dfb1d2aca32a1265d1dc746b7027b"
 readonly WORK_ROOT="/opt/xlx-modern-installer"
 readonly SOURCE_DIR="${WORK_ROOT}/vendor/pp5pk-installer"
 readonly BACKUP_ROOT="/var/backups/xlx-reflector"
@@ -23,7 +32,6 @@ ALLOW_REMNANTS="no"
 DASHBOARD_ONLY="no"
 DASHBOARD_LANG=""
 UI_LANG="pt-BR"
-APRS_DPRS_MODE="yes"
 CHECK_READY="yes"
 
 for arg in "$@"; do
@@ -32,8 +40,6 @@ for arg in "$@"; do
         --dashboard-only) DASHBOARD_ONLY="yes" ;;
         --allow-remnants|--force-clean) ALLOW_REMNANTS="yes" ;;
         --lang=*) DASHBOARD_LANG="${arg#*=}" ;;
-        --with-aprs-dprs) APRS_DPRS_MODE="yes" ;;
-        --without-aprs-dprs) APRS_DPRS_MODE="no" ;;
         -h|--help)
             cat <<'HELP'
 XLX Modern Installer
@@ -43,7 +49,6 @@ Uso / Usage:
   sudo bash install.sh
   sudo bash install.sh --lang=en
   sudo bash install.sh --dashboard-only
-  sudo bash install.sh --with-aprs-dprs
 
 Opções / Options:
   --check
@@ -57,10 +62,6 @@ Opções / Options:
       also uses English.
       pt-BR | en | es | fr | de | it
 
-  --with-aprs-dprs
-      Instala o módulo APRS/D-PRS incorporado ao pacote (padrão).
-      Installs the bundled APRS/D-PRS module (default).
-
   --dashboard-only
       Atualiza ou reinstala somente o painel moderno em um XLXD existente.
       Preserva o núcleo XLXD, cria backup preventivo e não executa a
@@ -68,10 +69,6 @@ Opções / Options:
       Updates or reinstalls only the modern dashboard on an existing XLXD.
       It preserves the XLXD core, creates a preventive backup, and does not
       run a full reflector installation.
-
-  --without-aprs-dprs
-      Não instala nem pergunta sobre APRS/D-PRS nesta execução.
-      Skips APRS/D-PRS and does not ask about it in this run.
 
   --allow-remnants
       Permite continuar quando existem apenas vestígios de instalação antiga.
@@ -426,13 +423,13 @@ The installer will then:
 7. Configure Apache and HTTPS when selected.
 8. Prepare XLX databases.
 9. Start and validate services.
-10. Install and validate the bundled APRS/D-PRS module.
+10. Provision and validate the native APRS/D-PRS backend.
 
 Current choices:
 - Mode: $MODE
 - Dashboard language: $dash_lang
 - Dashboard directory: $DEFAULT_DASHBOARD_DIR
-- APRS/D-PRS: included / incluído
+- APRS/D-PRS: native and mandatory / nativo e obrigatório
 
 Technical base: PP5PK/XLX_Installer
 Original author: Daniel K. — PP5PK
@@ -460,13 +457,13 @@ Depois o instalador irá:
 7. Configurar Apache e HTTPS quando selecionado.
 8. Preparar as bases do XLX.
 9. Iniciar e validar os serviços.
-10. Instalar e validar o módulo APRS/D-PRS incorporado.
+10. Provisionar e validar o backend APRS/D-PRS nativo.
 
 Escolhas atuais:
 - Modo: $MODE
 - Idioma do dashboard: $dash_lang
 - Diretório do dashboard: $DEFAULT_DASHBOARD_DIR
-- APRS/D-PRS: included / incluído
+- APRS/D-PRS: native and mandatory / nativo e obrigatório
 
 Base técnica: PP5PK/XLX_Installer
 Autor original: Daniel K. — PP5PK
@@ -491,13 +488,9 @@ run_check() {
     ok "$(msg "Nenhuma instalação ativa será sobrescrita." "No active installation will be overwritten.")"
     ok "$(msg "Commit e SHA-256 confirmados." "Commit and SHA-256 verified.")"
 
-    if [ "$APRS_DPRS_MODE" = "yes" ]; then
-        section "$(msg "PRÉ-VALIDAÇÃO APRS/D-PRS" "APRS/D-PRS PRE-CHECK")"
-        bash "$ROOT_DIR/modules/67-aprs-dprs.sh" --check
+    section "$(msg "PRÉ-VALIDAÇÃO APRS/D-PRS NATIVO" "NATIVE APRS/D-PRS PRE-CHECK")"
+    bash "$ROOT_DIR/modules/67-aprs-dprs.sh" --check
     bash "$ROOT_DIR/modules/71-observability.sh" --check
-    else
-        info "$(msg "APRS/D-PRS não solicitado no modo de pré-validação." "APRS/D-PRS was not requested for this pre-check.")"
-    fi
 
     info "$(msg "Verificação concluída sem erro bloqueante. Para instalar agora, execute: bash install.sh" "Check completed with no blocking error. To install now, run: bash install.sh")"
 }
@@ -529,23 +522,6 @@ execute_dashboard_only() {
     systemctl is-active --quiet xlxd || fatal "$(msg "XLXD não está ativo após a atualização do painel; o núcleo não foi reinstalado. Consulte os logs antes de continuar." "XLXD is not active after the dashboard update; the core was not reinstalled. Check the logs before continuing.")"
     section "$(msg "ATUALIZAÇÃO DO PAINEL CONCLUÍDA" "DASHBOARD UPDATE COMPLETE")"
     ok "$(msg "Painel moderno validado e XLXD preservado." "Modern dashboard validated and XLXD preserved.")"
-}
-
-resolve_aprs_choice() {
-    local answer
-    case "$APRS_DPRS_MODE" in
-        yes) return 0 ;;
-        no) return 1 ;;
-        ask)
-            printf '\n%s' "$(msg "Instalar o APRS/D-PRS incorporado? [S/n]: " "Install the bundled APRS/D-PRS module? [Y/n]: ")"
-            read -r answer
-            case "${answer,,}" in
-                s|sim|y|yes) APRS_DPRS_MODE="yes"; return 0 ;;
-                *) APRS_DPRS_MODE="no"; return 1 ;;
-            esac
-            ;;
-        *) fatal "$(msg "Estado APRS/D-PRS inválido: $APRS_DPRS_MODE" "Invalid APRS/D-PRS state: $APRS_DPRS_MODE")" ;;
-    esac
 }
 
 execute_installer() {
@@ -583,7 +559,7 @@ execute_installer() {
     fi
 
     dashboard_dest="${INSTALL_DIR:-$DEFAULT_DASHBOARD_DIR}"
-    section "$(msg "INSTALANDO APRS/D-PRS" "INSTALLING APRS/D-PRS")"
+    section "$(msg "PROVISIONANDO APRS/D-PRS NATIVO" "PROVISIONING NATIVE APRS/D-PRS")"
     XLX_DASHBOARD_DIR="$dashboard_dest" XLX_UI_LANG="$UI_LANG" bash "$ROOT_DIR/modules/67-aprs-dprs.sh" "--dashboard-dir=$dashboard_dest"
     XLX_DASHBOARD_DIR="$dashboard_dest" XLX_UI_LANG="$UI_LANG" bash "$ROOT_DIR/modules/71-observability.sh" "--dashboard-dir=$dashboard_dest"
 

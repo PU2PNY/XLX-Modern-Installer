@@ -1,6 +1,6 @@
 <?php
 $page = $_GET['page'] ?? 'ao-vivo';
-$allowed = ['ao-vivo','modulos','conectados','ranking','refletores'];
+$allowed = ['ao-vivo','modulos','conectados','ranking','refletores','digital-lab','certificado'];
 if (!in_array($page, $allowed, true)) $page = 'ao-vivo';
 $authorizedPage = in_array($page, ['ao-vivo','modulos','conectados','ranking'], true);
 $site = is_file(__DIR__ . '/config/site.php') ? require __DIR__ . '/config/site.php' : [];
@@ -13,6 +13,8 @@ function render_nav(string $page): string {
     'ao-vivo' => 'Ao vivo',
     'modulos' => 'Módulos',
     'conectados' => 'Conectados',
+    'digital-lab' => 'APRS / D-PRS',
+    'certificado' => 'Certificado',
     'ranking' => 'Ranking',
     'refletores' => 'Lista de refletores XLX',
   ];
@@ -28,7 +30,9 @@ $seo = [
  'modulos'=>['title'=>'Módulos ' . $moduleRange . ' — {{REFLECTOR_NAME}}','description'=>'Consulte funções, protocolos e identificações de acesso dos módulos habilitados do refletor {{REFLECTOR_NAME}}.'],
  'conectados'=>['title'=>'Estações conectadas — {{REFLECTOR_NAME}}','description'=>'Veja em tempo real as estações conectadas ao {{REFLECTOR_NAME}}, com indicativo, protocolo, módulo e tempo de conexão.'],
  'ranking'=>['title'=>'Ranking de atividade — {{REFLECTOR_NAME}}','description'=>'Ranking recente do {{REFLECTOR_NAME}} por transmissões, tempo no ar, permanência, horários, protocolos e módulos.'],
- 'refletores'=>['title'=>'Lista de refletores XLX — {{REFLECTOR_NAME}}','description'=>'Lista atualizada de refletores XLX registrados, com país, status e descrição.']
+ 'refletores'=>['title'=>'Lista de refletores XLX — {{REFLECTOR_NAME}}','description'=>'Lista atualizada de refletores XLX registrados, com país, status e descrição.'],
+ 'digital-lab'=>['title'=>'APRS / D-PRS — {{REFLECTOR_NAME}}','description'=>'Digital Lab nativo APRS/D-PRS com mensagens, GPS, cadastro e recuperação de acesso.'],
+ 'certificado'=>['title'=>'Certificado — {{REFLECTOR_NAME}}','description'=>'Emissão e validação pública de certificados com QR Code verificável.']
 ];
 $meta = $seo[$page];
 $canonical = 'https://{{REFLECTOR_DOMAIN}}/' . ($page === 'ao-vivo' ? '' : '?page=' . rawurlencode($page));
@@ -115,6 +119,8 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}/' . ($page === 'ao-vivo' ? '' : '?pag
 <?php if ($page === 'ao-vivo'): ?><link rel="stylesheet" href="assets/ao-vivo-final-bundle-v1.css?v=20260907"><link rel="stylesheet" href="assets/qrz-tx-photo-v1.css?v=20260907"><?php endif; ?>
 <link rel="stylesheet" href="assets/atividade-24h-conectados-v1.css?v=3">
 <?php if ($page === 'modulos'): ?><link rel="stylesheet" href="assets/module-capabilities-v1.css?v=20260907"><?php endif; ?>
+<?php if ($page === 'digital-lab'): ?><link rel="stylesheet" href="assets/digital-lab.css?v=native"><link rel="stylesheet" href="assets/digital-lab-operator.css?v=native"><?php endif; ?>
+<?php if ($page === 'certificado'): ?><link rel="stylesheet" href="assets/certificado.css?v=native"><?php endif; ?>
 <link rel="stylesheet" href="assets/refletores-completo-v2.css?v=1">
 <link rel="stylesheet" href="assets/standby-mensagens-v3.css?v=1"><link rel="stylesheet" href="assets/header-hotfix.css?v=1"><link rel="stylesheet" href="assets/mtr.css?v=5">
 <script type="application/ld+json"><?=json_encode(['@context'=>'https://schema.org','@type'=>'WebSite','name'=>'{{REFLECTOR_NAME}}','url'=>'https://{{REFLECTOR_DOMAIN}}/','description'=>'Painel para radioamadores com D-STAR, DMR e C4FM/YSF.','inLanguage'=>'pt-BR','image'=>'https://{{REFLECTOR_DOMAIN}}/assets/logo-{{REFLECTOR_NAME}}.svg'], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)?></script><link rel="stylesheet" href="assets/install-app.css?v=33"><link rel="stylesheet" href="assets/offline-neon.css?v=20260806_103404"> <link rel="stylesheet" href="assets/ham-weather-widget.css?v=3">
@@ -234,6 +240,10 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}/' . ($page === 'ao-vivo' ? '' : '?pag
  <section class="panel connected-table-panel">
   <div class="table-wrap"><table class="connected-table"><thead><tr><th>#</th><th>País</th><th>Indicativo</th><th>Nome</th><th>Localização</th><th>Protocolo</th><th>Módulo</th><th>Conectado às</th><th>Tempo conectado</th><th>Última atividade</th></tr></thead><tbody id="connectedRows"></tbody></table></div>
  </section>
+<?php elseif ($page === 'digital-lab'): ?>
+ <?php require __DIR__.'/digital-lab-native.php'; ?>
+<?php elseif ($page === 'certificado'): ?>
+ <?php require __DIR__.'/certificado-view.php'; ?>
 <?php elseif ($page === 'ranking'): ?>
 <!-- XLXMODERN_RANKING_V2 -->
 <?php require __DIR__.'/ranking-v2-view.php'; ?>
@@ -335,4 +345,6 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}/' . ($page === 'ao-vivo' ? '' : '?pag
 <script src="assets/header-unificado-v1.js?v=20260807_032449"></script>
 <script src="assets/header-brasil-neon-fixed-v2.js?v=1"></script>
 <script src="assets/xlxmodern-accessibility.js?v=1" defer></script>
+<?php if ($page === 'digital-lab'): ?><script src="assets/digital-lab.js?v=native"></script><script src="assets/digital-lab-operator.js?v=native"></script><?php endif; ?>
+<?php if ($page === 'certificado'): ?><script src="assets/vendor/qrcode.min.js"></script><script src="assets/certificado.js?v=native"></script><?php endif; ?>
 </body></html>

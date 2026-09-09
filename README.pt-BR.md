@@ -1,673 +1,176 @@
 # XLX Modern Installer
 
-Instalador reproduzível para Debian 12 que instala XLXD, painel moderno, Admin privado e APRS/D-PRS integrado. A meta desta versão é reproduzir em um novo refletor as funções validadas em produção, sem publicar identidade, credenciais ou dados privados do servidor de referência.
+**Versão atual: v1.2.8**
 
-## Destaques da versão atual
+Instalador público e reproduzível para **Debian 12 x86_64**. Instala o núcleo XLXD, Echo Test quando selecionado, painel moderno multiprotocolo, Admin privado, APRS/D-PRS nativo, Certificados nativos verificáveis, CallingHome e observabilidade operacional.
 
-Versão: **v1.2.7**
-
-- Instalador em **Português (Brasil)** ou **English**, escolhido no início.
-- Painel em Português, English, Español, Français, Deutsch ou Italiano.
-- **Ao Vivo**, **Conectados** e **Módulos** são páginas separadas.
-- APRS/D-PRS é incorporado ao próprio repositório e instalado por padrão.
-- Admin privado completo com URL escolhida na instalação e senha mínima de 8 caracteres.
-- QRZ no TX, Gateway/Repetidora, satélite de localização, RadioID, Health e CallingHome.
-- Suporte, Simulado ANATEL e Notícias não fazem parte do pacote público padrão.
-
-Consulte [FEATURES](docs/FEATURES.md) e [CHANGELOG](CHANGELOG.md).
+O repositório é genérico: utiliza a identidade informada durante a instalação e não publica credenciais, dados privados nem implementação exclusiva do servidor de referência.
 
 ## Instalação rápida
 
 ```bash
+apt-get update
+apt-get install -y git ca-certificates
+cd /usr/src
 git clone https://github.com/PU2PNY/XLX-Modern-Installer.git
 cd XLX-Modern-Installer
-sudo bash install.sh --check
-sudo bash install.sh
+bash install.sh
 ```
 
----
+`bash install.sh --check` faz somente a pré-validação sem instalar.
 
-# 🌐 XLX Modern Installer — Instale, Configure e Recupere um Refletor XLX no Debian 12
+## Como a instalação funciona
 
-<div align="center">
+Todas as informações são solicitadas em **um único questionário inicial**. Depois aparece um resumo completo. Pressione **ENTER uma única vez** para instalar, digite o número de uma pergunta para corrigi-la ou `X` para cancelar. Não existe segunda confirmação `INSTALL` nem perguntas tardias de cidade, YSF ou Admin.
 
-![Debian 12](https://img.shields.io/badge/Debian-12-red?logo=debian&logoColor=white)
-![Architecture](https://img.shields.io/badge/Arquitetura-x86__64-blue)
-![XLX](https://img.shields.io/badge/XLX-D--STAR%20%7C%20DMR%20%7C%20C4FM%2FYSF-00c8ff)
-![Dashboard](https://img.shields.io/badge/Dashboard-Modern-success)
-![Languages](https://img.shields.io/badge/Painel-6%20idiomas-blueviolet)
-![Callsigns](https://img.shields.io/badge/Indicativos-Overrides%20persistentes-2ea44f)
-![Certificates](https://img.shields.io/badge/Certificados-QR%20%2B%20HMAC-d4a72c)
-![License](https://img.shields.io/badge/Projeto-MIT-yellow)
+O questionário reúne refletor, domínio, email/indicativo do sysop, país, fuso, textos públicos, HTTPS, Echo Test, quantidade de módulos, YSF, cidade/região, YSF ID e usuário/slug/senha do Admin. A senha do Admin exige no mínimo 8 caracteres e nunca aparece no resumo.
 
-**Instalador e kit de manutenção para refletores XLX em Debian 12, com pré-validação, backup, dashboard moderno, diretório persistente de indicativos, certificados verificáveis, internacionalização, diagnóstico e recuperação.**
+O instalador **não executa `full-upgrade` obrigatório**. Usa `apt-get` para atualizar índices e instalar apenas as dependências necessárias.
 
-D-STAR • DMR • C4FM/YSF • XLX Echo • Dashboard moderno • Indicativos • Certificados • Debian 12
+## O que o servidor instala
 
-🇧🇷 **Português** | 🇺🇸 [English](README.en.md) | 📚 [Documentação](docs/README.md)
-
-[Instalação](#-instalação-rápida) • [Como funciona](#-como-funciona-a-instalação) • [Painel](#-dashboard-moderno) • [Indicativos](#-diretório-persistente-de-indicativos) • [Certificados](#-certificados-de-participação) • [Backup](#-backup-diagnóstico-e-recuperação)
-
-</div>
-
----
-
-## 🖥️ Dashboard real — screenshots
-
-As imagens abaixo são capturas reais do **servidor de referência** usando o XLX Modern Dashboard.
-
-> As capturas são exemplos de uma instalação real. O instalador oficial é **universal**: nome, domínio, país, indicativo do responsável, YSF ID, TG DMR e demais dados são definidos por quem instala. Uma nova instalação não herda automaticamente a identidade do servidor de referência.
-
----
-
-## 📖 O que é o XLX Modern Installer?
-
-O **XLX Modern Installer** foi criado para facilitar a instalação, configuração, manutenção e recuperação de um **refletor XLX multiprotocolo** em Debian 12 x86_64.
-
-O projeto usa como base técnica revisada o instalador de **Daniel K. — PP5PK** e acrescenta uma camada própria de segurança operacional, dashboard moderno, internacionalização, gerenciamento de indicativos, certificados de participação e documentação de recuperação.
-
-O objetivo é permitir que uma VPS nova seja configurada com a identidade do refletor desejado — por exemplo `XLX724`, `XLX999` ou outro código XLX válido — sem depender de textos ou caminhos fixos do servidor de referência.
-
-> **Princípio operacional:** diagnosticar antes de alterar, criar backup antes de mudanças, validar depois e manter rollback disponível.
-
----
-
-## ✨ Recursos principais
-
-| Recurso | Situação | Descrição |
-|---|:---:|---|
-| 🆕 Nova instalação XLX + painel | ✅ | Instala o núcleo XLX e depois o dashboard moderno |
-| 🔎 Pré-validação / dry-run | ✅ | Valida Debian, arquitetura, recursos, rede e instalação existente |
-| 🖥️ Instalação somente do painel | ✅ | Instala/reinstala o dashboard sem reinstalar o núcleo XLXD |
-| 📡 Ao Vivo | ✅ | Monitor de transmissões com atualização rápida |
-| 🕐 Histórico 24 h | ✅ | Exibe atividade das últimas 24 horas, com até 40 indicativos |
-| 👥 Conectados | ✅ | Exibe estações conectadas, protocolo, módulo, localização e atividade |
-| 🧩 Módulos A–Z | ✅ | Quantidade selecionável, visualização dos módulos e identificações de acesso |
-| 🏆 Ranking | ✅ | Ranking de atividade baseado nos dados do servidor |
-| 🌍 Painel em 6 idiomas | ✅ | `pt-BR`, `en`, `es`, `fr`, `de`, `it` |
-| 👤 Diretório de indicativos | ✅ | Correções locais persistentes sem alterar a base principal |
-| 🔁 Alias de indicativo | ✅ | Relaciona indicativo antigo com indicativo novo para resolução administrativa |
-| 🧪 Integridade SQLite | ✅ | `PRAGMA integrity_check`, backup e rollback na atualização da base |
-| 🏅 Certificados | ✅ | Emissão por atividade registrada, QR Code local e validação HMAC |
-| 🎯 Campanhas automáticas | ✅ | Campanhas globais e campanhas condicionadas ao país configurado |
-| 💾 Backup preventivo | ✅ | Protege arquivos antes de alterações reais |
-| 🧾 Logs de instalação | ✅ | Mantém registro da execução para diagnóstico |
-| 🛡️ Proteção de produção | ✅ | Bloqueia instalação completa sobre XLXD ativo |
-| 🔊 XLX Echo | ✅ | Suporte ao serviço opcional quando instalado |
-| 🔐 CI / auditoria pública | ✅ | Valida Bash, PHP, JavaScript, idiomas, instalação genérica, indicativos e certificados |
-| 🧰 Reinstalação automática somente do núcleo | 🚧 | Ainda exige fluxo de recuperação dedicado; `install.sh` não sobrescreve produção ativa |
-
----
-
-# 🚀 Instalação rápida
-
-Use uma VPS/servidor limpo com **Debian 12 x86_64**.
-
-### 1. Prepare uma VPS Debian limpa
-
-> Copie este bloco completo. Em instalações mínimas, o Debian pode não trazer `git` instalado.
-
-
-```bash
-sudo apt update
-sudo apt install -y git ca-certificates
-```
-
-### 2. Clone o projeto
-
-```bash
-cd /usr/src
-sudo git clone https://github.com/PU2PNY/XLX-Modern-Installer.git
-cd XLX-Modern-Installer
-```
-
-### 3. Faça a pré-validação
-
-```bash
-sudo bash install.sh --check
-```
-
-O modo `--check` verifica o ambiente sem executar a instalação real.
-
-### 4. Instale
-
-```bash
-sudo bash install.sh
-```
-
-O instalador cria backup preventivo e exige confirmação antes da alteração real.
-
-### Instalar com idioma pré-definido
-
-```bash
-sudo bash install.sh --lang=en
-```
-
-Idiomas disponíveis:
-
-```text
-pt-BR  en  es  fr  de  it
-```
-
----
-
-# ⚙️ Como funciona a instalação
-
-Em uma instalação completa, o fluxo principal é:
-
-```text
-PRÉ-VALIDAÇÃO
-    ↓
-BACKUP PREVENTIVO
-    ↓
-INSTALAÇÃO DO NÚCLEO XLXD
-    ↓
-DASHBOARD MODERNO
-    ↓
-PÓS-INSTALAÇÃO DO DASHBOARD
-    ↓
-DIRETÓRIO PERSISTENTE DE INDICATIVOS
-    ↓
-SISTEMA DE CERTIFICADOS
-    ↓
-VALIDAÇÕES FINAIS
-```
-
-O módulo `modules/60-dashboard-modern.sh` instala o dashboard e, na sequência, prepara o diretório persistente de indicativos, o Admin privado e os certificados. A instalação completa via `install.sh` também instala APRS/D-PRS incorporado e a observabilidade operacional.
-
-Durante a configuração do painel são usados dados como:
-
-- identificador do refletor, por exemplo `XLX724`;
-- título/nome exibido;
-- descrição;
-- indicativo do responsável;
-- cidade/região;
-- país;
-- domínio;
-- e-mail de contato;
-- YSF ID;
-- TG DMR;
-- idioma;
-- timezone;
-- aniversário opcional do refletor para campanhas de certificados.
-
-A identidade configurada é reutilizada pelo painel e pelos certificados. Isso evita hardcodes como `BR-XLX...`, `servidor de referência` ou domínio fixo em novas instalações.
-
----
-
-# 🧭 O que você quer fazer?
-
-| Objetivo | Comando / documentação |
+| Componente | Função |
 |---|---|
-| Verificar se o servidor está pronto | `sudo bash install.sh --check` |
-| Nova instalação completa | `sudo bash install.sh` |
-| Nova instalação com dashboard em inglês | `sudo bash install.sh --lang=en` |
-| Instalar/reinstalar somente o dashboard | `sudo bash modules/60-dashboard-modern.sh` |
-| Instalar dashboard em espanhol | `sudo bash modules/60-dashboard-modern.sh --lang=es` |
-| Consultar indicativo | `sudo xlx-user-directory lookup INDICATIVO` |
-| Corrigir nome/localização | `sudo xlx-user-directory set INDICATIVO "Nome" "Cidade, Estado"` |
-| Criar alias antigo → novo | `sudo xlx-user-directory alias ANTIGO NOVO` |
-| Verificar bases SQLite | `sudo xlx-user-directory check` |
-| Atualizar base principal com backup/rollback | `sudo xlx-user-directory refresh` |
-| Usar certificados | Abra `/certificado.php` no domínio do refletor |
-| Entender indicativos e certificados | [Guia completo](docs/INDICATIVOS-CERTIFICADOS.pt-BR.md) |
-| Diagnosticar/recuperar XLX | [Guia de atualização e recuperação](docs/ATUALIZAR-RECUPERAR-XLX.pt-BR.md) |
-| Conferir firewall e portas | [Firewall e portas do XLX](docs/FIREWALL-PORTAS-XLX.pt-BR.md) |
-| Localizar arquivos e logs | [Arquivos e logs do XLX](docs/ARQUIVOS-LOGS-XLX.pt-BR.md) |
-| HTTPS, YSF e pós-instalação | [Guia pós-instalação](docs/POS-INSTALACAO-XLX.pt-BR.md) |
-| Entender idiomas | [Internacionalização](docs/INTERNATIONALIZATION.md) |
+| XLXD | Núcleo do refletor multiprotocolo e módulos configurados |
+| XLX Echo | Teste de eco opcional no módulo E |
+| Apache + PHP | Painel e APIs |
+| Base de indicativos | RadioID/callsigns com atualizações e correções locais persistentes |
+| CallingHome | Registro/heartbeat por timer usando HTTP/HTTPS realmente disponível |
+| APRS/D-PRS nativo | D-PRS/GPS, APRS-IS, mensagens/ACK e contas |
+| Certificados nativos | Certificados por participação com QR e validação HMAC |
+| Observabilidade | Health, DMR data/meta, YSF data, histórico e self-test |
+| Admin privado | Status, portas, logs, backups, Health, RadioID, listas, Interlink e reinício protegido |
 
----
+## Páginas do painel
 
-# 🖥️ Dashboard moderno
+- **Ao Vivo**: boxes de TX em tempo real, protocolo/módulo, foto pública do QRZ quando disponível e atividade de 24h.
+- **Conectados**: filtros e tabela de estações conectadas, separado de Módulos.
+- **Módulos**: identificações de acesso primeiro e cards de módulos depois; quantidade configurável e nomes NATO Alfa–Zulu quando aplicável.
+- **Ranking**: indicadores recentes com dados disponíveis no servidor.
+- **Refletores**: lista mundial XLX.
+- **APRS / D-PRS**: Digital Lab nativo.
+- **Certificados**: emissão e validação nativas.
 
-Se o XLXD já funciona e você deseja instalar ou reinstalar **somente o painel**:
+O pacote público padrão **não instala Suporte, Simulado ANATEL nem Notícias**.
+
+## Identidade, gateway e atividade
+
+A regra é a mesma validada no XLX026:
+
+- indicativo do log XLXD é a origem da transmissão;
+- Gateway/Repetidora diferente só aparece quando existe evidência exata de relação;
+- `Online` significa realmente conectado;
+- `Link` só aparece quando há relação de gateway comprovada para um operador que estaria Offline;
+- Talker Alias é metadado complementar transmitido pelo rádio e não substitui RadioID;
+- coordenada cadastrada de hotspot/repetidora não é tratada como GPS ao vivo do operador;
+- posição APRS/D-PRS/GPS só aparece quando realmente observada.
+
+O histórico visível do painel é de **24 horas**.
+
+## APRS/D-PRS nativo
+
+A interface e APIs ficam dentro do próprio `dashboard/`; não existe segundo painel APRS. Somente gateway/serviço de fundo e SQLite são provisionados fora do webroot.
+
+Fluxo de conta:
+
+- indicativo validado;
+- cadastro próprio exige atividade recente válida APRS/D-PRS;
+- usuário informa **dia e mês reais do aniversário** e dá consentimento;
+- senha é gerada com aleatoriedade criptográfica;
+- banco guarda somente `password_hash()`;
+- senha aparece apenas no momento de criação/troca;
+- recuperação por indicativo + dia/mês é feita no fluxo autorizado de Admin/Colaborador, igual ao modelo validado no XLX026;
+- a recuperação gera senha nova, incrementa a versão de autenticação e revoga tokens antigos;
+- dia/mês não são gravados como detalhes do evento de auditoria.
+
+O indicativo do serviço APRS é derivado do sysop com SSID dedicado `-10`, sem indicativo de produção fixo.
+
+## Certificados nativos e QR verificável
+
+Certificados fazem parte deste repositório e do próprio painel. A instalação normal **não baixa um segundo Certificate Generator**.
+
+O certificado só é emitido quando existe atividade elegível na campanha. Cada emissão possui ID único e token HMAC. O QR aponta para o próprio painel:
+
+```text
+https://SEU-DOMINIO/?page=certificado&validar=ID&token=ASSINATURA
+```
+
+A validação busca a emissão, recalcula o token e usa `hash_equals()`. Token adulterado é rejeitado. O segredo HMAC é criado fora do webroot em `/etc/xlx-certificates/`.
+
+## Admin privado
+
+O Admin não aparece no menu público. A URL privada é o slug escolhido na instalação. Recursos:
+
+- status do XLXD/serviços e portas;
+- logs e backups;
+- Health;
+- RadioID: status, check, atualização, busca, inclusão/edição/exclusão;
+- whitelist e blacklist;
+- Interlink;
+- reinício XLXD protegido;
+- CSRF, sessão, rate-limit e auditoria;
+- **sem terminal SSH/Linux e sem Terminal XLXD no navegador**.
+
+A validação do instalador usa marcadores funcionais estáveis (`id="access"`, `id="radioid"`, `access-interlink-add`, `radioid_save`) e não textos traduzidos.
+
+## HTTPS / Let's Encrypt
+
+Se HTTPS for escolhido e o ACME/Certbot falhar, uma instalação válida do refletor não é descartada. O painel público permanece em HTTP, o erro real é registrado e o helper de nova tentativa fica disponível:
 
 ```bash
-cd /usr/src/XLX-Modern-Installer
-sudo bash modules/60-dashboard-modern.sh
+xlx-modern-https-retry SEU-DOMINIO SEU-EMAIL
 ```
 
-O módulo do dashboard também instala/verifica o diretório de indicativos, o Admin privado e o sistema de certificados. O `install.sh` completo adiciona APRS/D-PRS e observabilidade DMR/YSF/Health.
+Em testes repetidos, use staging do Let's Encrypt para evitar rate limit. Cookies de sessão privados usam `Secure`; HTTP temporário não deve ser considerado substituto de HTTPS para uso autenticado.
 
-## Áreas principais
+## Idiomas
 
-### Ao Vivo
+- Instalador: PT-BR e EN.
+- Admin privado: PT-BR e EN.
+- Painel: PT-BR, EN, ES, FR, DE e IT.
 
-- monitor de transmissões;
-- estado do servidor;
-- dados de TX;
-- histórico das últimas 24 horas;
-- até 40 indicativos distintos no histórico principal.
+Rotas, IDs, nomes de arquivos e APIs são protegidos contra tradução acidental.
 
-### Conectados
+## Backups, falhas e validação final
 
-Mostra estações conectadas com dados disponíveis de indicativo, nome, localização, protocolo, módulo, tempo conectado e última atividade.
+Backups preventivos ficam em `/var/backups/xlx-reflector/`. Scripts críticos informam **arquivo, linha, código de retorno e comando** em erro inesperado, evitando retorno silencioso ao shell. Onde há mutação controlada, existe rollback do componente.
 
-### Módulos A–Z
+Uma instalação completa só deve ser considerada aprovada quando chegar a **INSTALLATION COMPLETE / INSTALAÇÃO CONCLUÍDA** após validar serviços essenciais, Apache, binário XLXD, arquivos do painel, VirtualHost, CallingHome e resposta local do painel.
 
-Mostra função, protocolo, identificação e acessos configurados por módulo.
+## Base de indicativos e correções persistentes
 
-### Ranking
-
-Resume atividade registrada no servidor conforme as fontes disponíveis.
-
-## 🌍 Idiomas do dashboard
-
-```text
-1) Português (Brasil)
-2) English
-3) Español
-4) Français
-5) Deutsch
-6) Italiano
-```
-
-Exemplo:
+A base principal fica em `/xlxd/users_db/`. Correções/aliases locais ficam separadas em `/var/lib/xlx-user-directory/overrides.db` e sobrevivem às atualizações da base principal.
 
 ```bash
-sudo bash modules/60-dashboard-modern.sh --lang=fr
+xlx-user-directory --help
 ```
 
-A tradução é aplicada à cópia instalada, incluindo conteúdo visível e metadados relevantes. O build genérico é testado automaticamente pelo CI.
+## Segurança
 
----
+- sem senha Admin fixa no Git;
+- sem dados/credenciais privados de produção;
+- sem `chmod 777` global;
+- Admin usa helpers sudo limitados, não sudo arbitrário pelo navegador;
+- segredo HMAC fora do webroot;
+- senhas APRS armazenadas somente como hash;
+- Suporte/Simulado/Notícias fora do instalador genérico.
 
-# 👤 Diretório persistente de indicativos
-
-## Para que serve
-
-A base principal de usuários continua em:
+## Estrutura
 
 ```text
-/xlxd/users_db/users.db
+install.sh                 instalador principal
+vendor/pp5pk-installer/    base XLXD revisada
+dashboard/                 painel, APRS/D-PRS e Certificados nativos
+control/                   Admin privado e helpers
+modules/                   etapas controladas de instalação
+observability/             Health/DMR/YSF/histórico/self-test
+tests/                     regressões
+scripts/                   auditorias e manutenção
+docs/                      documentação
 ```
 
-As correções locais ficam separadas em:
+## Gate de release
 
-```text
-/var/lib/xlx-user-directory/overrides.db
-```
+Antes de publicar uma tag: sintaxe Bash/PHP, fluxo do instalador, Admin PT/EN, seis builds do painel, auditoria pública, APRS/Certificados nativos, paridade de produção e validação de instalação limpa Debian 12. A reinstalação também deve ser idempotente e não duplicar rotas/serviços.
 
-Essa arquitetura evita que uma atualização/reconstrução da base principal apague correções locais.
-
-## Consultar
-
-```bash
-sudo xlx-user-directory lookup PU2PNY
-```
-
-## Corrigir nome e localização
-
-```bash
-sudo xlx-user-directory set PU2PNY "Nome do operador" "Cidade, Estado"
-```
-
-## Indicativo antigo → novo
-
-```bash
-sudo xlx-user-directory alias PU2OLD PU2NEW
-```
-
-> O alias **não altera o indicativo que o rádio transmite**. Se o rádio/hotspot ainda estiver programado com o indicativo antigo, ele precisa ser corrigido no equipamento.
-
-## Remover correção
-
-```bash
-sudo xlx-user-directory delete PU2PNY
-```
-
-## Verificar integridade
-
-```bash
-sudo xlx-user-directory check
-```
-
-## Atualizar a base principal
-
-```bash
-sudo xlx-user-directory refresh
-```
-
-O `refresh` faz backup da base atual, valida o backup, executa o gerador do XLX, valida a nova base com `PRAGMA integrity_check` e restaura a anterior se houver falha.
-
-Backups:
-
-```text
-/var/backups/xlx-reflector/callsign-directory/
-```
-
-Guia detalhado: **[Indicativos, base de usuários e certificados](docs/INDICATIVOS-CERTIFICADOS.pt-BR.md)**.
-
----
-
-# 🏅 Certificados de participação
-
-## Para que serve
-
-O sistema emite certificado para radioamador com **transmissão realmente registrada** no período da campanha ativa. Apenas existir na base de usuários não libera certificado.
-
-Página:
-
-```text
-https://SEU-DOMINIO/certificado.php
-```
-
-## Como usar
-
-1. Abra `certificado.php`.
-2. Digite o indicativo.
-3. O sistema procura atividade elegível.
-4. Se encontrar, mostra a prévia.
-5. Clique em **Emitir certificado**.
-6. A emissão recebe um ID único e QR Code.
-7. O usuário pode imprimir ou salvar em PDF pelo navegador.
-
-## Emissão única
-
-A combinação é única por:
-
-```text
-campanha + indicativo
-```
-
-Nova tentativa recupera o certificado já emitido.
-
-## Validação
-
-O QR Code aponta para:
-
-```text
-/certificado-validar.php?id=...&sig=...
-```
-
-A assinatura usa uma chave HMAC local:
-
-```text
-/etc/xlx-certificates/hmac.key
-```
-
-Registros de emissões:
-
-```text
-/var/lib/xlx-certificates/emissoes.jsonl
-```
-
-QR Codes são gerados localmente com `qrencode`, sem depender de gerador externo.
-
-## Campanhas
-
-Para qualquer país:
-
-- participação diária;
-- Dia Mundial do Radioamador — 18 de abril;
-- semana de aniversário do refletor, se configurada.
-
-Somente quando o país configurado é Brasil:
-
-- Dia das Mães;
-- Dia dos Pais;
-- Independência do Brasil;
-- Dia do Radioamador Brasileiro.
-
-Assim, um refletor configurado como `XLX724` em Portugal não recebe campanhas brasileiras automaticamente.
-
-Guia completo: **[Indicativos, base de usuários e certificados](docs/INDICATIVOS-CERTIFICADOS.pt-BR.md)**.
-
----
-
-# 🔥 Firewall e portas
-
-Não existe uma lista universal de portas que todo refletor precise abrir. Utilize apenas os protocolos e serviços realmente habilitados.
-
-Confira o servidor:
-
-```bash
-sudo ss -lntup
-sudo ufw status verbose
-```
-
-Tabela detalhada: **[Firewall e portas do XLX](docs/FIREWALL-PORTAS-XLX.pt-BR.md)**.
-
----
-
-# 📂 Arquivos e dados importantes
-
-```text
-/xlxd/
-/xlxd/users_db/users.db
-/xlxd/callinghome.php
-/xlxd/xlxd.whitelist
-/xlxd/xlxd.blacklist
-/xlxd/xlxd.interlink
-/xlxd/xlxd.terminal
-/etc/systemd/system/xlxd.service
-/etc/systemd/system/xlxecho.service
-/etc/apache2/
-/var/www/html/xlx-dashboard/
-/usr/src/XLX-Modern-Installer/
-/var/lib/xlx-user-directory/overrides.db
-/var/backups/xlx-reflector/callsign-directory/
-/var/lib/xlx-certificates/emissoes.jsonl
-/etc/xlx-certificates/hmac.key
-/var/backups/xlx-reflector/
-/var/log/xlx-reflector/installer/
-```
-
-> `users.db`, `overrides.db`, `emissoes.jsonl` e `hmac.key` são dados operacionais/privados e não devem ser publicados no repositório.
-
----
-
-# 🔄 Atualização
-
-Para atualizar somente o repositório local:
-
-```bash
-cd /usr/src/XLX-Modern-Installer
-git status
-git pull --ff-only
-sudo bash install.sh --check
-```
-
-> **Não execute `install.sh` por cima de um XLXD em produção apenas porque o Git foi atualizado.** A instalação completa bloqueia sobrescrita de produção ativa.
-
-Para atualizar/reinstalar apenas o dashboard e os recursos integrados:
-
-```bash
-sudo bash modules/60-dashboard-modern.sh
-```
-
----
-
-# 💾 Backup, diagnóstico e recuperação
-
-Além dos arquivos tradicionais do XLX, uma recuperação completa deve preservar:
-
-```text
-/var/lib/xlx-user-directory/
-/var/lib/xlx-certificates/
-/etc/xlx-certificates/
-```
-
-A chave `/etc/xlx-certificates/hmac.key` é especialmente importante: certificados antigos dependem dela para continuar validando após uma recuperação do servidor.
-
-Fluxo recomendado:
-
-```text
-DIAGNÓSTICO → INVENTÁRIO → BACKUP VERIFICADO → ALTERAÇÃO MÍNIMA → VALIDAÇÃO → ROLLBACK
-```
-
-Comandos úteis:
-
-```bash
-sudo systemctl status xlxd.service --no-pager
-sudo journalctl -u xlxd.service -n 100 --no-pager
-sudo apache2ctl configtest
-sudo ss -lntup
-sudo xlx-user-directory check
-```
-
-Guia: **[Atualizar, diagnosticar e recuperar XLX](docs/ATUALIZAR-RECUPERAR-XLX.pt-BR.md)**.
-
----
-
-# 🎯 Pós-instalação e etapas adicionais
-
-Dependendo da arquitetura:
-
-- registro/publicação YSF — [DVRef](https://dvref.com/);
-- HTTPS — [Certbot](https://certbot.eff.org/);
-- teste de áudio / echo — [narspt/XLXEcho](https://github.com/narspt/XLXEcho);
-- DNS, Apache e firewall;
-- backup pós-instalação;
-- documentação local dos protocolos e portas utilizados.
-
-Veja **[Pós-instalação do XLX](docs/POS-INSTALACAO-XLX.pt-BR.md)**.
-
----
-
-# 🧪 Qualidade e validação
-
-O GitHub Actions verifica, entre outros pontos:
-
-- sintaxe Bash;
-- sintaxe PHP;
-- sintaxe JavaScript;
-- paridade dos seis catálogos de tradução;
-- build genérico do dashboard em seis idiomas;
-- ausência de branding fixo `BR-XLX999` / `XLX999 Brasil` no cenário genérico de teste;
-- diretório persistente de indicativos;
-- alias e integridade SQLite;
-- instalação genérica dos certificados;
-- wiring do fluxo de instalação;
-- auditoria pública de segredos e publicação.
-
-A automação complementa, mas não substitui, teste real em uma VPS de homologação antes de mudanças críticas em produção.
-
----
-
-# 🧱 Estrutura do projeto
-
-```text
-XLX-Modern-Installer/
-├── install.sh
-├── README.md
-├── README.en.md
-├── LICENSE
-├── SECURITY.md
-├── CONTRIBUTING.md
-├── THIRD_PARTY_NOTICES.md
-├── dashboard/
-│   ├── api/
-│   ├── assets/
-│   ├── config/
-│   ├── i18n/
-│   └── install/
-├── extras/
-│   └── certificados/
-├── modules/
-│   ├── 60-dashboard-modern.sh
-│   ├── 65-callsign-directory.sh
-│   └── 66-certificates.sh
-├── tools/
-│   └── xlx-user-directory.sh
-├── docs/
-├── scripts/
-├── references/
-├── tests/
-└── .github/workflows/
-```
-
----
-
-# 🔐 Segurança
-
-Nunca publique:
-
-- senhas ou tokens;
-- chaves privadas;
-- `/etc/xlx-certificates/hmac.key`;
-- bancos reais `users.db` ou `overrides.db`;
-- `emissoes.jsonl` real;
-- backups de produção;
-- logs que exponham dados sensíveis.
-
-Veja [SECURITY.md](SECURITY.md).
-
----
-
-# ❓ Perguntas frequentes
-
-### Se eu instalar outro refletor, o painel usa os dados dele?
-
-Sim. Nome, título, domínio, país, responsável, YSF ID, TG DMR e demais dados configurados são aplicados à instalação. O template público é genérico.
-
-### O sistema de certificado também usa os dados do novo refletor?
-
-Sim. O certificado usa a identidade do `config/site.php` da instalação atual e campanhas condicionadas ao país configurado.
-
-### A correção de indicativo muda o que o rádio transmite?
-
-Não. Alias e overrides corrigem a resolução administrativa de dados. O indicativo programado no rádio/hotspot precisa ser atualizado no equipamento.
-
-### As correções locais se perdem ao atualizar a base principal?
-
-Não. Elas ficam em `overrides.db`, separadas de `users.db`.
-
-### Posso instalar somente o dashboard?
-
-Sim:
-
-```bash
-sudo bash modules/60-dashboard-modern.sh
-```
-
-Esse fluxo também instala/verifica indicativos e certificados.
-
-### Como proteger certificados já emitidos em uma reinstalação completa?
-
-Faça backup privado de:
-
-```text
-/var/lib/xlx-certificates/
-/etc/xlx-certificates/
-```
-
-Sem a chave HMAC original, certificados antigos podem deixar de validar.
-
-### Onde está o guia completo dos novos recursos?
-
-**[docs/INDICATIVOS-CERTIFICADOS.pt-BR.md](docs/INDICATIVOS-CERTIFICADOS.pt-BR.md)**
-
----
-
-# 🔗 Créditos e projetos relacionados
-
-| Projeto / recurso | Relação com este projeto |
-|---|---|
-| [LX3JL/xlxd](https://github.com/LX3JL/xlxd) | Núcleo/refletor XLXD e referência upstream de protocolos |
-| [PP5PK/XLX_Installer](https://github.com/PP5PK/XLX_Installer) | Base técnica revisada utilizada pelo instalador controlado |
-| [narspt/XLXEcho](https://github.com/narspt/XLXEcho) | Serviço relacionado para echo/parrot |
-| [Certbot](https://certbot.eff.org/) | Referência oficial para certificados HTTPS |
-| [DVRef](https://dvref.com/) | Diretório/serviço relacionado a publicação de refletores compatíveis |
-| **Dario — PU2PNY** | Manutenção desta versão, documentação, camada de segurança e dashboard moderno |
-
-Consulte [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
-
----
-
-# 📄 Licença
-
-As partes originais deste repositório são disponibilizadas sob **MIT License**. Componentes de terceiros permanecem sujeitos às respectivas licenças.
-
-Leia [LICENSE](LICENSE) e [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
-
----
-
-<div align="center">
-
-**XLX Modern Installer — instalação universal, dashboard moderno, indicativos persistentes e certificados verificáveis para a comunidade radioamadora.**
-
-🇺🇸 [Read the English version](README.en.md)
-
-</div>
+Veja também [CHANGELOG.md](CHANGELOG.md), [LICENSE](LICENSE) e [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

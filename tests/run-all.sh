@@ -16,6 +16,10 @@ echo "[admin i18n]"
 bash "$ROOT/tests/test-admin-i18n.sh" || failures=$((failures+1))
 echo "[vendored installer]"
 bash "$ROOT/tests/test-vendored-installer.sh" || failures=$((failures+1))
+echo "[native i18n]"
+php "$ROOT/tests/test-native-i18n.php" || failures=$((failures+1))
+echo "[release hardening]"
+bash "$ROOT/tests/test-release-hardening.sh" || failures=$((failures+1))
 echo "[forbidden permissions]"
 if grep -RniE --include='*.sh' --exclude='run-all.sh' 'chmod[[:space:]]+(-R[[:space:]]+)?777|chmod[[:space:]]+(-R[[:space:]]+)?666' "$ROOT"; then failures=$((failures+1)); else echo "forbidden_permissions=NONE"; fi
 echo "[destructive operations]"

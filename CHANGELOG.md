@@ -1,5 +1,23 @@
 # Changelog
 
+## v1.2.8 — 2026-09-09
+
+### Fresh-install hardening after Debian 12 VPS audit
+
+- Fixed the Admin install chain so functional validation no longer depends on translated UI labels. Stable DOM/action markers now validate Access, RadioID and Interlink capabilities.
+- Added explicit unexpected-error diagnostics (file, line, return code and failing command) to the top-level installer and critical Admin/dashboard/APRS/certificate stages, preventing silent returns to the shell.
+- Migrated package automation from `apt` to `apt-get` and declared required Debian 12 utilities such as `sudo`, `procps`, `iproute2`, `util-linux`, `openssl`, `rsync` and `python3`. Mandatory `full-upgrade` remains disabled.
+- Kept HTTPS/Certbot non-fatal for recoverable ACME failures; the real ACME diagnostic and retry helper remain available while the public dashboard can continue over HTTP.
+- Made APRS/D-PRS a native, mandatory dashboard capability: its UI/API ships under `dashboard/`, while only the background service and SQLite state are provisioned outside the webroot. Removed the active `vendor/xlx-aprs-dprs` architecture.
+- Kept APRS account behavior aligned with the production reference: cryptographically generated passwords, hash-only storage, day/month birthday verification for authorized password recovery, auth-version rotation and remembered-token revocation. Raw birthday values are no longer written in SELF_REGISTER audit details.
+- Made Certificates fully native to this repository and dashboard. Removed the active external `XLX-Certificate-Generator` install path.
+- Added versioned certificate signing payloads and a shared HMAC signature library. Automated tests now prove a valid token succeeds while a one-character-tampered token and a changed record fail.
+- Certificate QR verification uses the native route `/?page=certificado&validar=...&token=...` on the installed reflector.
+- Completed native APRS/Certificate UI catalogs for English, Spanish, French, German and Italian and added regression checks against untranslated/mangled native strings.
+- Preserved v1.2.6/v1.2.7 live-stream identity, QRZ/TX and frontend stability fixes while rebasing this release on the current public `main`.
+- Updated README/README.en/README.pt-BR to document the actual server, dashboard, Admin, APRS/D-PRS, certificate, CallingHome, observability, HTTPS and security behavior.
+- Added release-hardening regression coverage for Admin markers, Debian dependencies, APRS recovery semantics, native architecture and explicit `INSTALLATION COMPLETE` terminal state.
+
 ## v1.2.7 — 2026-09-08
 
 ### Painel sincronizado e estabilidade do TX

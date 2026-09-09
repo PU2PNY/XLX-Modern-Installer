@@ -54,8 +54,8 @@ fi
 #  4. Check if curl is installed (required for public IP detection)
 if ! command -v curl >/dev/null 2>&1; then
     echo "curl is not installed. Installing..."
-    apt install -y -qq curl >/dev/null 2>&1 || {
-        echo "Error: Failed to install curl. Please run: apt install curl"
+    apt-get install -y -qq curl >/dev/null 2>&1 || {
+        echo "Error: Failed to install curl. Please run: apt-get install curl"
         exit 1
     }
     echo "curl installed successfully."
@@ -142,6 +142,15 @@ build-essential
 vnstat
 certbot
 python3-certbot-apache
+ca-certificates
+curl
+rsync
+sudo
+openssl
+procps
+iproute2
+util-linux
+python3
 )
 
 #  11. Color palette
@@ -1124,7 +1133,7 @@ center_wrap_color $BLUE_BRIGHT "$ICON_INFO UPDATING OS..."
 center_wrap_color $BLUE "=================="
 echo ""
 
-apt update || error_exit "Failed to update package lists. Check your internet connection or package manager configuration."
+apt-get update || error_exit "Failed to update package lists. Check your internet connection or package manager configuration."
 print_gray "Full operating-system upgrade skipped by design; only required dependencies will be installed."
 
 #  Apply timezone only if it's NOT the system timezone.
@@ -1151,7 +1160,7 @@ if [ "$AVAIL_SPACE" -lt 1048576 ]; then
     error_exit "Insufficient disk space. At least 1GB required in /usr/src"
 fi
 
-apt install -y "${DEPAPP[@]}" || error_exit "Failed to install dependencies. Check package manager configuration."
+apt-get install -y "${DEPAPP[@]}" || error_exit "Failed to install dependencies. Check package manager configuration."
 
 PHPVER=$(php -v | head -n1 | awk '{print $2}' | cut -d. -f1,2)
 if [ -z "$PHPVER" ]; then

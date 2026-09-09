@@ -1,5 +1,14 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# XLX_ERROR_TRACE_V1 — never return silently to the shell on an unexpected failure.
+_xlx_error_trace(){
+  local rc=$?
+  printf '\n[ERROR] file=%s line=%s rc=%s command=%q\n' \
+    "${BASH_SOURCE[1]:-${BASH_SOURCE[0]}}" \
+    "${BASH_LINENO[0]:-$LINENO}" "$rc" "$BASH_COMMAND" >&2
+  return "$rc"
+}
+trap _xlx_error_trace ERR
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 DEFAULT_DASH_DEST="/var/www/html/xlxd"
 DASH_DEST="${INSTALL_DIR:-$DEFAULT_DASH_DEST}"
@@ -40,5 +49,5 @@ XLX_UI_LANG="$UI_LANG" bash "$ROOT/modules/65-callsign-directory.sh"
 XLX_DASHBOARD_DIR="$DASH_DEST" XLX_UI_LANG="$UI_LANG" bash "$ROOT/modules/69-admin-page.sh" --dashboard-dir="$DASH_DEST"
 XLX_DASHBOARD_DIR="$DASH_DEST" XLX_UI_LANG="$UI_LANG" bash "$ROOT/modules/70-production-parity.sh"
 
-printf '%s\n' "$(say "[INFO] Instalando o módulo padrão de Certificados." "[INFO] Installing the standard Certificate module.")"
+printf '%s\n' "$(say "[INFO] Provisionando Certificados nativos do painel." "[INFO] Provisioning native dashboard Certificates.")"
 XLX_DASHBOARD_DIR="$DASH_DEST" XLX_UI_LANG="$UI_LANG" bash "$ROOT/modules/66-certificates.sh" "--dashboard-dir=$DASH_DEST"

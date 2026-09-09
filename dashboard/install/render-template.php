@@ -106,7 +106,7 @@ foreach ($iterator as $fileInfo) {
 
 /*
  * Certificates are intentionally independent from the dashboard router.
- * extras/certificados/install.sh publishes certificado.php and appends its
+ * Certificates are shipped natively with the dashboard.
  * menu integration to app.js only when the optional module is installed.
  * Keeping this renderer free of certificate-route patches prevents a normal
  * dashboard build from depending on a particular index.php layout.

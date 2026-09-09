@@ -81,20 +81,11 @@ expect 'HTTPS recovery helper is installed' 'xlx-modern-https-retry' "$DASHBOARD
 expect 'CallingHome follows actual HTTPS readiness' '[ "$HTTPS_READY" -eq 1 ] && CALLINGHOME_SCHEME="https"' "$DASHBOARD_INSTALLER"
 expect 'final validation treats pending HTTPS as warning' 'certificate is still pending' "$INSTALLER"
 
-tmp_cert="$(mktemp -d)"
-cp "$ROOT/dashboard/index.php" "$tmp_cert/index.php"
-if python3 "$ROOT/dashboard/install/ensure-certificate-hook.py" "$tmp_cert/index.php" >/dev/null \
-   && python3 "$ROOT/dashboard/install/ensure-certificate-hook.py" "$tmp_cert/index.php" >/dev/null \
-   && grep -Fq "\$allowed[] = 'certificado';" "$tmp_cert/index.php" \
-   && grep -Fq "\$items['certificado']" "$tmp_cert/index.php" \
-   && grep -Fq "require __DIR__.'/certificado-view.php';" "$tmp_cert/index.php"; then
-    printf 'OK | certificate hook integrates with current dashboard structure and is idempotent\n'
-else
-    printf 'FAIL | certificate hook integrates with current dashboard structure and is idempotent\n' >&2
-    failures=$((failures + 1))
-fi
-rm -rf "$tmp_cert"
 
+check_native(){
+    local label="$1"; shift
+    if "$@"; then printf 'OK | %s\n' "$label"; else printf 'FAIL | %s\n' "$label" >&2; failures=$((failures + 1)); fi
+}
 
 if grep -Fq 'id="connectedCards"' "$ROOT/dashboard/index.php"; then
     printf 'FAIL | Connected page still contains summary cards from the merged layout\n' >&2
@@ -114,12 +105,25 @@ if not ri < oi:
     raise SystemExit('Modules page order mismatch: access table must precede module cards')
 PYTEST
 if [ "$?" -eq 0 ]; then printf 'OK | Modules page matches production order: access table before module cards\n'; else failures=$((failures + 1)); fi
-if (cd "$ROOT/vendor/xlx-aprs-dprs/771abaa0c1ea662f33f3fa0c4a59ec712b1e4fcb" && sha256sum -c SOURCE-MANIFEST.sha256 >/dev/null); then
-    printf 'OK | bundled APRS/D-PRS manifest matches every shipped file\n'
-else
-    printf 'FAIL | bundled APRS/D-PRS manifest mismatch\n' >&2
-    failures=$((failures + 1))
-fi
+
+check_native 'Certificates are shipped inside dashboard' test -s "$ROOT/dashboard/api/certificado.php"
+check_native 'Certificate view is native dashboard route' grep -Fq "require __DIR__.'/certificado-view.php';" "$ROOT/dashboard/index.php"
+check_native 'Certificate QR library is native dashboard asset' test -s "$ROOT/dashboard/assets/vendor/qrcode.min.js"
+check_native 'Certificate token is HMAC-signed' grep -Fq 'hash_hmac(' "$ROOT/dashboard/lib/certificate-signature.php"
+check_native 'Certificate signature comparison is constant-time' grep -Fq 'hash_equals(' "$ROOT/dashboard/lib/certificate-signature.php"
+check_native 'Certificate QR points to native dashboard validation route' grep -Fq '?page=certificado&validar=' "$ROOT/dashboard/api/certificado.php"
+check_native 'Certificate module does not download external generator' bash -c "! grep -Eq 'github.com|XLX-Certificate-Generator|curl .*cert' '$ROOT/modules/66-certificates.sh'"
+check_native 'APRS/D-PRS view is native dashboard route' grep -Fq "require __DIR__.'/digital-lab-native.php';" "$ROOT/dashboard/index.php"
+check_native 'APRS account API ships in dashboard' test -s "$ROOT/dashboard/api/digital-lab-operator.php"
+check_native 'APRS self-registration is present' grep -Fq "if (\$action === 'register')" "$ROOT/dashboard/api/digital-lab-operator.php"
+check_native 'APRS registration requests birthday consent' grep -Fq 'birthday_consent_required' "$ROOT/dashboard/api/digital-lab-operator.php"
+check_native 'APRS recovery checks birthday mismatch' grep -Fq 'birthday_mismatch' "$ROOT/dashboard/api/digital-lab-operator.php"
+check_native 'APRS password generation is present' grep -Fq '$password = newPassword();' "$ROOT/dashboard/api/digital-lab-operator.php"
+check_native 'APRS password storage is hashed' grep -Fq 'passwordHash($password)' "$ROOT/dashboard/api/digital-lab-operator.php"
+check_native 'APRS backend ships inside dashboard tree' test -s "$ROOT/dashboard/native/aprs/xlx_aprs_dprs.py"
+check_native 'Native backend sources are excluded from webroot' grep -Fq -- "--exclude='native/'" "$ROOT/dashboard/install/install-dashboard.sh"
+check_native 'APRS module has no old vendor dependency' bash -c "! grep -Fq 'vendor/xlx-aprs-dprs' '$ROOT/modules/67-aprs-dprs.sh'"
+check_native 'APRS/D-PRS cannot be disabled from installer' bash -c "! grep -Fq -- '--without-aprs-dprs' '$ROOT/install.sh'"
 
 
 if grep -Eq 'REF026|XRF026|DCS026|YSF 72426' "$ROOT/dashboard/assets/app.js"; then

@@ -1,5 +1,14 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# XLX_ERROR_TRACE_V1 — never return silently to the shell on an unexpected failure.
+_xlx_error_trace(){
+  local rc=$?
+  printf '\n[ERROR] file=%s line=%s rc=%s command=%q\n' \
+    "${BASH_SOURCE[1]:-${BASH_SOURCE[0]}}" \
+    "${BASH_LINENO[0]:-$LINENO}" "$rc" "$BASH_COMMAND" >&2
+  return "$rc"
+}
+trap _xlx_error_trace ERR
 IFS=$'\n\t'
 umask 077
 

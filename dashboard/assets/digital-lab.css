@@ -1,4 +1,4 @@
-/* XLXMODERN DIGITAL LAB V1 — estilos isolados pelo prefixo dlab- */
+/* {{REFLECTOR_NAME}} DIGITAL LAB V1 — estilos isolados pelo prefixo dlab- */
 .dlab-page{--dlab-cyan:#39e7ff;--dlab-blue:#45a6ff;--dlab-green:#62efab;--dlab-red:#ff657a;--dlab-amber:#ffc75a;--dlab-muted:#9fb0c3;display:grid;gap:18px;min-width:0}
 .dlab-page *{box-sizing:border-box}
 .dlab-page .panel{overflow:hidden}

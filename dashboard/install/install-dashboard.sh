@@ -337,7 +337,7 @@ if [ -e "$DEST" ]; then
 fi
 
 mkdir -p "$DEST"
-rsync -a --delete --exclude='install/' --exclude='config/site.php' "$ROOT/" "$DEST/"
+rsync -a --delete --exclude='install/' --exclude='native/' --exclude='config/site.php' "$ROOT/" "$DEST/"
 mkdir -p "$DEST/config"
 
 # Every installed reflector receives its own neutral logo. This avoids the
@@ -385,6 +385,7 @@ return [
   'module_count'=>$(escape "$MODULE_COUNT"),
   'ysf_id'=>'$(escape "$YSF_ID")',
   'dmr_tg'=>'$(escape "$DMR_TG")',
+  'aprs_service_callsign'=>'$(escape "${SYSOP_CALLSIGN}-10")',
  ],
  'locale'=>[
   'default'=>'$(escape "$DASHBOARD_LANG")',
