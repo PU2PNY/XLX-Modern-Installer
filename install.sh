@@ -629,12 +629,54 @@ execute_installer() {
         failures=$((failures + 1))
     fi
 
+    # End-to-end readiness: do not announce completion unless the actual
+    # installed dashboard and native subsystems are reachable/active.
+    local base_url="$dashboard_scheme://$DOMAIN"
+    local resolve_opt=(--resolve "$DOMAIN:$dashboard_port:127.0.0.1")
+    for page in 'ao-vivo' 'conectados' 'modulos' 'digital-lab' 'certificado'; do
+        if curl --noproxy '*' -fsS --max-time 15 "${resolve_opt[@]}" "$base_url/?page=$page" >/dev/null; then
+            ok "$(msg "Rota do painel pronta: $page" "Dashboard route ready: $page")"
+        else
+            warn "$(msg "Rota do painel falhou: $page" "Dashboard route failed: $page")"
+            failures=$((failures + 1))
+        fi
+    done
+    for api in 'api/status.php' 'api/live.php' 'api/digital-lab.php'; do
+        if curl --noproxy '*' -fsS --max-time 15 "${resolve_opt[@]}" "$base_url/$api" >/dev/null; then
+            ok "$(msg "API pronta: $api" "API ready: $api")"
+        else
+            warn "$(msg "API falhou: $api" "API failed: $api")"
+            failures=$((failures + 1))
+        fi
+    done
+    for svc in xlx-aprs-dprs.service xlx-modern-health-monitor.service; do
+        if systemctl is-active --quiet "$svc"; then
+            ok "$(msg "Serviço ativo: $svc" "Service active: $svc")"
+        else
+            warn "$(msg "Serviço inativo: $svc" "Service inactive: $svc")"
+            failures=$((failures + 1))
+        fi
+    done
+    if [ -n "${XLX_ADMIN_SLUG:-}" ] && [ -f "$dashboard_dest/${XLX_ADMIN_SLUG}/index.php" ]; then
+        ok "$(msg "Admin privado instalado em /${XLX_ADMIN_SLUG}/" "Private Admin installed at /${XLX_ADMIN_SLUG}/")"
+    else
+        warn "$(msg "Admin privado não foi encontrado na URL configurada." "Private Admin was not found at the configured URL.")"
+        failures=$((failures + 1))
+    fi
+
     if [ "$failures" -ne 0 ]; then
         fatal "$(msg "A instalação terminou, mas $failures validação(ões) falharam. Não considere o servidor pronto. Consulte: $logfile" "Installation finished, but $failures validation check(s) failed. Do not consider the server ready. Check: $logfile")"
     fi
 
     section "$(msg "INSTALAÇÃO CONCLUÍDA" "INSTALLATION COMPLETE")"
     ok "$(msg "XLX instalado e validações essenciais aprovadas." "XLX installed and essential validation checks passed.")"
+    info "$(msg "URL disponível agora: $dashboard_scheme://$DOMAIN" "Available URL now: $dashboard_scheme://$DOMAIN")"
+    if [ "$dashboard_scheme" = "http" ] && [ -f /var/lib/xlx-modern/https-status ]; then
+        retry_at="$(sed -n 's/^retry_at_utc=//p' /var/lib/xlx-modern/https-status | tail -1)"
+        if [ -n "$retry_at" ]; then
+            info "$(msg "HTTPS será tentado automaticamente após: $retry_at" "HTTPS will be retried automatically after: $retry_at")"
+        fi
+    fi
     info "$(msg "Dashboard: $dashboard_dest" "Dashboard: $dashboard_dest")"
     info "$(msg "Log: $logfile" "Log: $logfile")"
     warn "$(msg "Refletor novo: ele pode não aparecer imediatamente nas listas públicas de hotspots. Cadastre-o em https://dvref.com/ e aguarde a propagação antes de testar pela lista pública." "New reflector: it may not appear immediately in public hotspot lists. Register it at https://dvref.com/ and allow propagation before testing through a public list.")"

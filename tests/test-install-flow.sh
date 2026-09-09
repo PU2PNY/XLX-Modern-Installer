@@ -143,5 +143,11 @@ expect 'recent mobile visual corrections are shipped' 'mobile-visual-v1.css' "$R
 expect 'legacy-browser fallback is shipped' 'safari9-test.html' "$ROOT/dashboard/index.php"
 expect 'accessibility opener uses capture phase for reliable mobile clicks' '  true' "$ROOT/dashboard/assets/xlxmodern-accessibility.js"
 
+
+check_native 'final validation probes native dashboard routes' grep -Fq "for page in 'ao-vivo' 'conectados' 'modulos' 'digital-lab' 'certificado'" "$ROOT/install.sh"
+check_native 'final validation probes native APIs' grep -Fq "for api in 'api/status.php' 'api/live.php' 'api/digital-lab.php'" "$ROOT/install.sh"
+check_native 'final validation requires APRS service active' grep -Fq 'xlx-aprs-dprs.service xlx-modern-health-monitor.service' "$ROOT/install.sh"
+check_native 'final validation requires private Admin path' grep -Fq 'Private Admin installed at' "$ROOT/install.sh"
+
 printf 'failures=%d\n' "$failures"
 exit "$failures"

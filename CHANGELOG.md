@@ -1,3 +1,11 @@
+## v1.2.10 — 2026-09-09
+
+- Added explicit handling of Let's Encrypt rate limits without replacing Certbot.
+- Parse the ACME `retry after` timestamp and schedule a one-shot systemd retry using `xlx-modern-https-retry`.
+- Final output now shows the URL that is actually available immediately (HTTP or HTTPS).
+- Added end-to-end readiness checks for Live, Connected, Modules, APRS/D-PRS, Certificates, APIs, APRS service, Health service, private Admin, Apache, XLXD and Echo before reporting installation complete.
+- Added regression coverage for rate-limit parsing and final readiness invariants.
+
 # Changelog
 
 ## v1.2.9 — 2026-09-09

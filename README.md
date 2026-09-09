@@ -1,6 +1,6 @@
 # XLX Modern Installer
 
-**Current release: v1.2.9**
+**Current release: v1.2.10**
 
 Public, reproducible installer for a fresh **Debian 12 x86_64** server. It installs the XLXD core, Echo Test when selected, the modern multi-protocol dashboard, private Admin, native APRS/D-PRS, native verifiable certificates, CallingHome and operational observability.
 
@@ -188,3 +188,8 @@ docs/                      technical documentation
 ## License and credits
 
 See [LICENSE](LICENSE), [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) and [CONTRIBUTING.md](CONTRIBUTING.md). The XLXD base lineage and upstream projects retain their respective licenses and attribution.
+
+
+## HTTPS and final readiness
+
+If Let's Encrypt returns a rate limit, the installer keeps the dashboard available over HTTP, records the `retry after` time and automatically schedules Certbot for another attempt. Completion is shown only after validating the dashboard, APIs, APRS/D-PRS, Health, private Admin, Apache, XLXD and Echo.

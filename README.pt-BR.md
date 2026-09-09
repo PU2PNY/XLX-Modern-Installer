@@ -1,6 +1,6 @@
 # XLX Modern Installer
 
-**Versão atual: v1.2.9**
+**Versão atual: v1.2.10**
 
 Instalador público e reproduzível para **Debian 12 x86_64**. Instala o núcleo XLXD, Echo Test quando selecionado, painel moderno multiprotocolo, Admin privado, APRS/D-PRS nativo, Certificados nativos verificáveis, CallingHome e observabilidade operacional.
 
@@ -174,3 +174,8 @@ docs/                      documentação
 Antes de publicar uma tag: sintaxe Bash/PHP, fluxo do instalador, Admin PT/EN, seis builds do painel, auditoria pública, APRS/Certificados nativos, paridade de produção e validação de instalação limpa Debian 12. A reinstalação também deve ser idempotente e não duplicar rotas/serviços.
 
 Veja também [CHANGELOG.md](CHANGELOG.md), [LICENSE](LICENSE) e [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+
+## HTTPS e validação final
+
+Se o Let's Encrypt responder com rate-limit, a instalação mantém o painel funcional em HTTP, registra o horário `retry after` e agenda automaticamente o próprio Certbot para nova tentativa. A instalação só mostra conclusão após validar painel, APIs, APRS/D-PRS, Health, Admin privado, Apache, XLXD e Echo.

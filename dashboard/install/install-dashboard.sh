@@ -451,6 +451,8 @@ HTTPS_READY=0
 HTTPS_STATUS_DIR="/var/lib/xlx-modern"
 HTTPS_STATUS_FILE="$HTTPS_STATUS_DIR/https-status"
 HTTPS_RETRY="/usr/local/sbin/xlx-modern-https-retry"
+LE_LOG="${XLX_LETSENCRYPT_LOG:-$LE_LOG}"
+SYSTEMD_DIR="${XLX_SYSTEMD_DIR:-/etc/systemd/system}"
 install -d -o root -g root -m 0755 "$HTTPS_STATUS_DIR"
 
 cat > "$HTTPS_RETRY" <<'HTTPSRETRY'
@@ -465,6 +467,11 @@ if certbot --apache --non-interactive --agree-tos --email "$EMAIL" -d "$DOMAIN" 
     [[ -s "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" && -s "/etc/letsencrypt/live/$DOMAIN/privkey.pem" ]] || { echo "Certbot returned success but certificate files are missing." >&2; exit 3; }
     apache2ctl configtest
     systemctl reload apache2
+    install -d -m 0755 /var/lib/xlx-modern
+    printf 'HTTPS_OK domain=%s\n' "$DOMAIN" > /var/lib/xlx-modern/https-status
+    if systemctl list-unit-files xlx-modern-https-retry.timer --no-legend 2>/dev/null | grep -q .; then
+        systemctl disable --now xlx-modern-https-retry.timer >/dev/null 2>&1 || true
+    fi
     echo "HTTPS_OK domain=$DOMAIN"
     exit 0
 fi
@@ -473,13 +480,61 @@ echo "HTTPS_FAILED rc=$rc" >&2
 if grep -Fq "AttributeError: can't set attribute" "$LOG"; then
     echo "Debian 12 Certbot 2.1.x masked the ACME error with a known Python 3.11 bug." >&2
 fi
-if [[ -f /var/log/letsencrypt/letsencrypt.log ]]; then
+if [[ -f $LE_LOG ]]; then
     echo "Last relevant Let's Encrypt diagnostics:" >&2
-    grep -Ei 'too many|rate.?limit|unauthor|invalid|nxdomain|timeout|connection|error creating new order|detail:|failed authorization|acme:error' /var/log/letsencrypt/letsencrypt.log | tail -n 12 >&2 || true
+    grep -Ei 'too many|rate.?limit|unauthor|invalid|nxdomain|timeout|connection|error creating new order|detail:|failed authorization|acme:error' $LE_LOG | tail -n 12 >&2 || true
 fi
 exit "$rc"
 HTTPSRETRY
 chmod 0755 "$HTTPS_RETRY"
+
+schedule_https_rate_limit_retry() {
+    local retry_raw retry_at service timer
+    retry_raw="$(grep -Eio 'retry after [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} UTC' $LE_LOG 2>/dev/null | tail -n 1 | sed -E 's/^retry after //I' || true)"
+    [[ -n "$retry_raw" ]] || return 1
+    retry_at="$(date -u -d "$retry_raw + 10 minutes" '+%Y-%m-%d %H:%M:%S UTC' 2>/dev/null || true)"
+    [[ -n "$retry_at" ]] || return 1
+    service="$SYSTEMD_DIR/xlx-modern-https-retry.service"
+    timer="$SYSTEMD_DIR/xlx-modern-https-retry.timer"
+    cat > "$service" <<UNIT
+[Unit]
+Description=XLX Modern automatic HTTPS retry
+After=network-online.target apache2.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=$HTTPS_RETRY $DOMAIN $CONTACT_EMAIL
+UNIT
+    cat > "$timer" <<UNIT
+[Unit]
+Description=Retry XLX Modern HTTPS after Let's Encrypt rate limit
+
+[Timer]
+OnCalendar=$retry_at
+Persistent=true
+AccuracySec=1min
+RandomizedDelaySec=2min
+Unit=xlx-modern-https-retry.service
+
+[Install]
+WantedBy=timers.target
+UNIT
+    chmod 0644 "$service" "$timer"
+    if [[ "${XLX_HTTPS_RETRY_TEST_MODE:-0}" != "1" ]]; then
+        systemctl daemon-reload
+        systemctl enable --now xlx-modern-https-retry.timer >/dev/null
+    fi
+    {
+        printf 'HTTPS_PENDING domain=%s\n' "$DOMAIN"
+        printf 'reason=letsencrypt_rate_limit\n'
+        printf 'retry_at_utc=%s\n' "$retry_at"
+        printf 'retry_timer=xlx-modern-https-retry.timer\n'
+    } > "$HTTPS_STATUS_FILE"
+    printf '[INFO] Automatic HTTPS retry scheduled for %s.\n' "$retry_at" >&2
+    printf '[INFO] Nova tentativa automática de HTTPS agendada para %s.\n' "$retry_at" >&2
+    return 0
+}
 
 if [ "$ENABLE_HTTPS" = "yes" ]; then
     if [ -s "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ] \
@@ -511,11 +566,14 @@ if [ "$ENABLE_HTTPS" = "yes" ]; then
                 printf '[WARNING] Debian 12 Certbot 2.1.x hit its known Python 3.11 error while reporting an ACME failure.\n' >&2
                 printf '[ATENÇÃO] O Certbot 2.1.x do Debian 12 encontrou o erro conhecido do Python 3.11 ao reportar uma falha ACME.\n' >&2
             fi
-            if [[ -f /var/log/letsencrypt/letsencrypt.log ]]; then
+            if [[ -f $LE_LOG ]]; then
                 printf '%s\n' "--- Let's Encrypt diagnostics ---" >&2
-                grep -Ei 'too many|rate.?limit|unauthor|invalid|nxdomain|timeout|connection|error creating new order|detail:|failed authorization|acme:error' /var/log/letsencrypt/letsencrypt.log | tail -n 12 >&2 || true
+                grep -Ei 'too many|rate.?limit|unauthor|invalid|nxdomain|timeout|connection|error creating new order|detail:|failed authorization|acme:error' $LE_LOG | tail -n 12 >&2 || true
             fi
-            printf '[INFO] Retry later / tente novamente depois: %s %q %q\n' "$HTTPS_RETRY" "$DOMAIN" "$CONTACT_EMAIL" >&2
+            if grep -Eqi 'rate.?limit|too many certificates|retry after' $LE_LOG 2>/dev/null; then
+                schedule_https_rate_limit_retry || printf '[WARNING] Rate limit detected but automatic retry could not be scheduled.\n' >&2
+            fi
+            printf '[INFO] Manual retry / tentativa manual: %s %q %q\n' "$HTTPS_RETRY" "$DOMAIN" "$CONTACT_EMAIL" >&2
         fi
         rm -f "$CERTBOT_LOG"
     fi
