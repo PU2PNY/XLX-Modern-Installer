@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.2.9 — 2026-09-09
+
+- Fixed a fresh-install blocker where the dashboard i18n builder translated the protected native route sentinel for `certificado`, causing the installed `index.php` to lose the Certificate route and stop at `Native Certificate route is missing`.
+- Route-protection sentinels are now language-neutral numeric identifiers and the build fails immediately if any protected route sentinel remains unresolved.
+- Added a six-language regression build that requires `certificado`, `digital-lab`, their native views, and the QR library to survive translation unchanged.
+- No XLXD production restart is required by this release.
+
 ## v1.2.8 — 2026-09-09
 
 ### Fresh-install hardening after Debian 12 VPS audit

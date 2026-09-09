@@ -61,12 +61,17 @@ $routeSlugs = [
     'digital-lab',
 ];
 $routeProtection = [];
-foreach ($routeSlugs as $routeSlug) {
-    $sentinel = '__XLX_ROUTE_' . strtoupper(str_replace('-', '_', $routeSlug)) . '__';
+$routeRestore = [];
+foreach ($routeSlugs as $routeIndex => $routeSlug) {
+    // IMPORTANT: the sentinel must contain no human-language word. A previous
+    // implementation embedded CERTIFICADO in the marker, and the English
+    // catalog legitimately translated that substring to CERTIFICATE before
+    // restoration. Numeric opaque markers cannot be localized.
+    $sentinel = '__XLX_ROUTE_' . $routeIndex . '__';
     $routeProtection["'{$routeSlug}'"] = "'{$sentinel}'";
     $routeProtection['"' . $routeSlug . '"'] = '"' . $sentinel . '"';
+    $routeRestore[$sentinel] = $routeSlug;
 }
-$routeRestore = array_flip($routeProtection);
 
 
 /*
@@ -197,6 +202,10 @@ foreach ($iterator as $fileInfo) {
     }
 
     $contents = strtr($contents, $routeRestore);
+    if (preg_match('/__XLX_ROUTE_[A-Z0-9_]+__/', $contents, $routeLeak)) {
+        fwrite(STDERR, "ERROR: unresolved protected route {$routeLeak[0]} in {$path}\n");
+        exit(7);
+    }
 
     $countForFile += $langCount + $ogCount + $dateLocaleCount;
 
