@@ -27,12 +27,6 @@ $sourceMessages = xlx_load_messages('pt-BR');
 $targetMessages = xlx_load_messages($locale);
 $catalog = xlx_locale_catalog();
 
-/*
- * Older catalogs used "{{REFLECTOR_NAME}} Brasil" as one branding token.
- * The public installer is now country-neutral. Normalize that legacy token
- * while translating so existing catalogs remain compatible and no new
- * installation inherits a fixed country name.
- */
 $genericMessage = static function (string $text): string {
     return str_replace('{{REFLECTOR_NAME}} Brasil', '{{REFLECTOR_NAME}}', $text);
 };
@@ -43,12 +37,6 @@ $excludedParts = [
     DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'site.php',
 ];
 
-/*
- * Route slugs are application identifiers, not user-facing copy. Some
- * translated source strings (for example "conectados") can be identical to a
- * slug. Protect quoted route identifiers before textual translation and
- * restore them afterwards so locale builds never change navigation semantics.
- */
 $routeSlugs = [
     'ao-vivo',
     'modulos',
@@ -63,22 +51,12 @@ $routeSlugs = [
 $routeProtection = [];
 $routeRestore = [];
 foreach ($routeSlugs as $routeIndex => $routeSlug) {
-    // IMPORTANT: the sentinel must contain no human-language word. A previous
-    // implementation embedded CERTIFICADO in the marker, and the English
-    // catalog legitimately translated that substring to CERTIFICATE before
-    // restoration. Numeric opaque markers cannot be localized.
     $sentinel = '__XLX_ROUTE_' . $routeIndex . '__';
     $routeProtection["'{$routeSlug}'"] = "'{$sentinel}'";
     $routeProtection['"' . $routeSlug . '"'] = '"' . $sentinel . '"';
     $routeRestore[$sentinel] = $routeSlug;
 }
 
-/*
- * Protect technical identifiers before translation. Public copy may contain
- * words that are also used inside route slugs, asset filenames, element IDs,
- * CSS classes or form field names. Those values are application contracts and
- * must never be localized.
- */
 $protectTechnical = static function (string $text, array &$restore): string {
     $n = 0;
     $protect = static function (string $value) use (&$restore, &$n): string {
@@ -87,7 +65,6 @@ $protectTechnical = static function (string $text, array &$restore): string {
         return $token;
     };
 
-    // HTML attributes whose values are technical contracts, not visible copy.
     $text = preg_replace_callback(
         "~\\b(?:class|id|name|for|type|value|href|src|action|data-[a-z0-9_-]+)=(\"[^\"]*\"|'[^']*')~iu",
         static function (array $m) use ($protect): string {
@@ -97,15 +74,12 @@ $protectTechnical = static function (string $text, array &$restore): string {
         $text
     ) ?? $text;
 
-    // File/path/URL-like tokens that can also appear inside PHP/JS strings.
     $text = preg_replace_callback(
         "~(?:https?://[^\\s\"'<>]+|(?:assets|api|config|flags|install)/[A-Za-z0-9_./?=&%#{}-]+|[A-Za-z0-9_.-]+\\.(?:css|js|php|png|jpe?g|svg|webp|ico|json|sqlite|db|service|timer|socket|sh)(?:\\?[A-Za-z0-9_=&.%#{}-]+)?)~u",
         static fn(array $m): string => $protect($m[0]),
         $text
     ) ?? $text;
 
-    // Callable identifiers may contain words that also exist in the
-    // translation catalog (for example renderOffline/renderStatus).
     $text = preg_replace_callback(
         '~\\b[A-Za-z_$][A-Za-z0-9_$]*(?=\\s*\\()~u',
         static fn(array $m): string => $protect($m[0]),
@@ -116,27 +90,46 @@ $protectTechnical = static function (string $text, array &$restore): string {
 };
 
 /*
- * The translator works on source text, so a catalog value containing an ASCII
- * apostrophe can invalidate a PHP single-quoted literal if injected raw. For
- * PHP files, protect exact catalog string literals first and restore them with
- * delimiter-aware escaping after the general visible-text translation pass.
- * This keeps strings such as French "d'appel" syntactically valid without
- * changing the user-facing translation.
+ * Raw source replacement is unsafe inside code string literals when a target
+ * translation contains the delimiter. Protect exact PHP/JavaScript literals
+ * before the general translation pass and restore them with delimiter-aware
+ * escaping afterwards. This preserves the visible translation while keeping
+ * generated source syntactically valid in every locale.
  */
-$protectPhpTranslatedLiterals = static function (
+$protectCodeTranslatedLiterals = static function (
     string $text,
     array $replacements,
+    string $extension,
     array &$restore
 ): string {
+    if (!in_array($extension, ['php', 'js'], true)) {
+        return $text;
+    }
+
     $protect = [];
     $n = 0;
     foreach ($replacements as $sourceText => $translatedText) {
-        $singleSource = "'" . addcslashes($sourceText, "\\'") . "'";
-        $singleTarget = "'" . addcslashes($translatedText, "\\'") . "'";
-        $doubleSource = '"' . addcslashes($sourceText, "\\\"$") . '"';
-        $doubleTarget = '"' . addcslashes($translatedText, "\\\"$") . '"';
+        $pairs = [];
 
-        foreach ([[$singleSource, $singleTarget], [$doubleSource, $doubleTarget]] as [$sourceLiteral, $targetLiteral]) {
+        $singleSource = "'" . addcslashes($sourceText, "\\'\n\r\t") . "'";
+        $singleTarget = "'" . addcslashes($translatedText, "\\'\n\r\t") . "'";
+        $pairs[] = [$singleSource, $singleTarget];
+
+        $doubleChars = $extension === 'php' ? "\\\"$\n\r\t" : "\\\"\n\r\t";
+        $doubleSource = '"' . addcslashes($sourceText, $doubleChars) . '"';
+        $doubleTarget = '"' . addcslashes($translatedText, $doubleChars) . '"';
+        $pairs[] = [$doubleSource, $doubleTarget];
+
+        if ($extension === 'js') {
+            // Escape backticks, backslashes and '$' so translated text cannot
+            // accidentally create a ${...} interpolation in a template literal.
+            $templateChars = "\\`$\n\r\t";
+            $templateSource = '`' . addcslashes($sourceText, $templateChars) . '`';
+            $templateTarget = '`' . addcslashes($translatedText, $templateChars) . '`';
+            $pairs[] = [$templateSource, $templateTarget];
+        }
+
+        foreach ($pairs as [$sourceLiteral, $targetLiteral]) {
             if (!str_contains($text, $sourceLiteral)) {
                 continue;
             }
@@ -145,6 +138,7 @@ $protectPhpTranslatedLiterals = static function (
             $restore[$token] = $targetLiteral;
         }
     }
+
     if ($protect === []) {
         return $text;
     }
@@ -206,28 +200,21 @@ foreach ($iterator as $fileInfo) {
             }
             $replacements[$sourceText] = $translatedText;
         }
-        // Longest source first prevents partial replacements such as
-        // "País" inside "País não identificado".
         uksort($replacements, static fn(string $a, string $b): int => strlen($b) <=> strlen($a));
         $beforeTranslation = $contents;
 
-        $phpLiteralRestore = [];
-        if ($extension === 'php') {
-            $contents = $protectPhpTranslatedLiterals($contents, $replacements, $phpLiteralRestore);
-        }
-
+        $literalRestore = [];
+        $contents = $protectCodeTranslatedLiterals($contents, $replacements, $extension, $literalRestore);
         $contents = strtr($contents, $replacements);
-        if ($phpLiteralRestore) {
-            $contents = strtr($contents, $phpLiteralRestore);
+        if ($literalRestore) {
+            $contents = strtr($contents, $literalRestore);
         }
         if (preg_match('/__XLX_I18N_LITERAL_[A-Z0-9_]+__/', $contents, $literalLeak)) {
-            fwrite(STDERR, "ERROR: unresolved protected PHP literal {$literalLeak[0]} in {$path}\n");
+            fwrite(STDERR, "ERROR: unresolved protected code literal {$literalLeak[0]} in {$path}\n");
             exit(8);
         }
 
         if ($contents !== $beforeTranslation) {
-            // Exact replacement count is informational only; file integrity is
-            // validated by the post-build tests below.
             $countForFile++;
         }
     }
