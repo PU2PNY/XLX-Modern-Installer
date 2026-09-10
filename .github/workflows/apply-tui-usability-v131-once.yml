@@ -17,30 +17,59 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
-      - name: Apply usability patch
+      - name: Apply beginner wizard patch
         run: python3 tools/patch_tui_usability_v131.py
       - name: Validate shell and Python
         run: |
           bash -n install.sh
           python3 -m py_compile tui/installer.py
           python3 tui/installer.py --self-test
-      - name: Validate Textual interface headless
+          grep -Fq -- '--ui-lang=*)' install.sh
+          test "$(cat VERSION)" = '1.3.1'
+      - name: Validate Textual interface and Enter navigation
         run: |
           python3 -m pip install --disable-pip-version-check textual==8.2.8
           python3 - <<'PY'
           import asyncio
           from pathlib import Path
+          from textual.widgets import Button, Input
           from tui.installer import XLXInstallerApp
 
           async def main():
               app = XLXInstallerApp(Path.cwd())
-              async with app.run_test(size=(150, 52)):
-                  assert app.query_one('#installer_lang')
+              async with app.run_test(size=(150, 52)) as pilot:
+                  assert app.current_step == 0
+                  assert app.query_one('#lang-pt', Button)
+                  assert app.query_one('#lang-en', Button)
+                  assert app.query_one('#wizard-progress')
                   assert app.query_one('#guide')
-                  assert app.query_one('#next')
-                  assert app.query_one('#cancel')
-                  assert app.FIELD_ORDER[0][0] == 'reflector_id'
-                  assert app.FIELD_ORDER[0][-1] == 'timezone'
+                  assert app.query_one('#next').styles.display == 'none'
+
+                  await pilot.click('#lang-pt')
+                  await pilot.pause()
+                  assert app.current_step == 1
+                  rid = app.query_one('#reflector_id', Input)
+                  rid.value = 'PNY'
+                  rid.focus()
+                  await pilot.press('enter')
+                  await pilot.pause()
+                  assert app.focused is not None and app.focused.id == 'domain'
+
+                  domain = app.query_one('#domain', Input)
+                  domain.value = 'xlx026.net'
+                  await pilot.press('enter')
+                  await pilot.pause()
+                  assert app.focused is not None and app.focused.id == 'callsign'
+
+                  app.query_one('#callsign', Input).value = 'PU2PNY'
+                  await pilot.press('enter')
+                  app.query_one('#email', Input).value = 'sysop@example.net'
+                  await pilot.press('enter')
+                  await pilot.pause()
+                  assert app.focused is not None and app.focused.id == 'next'
+
+                  assert app.query_one('#next').styles.background is not None
+                  assert app.query_one('#cancel').styles.background is not None
 
           asyncio.run(main())
           PY
@@ -50,5 +79,6 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add tui/installer.py install.sh VERSION README.md README.en.md README.pt-BR.md CHANGELOG.md
           git diff --cached --check
-          git commit -m 'feat: improve guided TUI usability v1.3.1'
+          git commit -m 'feat: simplify guided installer for beginners v1.3.1'
           git push origin main
+# trigger-20260910-beginner-wizard
