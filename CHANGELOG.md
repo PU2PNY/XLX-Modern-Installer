@@ -1,5 +1,14 @@
 ## v1.2.12 — 2026-09-09
 
+## v1.2.13 — Identity and installer examples
+
+- identifies the distribution and modern dashboard as XLX Modern Installer / PU2PNY;
+- preserves explicit attribution to XLXD upstream authors LX3JL/LX1IQ and to Daniel K. — PP5PK as installer technical base;
+- uses XLX026 (`xlx026.net`) as the official production example in the installation questionnaire;
+- replaces legacy example identifiers `BRA`/`xlxbra.net` with `026`/`xlx026.net`;
+- no runtime protocol, reflector-core, dashboard data-path or security behavior was changed.
+
+
 ### Fresh-install runtime parity
 
 - Synchronizes the generic installer with the current dashboard/runtime behavior validated after the v1.2.11 fresh-VPS failures.

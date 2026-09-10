@@ -1,7 +1,8 @@
 #!/bin/bash
-# A tool to install XLX, your own D-Star Reflector.
-# For more information, please visit https://xlxbbs.epf.lu/
-# Created by Daniel K., PP5PK.
+# XLX Modern Installer — distribution and modern dashboard maintained by Dario — PU2PNY.
+# XLXD upstream: Jean-Luc Deltombe — LX3JL and Luc Engelmann — LX1IQ.
+# Installer technical base: Daniel K. — PP5PK / PP5PK/XLX_Installer.
+# Upstream/community information: https://xlxbbs.epf.lu/
 
 # Enable strict error handling
 # -e  : exit immediately on any command returning non-zero
@@ -408,7 +409,8 @@ resolve_timezone() {
 clear
 line_type3
 echo ""
-center_wrap_color $GREEN "XLX MULTIPROTOCOL AMATEUR RADIO REFLECTOR INSTALLER PROGRAM"
+center_wrap_color $GREEN "XLX MODERN INSTALLER — PU2PNY"
+center_wrap_color $GRAY "XLXD upstream: LX3JL / LX1IQ | Installer base: Daniel K. — PP5PK"
 echo ""
 center_wrap_color $GREEN "Next, you will be asked some questions. Answer with the requested information or, if applicable, to accept the suggested value, press [ENTER]"
 echo ""
@@ -424,7 +426,7 @@ echo ""
 #  21. Questions begin...
 question_01() {
     print_red "$ICON_WARN Mandatory"
-    print_wrapped "01. XLX Reflector ID, 3 alphanumeric characters. (e.g., 300, US1, BRA)"
+    print_wrapped "01. XLX Reflector ID, 3 alphanumeric characters. (e.g., 026, 724, PNY)"
     while true; do
         read_or_abort XRFDIGIT
         XRFDIGIT=$(echo "$XRFDIGIT" | tr '[:lower:]' '[:upper:]')
@@ -443,14 +445,14 @@ question_02() {
     echo "$SEPQUE"
     echo ""
     print_red "$ICON_WARN Mandatory"
-    print_wrapped "02. Dashboard FQDN (fully qualified domain name). (e.g., xlxbra.net)"
+    print_wrapped "02. Dashboard FQDN (fully qualified domain name). (e.g., xlx026.net)"
     while true; do
         read_or_abort XLXDOMAIN
         XLXDOMAIN=$(echo "$XLXDOMAIN" | tr '[:upper:]' '[:lower:]')
         if [[ "$XLXDOMAIN" =~ ^([a-z0-9-]+\.)+[a-z]{2,}$ ]]; then
             break
         fi
-        msg_caution "Invalid domain. Must be a valid FQDN (e.g., xlx.example.com)."
+        msg_caution "Invalid domain. Must be a valid FQDN (e.g., xlx026.net)."
     done
     print_yellow "Using: $XLXDOMAIN"
 }
