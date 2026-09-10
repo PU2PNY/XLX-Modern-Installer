@@ -1,0 +1,54 @@
+name: Apply TUI usability v1.3.1 once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/apply-tui-usability-v131-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Apply usability patch
+        run: python3 tools/patch_tui_usability_v131.py
+      - name: Validate shell and Python
+        run: |
+          bash -n install.sh
+          python3 -m py_compile tui/installer.py
+          python3 tui/installer.py --self-test
+      - name: Validate Textual interface headless
+        run: |
+          python3 -m pip install --disable-pip-version-check textual==8.2.8
+          python3 - <<'PY'
+          import asyncio
+          from pathlib import Path
+          from tui.installer import XLXInstallerApp
+
+          async def main():
+              app = XLXInstallerApp(Path.cwd())
+              async with app.run_test(size=(150, 52)):
+                  assert app.query_one('#installer_lang')
+                  assert app.query_one('#guide')
+                  assert app.query_one('#next')
+                  assert app.query_one('#cancel')
+                  assert app.FIELD_ORDER[0][0] == 'reflector_id'
+                  assert app.FIELD_ORDER[0][-1] == 'timezone'
+
+          asyncio.run(main())
+          PY
+      - name: Commit v1.3.1
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tui/installer.py install.sh VERSION README.md README.en.md README.pt-BR.md CHANGELOG.md
+          git diff --cached --check
+          git commit -m 'feat: improve guided TUI usability v1.3.1'
+          git push origin main
