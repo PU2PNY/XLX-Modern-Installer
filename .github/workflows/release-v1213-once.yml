@@ -35,6 +35,9 @@ jobs:
         run: |
           set -Eeuo pipefail
           TARGET='09abcd6f99044228008735efc4d067628ff01d4b'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
           if git rev-parse 'refs/tags/v1.2.13' >/dev/null 2>&1; then
             test "$(git rev-list -n1 v1.2.13)" = "$TARGET"
           else
