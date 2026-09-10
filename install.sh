@@ -20,7 +20,7 @@ readonly ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
 readonly REPOSITORY="local:vendor/pp5pk-installer"
 readonly REVIEWED_COMMIT="vendor-pinned-PP5PK-20b4893"
-readonly EXPECTED_INSTALLER_SHA256="8e252dfb0ffcee76c65f189d84ffd503951dfb1d2aca32a1265d1dc746b7027b"
+readonly EXPECTED_INSTALLER_SHA256="ec1d2f0ca1a659f7b1e7f0be460f6a4b10e3fc34740d154561ac5f5bdc20411a"
 readonly WORK_ROOT="/opt/xlx-modern-installer"
 readonly SOURCE_DIR="${WORK_ROOT}/vendor/pp5pk-installer"
 readonly BACKUP_ROOT="/var/backups/xlx-reflector"
