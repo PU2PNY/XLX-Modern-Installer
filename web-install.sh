@@ -27,19 +27,32 @@ source /etc/os-release
 if [ -x /xlxd/xlxd ] || systemctl is-active --quiet xlxd 2>/dev/null; then
     fatal "Já existe uma instalação XLXD ativa. O instalador web não sobrescreve uma instalação em produção."
 fi
+if [ -d /xlxd ] || [ -d /usr/src/xlxd ]; then
+    fatal "Foram encontrados vestígios de uma instalação XLXD anterior. Por segurança, nada foi apagado. Faça a limpeza segura antes de iniciar novamente."
+fi
 
 mkdir -p "$WORK_ROOT"
 chmod 700 "$WORK_ROOT"
 
 needed=()
-command -v python3 >/dev/null 2>&1 || needed+=(python3)
-python3 -m venv --help >/dev/null 2>&1 || needed+=(python3-venv)
+if command -v python3 >/dev/null 2>&1; then
+    python3 -m venv --help >/dev/null 2>&1 || needed+=(python3-venv)
+else
+    needed+=(python3 python3-venv)
+fi
 command -v curl >/dev/null 2>&1 || needed+=(curl)
+command -v ss >/dev/null 2>&1 || needed+=(iproute2)
+command -v systemd-run >/dev/null 2>&1 || needed+=(systemd)
+
 if [ "${#needed[@]}" -gt 0 ]; then
     printf '%sPreparando a interface gráfica...%s\n' "$CYAN" "$RESET"
     apt-get update
     DEBIAN_FRONTEND=noninteractive apt-get install -y "${needed[@]}"
 fi
+
+command -v python3 >/dev/null 2>&1 || fatal "python3 não ficou disponível após preparar o sistema."
+command -v ss >/dev/null 2>&1 || fatal "ss/iproute2 não ficou disponível após preparar o sistema."
+command -v systemd-run >/dev/null 2>&1 || fatal "systemd-run não ficou disponível após preparar o sistema."
 
 if [ ! -x "$VENV/bin/python" ]; then
     rm -rf "$VENV"
@@ -100,5 +113,6 @@ printf '\nNo seu computador, abra OUTRO terminal e execute:\n\n'
 printf '  %sssh -L %s:127.0.0.1:%s root@%s%s\n\n' "$GREEN" "$PORT" "$PORT" "$SERVER_IP" "$RESET"
 printf 'Mantenha essa segunda conexão aberta e, no navegador, abra:\n\n'
 printf '  %shttp://127.0.0.1:%s/#token=%s%s\n\n' "$GREEN" "$PORT" "$TOKEN" "$RESET"
-printf 'A interface não fica exposta diretamente à Internet.\n'
+printf 'A interface NÃO fica exposta diretamente à Internet.\n'
+printf 'O token é temporário e o serviço expira automaticamente em até 4 horas.\n'
 printf 'Para encerrar manualmente: systemctl stop %s\n\n' "$UNIT"
