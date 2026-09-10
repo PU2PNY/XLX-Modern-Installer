@@ -19,6 +19,8 @@ jobs:
           fetch-depth: 0
       - name: Apply beginner wizard patch
         run: python3 tools/patch_tui_usability_v131.py
+      - name: Install pinned Textual for validation
+        run: python3 -m pip install --disable-pip-version-check textual==8.2.8
       - name: Validate shell and Python
         run: |
           bash -n install.sh
@@ -28,7 +30,6 @@ jobs:
           test "$(cat VERSION)" = '1.3.1'
       - name: Validate Textual interface and Enter navigation
         run: |
-          python3 -m pip install --disable-pip-version-check textual==8.2.8
           python3 - <<'PY'
           import asyncio
           from pathlib import Path
@@ -81,4 +82,4 @@ jobs:
           git diff --cached --check
           git commit -m 'feat: simplify guided installer for beginners v1.3.1'
           git push origin main
-# trigger-20260910-beginner-wizard
+# trigger-20260910-beginner-wizard-2
