@@ -1,0 +1,257 @@
+name: Apply Textual installer v1.3.0 once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/apply-tui-v130-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Apply safe TUI integration
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+          import re
+
+          root = Path('.')
+          install = root / 'install.sh'
+          text = install.read_text(encoding='utf-8')
+
+          def once(old: str, new: str, label: str) -> None:
+              global text
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{label}: expected 1 match, got {count}')
+              text = text.replace(old, new, 1)
+
+          once(
+              'CHECK_READY="yes"\n',
+              'CHECK_READY="yes"\nTUI_MODE="auto"\nTUI_PYTHON=""\n',
+              'tui variables',
+          )
+
+          once(
+              '        --lang=*) DASHBOARD_LANG="${arg#*=}" ;;\n        -h|--help)',
+              '        --lang=*) DASHBOARD_LANG="${arg#*=}" ;;\n'
+              '        --tui) TUI_MODE="force" ;;\n'
+              '        --classic|--no-tui) TUI_MODE="off" ;;\n'
+              '        --tui-child) TUI_MODE="child" ;;\n'
+              '        -h|--help)',
+              'argument parser',
+          )
+
+          once(
+              '  sudo bash install.sh --dashboard-only\n',
+              '  sudo bash install.sh --dashboard-only\n'
+              '  sudo bash install.sh --tui\n'
+              '  sudo bash install.sh --classic\n',
+              'help usage',
+          )
+
+          once(
+              '  --dashboard-only\n      Atualiza ou reinstala somente o painel moderno em um XLXD existente.\n',
+              '  --tui\n'
+              '      Força a interface visual Textual quando o terminal for compatível.\n'
+              '      Forces the Textual interface when the terminal is compatible.\n\n'
+              '  --classic\n'
+              '      Usa o questionário clássico em texto, sem Textual.\n'
+              '      Uses the classic text questionnaire without Textual.\n\n'
+              '  --dashboard-only\n'
+              '      Atualiza ou reinstala somente o painel moderno em um XLXD existente.\n',
+              'help options',
+          )
+
+          marker = 'bootstrap_install_prerequisites() {\n'
+          if text.count(marker) != 1:
+              raise SystemExit('bootstrap marker mismatch')
+          tui_functions = r'''bootstrap_tui_runtime() {
+              local venv="${WORK_ROOT}/tui-venv"
+              local requirements="${ROOT_DIR}/tui/requirements.txt"
+              local pycheck='from importlib.metadata import version; assert version("textual") == "8.2.8"'
+
+              [ -s "${ROOT_DIR}/tui/installer.py" ] || return 1
+              [ -s "$requirements" ] || return 1
+
+              if ! command -v python3 >/dev/null 2>&1; then
+                  apt-get update || return 1
+                  DEBIAN_FRONTEND=noninteractive apt-get install -y python3 python3-venv || return 1
+              fi
+
+              if ! python3 -m venv --help >/dev/null 2>&1; then
+                  apt-get update || return 1
+                  DEBIAN_FRONTEND=noninteractive apt-get install -y python3-venv || return 1
+              fi
+
+              mkdir -p "$WORK_ROOT" || return 1
+              chmod 700 "$WORK_ROOT" || return 1
+
+              if [ ! -x "$venv/bin/python" ]; then
+                  rm -rf "$venv"
+                  python3 -m venv "$venv" || return 1
+              fi
+
+              if ! "$venv/bin/python" -c "$pycheck" >/dev/null 2>&1; then
+                  "$venv/bin/python" -m pip install --disable-pip-version-check --no-cache-dir -r "$requirements" || return 1
+              fi
+
+              "$venv/bin/python" -c "$pycheck" >/dev/null 2>&1 || return 1
+              TUI_PYTHON="$venv/bin/python"
+              return 0
+          }
+
+          maybe_launch_tui() {
+              [ "$MODE" = "install" ] || return 0
+              [ "$DASHBOARD_ONLY" = "no" ] || return 0
+              case "$TUI_MODE" in
+                  child|off) return 0 ;;
+              esac
+
+              if [ ! -t 0 ] || [ ! -t 1 ] || [ "${TERM:-dumb}" = "dumb" ]; then
+                  [ "$TUI_MODE" != "force" ] || fatal "A interface Textual exige uma sessão de terminal interativa compatível."
+                  return 0
+              fi
+
+              if bootstrap_tui_runtime; then
+                  exec "$TUI_PYTHON" "$ROOT_DIR/tui/installer.py" --root "$ROOT_DIR"
+              fi
+
+              [ "$TUI_MODE" != "force" ] || fatal "Não foi possível preparar a interface Textual."
+              warn "A interface visual não pôde ser iniciada; continuando com o instalador clássico."
+          }
+
+          '''
+          text = text.replace(marker, tui_functions + marker, 1)
+
+          old_exec = '''    set +e
+              XLX_MODERN_STATE_FILE="$state_file" bash "$base_installer" 2>&1 | tee -a "$logfile"
+              installer_rc=${PIPESTATUS[0]}
+              set -e
+          '''
+          new_exec = '''    set +e
+              if [ -n "${XLX_MODERN_ANSWERS_FILE:-}" ]; then
+                  if [ ! -r "$XLX_MODERN_ANSWERS_FILE" ]; then
+                      set -e
+                      fatal "Arquivo de respostas da interface visual não está disponível: $XLX_MODERN_ANSWERS_FILE"
+                  fi
+                  XLX_MODERN_STATE_FILE="$state_file" bash "$base_installer" < "$XLX_MODERN_ANSWERS_FILE" 2>&1 | tee -a "$logfile"
+                  installer_rc=${PIPESTATUS[0]}
+              else
+                  XLX_MODERN_STATE_FILE="$state_file" bash "$base_installer" 2>&1 | tee -a "$logfile"
+                  installer_rc=${PIPESTATUS[0]}
+              fi
+              set -e
+          '''
+          once(old_exec, new_exec, 'preseed execution')
+
+          once(
+              '    require_root\n    select_ui_language\n',
+              '    require_root\n    maybe_launch_tui\n    select_ui_language\n',
+              'main tui launch',
+          )
+
+          text = text.replace(
+              "01\\. XLX Reflector ID, 3 alphanumeric characters\\. (e\\.g\\., 300, US1, BRA)",
+              "01\\. XLX Reflector ID, 3 alphanumeric characters\\. (e\\.g\\., 026, 724, PNY)",
+          )
+          text = text.replace(
+              "02\\. Dashboard FQDN (fully qualified domain name)\\. (e\\.g\\., xlxbra\\.net)",
+              "02\\. Dashboard FQDN (fully qualified domain name)\\. (e\\.g\\., xlx026\\.net)",
+          )
+          text = text.replace('(ex.: 724, US1, BRA)', '(ex.: 026, 724, PNY)')
+          text = text.replace('(ex.: xlx724.seudominio.net)', '(ex.: xlx026.net)')
+
+          text = text.replace('Technical base: PP5PK/XLX_Installer\nOriginal author: Daniel K. — PP5PK\nModified version: Dario — PU2PNY\n', '')
+          text = text.replace('Base técnica: PP5PK/XLX_Installer\nAutor original: Daniel K. — PP5PK\nVersão modificada: Dario — PU2PNY\n', '')
+
+          install.write_text(text, encoding='utf-8')
+
+          vendor = root / 'vendor/pp5pk-installer/installer.sh'
+          vtext = vendor.read_text(encoding='utf-8')
+          runtime_credit = 'center_wrap_color $GRAY "XLXD upstream: LX3JL / LX1IQ | Installer base: Daniel K. — PP5PK"\n'
+          if vtext.count(runtime_credit) != 1:
+              raise SystemExit(f'runtime credit: expected 1 match, got {vtext.count(runtime_credit)}')
+          vtext = vtext.replace(runtime_credit, '', 1)
+          vendor.write_text(vtext, encoding='utf-8')
+
+          digest = hashlib.sha256(vendor.read_bytes()).hexdigest()
+          text = install.read_text(encoding='utf-8')
+          text, n = re.subn(
+              r'readonly EXPECTED_INSTALLER_SHA256="[0-9a-f]{64}"',
+              f'readonly EXPECTED_INSTALLER_SHA256="{digest}"',
+              text,
+              count=1,
+          )
+          if n != 1:
+              raise SystemExit('integrity pin update failed')
+          install.write_text(text, encoding='utf-8')
+
+          (root / 'VERSION').write_text('1.3.0\n', encoding='utf-8')
+
+          english_old = (
+              'The normal installer asks for all required site data in one questionnaire, shows one complete review screen and waits for **ENTER** once to start. '
+              'A question number edits that answer; `X` cancels. No second `INSTALL` confirmation and no late city/Admin/YSF questionnaire is expected.'
+          )
+          english_new = (
+              'On an interactive SSH terminal, `bash install.sh` now opens the **Textual guided interface** by default: window-style steps, validated fields, Back/Continue controls, a complete review screen and a live installation progress bar with the technical log inside the interface. '
+              'The existing shell installer remains the installation engine. If Textual cannot be started, the installer safely falls back to the classic questionnaire; `bash install.sh --classic` forces that mode.'
+          )
+          pt_old = (
+              'Todas as informações são solicitadas em **um único questionário inicial**. Depois aparece um resumo completo. '
+              'Pressione **ENTER uma única vez** para instalar, digite o número de uma pergunta para corrigi-la ou `X` para cancelar. Não existe segunda confirmação `INSTALL` nem perguntas tardias de cidade, YSF ou Admin.'
+          )
+          pt_new = (
+              'Em uma sessão SSH interativa, `bash install.sh` agora abre por padrão a **interface guiada Textual**: etapas em janelas, campos validados, botões Voltar/Continuar, revisão completa e barra de progresso da instalação com o log técnico dentro da própria interface. '
+              'O instalador Shell existente continua sendo o motor real da instalação. Se o Textual não puder ser iniciado, o processo retorna com segurança ao questionário clássico; `bash install.sh --classic` força esse modo.'
+          )
+
+          for name in ('README.md', 'README.en.md'):
+              p = root / name
+              s = p.read_text(encoding='utf-8').replace('v1.2.14', 'v1.3.0')
+              if english_old not in s:
+                  raise SystemExit(f'{name}: installation paragraph not found')
+              s = s.replace(english_old, english_new, 1)
+              p.write_text(s, encoding='utf-8')
+
+          p = root / 'README.pt-BR.md'
+          s = p.read_text(encoding='utf-8').replace('v1.2.14', 'v1.3.0')
+          if pt_old not in s:
+              raise SystemExit('README.pt-BR.md: installation paragraph not found')
+          s = s.replace(pt_old, pt_new, 1)
+          p.write_text(s, encoding='utf-8')
+          PY
+
+          bash -n install.sh
+          bash -n vendor/pp5pk-installer/installer.sh
+          python3 -m py_compile tui/installer.py
+          expected="$(sed -n 's/^readonly EXPECTED_INSTALLER_SHA256="\([0-9a-f]*\)"$/\1/p' install.sh)"
+          actual="$(sha256sum vendor/pp5pk-installer/installer.sh | awk '{print $1}')"
+          test "$expected" = "$actual"
+          grep -Fq 'maybe_launch_tui' install.sh
+          grep -Fq 'XLX_MODERN_ANSWERS_FILE' install.sh
+          grep -Fq '1.3.0' VERSION
+          ! grep -Fq 'XLXD upstream: LX3JL / LX1IQ | Installer base: Daniel K. — PP5PK' vendor/pp5pk-installer/installer.sh
+
+      - name: Commit v1.3.0 integration
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add install.sh vendor/pp5pk-installer/installer.sh VERSION README.md README.en.md README.pt-BR.md
+          git diff --cached --check
+          git commit -m 'feat: make Textual guided installer the default UI'
+          git push origin main
