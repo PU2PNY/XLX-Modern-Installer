@@ -1,0 +1,87 @@
+name: XLX Modern identity hotfix v1.2.13
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/branding-v1213-hotfix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  hotfix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Apply identity and example corrections
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          f='vendor/pp5pk-installer/installer.sh'
+
+          grep -Fq 'XLX MULTIPROTOCOL AMATEUR RADIO REFLECTOR INSTALLER PROGRAM' "$f"
+          grep -Fq '(e.g., 300, US1, BRA)' "$f"
+          grep -Fq '(e.g., xlxbra.net)' "$f"
+
+          sed -i 's/XLX MULTIPROTOCOL AMATEUR RADIO REFLECTOR INSTALLER PROGRAM/XLX MODERN INSTALLER — PU2PNY/' "$f"
+          sed -i '/center_wrap_color $GREEN "XLX MODERN INSTALLER — PU2PNY"/a center_wrap_color $GRAY "XLXD upstream: LX3JL \/ LX1IQ | Installer base: Daniel K. — PP5PK"' "$f"
+          sed -i 's/(e.g., 300, US1, BRA)/(e.g., 026, 724, PNY)/' "$f"
+          sed -i 's/(e.g., xlxbra.net)/(e.g., xlx026.net)/' "$f"
+          sed -i 's/(e.g., xlx\.example\.com)/(e.g., xlx026.net)/' "$f"
+
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('vendor/pp5pk-installer/installer.sh')
+          s = p.read_text()
+          s = s.replace(
+              '# A tool to install XLX, your own D-Star Reflector.\n# For more information, please visit https://xlxbbs.epf.lu/\n# Created by Daniel K., PP5PK.\n',
+              '# XLX Modern Installer — distribution and modern dashboard maintained by Dario — PU2PNY.\n# XLXD upstream: Jean-Luc Deltombe — LX3JL and Luc Engelmann — LX1IQ.\n# Installer technical base: Daniel K. — PP5PK / PP5PK/XLX_Installer.\n# Upstream/community information: https://xlxbbs.epf.lu/\n'
+          )
+          p.write_text(s)
+          PY
+
+          printf '1.2.13\n' > VERSION
+          sed -i 's/v1\.2\.12/v1.2.13/g' README.md README.en.md README.pt-BR.md
+
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('CHANGELOG.md')
+          s = p.read_text()
+          entry = '''## v1.2.13 — Identity and installer examples\n\n- identifies the distribution and modern dashboard as XLX Modern Installer / PU2PNY;\n- preserves explicit attribution to XLXD upstream authors LX3JL/LX1IQ and to Daniel K. — PP5PK as installer technical base;\n- uses XLX026 (`xlx026.net`) as the official production example in the installation questionnaire;\n- replaces legacy example identifiers `BRA`/`xlxbra.net` with `026`/`xlx026.net`;\n- no runtime protocol, reflector-core, dashboard data-path or security behavior was changed.\n\n'''
+          if '## v1.2.13 — Identity and installer examples' not in s:
+              if s.startswith('#'):
+                  first_nl = s.find('\n') + 1
+                  s = s[:first_nl] + '\n' + entry + s[first_nl:]
+              else:
+                  s = entry + s
+          p.write_text(s)
+          PY
+
+      - name: Validate hotfix
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          test "$(cat VERSION)" = '1.2.13'
+          grep -Fq 'XLX MODERN INSTALLER — PU2PNY' vendor/pp5pk-installer/installer.sh
+          grep -Fq 'XLXD upstream: LX3JL / LX1IQ | Installer base: Daniel K. — PP5PK' vendor/pp5pk-installer/installer.sh
+          grep -Fq '(e.g., 026, 724, PNY)' vendor/pp5pk-installer/installer.sh
+          grep -Fq '(e.g., xlx026.net)' vendor/pp5pk-installer/installer.sh
+          ! grep -Fq 'xlxbra.net' vendor/pp5pk-installer/installer.sh
+          bash -n vendor/pp5pk-installer/installer.sh
+          bash -n install.sh
+
+      - name: Commit hotfix
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add vendor/pp5pk-installer/installer.sh VERSION README.md README.en.md README.pt-BR.md CHANGELOG.md
+          git diff --cached --check
+          git commit -m 'fix: brand installer and use XLX026 examples v1.2.13'
+          git push origin main
