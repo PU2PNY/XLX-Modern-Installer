@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>XLX Modern Installer • PU2PNY</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <div id="fatal-screen" class="fatal-screen hidden" role="alert">
+    <div class="fatal-card"><h1>XLX Modern Installer</h1><p id="fatal-text">Não foi possível abrir a sessão do instalador.</p></div>
+  </div>
+
+  <div id="language-screen" class="language-screen hidden">
+    <section class="language-card" aria-labelledby="language-title">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 96 96"><path d="M48 12v54M31 76h34M39 76l9-22 9 22M42 44h12M36 30c-9 9-9 27 0 36M60 30c9 9 9 27 0 36M27 20c-16 16-16 40 0 56M69 20c16 16 16 40 0 56"/></svg>
+      </div>
+      <p class="brand-small">XLX MODERN INSTALLER • PU2PNY</p>
+      <h1 id="language-title">Escolha o idioma</h1>
+      <p class="language-lead">Selecione o idioma do assistente. Você poderá escolher o idioma do painel depois.</p>
+      <div class="language-actions">
+        <button class="language-button" data-lang="pt-BR">Português (Brasil)</button>
+        <button class="language-button secondary" data-lang="en">English</button>
+      </div>
+      <p class="keyboard-hint">Use o mouse ou Tab e Enter.</p>
+    </section>
+  </div>
+
+  <div id="app" class="app-shell hidden">
+    <header class="topbar">
+      <div class="brand-row">
+        <div class="brand-icon" aria-hidden="true">
+          <svg viewBox="0 0 96 96"><path d="M48 12v54M31 76h34M39 76l9-22 9 22M42 44h12M36 30c-9 9-9 27 0 36M60 30c9 9 9 27 0 36M27 20c-16 16-16 40 0 56M69 20c16 16 16 40 0 56"/></svg>
+        </div>
+        <div>
+          <div class="app-title">XLX MODERN INSTALLER <span>• PU2PNY</span></div>
+          <div id="subtitle" class="app-subtitle">Refletor + Painel • Instalação guiada</div>
+        </div>
+      </div>
+      <div class="top-status"><strong id="top-step">Etapa 1 de 8</strong><span id="top-step-name">Identidade</span></div>
+    </header>
+
+    <section class="progress-wrap" aria-label="Progresso do assistente">
+      <div class="progress-track"><div id="wizard-progress" class="progress-fill" style="width:12.5%"></div><div id="wizard-progress-label" class="progress-label">12% • Etapa 1 de 8</div></div>
+    </section>
+
+    <div class="workspace">
+      <aside class="steps-panel" aria-label="Etapas da instalação">
+        <ol id="steps-list" class="steps-list"></ol>
+        <div class="side-note"><strong>XLX Reflector System</strong><span>By PU2PNY</span><span id="community-note">Para a comunidade radioamadora</span></div>
+      </aside>
+
+      <main class="main-panel">
+        <div id="error-box" class="error-box hidden" role="alert" tabindex="-1"></div>
+
+        <section class="step-page" data-step="1">
+          <div class="section-kicker">ETAPA 1 DE 8</div>
+          <h1 id="step1-title">Identidade do refletor</h1>
+          <p class="lead">Comece pelos dados principais. Digite no campo destacado e pressione Enter para ir para a próxima resposta.</p>
+          <div class="field-grid">
+            <div class="field-group"><label for="reflector_id">ID do refletor XLX <span class="required">*</span></label><input id="reflector_id" maxlength="3" autocomplete="off" placeholder="026"><p class="field-help">Use exatamente 3 letras ou números. Ex.: 026, PNY ou 724.</p></div>
+            <div class="field-group"><label for="domain">Domínio completo (FQDN) <span class="required">*</span></label><input id="domain" autocomplete="off" placeholder="xlx026.net"><p class="field-help">Informe o domínio que apontará para esta VPS.</p></div>
+            <div class="field-group"><label for="callsign">Indicativo do sysop <span class="required">*</span></label><input id="callsign" maxlength="6" autocomplete="off" placeholder="PU2PNY"><p class="field-help">De 3 a 6 letras ou números.</p></div>
+            <div class="field-group"><label for="email">E-mail do sysop <span class="required">*</span></label><input id="email" type="email" autocomplete="email" placeholder="contato@seudominio.net"><p class="field-help">Usado também quando HTTPS for solicitado.</p></div>
+          </div>
+        </section>
+
+        <section class="step-page hidden" data-step="2">
+          <div class="section-kicker">ETAPA 2 DE 8</div><h1>Localização</h1><p class="lead">Informe onde o refletor está hospedado. O fuso detectado já vem preenchido.</p>
+          <div class="field-grid">
+            <div class="field-group"><label for="country">País <span class="required">*</span></label><input id="country" value="Brazil" autocomplete="country-name"><p class="field-help">Ex.: Brazil</p></div>
+            <div class="field-group"><label for="location">Cidade / estado ou região <span class="required">*</span></label><input id="location" placeholder="Santa Isabel - SP"><p class="field-help">Essa informação identifica a localização do refletor.</p></div>
+            <div class="field-group full"><label for="timezone">Fuso horário <span class="required">*</span></label><input id="timezone" value="UTC" autocomplete="off"><p class="field-help">Ex.: America/Sao_Paulo. Altere somente se o valor detectado estiver incorreto.</p></div>
+          </div>
+        </section>
+
+        <section class="step-page hidden" data-step="3">
+          <div class="section-kicker">ETAPA 3 DE 8</div><h1>Módulos</h1><p class="lead">As opções recomendadas já estão selecionadas. Um iniciante pode manter estes valores.</p>
+          <div class="field-grid">
+            <div class="field-group"><label for="echo">Echo Test no módulo E</label><select id="echo"><option value="yes" selected>Sim — recomendado</option><option value="no">Não</option></select><p class="field-help">Permite testar o áudio do refletor.</p></div>
+            <div class="field-group"><label for="modules">Quantidade de módulos ativos</label><input id="modules" type="number" min="1" max="26" value="5"><p class="field-help">Recomendado: 5 módulos (A–E). Com Echo em E, use no mínimo 5.</p></div>
+          </div>
+          <div class="info-banner"><strong>Módulo B reservado para APRS / D-PRS</strong><span>O instalador prepara o módulo B para beacons, APRS e D-PRS.</span></div>
+        </section>
+
+        <section class="step-page hidden" data-step="4">
+          <div class="section-kicker">ETAPA 4 DE 8</div><h1>Rede / YSF</h1><p class="lead">Os valores técnicos recomendados já estão preenchidos. Normalmente você só precisa informar o ID YSF.</p>
+          <div class="field-grid">
+            <div class="field-group"><label for="ysf_port">Porta UDP YSF</label><input id="ysf_port" type="number" min="1" max="65535" value="42000"><p class="field-help">Recomendado: 42000.</p></div>
+            <div class="field-group"><label for="ysf_freq">Frequência YSF Wires-X (Hz)</label><input id="ysf_freq" inputmode="numeric" value="433125000" maxlength="9"><p class="field-help">Use exatamente 9 dígitos.</p></div>
+            <div class="field-group"><label for="autolink">Auto-link YSF</label><select id="autolink"><option value="yes" selected>Sim — recomendado</option><option value="no">Não</option></select><p class="field-help">Mantém o módulo selecionado como destino padrão.</p></div>
+            <div class="field-group"><label for="autolink_module">Módulo do Auto-link</label><input id="autolink_module" value="C" maxlength="1"><p class="field-help">Recomendado: C.</p></div>
+            <div class="field-group full"><label for="ysf_id">ID do refletor YSF <span class="required">*</span></label><input id="ysf_id" inputmode="numeric" maxlength="8" placeholder="12345"><p class="field-help strong-help">Exemplo: 12345</p></div>
+          </div>
+        </section>
+
+        <section class="step-page hidden" data-step="5">
+          <div class="section-kicker">ETAPA 5 DE 8</div><h1>Painel</h1><p class="lead">Escolha o idioma público do painel e se deseja HTTPS.</p>
+          <div class="field-grid">
+            <div class="field-group"><label for="dashboard_lang">Idioma do painel</label><select id="dashboard_lang"><option value="pt-BR" selected>Português (Brasil)</option><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option><option value="de">Deutsch</option><option value="it">Italiano</option></select><p class="field-help">Define o idioma exibido no painel público.</p></div>
+            <div class="field-group"><label for="https">Ativar HTTPS</label><select id="https"><option value="yes" selected>Sim — recomendado</option><option value="no">Não</option></select><p class="field-help">Se o certificado não sair na hora, o painel permanece em HTTP e o instalador agenda nova tentativa.</p></div>
+          </div>
+        </section>
+
+        <section class="step-page hidden" data-step="6">
+          <div class="section-kicker">ETAPA 6 DE 8</div><h1>Administração</h1><p class="lead">Crie o acesso privado. A senha nunca aparece na tela de revisão.</p>
+          <div class="field-grid">
+            <div class="field-group"><label for="admin_user">Usuário do Admin <span class="required">*</span></label><input id="admin_user" autocomplete="username" placeholder="pu2pny"><p class="field-help">Pode ser o seu indicativo em letras minúsculas.</p></div>
+            <div class="field-group"><label for="admin_slug">Endereço privado do Admin <span class="required">*</span></label><input id="admin_slug" autocomplete="off" placeholder="controle-pny" maxlength="32"><p class="field-help">Ex.: seu-dominio.net/controle-pny/</p></div>
+            <div class="field-group"><label for="admin_password">Senha do Admin <span class="required">*</span></label><input id="admin_password" type="password" autocomplete="new-password"><p class="field-help">Mínimo de 8 caracteres.</p></div>
+            <div class="field-group"><label for="admin_password_confirm">Repita a senha <span class="required">*</span></label><input id="admin_password_confirm" type="password" autocomplete="new-password"><p class="field-help">Digite exatamente a mesma senha.</p></div>
+          </div>
+        </section>
+
+        <section class="step-page hidden" data-step="7">
+          <div class="section-kicker">ETAPA 7 DE 8</div><h1>Revisão</h1><p class="lead">Confira tudo antes de instalar. Nada foi instalado até este momento.</p><div id="review-grid" class="review-grid"></div><div class="review-ready">Se estiver tudo certo, selecione <strong>INSTALAR AGORA</strong>.</div>
+        </section>
+
+        <section class="step-page hidden" data-step="8">
+          <div class="section-kicker">ETAPA 8 DE 8</div><h1>Instalação</h1><p class="lead">Acompanhe o progresso. Não feche esta página até a conclusão.</p>
+          <div class="install-card"><div id="install-stage" class="install-stage">Preparando instalação…</div><div class="install-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="install-progress" class="install-progress-fill" style="width:0%"></div><span id="install-progress-label">0%</span></div><p id="install-message" class="install-message">O log técnico é salvo automaticamente no servidor.</p><details id="technical-details" class="technical-details"><summary>Detalhes técnicos</summary><pre id="install-details">Aguardando…</pre></details></div>
+        </section>
+
+        <footer class="actionbar"><div id="enter-hint" class="enter-hint">Enter passa para a próxima resposta • Campos com * são obrigatórios</div><div class="actions"><button id="back" class="btn btn-back" type="button">← Voltar</button><button id="next" class="btn btn-primary" type="button">Continuar →</button><button id="cancel" class="btn btn-danger" type="button">Cancelar</button></div></footer>
+      </main>
+
+      <aside id="help-panel" class="help-panel">
+        <h2 id="help-title">Como usar esta tela</h2>
+        <ol><li><span>1</span><p id="help-1">Digite no campo destacado.</p></li><li><span>2</span><p id="help-2"><strong>Pressione Enter</strong> para ir para a próxima resposta.</p></li><li><span>3</span><p id="help-3">Ao terminar a etapa, selecione <strong>Continuar</strong>.</p></li></ol>
+        <div class="help-note"><strong id="help-required">Campos com * são obrigatórios.</strong><span id="help-auto">O assistente valida os dados antes de avançar.</span></div>
+      </aside>
+    </div>
+  </div>
+  <script src="/static/app.js" defer></script>
+</body>
+</html>
