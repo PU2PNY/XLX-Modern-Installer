@@ -36,7 +36,11 @@ chmod 700 "$WORK_ROOT"
 
 needed=()
 if command -v python3 >/dev/null 2>&1; then
-    python3 -m venv --help >/dev/null 2>&1 || needed+=(python3-venv)
+    # Debian pode fornecer python3 sem ensurepip/venv. O teste anterior com
+    # `python3 -m venv --help` não detectava esse caso. Valide o pacote real.
+    if ! dpkg-query -W -f='${Status}\n' python3-venv 2>/dev/null | grep -q '^install ok installed$'; then
+        needed+=(python3-venv)
+    fi
 else
     needed+=(python3 python3-venv)
 fi
@@ -54,11 +58,27 @@ command -v python3 >/dev/null 2>&1 || fatal "python3 não ficou disponível apó
 command -v ss >/dev/null 2>&1 || fatal "ss/iproute2 não ficou disponível após preparar o sistema."
 command -v systemd-run >/dev/null 2>&1 || fatal "systemd-run não ficou disponível após preparar o sistema."
 
-if [ ! -x "$VENV/bin/python" ]; then
-    rm -rf "$VENV"
-    python3 -m venv "$VENV"
+# Uma tentativa interrompida pode deixar um venv parcial com bin/python mas
+# sem pip/ensurepip. Nunca reutilize esse estado incompleto.
+if [ -d "$VENV" ]; then
+    if [ ! -x "$VENV/bin/python" ] || ! "$VENV/bin/python" -m pip --version >/dev/null 2>&1; then
+        warn "Ambiente virtual incompleto encontrado. Recriando automaticamente."
+        rm -rf "$VENV"
+    fi
 fi
 
+if [ ! -x "$VENV/bin/python" ]; then
+    rm -rf "$VENV"
+    if ! python3 -m venv "$VENV"; then
+        warn "Falha ao criar o ambiente virtual. Reinstalando python3-venv e tentando novamente."
+        apt-get update
+        DEBIAN_FRONTEND=noninteractive apt-get install -y --reinstall python3-venv
+        rm -rf "$VENV"
+        python3 -m venv "$VENV" || fatal "Não foi possível criar o ambiente virtual Python."
+    fi
+fi
+
+"$VENV/bin/python" -m pip --version >/dev/null 2>&1 || fatal "pip/ensurepip não está disponível dentro do ambiente virtual."
 "$VENV/bin/python" -m pip install --disable-pip-version-check --no-cache-dir -r "$ROOT_DIR/webui/requirements.txt" >/dev/null
 "$VENV/bin/python" "$ROOT_DIR/webui/server.py"
 ok "Backend do instalador validado."
