@@ -1,0 +1,40 @@
+name: Finalize graphical installer v1.4.0 safely
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/finalize-v140-safe-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply v1.4.0 release state
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python3 tools/finalize_webui_v140.py
+          python3 -m py_compile webui/server.py webui/test_server.py
+          bash -n web-install.sh
+          git rm .github/workflows/finalize-v140-safe-once.yml tools/finalize_webui_v140.py
+          bash scripts/public-release-audit.sh
+          grep -Fxq '1.4.0' VERSION
+          grep -Fq 'bash web-install.sh' README.md README.en.md README.pt-BR.md
+          grep -Fq 'Graphical web installer' CHANGELOG.md
+      - name: Commit v1.4.0
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add VERSION CHANGELOG.md README.md README.en.md README.pt-BR.md webui/server.py webui/test_server.py
+          git diff --cached --check
+          git commit -m 'release: graphical web installer v1.4.0'
+          git push origin HEAD:main
