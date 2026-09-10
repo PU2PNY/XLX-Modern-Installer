@@ -106,3 +106,5 @@ jobs:
           git diff --cached --check
           git commit -m 'release: graphical web installer v1.4.0'
           git push origin HEAD:main
+
+# one-shot trigger
