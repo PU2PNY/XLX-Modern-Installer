@@ -29,6 +29,32 @@ jobs:
         run: |
           python -m py_compile tui/installer.py
           python tui/installer.py --self-test
+      - name: Mount the real interface headlessly
+        run: |
+          python - <<'PY'
+          import asyncio
+          import importlib.util
+          from pathlib import Path
+
+          module_path = Path('tui/installer.py').resolve()
+          spec = importlib.util.spec_from_file_location('xlx_tui', module_path)
+          module = importlib.util.module_from_spec(spec)
+          assert spec and spec.loader
+          spec.loader.exec_module(module)
+
+          async def verify_ui():
+              app = module.XLXInstallerApp(Path.cwd())
+              async with app.run_test(size=(140, 45)) as pilot:
+                  await pilot.pause()
+                  assert app.query_one('#reflector_id')
+                  assert app.query_one('#domain')
+                  assert app.query_one('#next')
+                  assert app.query_one('#progress')
+                  assert app.query_one('#install-log')
+                  assert app.current_step == 0
+
+          asyncio.run(verify_ui())
+          PY
       - name: Validate shell syntax and integrity pin
         shell: bash
         run: |
