@@ -29,12 +29,13 @@ jobs:
         run: |
           python -m py_compile tui/installer.py
           python tui/installer.py --self-test
-      - name: Mount the real interface headlessly
+      - name: Mount beginner wizard and validate Enter navigation
         run: |
           python - <<'PY'
           import asyncio
           import importlib.util
           from pathlib import Path
+          from textual.widgets import Button, Input
 
           module_path = Path('tui/installer.py').resolve()
           spec = importlib.util.spec_from_file_location('xlx_tui', module_path)
@@ -44,14 +45,42 @@ jobs:
 
           async def verify_ui():
               app = module.XLXInstallerApp(Path.cwd())
-              async with app.run_test(size=(140, 45)) as pilot:
+              async with app.run_test(size=(150, 52)) as pilot:
                   await pilot.pause()
-                  assert app.query_one('#reflector_id')
-                  assert app.query_one('#domain')
-                  assert app.query_one('#next')
-                  assert app.query_one('#progress')
-                  assert app.query_one('#install-log')
                   assert app.current_step == 0
+                  assert app.query_one('#lang-pt', Button)
+                  assert app.query_one('#lang-en', Button)
+                  assert app.query_one('#wizard-progress')
+                  assert app.query_one('#guide')
+                  assert app.query_one('#next').styles.display == 'none'
+
+                  await pilot.click('#lang-pt')
+                  await pilot.pause()
+                  assert app.current_step == 1
+
+                  rid = app.query_one('#reflector_id', Input)
+                  rid.value = 'PNY'
+                  rid.focus()
+                  await pilot.press('enter')
+                  await pilot.pause()
+                  assert app.focused is not None and app.focused.id == 'domain'
+
+                  app.query_one('#domain', Input).value = 'xlx026.net'
+                  await pilot.press('enter')
+                  await pilot.pause()
+                  assert app.focused is not None and app.focused.id == 'callsign'
+
+                  app.query_one('#callsign', Input).value = 'PU2PNY'
+                  await pilot.press('enter')
+                  app.query_one('#email', Input).value = 'sysop@example.net'
+                  await pilot.press('enter')
+                  await pilot.pause()
+                  assert app.focused is not None and app.focused.id == 'next'
+
+                  assert app.query_one('#install-progress')
+                  assert app.query_one('#install-detail')
+                  assert app.query_one('#next').styles.background is not None
+                  assert app.query_one('#cancel').styles.background is not None
 
           asyncio.run(verify_ui())
           PY
