@@ -1,6 +1,8 @@
 # Third-Party Notices / Avisos de Terceiros
 
-O **XLX Modern Installer** combina código próprio, automação, documentação e integração com projetos da comunidade de rádio digital. Esta página existe para manter os créditos e as licenças de terceiros claros e separados da licença MIT aplicada aos componentes originais deste repositório.
+O **XLX Modern Installer** combina código próprio, automação, documentação e integração com projetos da comunidade de rádio digital. Esta página concentra as atribuições e licenças de terceiros, separadas da apresentação visual do instalador e do painel público.
+
+As referências abaixo são mantidas por transparência técnica e cumprimento das licenças aplicáveis. Elas não precisam aparecer como créditos visuais no painel moderno nem na interface normal de instalação.
 
 ## XLX / XLXD
 
@@ -44,4 +46,4 @@ Quando um componente de terceiro estiver incluído, referenciado ou baixado dura
 
 # English summary
 
-Third-party and upstream components keep their original copyright and license terms. The root MIT license applies only to original XLX Modern Installer material that is not otherwise covered by another license. XLXD remains subject to its upstream GPL licensing, and referenced projects such as PP5PK/XLX_Installer and XLXEcho retain their own terms.
+Third-party and upstream attribution is intentionally centralized in this documentation and in the relevant source files instead of being presented as visual credits in the modern dashboard or normal installer UI. Third-party components keep their original copyright and license terms. The root MIT license applies only to original XLX Modern Installer material that is not otherwise covered. XLXD remains subject to its upstream GPL licensing, and referenced projects such as PP5PK/XLX_Installer and XLXEcho retain their own terms.
