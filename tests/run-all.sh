@@ -22,6 +22,8 @@ echo "[route i18n]"
 php "$ROOT/tests/test-route-i18n.php" || failures=$((failures+1))
 echo "[https rate limit]"
 bash "$ROOT/tests/test-https-rate-limit.sh" || failures=$((failures+1))
+echo "[current panel runtime parity]"
+bash "$ROOT/tests/test-current-panel-runtime-parity.sh" || failures=$((failures+1))
 echo "[release hardening]"
 bash "$ROOT/tests/test-release-hardening.sh" || failures=$((failures+1))
 echo "[forbidden permissions]"

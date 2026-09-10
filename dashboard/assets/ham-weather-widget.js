@@ -63,7 +63,7 @@
       if(!d.ok&&!d.needs_location) throw new Error('API');
       render(d);
     }catch(e){
-      root.innerHTML='<div class="hamwx-skeleton">${tr("Não foi possível carregar clima e propagação agora.","Weather and propagation could not be loaded now.")}</div>';
+      root.innerHTML='<div class="hamwx-skeleton">'+esc(tr('Não foi possível carregar clima e propagação agora.','Weather and propagation could not be loaded now.'))+'</div>';
     }
   }
 

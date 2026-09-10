@@ -45,6 +45,11 @@ fi
 XLX_UI_LANG="$UI_LANG" bash "$ROOT/modules/64-runtime-data.sh"
 XLX_UI_LANG="$UI_LANG" INSTALL_DIR="$DASH_DEST" bash "$ROOT/dashboard/install/install-dashboard.sh" "$@"
 XLX_UI_LANG="$UI_LANG" INSTALL_DIR="$DASH_DEST" bash "$ROOT/dashboard/install/post-install.sh"
+
+# Validate the final rendered/deployed copy, not only source templates. This
+# also prepares the Health source consumed later by observability.
+XLX_DASHBOARD_DIR="$DASH_DEST" XLX_UI_LANG="$UI_LANG" bash "$ROOT/dashboard/install/fresh-install-parity.sh"
+
 XLX_UI_LANG="$UI_LANG" bash "$ROOT/modules/65-callsign-directory.sh"
 XLX_DASHBOARD_DIR="$DASH_DEST" XLX_UI_LANG="$UI_LANG" bash "$ROOT/modules/69-admin-page.sh" --dashboard-dir="$DASH_DEST"
 XLX_DASHBOARD_DIR="$DASH_DEST" XLX_UI_LANG="$UI_LANG" bash "$ROOT/modules/70-production-parity.sh"
