@@ -1,3 +1,15 @@
+## v1.3.1 — Beginner guided installer
+
+- Reworks the Textual interface into a simple step-by-step wizard without the confusing sidebar.
+- Adds a dedicated first screen for installer language selection (Português/English).
+- Reduces each page to the information needed at that stage and auto-generates public text fields.
+- Adds clear examples and recommended defaults directly below fields.
+- Pressing Enter in text responses moves focus to the next answer; after the last answer it focuses Continue.
+- Uses high-contrast Back, Continue and Cancel controls.
+- Keeps technical command output hidden during normal installation while a large progress bar and human-readable stage are shown.
+- On validation errors, the affected field receives focus and a clear message is displayed.
+- Installer language and dashboard language remain independent.
+
 ## v1.2.12 — 2026-09-09
 
 ## v1.2.13 — Identity and installer examples

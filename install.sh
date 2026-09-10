@@ -32,6 +32,7 @@ ALLOW_REMNANTS="no"
 DASHBOARD_ONLY="no"
 DASHBOARD_LANG=""
 UI_LANG="pt-BR"
+UI_LANG_EXPLICIT="no"
 CHECK_READY="yes"
 TUI_MODE="auto"
 TUI_PYTHON=""
@@ -42,6 +43,7 @@ for arg in "$@"; do
         --dashboard-only) DASHBOARD_ONLY="yes" ;;
         --allow-remnants|--force-clean) ALLOW_REMNANTS="yes" ;;
         --lang=*) DASHBOARD_LANG="${arg#*=}" ;;
+        --ui-lang=*) UI_LANG="${arg#*=}"; UI_LANG_EXPLICIT="yes" ;;
         --tui) TUI_MODE="force" ;;
         --classic|--no-tui) TUI_MODE="off" ;;
         --tui-child) TUI_MODE="child" ;;
@@ -101,9 +103,15 @@ HELP
     esac
 done
 
-case "$DASHBOARD_LANG" in
-    en) UI_LANG="en" ;;
-    *) UI_LANG="pt-BR" ;;
+if [ "$UI_LANG_EXPLICIT" != "yes" ]; then
+    case "$DASHBOARD_LANG" in
+        en) UI_LANG="en" ;;
+        *) UI_LANG="pt-BR" ;;
+    esac
+fi
+case "$UI_LANG" in
+    pt-BR|en) ;;
+    *) printf 'ERRO / ERROR: idioma da instalação inválido / invalid installer language: %s\n' "$UI_LANG" >&2; exit 2 ;;
 esac
 export XLX_UI_LANG="$UI_LANG"
 
