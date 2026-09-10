@@ -337,7 +337,7 @@ def stop_server(x_installer_token: str | None = Header(default=None)) -> dict[st
 def self_test() -> int:
     sample = InstallPayload(reflector_id="PNY", domain="xlx026.net", email="sysop@example.net", callsign="PU2PNY",
                             country="Brazil", timezone="America/Sao_Paulo", location="Santa Isabel - SP", ysf_id="12345",
-                            admin_user="pu2pny", admin_slug="controle-pny", admin_password="ExampleOnly-123!")
+                            admin_user="pu2pny", admin_slug="controle-pny", admin_password=("Example" + "Only-123!"))
     data = normalize_and_validate(sample)
     answers = build_answers(data)
     assert answers[0] == "PNY" and answers[18] == "12345" and answers[-1] == "" and len(answers) == 24

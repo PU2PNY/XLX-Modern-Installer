@@ -1,6 +1,6 @@
 # XLX Modern Installer
 
-**Current release: v1.3.1**
+**Current release: v1.4.0**
 
 Public, reproducible installer for a fresh **Debian 12 x86_64** server. It installs the XLXD core, Echo Test when selected, the modern multi-protocol dashboard, private Admin, native APRS/D-PRS, native verifiable certificates, CallingHome and operational observability.
 
@@ -20,14 +20,16 @@ apt-get install -y git ca-certificates
 cd /usr/src
 git clone https://github.com/PU2PNY/XLX-Modern-Installer.git
 cd XLX-Modern-Installer
-bash install.sh
+bash web-install.sh
 ```
 
-`install.sh --check` performs the read-only preflight without installing.
+`install.sh --check` performs the read-only preflight without installing. `web-install.sh` is the recommended graphical launcher and refuses an active XLXD installation or unresolved XLXD remnants.
 
 ## Installation behavior
 
-On an interactive SSH terminal, `bash install.sh` now opens the **Textual guided interface** by default: window-style steps, validated fields, Back/Continue controls, a complete review screen and a live installation progress bar with the technical log inside the interface. The existing shell installer remains the installation engine. If Textual cannot be started, the installer safely falls back to the classic questionnaire; `bash install.sh --classic` forces that mode.
+The recommended path is now `bash web-install.sh`. It starts the **graphical web installer** only on the VPS loopback address and prints one SSH tunnel command plus a temporary local browser URL. The browser wizard provides large high-contrast controls, eight short steps, a thick progress bar, field-by-field guidance, Enter-to-next navigation and a final review before installation. The web interface is not exposed directly to the Internet.
+
+The reviewed `install.sh` remains the single installation engine behind the graphical interface. `bash install.sh` keeps the Textual guided terminal interface as a fallback, and `bash install.sh --classic` keeps the classic questionnaire available.
 
 The collected data includes reflector ID, FQDN, sysop email/callsign, country, timezone, public description/title/footer, HTTPS choice, Echo Test, number of active modules, YSF UDP/frequency/autolink, city/region, YSF reflector ID and the private Admin username/slug/password. The Admin password must be at least 8 characters and is never displayed in the summary.
 

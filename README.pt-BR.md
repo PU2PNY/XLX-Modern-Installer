@@ -1,6 +1,6 @@
 # XLX Modern Installer
 
-**Versão atual: v1.3.1**
+**Versão atual: v1.4.0**
 
 Instalador público e reproduzível para **Debian 12 x86_64**. Instala o núcleo XLXD, Echo Test quando selecionado, painel moderno multiprotocolo, Admin privado, APRS/D-PRS nativo, Certificados nativos verificáveis, CallingHome e observabilidade operacional.
 
@@ -16,14 +16,16 @@ apt-get install -y git ca-certificates
 cd /usr/src
 git clone https://github.com/PU2PNY/XLX-Modern-Installer.git
 cd XLX-Modern-Installer
-bash install.sh
+bash web-install.sh
 ```
 
-`bash install.sh --check` faz somente a pré-validação sem instalar.
+`bash install.sh --check` faz somente a pré-validação sem instalar. O `web-install.sh` é o inicializador gráfico recomendado e recusa uma instalação XLXD ativa ou vestígios antigos ainda não revisados.
 
 ## Como a instalação funciona
 
-Em uma sessão SSH interativa, `bash install.sh` agora abre por padrão a **interface guiada Textual**: etapas em janelas, campos validados, botões Voltar/Continuar, revisão completa e barra de progresso da instalação com o log técnico dentro da própria interface. O instalador Shell existente continua sendo o motor real da instalação. Se o Textual não puder ser iniciado, o processo retorna com segurança ao questionário clássico; `bash install.sh --classic` força esse modo.
+O caminho recomendado agora é `bash web-install.sh`. Ele inicia o **instalador gráfico no navegador** somente no endereço interno da própria VPS e mostra um comando de túnel SSH e um endereço local temporário para abrir no navegador. O assistente tem controles grandes e de alto contraste, oito etapas curtas, barra de progresso grossa, orientação em cada campo, Enter para avançar entre respostas e uma revisão final antes de instalar. A interface não fica exposta diretamente à Internet.
+
+O `install.sh` revisado continua sendo o único motor real da instalação por trás da interface gráfica. `bash install.sh` mantém o Textual como alternativa no terminal, e `bash install.sh --classic` mantém o questionário clássico como fallback.
 
 O questionário reúne refletor, domínio, email/indicativo do sysop, país, fuso, textos públicos, HTTPS, Echo Test, quantidade de módulos, YSF, cidade/região, YSF ID e usuário/slug/senha do Admin. A senha do Admin exige no mínimo 8 caracteres e nunca aparece no resumo.
 

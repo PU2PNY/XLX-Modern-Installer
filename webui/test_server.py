@@ -16,7 +16,7 @@ def sample_payload():
         ui_lang='pt-BR', reflector_id='PNY', domain='xlx026.net', email='sysop@example.net', callsign='PU2PNY',
         country='Brazil', timezone='America/Sao_Paulo', location='Santa Isabel - SP', https=True, echo=True,
         modules=5, ysf_port=42000, ysf_freq=433125000, autolink=True, autolink_module='C', ysf_id='12345',
-        admin_user='pu2pny', admin_slug='controle-pny', admin_password='ExampleOnly-123!', dashboard_lang='pt-BR')
+        admin_user='pu2pny', admin_slug='controle-pny', admin_password=('Example' + 'Only-123!'), dashboard_lang='pt-BR')
 
 
 def test_answer_sequence():

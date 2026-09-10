@@ -1,3 +1,16 @@
+## v1.4.0 — Graphical web installer
+
+- Adds the browser-based XLX Modern Installer as the recommended high-contrast installation interface.
+- Uses the same reviewed `install.sh` engine and answer sequence; the graphical layer does not fork XLXD installation logic.
+- Starts with an explicit Portuguese/English language choice and guides the operator through eight short steps.
+- Adds large readable controls, strong contrast, thick progress bars, keyboard focus indicators, beginner instructions and reduced-motion support.
+- Pressing Enter moves through text answer fields, and the final review hides the Admin password.
+- Keeps the XLX reflector ID contract at exactly three alphanumeric characters while using `12345` as the valid example for the YSF reflector ID.
+- Runs the web interface only on `127.0.0.1` and requires an SSH tunnel plus a temporary random token; it is not exposed directly to the Internet.
+- Refuses to overwrite an active XLXD installation and stops on old XLXD remnants so cleanup can be reviewed before destructive action.
+- Keeps the Textual and classic terminal installers available as fallback paths.
+- Adds a dedicated Web installer regression gate for Python, JavaScript, API authentication, answer ordering and accessibility markers.
+
 ## v1.3.1 — Beginner guided installer
 
 - Reworks the Textual interface into a simple step-by-step wizard without the confusing sidebar.
