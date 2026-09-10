@@ -1,3 +1,18 @@
+## v1.2.12 — 2026-09-09
+
+### Fresh-install runtime parity
+
+- Synchronizes the generic installer with the current dashboard/runtime behavior validated after the v1.2.11 fresh-VPS failures.
+- Fixes the weather fallback that could print a literal `${tr(...)}` expression to visitors instead of a translated message.
+- Adds per-install asset cache busting so reinstalling the same domain on a formatted VPS cannot reuse JavaScript/CSS cached from an older installation.
+- Prevents the obsolete standalone **Bip** menu proxy from being exposed while preserving the panel audio/accessibility functions.
+- Adds a final-render parity gate that exercises `status.php` and `live.php` through Apache and requires readable XLXD XML, log and callsign database sources before installation may continue.
+- Verifies the current public routes for Live, Connected, Modules, APRS/D-PRS, Certificates and reflector list during fresh installation.
+- Normalizes historical exported `PUBLIC_URL` artifacts before the Health monitor is installed, preventing internal Stream/YSF Health probes from calling a literal invalid URL.
+- Extends regression coverage to syntax-check every generated JavaScript file in all six dashboard languages.
+- Retains the v1.2.11 Certbot behavior: ACME/rate-limit failures remain non-destructive, HTTP remains available, and HTTPS retry is scheduled automatically when Let's Encrypt supplies a retry time.
+- Release gating includes the full repository CI, public-release audit, production-parity regression, stream-identity regression and the Debian 12 runtime gate with Health one-shot snapshot validation.
+
 ## v1.2.11 — 2026-09-09
 
 - Fixes a fresh-install regression introduced in v1.2.10 where `LE_LOG` referenced itself before initialization under `set -u`, aborting the dashboard install before Certbot ran.
