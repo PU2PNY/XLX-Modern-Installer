@@ -410,7 +410,6 @@ clear
 line_type3
 echo ""
 center_wrap_color $GREEN "XLX MODERN INSTALLER — PU2PNY"
-center_wrap_color $GRAY "XLXD upstream: LX3JL / LX1IQ | Installer base: Daniel K. — PP5PK"
 echo ""
 center_wrap_color $GREEN "Next, you will be asked some questions. Answer with the requested information or, if applicable, to accept the suggested value, press [ENTER]"
 echo ""

@@ -1,6 +1,6 @@
 # XLX Modern Installer
 
-**Current release: v1.2.14**
+**Current release: v1.3.0**
 
 Public, reproducible installer for a fresh **Debian 12 x86_64** server. It installs the XLXD core, Echo Test when selected, the modern multi-protocol dashboard, private Admin, native APRS/D-PRS, native verifiable certificates, CallingHome and operational observability.
 
@@ -27,7 +27,7 @@ bash install.sh
 
 ## Installation behavior
 
-The normal installer asks for all required site data in one questionnaire, shows one complete review screen and waits for **ENTER** once to start. A question number edits that answer; `X` cancels. No second `INSTALL` confirmation and no late city/Admin/YSF questionnaire is expected.
+On an interactive SSH terminal, `bash install.sh` now opens the **Textual guided interface** by default: window-style steps, validated fields, Back/Continue controls, a complete review screen and a live installation progress bar with the technical log inside the interface. The existing shell installer remains the installation engine. If Textual cannot be started, the installer safely falls back to the classic questionnaire; `bash install.sh --classic` forces that mode.
 
 The collected data includes reflector ID, FQDN, sysop email/callsign, country, timezone, public description/title/footer, HTTPS choice, Echo Test, number of active modules, YSF UDP/frequency/autolink, city/region, YSF reflector ID and the private Admin username/slug/password. The Admin password must be at least 8 characters and is never displayed in the summary.
 

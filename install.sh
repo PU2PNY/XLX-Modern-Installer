@@ -20,7 +20,7 @@ readonly ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
 readonly REPOSITORY="local:vendor/pp5pk-installer"
 readonly REVIEWED_COMMIT="vendor-pinned-PP5PK-20b4893"
-readonly EXPECTED_INSTALLER_SHA256="ec1d2f0ca1a659f7b1e7f0be460f6a4b10e3fc34740d154561ac5f5bdc20411a"
+readonly EXPECTED_INSTALLER_SHA256="f4cd12f8625d0e4c61b22335e8f85ff347e2398f28b3b7562a389b5bb411da84"
 readonly WORK_ROOT="/opt/xlx-modern-installer"
 readonly SOURCE_DIR="${WORK_ROOT}/vendor/pp5pk-installer"
 readonly BACKUP_ROOT="/var/backups/xlx-reflector"
@@ -33,6 +33,8 @@ DASHBOARD_ONLY="no"
 DASHBOARD_LANG=""
 UI_LANG="pt-BR"
 CHECK_READY="yes"
+TUI_MODE="auto"
+TUI_PYTHON=""
 
 for arg in "$@"; do
     case "$arg" in
@@ -40,6 +42,9 @@ for arg in "$@"; do
         --dashboard-only) DASHBOARD_ONLY="yes" ;;
         --allow-remnants|--force-clean) ALLOW_REMNANTS="yes" ;;
         --lang=*) DASHBOARD_LANG="${arg#*=}" ;;
+        --tui) TUI_MODE="force" ;;
+        --classic|--no-tui) TUI_MODE="off" ;;
+        --tui-child) TUI_MODE="child" ;;
         -h|--help)
             cat <<'HELP'
 XLX Modern Installer
@@ -49,6 +54,8 @@ Uso / Usage:
   sudo bash install.sh
   sudo bash install.sh --lang=en
   sudo bash install.sh --dashboard-only
+  sudo bash install.sh --tui
+  sudo bash install.sh --classic
 
 Opções / Options:
   --check
@@ -61,6 +68,14 @@ Opções / Options:
       Sets the dashboard language. With --lang=en, this installer UI
       also uses English.
       pt-BR | en | es | fr | de | it
+
+  --tui
+      Força a interface visual Textual quando o terminal for compatível.
+      Forces the Textual interface when the terminal is compatible.
+
+  --classic
+      Usa o questionário clássico em texto, sem Textual.
+      Uses the classic text questionnaire without Textual.
 
   --dashboard-only
       Atualiza ou reinstala somente o painel moderno em um XLXD existente.
@@ -182,6 +197,61 @@ select_dashboard_language() {
         esac
     done
     ok "$(msg "Idioma do painel selecionado: $(dashboard_language_name "$DASHBOARD_LANG")." "Selected dashboard language: $(dashboard_language_name "$DASHBOARD_LANG").")"
+}
+
+bootstrap_tui_runtime() {
+    local venv="${WORK_ROOT}/tui-venv"
+    local requirements="${ROOT_DIR}/tui/requirements.txt"
+    local pycheck='from importlib.metadata import version; assert version("textual") == "8.2.8"'
+
+    [ -s "${ROOT_DIR}/tui/installer.py" ] || return 1
+    [ -s "$requirements" ] || return 1
+
+    if ! command -v python3 >/dev/null 2>&1; then
+        apt-get update || return 1
+        DEBIAN_FRONTEND=noninteractive apt-get install -y python3 python3-venv || return 1
+    fi
+
+    if ! python3 -m venv --help >/dev/null 2>&1; then
+        apt-get update || return 1
+        DEBIAN_FRONTEND=noninteractive apt-get install -y python3-venv || return 1
+    fi
+
+    mkdir -p "$WORK_ROOT" || return 1
+    chmod 700 "$WORK_ROOT" || return 1
+
+    if [ ! -x "$venv/bin/python" ]; then
+        rm -rf "$venv"
+        python3 -m venv "$venv" || return 1
+    fi
+
+    if ! "$venv/bin/python" -c "$pycheck" >/dev/null 2>&1; then
+        "$venv/bin/python" -m pip install --disable-pip-version-check --no-cache-dir -r "$requirements" || return 1
+    fi
+
+    "$venv/bin/python" -c "$pycheck" >/dev/null 2>&1 || return 1
+    TUI_PYTHON="$venv/bin/python"
+    return 0
+}
+
+maybe_launch_tui() {
+    [ "$MODE" = "install" ] || return 0
+    [ "$DASHBOARD_ONLY" = "no" ] || return 0
+    case "$TUI_MODE" in
+        child|off) return 0 ;;
+    esac
+
+    if [ ! -t 0 ] || [ ! -t 1 ] || [ "${TERM:-dumb}" = "dumb" ]; then
+        [ "$TUI_MODE" != "force" ] || fatal "A interface Textual exige uma sessão de terminal interativa compatível."
+        return 0
+    fi
+
+    if bootstrap_tui_runtime; then
+        exec "$TUI_PYTHON" "$ROOT_DIR/tui/installer.py" --root "$ROOT_DIR"
+    fi
+
+    [ "$TUI_MODE" != "force" ] || fatal "Não foi possível preparar a interface Textual."
+    warn "A interface visual não pôde ser iniciada; continuando com o instalador clássico."
 }
 
 bootstrap_install_prerequisites() {
@@ -364,8 +434,8 @@ HOOK
         -e 's|At any prompt, type X and press \[ENTER\] to cancel the installation\.|Em qualquer pergunta, digite X e pressione [ENTER] para cancelar a instalação.|' \
         -e 's|REFLECTOR DATA INPUT|DADOS DO REFLETOR|' \
         -e 's|Mandatory|Obrigatório|g' \
-        -e 's|01\. XLX Reflector ID, 3 alphanumeric characters\. (e\.g\., 300, US1, BRA)|01. ID do refletor XLX: 3 caracteres alfanuméricos. (ex.: 724, US1, BRA)|' \
-        -e 's|02\. Dashboard FQDN (fully qualified domain name)\. (e\.g\., xlxbra\.net)|02. Domínio completo (FQDN) do painel. (ex.: xlx724.seudominio.net)|' \
+        -e 's|01\. XLX Reflector ID, 3 alphanumeric characters\. (e\.g\., 026, 724, PNY)|01. ID do refletor XLX: 3 caracteres alfanuméricos. (ex.: 026, 724, PNY)|' \
+        -e 's|02\. Dashboard FQDN (fully qualified domain name)\. (e\.g\., xlx026\.net)|02. Domínio completo (FQDN) do painel. (ex.: xlx026.net)|' \
         -e 's|03\. Sysop e-mail address|03. E-mail do sysop|' \
         -e 's|04\. Sysop callsign\. Only letters and numbers allowed, max 6 characters\.|04. Indicativo do sysop. Use letras e números, máximo de 6 caracteres.|' \
         -e 's|05\. Reflector country name\.|05. Nome do país do refletor.|' \
@@ -431,9 +501,6 @@ Current choices:
 - Dashboard directory: $DEFAULT_DASHBOARD_DIR
 - APRS/D-PRS: native and mandatory / nativo e obrigatório
 
-Technical base: PP5PK/XLX_Installer
-Original author: Daniel K. — PP5PK
-Modified version: Dario — PU2PNY
 PLAN
     else
         cat <<PLAN
@@ -465,9 +532,6 @@ Escolhas atuais:
 - Diretório do dashboard: $DEFAULT_DASHBOARD_DIR
 - APRS/D-PRS: native and mandatory / nativo e obrigatório
 
-Base técnica: PP5PK/XLX_Installer
-Autor original: Daniel K. — PP5PK
-Versão modificada: Dario — PU2PNY
 PLAN
     fi
 
@@ -542,8 +606,17 @@ execute_installer() {
     chmod 0600 "$state_file"
 
     set +e
-    XLX_MODERN_STATE_FILE="$state_file" bash "$base_installer" 2>&1 | tee -a "$logfile"
-    installer_rc=${PIPESTATUS[0]}
+    if [ -n "${XLX_MODERN_ANSWERS_FILE:-}" ]; then
+        if [ ! -r "$XLX_MODERN_ANSWERS_FILE" ]; then
+            set -e
+            fatal "Arquivo de respostas da interface visual não está disponível: $XLX_MODERN_ANSWERS_FILE"
+        fi
+        XLX_MODERN_STATE_FILE="$state_file" bash "$base_installer" < "$XLX_MODERN_ANSWERS_FILE" 2>&1 | tee -a "$logfile"
+        installer_rc=${PIPESTATUS[0]}
+    else
+        XLX_MODERN_STATE_FILE="$state_file" bash "$base_installer" 2>&1 | tee -a "$logfile"
+        installer_rc=${PIPESTATUS[0]}
+    fi
     set -e
     [ "$installer_rc" -eq 0 ] || fatal "$(msg "O instalador base terminou com código $installer_rc. Consulte o log: $logfile" "The base installer exited with code $installer_rc. Check the log: $logfile")"
 
@@ -686,6 +759,7 @@ main() {
     clear 2>/dev/null || true
     validate_options
     require_root
+    maybe_launch_tui
     select_ui_language
     select_dashboard_language
     section "XLX MODERN INSTALLER — PU2PNY"

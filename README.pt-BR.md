@@ -1,6 +1,6 @@
 # XLX Modern Installer
 
-**Versão atual: v1.2.14**
+**Versão atual: v1.3.0**
 
 Instalador público e reproduzível para **Debian 12 x86_64**. Instala o núcleo XLXD, Echo Test quando selecionado, painel moderno multiprotocolo, Admin privado, APRS/D-PRS nativo, Certificados nativos verificáveis, CallingHome e observabilidade operacional.
 
@@ -23,7 +23,7 @@ bash install.sh
 
 ## Como a instalação funciona
 
-Todas as informações são solicitadas em **um único questionário inicial**. Depois aparece um resumo completo. Pressione **ENTER uma única vez** para instalar, digite o número de uma pergunta para corrigi-la ou `X` para cancelar. Não existe segunda confirmação `INSTALL` nem perguntas tardias de cidade, YSF ou Admin.
+Em uma sessão SSH interativa, `bash install.sh` agora abre por padrão a **interface guiada Textual**: etapas em janelas, campos validados, botões Voltar/Continuar, revisão completa e barra de progresso da instalação com o log técnico dentro da própria interface. O instalador Shell existente continua sendo o motor real da instalação. Se o Textual não puder ser iniciado, o processo retorna com segurança ao questionário clássico; `bash install.sh --classic` força esse modo.
 
 O questionário reúne refletor, domínio, email/indicativo do sysop, país, fuso, textos públicos, HTTPS, Echo Test, quantidade de módulos, YSF, cidade/região, YSF ID e usuário/slug/senha do Admin. A senha do Admin exige no mínimo 8 caracteres e nunca aparece no resumo.
 
