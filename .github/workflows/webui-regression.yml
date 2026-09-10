@@ -1,0 +1,61 @@
+name: Web installer regression
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'web-install.sh'
+      - 'webui/**'
+      - '.github/workflows/webui-regression.yml'
+  pull_request:
+    paths:
+      - 'web-install.sh'
+      - 'webui/**'
+      - '.github/workflows/webui-regression.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install web UI dependencies
+        run: |
+          python -m pip install --disable-pip-version-check -r webui/requirements.txt
+          python -m pip install --disable-pip-version-check pytest==8.4.2 httpx==0.28.1
+      - name: Validate Python and answer sequencing
+        run: |
+          python -m py_compile webui/server.py
+          python webui/server.py
+          python -m pytest -q webui/test_server.py
+      - name: Validate shell and JavaScript syntax
+        run: |
+          bash -n web-install.sh
+          node --check webui/static/app.js
+      - name: Verify accessible UI markers
+        run: |
+          grep -Fq 'XLX MODERN INSTALLER' webui/static/index.html
+          grep -Fq 'Exemplo: 12345' webui/static/index.html
+          grep -Fq 'Enter passa para a próxima resposta' webui/static/index.html
+          grep -Fq 'install-progress-track' webui/static/index.html
+          grep -Fq 'prefers-reduced-motion' webui/static/app.css
+          grep -Fq 'aria-invalid' webui/static/app.js
+          grep -Fq 'font-size:20px' webui/static/app.css
+      - name: Start API and probe local-only UI
+        env:
+          XLX_WEB_TOKEN: test-token-1234567890
+          XLX_REPO_ROOT: ${{ github.workspace }}
+        run: |
+          python -m uvicorn webui.server:app --host 127.0.0.1 --port 8876 --no-access-log >/tmp/xlx-web.log 2>&1 &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:8876/api/health && break
+            sleep .2
+          done
+          curl -fsS http://127.0.0.1:8876/api/health | grep -Fq '"ok":true'
+          curl -fsS -H 'X-Installer-Token: test-token-1234567890' http://127.0.0.1:8876/api/bootstrap | grep -Fq '"timezone"'
+          status=$(curl -sS -o /tmp/unauthorized.json -w '%{http_code}' http://127.0.0.1:8876/api/status)
+          test "$status" = 401
