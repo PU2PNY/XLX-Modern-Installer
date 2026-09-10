@@ -1,3 +1,15 @@
+## v1.4.2 — Beginner-first resilient installer
+
+- Makes `bash start.sh` the recommended one-command installation path for beginners.
+- Removes the second-terminal, SSH-tunnel and browser requirement from the normal path; the web installer remains optional for advanced use.
+- Reduces the visible wizard to four stages and asks only for essential identity/location/YSF data plus the private Admin password.
+- Applies reviewed technical defaults automatically: HTTPS, Echo E, modules A–E, YSF UDP 42000, 433125000 Hz and auto-link C.
+- Generates the Admin username/private path automatically and keeps the password hidden from review/log output.
+- Uses a high-contrast dark interface with thicker progress bars and Enter-to-next behavior.
+- Keeps the valid `12345` example on the YSF reflector ID while preserving the XLX ID contract at exactly three alphanumeric characters.
+- Runs the visual installer inside an automatically managed `tmux` session so an SSH disconnect can be recovered by running `bash start.sh` again.
+- Adds a dedicated beginner-installer regression gate and keeps `install.sh` as the authoritative installation engine.
+
 ## v1.4.0 — Graphical web installer
 
 - Adds the browser-based XLX Modern Installer as the recommended high-contrast installation interface.

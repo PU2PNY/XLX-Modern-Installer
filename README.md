@@ -1,10 +1,10 @@
 # XLX Modern Installer
 
-**Current release: v1.4.0**
+**Current release: v1.4.2**
 
-Public, reproducible installer for a fresh **Debian 12 x86_64** server. It installs the XLXD core, Echo Test when selected, the modern multi-protocol dashboard, private Admin, native APRS/D-PRS, native verifiable certificates, CallingHome and operational observability.
+Public, reproducible installer for a fresh **Debian 12 x86_64** server. It installs the XLXD core, Echo Test, the modern multi-protocol dashboard, private Admin, native APRS/D-PRS, native verifiable certificates, CallingHome and operational observability.
 
-This repository publishes the XLX Modern installer and dashboard stack derived from the production-validated **XLX026 Brasil** environment. During setup, the operator enters the identity of the new reflector, so each installation receives its own reflector ID, domain, location and operating parameters. XLX026 is the production reference and live demonstration; its credentials, secrets and private production data are not distributed.
+This repository publishes the XLX Modern installer and dashboard stack derived from the production-validated **XLX026 Brasil** environment. During setup, the operator enters the identity of the new reflector, so each installation receives its own reflector ID, domain and location. XLX026 is the production reference and live demonstration; its credentials, secrets and private production data are not distributed.
 
 **Live production example:** [XLX026 Brasil — xlx026.net](https://xlx026.net/)
 
@@ -20,18 +20,18 @@ apt-get install -y git ca-certificates
 cd /usr/src
 git clone https://github.com/PU2PNY/XLX-Modern-Installer.git
 cd XLX-Modern-Installer
-bash web-install.sh
+bash start.sh
 ```
 
-`install.sh --check` performs the read-only preflight without installing. `web-install.sh` is the recommended graphical launcher and refuses an active XLXD installation or unresolved XLXD remnants.
+`start.sh` is the recommended beginner path. It validates the VPS first, prepares the interface automatically and refuses to overwrite an active XLXD installation or unresolved XLXD remnants. `install.sh --check` remains available as a read-only preflight.
 
 ## Installation behavior
 
-The recommended path is now `bash web-install.sh`. It starts the **graphical web installer** only on the VPS loopback address and prints one SSH tunnel command plus a temporary local browser URL. The browser wizard provides large high-contrast controls, eight short steps, a thick progress bar, field-by-field guidance, Enter-to-next navigation and a final review before installation. The web interface is not exposed directly to the Internet.
+The normal path uses **one SSH session only**. No second terminal, SSH tunnel or browser setup is required. The beginner interface starts with Portuguese/English and then uses only four clear stages: essential data, private access, review and installation. Pressing Enter validates the current answer and moves to the next field.
 
-The reviewed `install.sh` remains the single installation engine behind the graphical interface. `bash install.sh` keeps the Textual guided terminal interface as a fallback, and `bash install.sh --classic` keeps the classic questionnaire available.
+Only information that really needs a human decision is requested. Recommended technical values are applied automatically: HTTPS, Echo Test on module E, five modules A–E, YSF UDP 42000, YSF frequency 433125000, auto-link module C and the detected timezone. The Admin username/private path are generated from the supplied identity; the operator only creates the private password. The YSF reflector ID uses `12345` as an example, while the XLX reflector ID correctly remains exactly three alphanumeric characters.
 
-The collected data includes reflector ID, FQDN, sysop email/callsign, country, timezone, public description/title/footer, HTTPS choice, Echo Test, number of active modules, YSF UDP/frequency/autolink, city/region, YSF reflector ID and the private Admin username/slug/password. The Admin password must be at least 8 characters and is never displayed in the summary.
+The installer runs inside an automatically managed `tmux` session. If SSH disconnects, reconnect to the VPS and run `bash start.sh` again; the existing installer session is reopened instead of starting over. The reviewed `install.sh` remains the single installation engine. `bash install.sh --classic` is the compatibility fallback and `web-install.sh` remains available only as an advanced optional browser interface.
 
 The installer does **not** run a mandatory full OS upgrade. It updates package indexes and installs only required dependencies using `apt-get`.
 
@@ -178,7 +178,8 @@ A release candidate is not considered operationally complete until a clean Debia
 ## Project layout
 
 ```text
-install.sh                 top-level installer
+start.sh                   recommended beginner launcher
+install.sh                 authoritative installation engine
 vendor/pp5pk-installer/    reviewed XLXD base installer
 dashboard/                 native public dashboard, APRS/D-PRS and certificates
 control/                   private Admin source/builders/helpers

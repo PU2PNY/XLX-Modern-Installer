@@ -1,10 +1,10 @@
 # XLX Modern Installer
 
-**Versão atual: v1.4.0**
+**Versão atual: v1.4.2**
 
-Instalador público e reproduzível para **Debian 12 x86_64**. Instala o núcleo XLXD, Echo Test quando selecionado, painel moderno multiprotocolo, Admin privado, APRS/D-PRS nativo, Certificados nativos verificáveis, CallingHome e observabilidade operacional.
+Instalador público e reproduzível para **Debian 12 x86_64**. Instala o núcleo XLXD, Echo Test, painel moderno multiprotocolo, Admin privado, APRS/D-PRS nativo, Certificados nativos verificáveis, CallingHome e observabilidade operacional.
 
-Este repositório publica o instalador e o painel **XLX Modern** derivados do ambiente **XLX026 Brasil validado em produção**. Durante a instalação, o responsável informa a identidade do novo refletor, portanto cada servidor recebe seu próprio ID XLX, domínio, localização e parâmetros operacionais. O XLX026 é a referência de produção e demonstração ao vivo; credenciais, segredos e dados privados do servidor de produção não são distribuídos.
+Este repositório publica o instalador e o painel **XLX Modern** derivados do ambiente **XLX026 Brasil validado em produção**. Durante a instalação, o responsável informa somente os dados indispensáveis do novo refletor; as configurações técnicas recomendadas são aplicadas automaticamente. O XLX026 é a referência de produção e demonstração ao vivo; credenciais, segredos e dados privados do servidor de produção não são distribuídos.
 
 **Exemplo funcionando em produção:** [XLX026 Brasil — xlx026.net](https://xlx026.net/)
 
@@ -16,18 +16,18 @@ apt-get install -y git ca-certificates
 cd /usr/src
 git clone https://github.com/PU2PNY/XLX-Modern-Installer.git
 cd XLX-Modern-Installer
-bash web-install.sh
+bash start.sh
 ```
 
-`bash install.sh --check` faz somente a pré-validação sem instalar. O `web-install.sh` é o inicializador gráfico recomendado e recusa uma instalação XLXD ativa ou vestígios antigos ainda não revisados.
+`bash start.sh` é o caminho recomendado para leigos. Ele valida a VPS primeiro, prepara a interface automaticamente e recusa sobrescrever um XLXD ativo ou vestígios antigos ainda não revisados. `bash install.sh --check` continua disponível como pré-validação somente leitura.
 
 ## Como a instalação funciona
 
-O caminho recomendado agora é `bash web-install.sh`. Ele inicia o **instalador gráfico no navegador** somente no endereço interno da própria VPS e mostra um comando de túnel SSH e um endereço local temporário para abrir no navegador. O assistente tem controles grandes e de alto contraste, oito etapas curtas, barra de progresso grossa, orientação em cada campo, Enter para avançar entre respostas e uma revisão final antes de instalar. A interface não fica exposta diretamente à Internet.
+O caminho normal usa **uma única sessão SSH**. Não é necessário abrir outro terminal, criar túnel SSH nem configurar navegador. A primeira tela escolhe Português/English e depois existem somente quatro etapas claras: dados essenciais, acesso privado, revisão e instalação. Ao pressionar Enter, a resposta atual é validada e o cursor vai para o próximo campo.
 
-O `install.sh` revisado continua sendo o único motor real da instalação por trás da interface gráfica. `bash install.sh` mantém o Textual como alternativa no terminal, e `bash install.sh --classic` mantém o questionário clássico como fallback.
+O instalador pergunta apenas o que realmente precisa de decisão humana. Valores técnicos recomendados são automáticos: HTTPS, Echo Test no módulo E, cinco módulos A–E, YSF UDP 42000, frequência YSF 433125000, auto-link no módulo C e fuso horário detectado. Usuário e endereço privado do Admin são gerados a partir da identidade informada; a pessoa cria apenas a senha privada. O YSF ID usa `12345` como exemplo; o ID XLX continua corretamente limitado a exatamente três caracteres alfanuméricos.
 
-O questionário reúne refletor, domínio, email/indicativo do sysop, país, fuso, textos públicos, HTTPS, Echo Test, quantidade de módulos, YSF, cidade/região, YSF ID e usuário/slug/senha do Admin. A senha do Admin exige no mínimo 8 caracteres e nunca aparece no resumo.
+A instalação roda dentro de uma sessão `tmux` criada automaticamente. Se o SSH cair, basta reconectar na VPS e executar `bash start.sh` novamente; a mesma instalação é reaberta em vez de recomeçar. O `install.sh` revisado continua sendo o único motor real. `bash install.sh --classic` fica como fallback de compatibilidade e `web-install.sh` permanece disponível apenas como opção avançada de navegador.
 
 O instalador **não executa `full-upgrade` obrigatório**. Usa `apt-get` para atualizar índices e instalar apenas as dependências necessárias.
 
