@@ -212,17 +212,17 @@ bootstrap_tui_runtime() {
         DEBIAN_FRONTEND=noninteractive apt-get install -y python3 python3-venv || return 1
     fi
 
-    if ! python3 -m venv --help >/dev/null 2>&1; then
-        apt-get update || return 1
-        DEBIAN_FRONTEND=noninteractive apt-get install -y python3-venv || return 1
-    fi
-
     mkdir -p "$WORK_ROOT" || return 1
     chmod 700 "$WORK_ROOT" || return 1
 
     if [ ! -x "$venv/bin/python" ]; then
         rm -rf "$venv"
-        python3 -m venv "$venv" || return 1
+        if ! python3 -m venv "$venv" >/dev/null 2>&1; then
+            rm -rf "$venv"
+            apt-get update || return 1
+            DEBIAN_FRONTEND=noninteractive apt-get install -y python3-venv || return 1
+            python3 -m venv "$venv" || return 1
+        fi
     fi
 
     if ! "$venv/bin/python" -c "$pycheck" >/dev/null 2>&1; then
@@ -759,16 +759,16 @@ main() {
     clear 2>/dev/null || true
     validate_options
     require_root
+    validate_os
+    validate_resources
+    detect_existing_installation
+    bootstrap_install_prerequisites
+    validate_commands
+    validate_network
     maybe_launch_tui
     select_ui_language
     select_dashboard_language
     section "XLX MODERN INSTALLER — PU2PNY"
-    validate_os
-    bootstrap_install_prerequisites
-    validate_commands
-    validate_resources
-    validate_network
-    detect_existing_installation
     if [ "$DASHBOARD_ONLY" = "yes" ]; then
         if [ "$MODE" = "check" ]; then
             run_dashboard_only_check
