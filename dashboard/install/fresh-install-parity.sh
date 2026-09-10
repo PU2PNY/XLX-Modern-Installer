@@ -68,6 +68,27 @@ if grep -Eq '(createElement|insertAdjacentHTML|innerHTML).*(xlxmodern-menu-sound
     fail 'Legacy Bip menu injection detected.'
 fi
 
+# Normalize a historical bad export pattern in Health before observability is
+# installed. It encoded PUBLIC_URL inside a quoted Python string, causing YSF
+# and Stream Health to call a literal invalid URL. The transform is narrowly
+# scoped and fails if the resulting source is not valid Python.
+HEALTH_SOURCE="$ROOT/observability/health/health_monitor.py"
+[[ -f "$HEALTH_SOURCE" ]] || fail 'Health source missing.'
+python3 - "$HEALTH_SOURCE" <<'PY'
+import ast,re,sys
+path=sys.argv[1]
+text=open(path,encoding='utf-8').read()
+pat=re.compile(r'"\'\+PUBLIC_URL\+\'([^"\n]*)"')
+fixed,n=pat.subn(lambda m: "PUBLIC_URL + '"+m.group(1)+"'", text)
+if n:
+    with open(path,'w',encoding='utf-8') as f: f.write(fixed)
+ast.parse(fixed,filename=path)
+if "\"'+PUBLIC_URL+'" in fixed:
+    raise SystemExit('unresolved literal PUBLIC_URL artifact')
+print(f'HEALTH_PUBLIC_URL_FIXES={n}')
+PY
+ok 'Health URL expressions validated.'
+
 # Syntax-check every deployed PHP file. JS syntax is checked in CI with Node;
 # Debian 12 runtime does not need Node only for dashboard installation.
 while IFS= read -r -d '' phpfile; do
