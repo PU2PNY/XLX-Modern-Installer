@@ -4,7 +4,9 @@
 
 Instalador público e reproduzível para **Debian 12 x86_64**. Instala o núcleo XLXD, Echo Test quando selecionado, painel moderno multiprotocolo, Admin privado, APRS/D-PRS nativo, Certificados nativos verificáveis, CallingHome e observabilidade operacional.
 
-O repositório é genérico: utiliza a identidade informada durante a instalação e não publica credenciais, dados privados nem implementação exclusiva do servidor de referência.
+Este repositório publica o instalador e o painel **XLX Modern** derivados do ambiente **XLX026 Brasil validado em produção**. Durante a instalação, o responsável informa a identidade do novo refletor, portanto cada servidor recebe seu próprio ID XLX, domínio, localização e parâmetros operacionais. O XLX026 é a referência de produção e demonstração ao vivo; credenciais, segredos e dados privados do servidor de produção não são distribuídos.
+
+**Exemplo funcionando em produção:** [XLX026 Brasil — xlx026.net](https://xlx026.net/)
 
 ## Instalação rápida
 
@@ -43,13 +45,13 @@ O instalador **não executa `full-upgrade` obrigatório**. Usa `apt-get` para at
 
 ## Páginas do painel
 
-- **Ao Vivo**: boxes de TX em tempo real, protocolo/módulo, foto pública do QRZ quando disponível e atividade de 24h.
-- **Conectados**: filtros e tabela de estações conectadas, separado de Módulos.
+- **Ao Vivo**: boxes de TX/RX de baixa latência respondem rapidamente ao início e ao fim das transmissões e exibem indicativo, protocolo, módulo e, quando disponível, a imagem pública do operador. A tabela reúne as transmissões das últimas **24 horas** e consolida atividades repetidas por indicativo, com submenu expansível para consultar as transmissões daquele operador sem poluir a lista com linhas repetitivas. Quando existe APRS/D-PRS/GPS realmente observado, a atividade é identificada e a ação de localização abre a própria página APRS/D-PRS do servidor com o contexto do operador/localização.
+- **Conectados**: filtros e tabela em tempo real das estações conectadas, com indicativo, protocolo, módulo e tempo de conexão, separada da página Módulos.
 - **Módulos**: identificações de acesso primeiro e cards de módulos depois; quantidade configurável e nomes NATO Alfa–Zulu quando aplicável.
-- **Ranking**: indicadores recentes com dados disponíveis no servidor.
-- **Refletores**: lista mundial XLX.
-- **APRS / D-PRS**: Digital Lab nativo.
-- **Certificados**: emissão e validação nativas.
+- **Ranking**: mostra quem está conectado há mais tempo, quem mais apertou o PTT/gerou TX, quem acumulou mais tempo falando, horários de maior movimento, módulos mais utilizados e protocolos atualmente conectados. Há visões de hoje, 7 dias e mês atual quando existe cobertura estatística.
+- **Refletores**: lista mundial de refletores XLX com busca e filtros para selecionar o que será exibido.
+- **APRS / D-PRS**: Digital Lab nativo ligado ao **módulo B**, reservado neste modelo de instalação para beacons, APRS e D-PRS. Mostra posições realmente observadas e permite enviar e receber mensagens de rádio APRS, incluindo ACKs, pela interface do servidor.
+- **Certificados**: gera certificado de participação a partir de atividade elegível registrada, incluindo dados de TX, tempo acumulado, módulos e protocolos presentes naquela atividade, com QR Code público e validação de autenticidade por HMAC.
 
 O pacote público padrão **não instala Suporte, Simulado ANATEL nem Notícias**.
 
@@ -69,7 +71,7 @@ O histórico visível do painel é de **24 horas**.
 
 ## APRS/D-PRS nativo
 
-A interface e APIs ficam dentro do próprio `dashboard/`; não existe segundo painel APRS. Somente gateway/serviço de fundo e SQLite são provisionados fora do webroot.
+A interface e APIs ficam dentro do próprio `dashboard/`; não existe segundo painel APRS. Somente gateway/serviço de fundo e SQLite são provisionados fora do webroot. O runtime liga o Digital Lab ao **módulo B**, dedicado a beacons/APRS/D-PRS, e habilita transmissão e recepção via APRS-IS para que operadores autenticados possam trocar mensagens APRS e confirmações pela interface do refletor.
 
 Fluxo de conta:
 
@@ -99,7 +101,7 @@ A validação busca a emissão, recalcula o token e usa `hash_equals()`. Token a
 
 ## Admin privado
 
-O Admin não aparece no menu público. A URL privada é o slug escolhido na instalação. Recursos:
+O Admin não aparece no menu público e não depende de uma URL fixa `/admin/`. O **slug privado é configurável durante a instalação**, reduzindo a exposição do ponto de entrada administrativo. Recursos:
 
 - status do XLXD/serviços e portas;
 - logs e backups;
@@ -153,7 +155,7 @@ xlx-user-directory --help
 - Admin usa helpers sudo limitados, não sudo arbitrário pelo navegador;
 - segredo HMAC fora do webroot;
 - senhas APRS armazenadas somente como hash;
-- Suporte/Simulado/Notícias fora do instalador genérico.
+- Suporte/Simulado/Notícias fora da distribuição pública do instalador.
 
 ## Estrutura
 

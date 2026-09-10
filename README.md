@@ -4,7 +4,9 @@
 
 Public, reproducible installer for a fresh **Debian 12 x86_64** server. It installs the XLXD core, Echo Test when selected, the modern multi-protocol dashboard, private Admin, native APRS/D-PRS, native verifiable certificates, CallingHome and operational observability.
 
-The repository is generic: it uses the reflector identity entered during installation and does not publish production credentials, private data or production-only implementation details.
+This repository publishes the XLX Modern installer and dashboard stack derived from the production-validated **XLX026 Brasil** environment. During setup, the operator enters the identity of the new reflector, so each installation receives its own reflector ID, domain, location and operating parameters. XLX026 is the production reference and live demonstration; its credentials, secrets and private production data are not distributed.
+
+**Live production example:** [XLX026 Brasil — xlx026.net](https://xlx026.net/)
 
 [Português (Brasil)](README.pt-BR.md) · [English](README.en.md) · [Changelog](CHANGELOG.md) · [Features](docs/FEATURES.md)
 
@@ -49,13 +51,13 @@ The installer does **not** run a mandatory full OS upgrade. It updates package i
 
 The public dashboard keeps these areas independent:
 
-- **Live** — real-time TX boxes, protocol/module state, QRZ public profile photo when available and 24-hour activity.
-- **Connected** — filters plus connected-station table; it is not merged with Modules.
+- **Live** — low-latency TX/RX boxes react quickly to the start and end of transmissions, showing callsign, protocol, module and, when available, the operator's public profile photo. The activity table covers the last **24 hours** and consolidates repeated activity by callsign with an expandable submenu for that operator's transmissions, avoiding repetitive rows. When observed APRS/D-PRS/GPS data is available, the activity is identified and the location action opens the reflector's own APRS/D-PRS page with the operator/location context.
+- **Connected** — filters plus a real-time connected-station table with callsign, protocol, module and connection time; it remains independent from Modules.
 - **Modules** — access-identification table followed by module cards. Active modules follow the configured count and use NATO names Alfa–Zulu where applicable.
-- **Ranking** — recent activity indicators from available server history.
-- **Reflectors** — worldwide XLX reflector listing.
-- **APRS / D-PRS** — native Digital Lab interface.
-- **Certificates** — native participation certificate generation and verification.
+- **Ranking** — shows the station connected for the longest time, who generated the most PTT/TX events, who accumulated the most airtime, busiest hours, most-used modules and currently connected protocols. Statistical views include today, 7 days and the current month when coverage is available.
+- **Reflectors** — worldwide XLX reflector directory with search/filter controls to narrow the displayed list.
+- **APRS / D-PRS** — native Digital Lab associated with **module B**, reserved in this deployment model for beacons, APRS and D-PRS traffic. It supports observed GPS/location data plus sending and receiving APRS radio messages and acknowledgements through the server interface.
+- **Certificates** — generates participation certificates from eligible recorded activity, including TX information, accumulated airtime, modules and protocols represented in that activity, with public QR Code and HMAC authenticity verification.
 
 The standard public package intentionally excludes **Support**, **ANATEL simulator** and **News**.
 
@@ -75,7 +77,7 @@ Visible history is limited to the last **24 hours**.
 
 ## APRS / D-PRS accounts
 
-APRS/D-PRS is native and mandatory in the normal installation. The web interface and APIs ship inside `dashboard/`; only the background gateway/service and SQLite state are provisioned outside the webroot.
+APRS/D-PRS is native and mandatory in the normal installation. The web interface and APIs ship inside `dashboard/`; only the background gateway/service and SQLite state are provisioned outside the webroot. The runtime connects the Digital Lab to **module B**, used as the dedicated beacon/APRS/D-PRS module, and enables APRS-IS transmit/receive operation so authenticated operators can exchange APRS messages and acknowledgements from the reflector interface.
 
 Account behavior follows the validated XLX026 model:
 
@@ -105,7 +107,7 @@ Validation retrieves the stored issuance, recomputes the token and uses `hash_eq
 
 ## Private Admin
 
-The Admin is not linked from public navigation and uses the private slug selected during setup. It includes:
+The Admin is not linked from public navigation and does not depend on a fixed `/admin/` URL. Its **private slug is configurable during installation**, reducing exposure of the management entry point. It includes:
 
 - XLXD/service status and listeners;
 - logs and backups;
@@ -169,7 +171,7 @@ A release candidate is not considered operationally complete until a clean Debia
 - private Admin actions use limited sudo helpers rather than arbitrary browser sudo;
 - Certificate HMAC secrets stay outside the webroot;
 - APRS passwords are hashed;
-- Support/ANATEL simulator/News are not part of the generic deployment.
+- Support/ANATEL simulator/News are not part of the public installer distribution.
 
 ## Project layout
 

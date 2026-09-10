@@ -1,6 +1,6 @@
 # XLX Modern Installer — Public Feature Set
 
-Version: **1.2.8**
+Version: **1.2.12**
 
 ## Server
 
@@ -16,17 +16,18 @@ Version: **1.2.8**
 
 ## Public dashboard
 
-- Live TX monitor and 24-hour activity.
-- QRZ public TX profile photo when available.
+- Low-latency live TX/RX monitor with fast start/end state changes and 24-hour activity grouped by callsign with expandable transmission history.
+- Public operator profile photo when available and observed APRS/D-PRS/GPS location linking into the reflector Digital Lab.
 - Connected stations as an independent page.
 - Modules/access identifiers as an independent page; configured module range and NATO names.
-- Ranking and worldwide XLX reflector list.
+- Ranking for longest connected station, most PTT/TX, most airtime, busiest hours, modules and protocols.
+- Worldwide XLX reflector list with search/filter controls.
 - Exact Gateway/Repeater semantics; no proximity-based identity guessing.
 - RadioID identity, supplemental DMR Talker Alias and observed APRS/D-PRS/GPS status.
-- Native APRS/D-PRS Digital Lab.
-- Native activity-based certificates with QR + HMAC verification.
+- Native APRS/D-PRS Digital Lab on dedicated module B, with APRS message/ACK send and receive support.
+- Native activity-based certificates with TX/airtime/module/protocol data plus QR + HMAC verification.
 - Dashboard languages: PT-BR, EN, ES, FR, DE, IT.
-- Support, ANATEL simulator and News are intentionally excluded from the generic public package.
+- Support, ANATEL simulator and News are intentionally excluded from the public installer distribution.
 
 ## Native APRS/D-PRS
 

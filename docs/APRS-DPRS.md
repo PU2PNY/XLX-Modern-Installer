@@ -1,80 +1,25 @@
-# APRS / D-PRS opcional
+# APRS / D-PRS nativo
 
-O APRS/D-PRS não faz parte do núcleo do XLXD nem do código-fonte interno deste repositório.
+Na versão **1.2.12**, APRS/D-PRS faz parte do XLX Modern Installer e é provisionado pelo próprio repositório durante a instalação normal. A implementação pública fica em `dashboard/native/aprs/`, com interface e APIs integradas ao dashboard.
 
-A implementação é mantida separadamente em `PU2PNY/XLX-APRS-DPRS` para permitir:
+## Modelo operacional
 
-- instalação opcional junto com um XLX novo;
-- instalação independente em um XLX Modern existente;
-- atualização e backup próprios;
-- isolamento de bancos, contas, configuração e serviço systemd;
-- evolução do gateway sem acoplar o ciclo de release do painel principal.
+- **Módulo B** dedicado a beacons, APRS e D-PRS.
+- Gateway local entre o refletor e APRS-IS.
+- Transmissão e recepção APRS habilitadas pelo serviço nativo.
+- Mensagens APRS, ACKs e estado do operador pela interface Digital Lab.
+- Posições GPS/APRS/D-PRS exibidas somente quando realmente observadas.
+- Indicadores de posição na atividade do painel podem abrir a visão de localização do próprio servidor.
+- Estado persistente em SQLite fora do webroot.
+- Conta por indicativo, senha gerada criptograficamente e armazenamento somente de hash.
+- Recuperação autorizada com rotação da versão de autenticação e revogação de tokens lembrados.
 
-## Versão pinada
+O indicativo do serviço APRS é derivado do indicativo do sysop com SSID `-10`. A configuração operacional é criada em `/etc/xlx-aprs-dprs/`, o estado fica em `/var/lib/xlx-aprs-dprs/` e o serviço é executado como `xlx-aprs-dprs.service`.
 
-O integrador `modules/67-aprs-dprs.sh` usa exatamente:
+## Segurança e dados privados
 
-```text
-repositório : PU2PNY/XLX-APRS-DPRS
-commit      : 771abaa0c1ea662f33f3fa0c4a59ec712b1e4fcb
-install.sh  : 0c5c26adbf9b54fe803e3cbaf2ddc17e4ba737f7c9f3b5606231b67c9a9403f9
-manifesto   : b4a0e8f1e1fec7e894cff4c61b18c5891122278ecf5f2f666e5398b361c808d4
-```
+Credenciais, passcodes reais, bancos SQLite de produção, contas, tokens, sessões, chaves privadas, logs e backups de produção não são publicados no GitHub. Cada instalação cria e mantém seus próprios dados operacionais localmente.
 
-O instalador principal nunca executa `main` remotamente de forma cega e não usa `curl | bash`.
+## Referência em produção
 
-Antes de chamar o instalador independente, o módulo:
-
-1. baixa o tarball do commit fixado por HTTPS;
-2. rejeita caminhos inseguros no arquivo;
-3. valida o SHA-256 de `install.sh`;
-4. valida o SHA-256 de `SOURCE-MANIFEST.sha256`;
-5. executa `sha256sum -c` no conjunto distribuído;
-6. valida Bash e, quando disponíveis, PHP e Python;
-7. armazena a fonte validada em diretório versionado sob `/opt/xlx-modern-installer/vendor/`.
-
-## Instalação junto com o XLX
-
-```bash
-sudo bash install.sh --with-aprs-dprs
-```
-
-Também é possível executar `install.sh` sem essa opção. Na instalação real ele pergunta se APRS/D-PRS deve ser incluído; responder não mantém a instalação base inalterada.
-
-Para desabilitar a pergunta:
-
-```bash
-sudo bash install.sh --without-aprs-dprs
-```
-
-## Instalação posterior
-
-O repositório `XLX-APRS-DPRS` possui `install.sh` próprio e pode ser instalado depois sobre um dashboard compatível.
-
-Os caminhos operacionais do componente independente são:
-
-```text
-/opt/xlx-aprs-dprs
-/etc/xlx-aprs-dprs
-/var/lib/xlx-aprs-dprs
-xlx-aprs-dprs.service
-<dashboard>/aprs-dprs/
-```
-
-## Migração de instalações legadas
-
-Uma instalação que ainda utiliza um serviço legado de Digital Lab não é convertida automaticamente. O instalador independente aborta se esse serviço legado estiver ativo para impedir dois gateways concorrentes no mesmo módulo.
-
-A migração deve ser uma operação separada, com backup dos bancos/configuração, mapeamento de contas, janela controlada e rollback.
-
-## Dados proibidos no repositório
-
-Nunca versionar:
-
-- `config.json` real;
-- bancos SQLite reais;
-- contas e hashes de senha;
-- tokens, cookies ou sessões;
-- passcodes APRS reais;
-- chaves privadas;
-- logs e backups de produção.
+O **XLX026 Brasil** é a referência de produção do painel e pode ser acompanhado em [https://xlx026.net/](https://xlx026.net/).
