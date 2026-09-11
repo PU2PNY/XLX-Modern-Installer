@@ -163,6 +163,19 @@ def looks_like_error(line: str) -> bool:
     return any(token in upper for token in ("ERROR", "ERRO", "FAILED", "FAILURE", "FALH", "MISSING", "INACTIVE", "FATAL"))
 
 
+def write_ui_state(state: str) -> None:
+    state_file = os.environ.get("XLX_UI_STATE_FILE", "").strip()
+    if not state_file:
+        return
+    try:
+        target = Path(state_file)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(state + "\n", encoding="utf-8")
+        os.chmod(target, 0o600)
+    except Exception:
+        pass
+
+
 class SimpleInstaller(App):
     TITLE = "XLX Modern Installer — PU2PNY"
     BINDINGS = [("ctrl+c", "request_close", "Sair / Exit")]
@@ -421,6 +434,7 @@ class SimpleInstaller(App):
         yield Static("XLX Modern Installer • PU2PNY", id="footer")
 
     def on_mount(self) -> None:
+        write_ui_state("MOUNTED")
         self.show_language()
         self.query_one("#lang-pt", Button).focus()
 
@@ -638,7 +652,7 @@ class SimpleInstaller(App):
         self.data["admin_user"] = admin_user
         automatic = f"HTTPS • Echo E • módulos A–E • YSF UDP {DEFAULT_YSF_PORT} • {DEFAULT_YSF_FREQ} Hz • auto-link C • fuso {self.data['timezone']}"
         if pt:
-            review = (f"[b]Refletor[/b]          XLX{self.data['reflector_id']}\n[f][b]Domínio[/b][/f]           {self.data['domain']}\n[b]Responsável[/b]       {self.data['callsign']} • {self.data['email']}\n[b]Local[/b]             {self.data['location']} • {self.data['country']}\n[b]YSF ID[/b]            {self.data['ysf_id']}\n[b]Admin usuário[/b]     {admin_user}\n[b]Admin endereço[/b]    /{self.data['admin_slug']}/\n[b]Admin senha[/b]       definida e ocultada\n\n[#73ffac][b]Automático:[/b][/#73ffac] {automatic}\n\n[b]Para corrigir qualquer resposta, pressione ← Voltar. Para iniciar, escolha INSTALAR AGORA.[/b]")
+            review = (f"[b]Refletor[/b]          XLX{self.data['reflector_id']}\n[b]Domínio[/b]           {self.data['domain']}\n[b]Responsável[/b]       {self.data['callsign']} • {self.data['email']}\n[b]Local[/b]             {self.data['location']} • {self.data['country']}\n[b]YSF ID[/b]            {self.data['ysf_id']}\n[b]Admin usuário[/b]     {admin_user}\n[b]Admin endereço[/b]    /{self.data['admin_slug']}/\n[b]Admin senha[/b]       definida e ocultada\n\n[#73ffac][b]Automático:[/b][/#73ffac] {automatic}\n\n[b]Para corrigir qualquer resposta, pressione ← Voltar. Para iniciar, escolha INSTALAR AGORA.[/b]")
         else:
             review = (f"[b]Reflector[/b]          XLX{self.data['reflector_id']}\n[b]Domain[/b]             {self.data['domain']}\n[b]Sysop[/b]              {self.data['callsign']} • {self.data['email']}\n[b]Location[/b]           {self.data['location']} • {self.data['country']}\n[b]YSF ID[/b]             {self.data['ysf_id']}\n[b]Admin user[/b]         {admin_user}\n[b]Admin address[/b]      /{self.data['admin_slug']}/\n[b]Admin password[/b]     defined and hidden\n\n[#73ffac][b]Automatic:[/b][/#73ffac] {automatic}\n\n[b]To correct any answer, press ← Back. To start, choose INSTALL NOW.[/b]")
         self.query_one("#review", Static).update(review)
@@ -704,6 +718,7 @@ class SimpleInstaller(App):
         if self.installing:
             self.fail("A instalação está em andamento. Aguarde a conclusão para evitar interrupção." if self.lang == "pt-BR" else "Installation is running. Wait for completion to avoid interruption.")
             return
+        write_ui_state("USER_CLOSED")
         self.exit()
 
     def append_engine_log(self, line: str) -> None:

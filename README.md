@@ -1,6 +1,6 @@
 # XLX Modern Installer
 
-**Current release: v1.4.2**
+**Current release: v1.4.3**
 
 Public, reproducible installer for a fresh **Debian 12 x86_64** server. It installs the XLXD core, Echo Test, the modern multi-protocol dashboard, private Admin, native APRS/D-PRS, native verifiable certificates, CallingHome and operational observability.
 
