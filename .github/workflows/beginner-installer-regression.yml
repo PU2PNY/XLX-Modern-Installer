@@ -3,7 +3,7 @@ name: Beginner installer regression
 on:
   push:
     branches:
-      - installer-v1.4.3-usability-runtime-fix
+      - fix-v1.4.4-textual-stderr-render
       - main
     paths:
       - 'start.sh'
@@ -83,14 +83,12 @@ jobs:
                   assert app.current_key == 'reflector_id'
                   assert app.query_one('#counter').render().plain == 'PERGUNTA 1 DE 7'
 
-                  # Required answer cannot be skipped.
                   app.query_one('#answer').value = ''
                   app.move_next()
                   await pilot.pause()
                   assert app.current_key == 'reflector_id'
                   assert app.query_one('#error').display is True
 
-                  # Back really returns to the previous answer.
                   app.query_one('#answer').value = 'PNY'
                   app.move_next()
                   await pilot.pause()
@@ -100,7 +98,6 @@ jobs:
                   assert app.current_key == 'reflector_id'
                   assert app.query_one('#answer').value == 'PNY'
 
-                  # Fill every answer and reach review.
                   for key in module.QUESTION_KEYS:
                       assert app.current_key == key
                       app.query_one('#answer').value = values[key]
@@ -116,7 +113,6 @@ jobs:
                   assert '12345' in review
                   assert 'definida e ocultada' in review
 
-                  # Review Back returns to password confirmation, not to a dead end.
                   app.move_back()
                   await pilot.pause()
                   assert app.phase == 'questions'
@@ -158,7 +154,7 @@ jobs:
           assert len(module.generated_comment(data)) <= 100
           PY
 
-      - name: Verify launcher recovery and accessibility rules
+      - name: Verify launcher recovery accessibility and terminal rendering
         run: |
           set -Eeuo pipefail
           grep -Fq 'Nenhuma resposta é necessária nesta etapa' start.sh
@@ -168,6 +164,9 @@ jobs:
           grep -Fq 'ncurses-term' start.sh
           grep -Fq 'XLX_UI_STATE_FILE' tui/run-simple.sh
           grep -Fq 'opening compatibility mode' tui/run-simple.sh
+          grep -Fq 'Textual desenha a interface no descritor de erro (stderr)' tui/run-simple.sh
+          ! grep -Fq '2>>"$UI_LOG"' tui/run-simple.sh
+          ! grep -Fq '2>"$UI_LOG"' tui/run-simple.sh
           grep -Fq 'write_ui_state("MOUNTED")' tui/simple_installer.py
           grep -Fq 'write_ui_state("USER_CLOSED")' tui/simple_installer.py
           grep -Fq 'background: #ffffff;' tui/simple_installer.py
@@ -187,7 +186,11 @@ jobs:
           session_check = text.index('tmux -L "$TMUX_SOCKET" has-session')
           active_guard = text.index('if [ -x /xlxd/xlxd ]')
           assert session_check < active_guard, 'tmux recovery must run before fresh-install markers'
+
+          wrapper = Path('tui/run-simple.sh').read_text(encoding='utf-8')
+          launch_line = next(line for line in wrapper.splitlines() if 'simple_installer.py' in line and '$PYTHON_BIN' in line)
+          assert '2>' not in launch_line, 'Textual stderr must stay connected to the terminal or the UI is blank'
           PY
 
       - name: Verify release marker
-        run: test "$(cat VERSION)" = "1.4.3"
+        run: test "$(cat VERSION)" = "1.4.4"
