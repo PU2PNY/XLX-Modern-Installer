@@ -3,18 +3,22 @@ name: Beginner installer regression
 on:
   push:
     branches:
-      - beginner-first-installer-v1.4.2
+      - installer-v1.4.3-usability-runtime-fix
       - main
     paths:
       - 'start.sh'
       - 'tui/simple_installer.py'
+      - 'tui/run-simple.sh'
       - 'tui/requirements.txt'
+      - 'VERSION'
       - '.github/workflows/beginner-installer-regression.yml'
   pull_request:
     paths:
       - 'start.sh'
       - 'tui/simple_installer.py'
+      - 'tui/run-simple.sh'
       - 'tui/requirements.txt'
+      - 'VERSION'
       - '.github/workflows/beginner-installer-regression.yml'
 
 jobs:
@@ -34,10 +38,11 @@ jobs:
         run: |
           set -Eeuo pipefail
           bash -n start.sh
+          bash -n tui/run-simple.sh
           python -m py_compile tui/simple_installer.py
           python tui/simple_installer.py --self-test
 
-      - name: Mount the beginner interface headlessly
+      - name: Exercise one-question-at-a-time flow headlessly
         run: |
           python - <<'PY'
           import asyncio
@@ -49,51 +54,140 @@ jobs:
           module = importlib.util.module_from_spec(spec)
           assert spec and spec.loader
           spec.loader.exec_module(module)
+          module.udp_port_available = lambda port: True
+
+          values = {
+              'reflector_id': 'PNY',
+              'domain': 'xlx026.net',
+              'callsign': 'PU2PNY',
+              'email': 'sysop@example.net',
+              'country': 'Brazil',
+              'location': 'Santa Isabel - SP',
+              'ysf_id': '12345',
+              'admin_slug': 'meu-admin',
+              'admin_password': 'ExampleOnly-123!',
+              'admin_password_confirm': 'ExampleOnly-123!',
+          }
 
           async def verify():
               app = module.SimpleInstaller(Path.cwd())
-              async with app.run_test(size=(130, 44)) as pilot:
+              async with app.run_test(size=(150, 46)) as pilot:
                   await pilot.pause()
-                  assert app.step == 0
+                  assert app.phase == 'language'
                   assert app.query_one('#lang-pt').label.plain == 'Português (Brasil)'
                   assert app.query_one('#lang-en').label.plain == 'English'
+
                   app.set_language('pt-BR')
                   await pilot.pause()
-                  assert app.step == 1
-                  assert app.query_one('#reflector_id')
-                  assert app.query_one('#ysf_id')
-                  assert app.query_one('#next').label.plain == 'Continuar →'
-                  assert app.query_one('#help-ysf_id').render().plain == 'Exemplo: 12345'
-                  app.query_one('#reflector_id').value = 'PNY'
-                  app.query_one('#domain').value = 'xlx026.net'
-                  app.query_one('#callsign').value = 'PU2PNY'
-                  app.query_one('#email').value = 'sysop@example.net'
-                  app.query_one('#country').value = 'Brazil'
-                  app.query_one('#location').value = 'Santa Isabel - SP'
-                  app.query_one('#ysf_id').value = '12345'
-                  assert app.validate_step(1)
-                  app.show_step(2)
-                  app.query_one('#admin_password').value = 'ExampleOnly-123!'
-                  app.query_one('#admin_password_confirm').value = 'ExampleOnly-123!'
-                  assert app.validate_step(2)
-                  assert app.data['admin_user'] == 'pu2pny'
-                  assert app.data['admin_slug'] == 'controle-pny'
-                  app.show_step(3)
+                  assert app.phase == 'questions'
+                  assert app.current_key == 'reflector_id'
+                  assert app.query_one('#counter').render().plain == 'PERGUNTA 1 DE 7'
+
+                  # Required answer cannot be skipped.
+                  app.query_one('#answer').value = ''
+                  app.move_next()
                   await pilot.pause()
+                  assert app.current_key == 'reflector_id'
+                  assert app.query_one('#error').display is True
+
+                  # Back really returns to the previous answer.
+                  app.query_one('#answer').value = 'PNY'
+                  app.move_next()
+                  await pilot.pause()
+                  assert app.current_key == 'domain'
+                  app.move_back()
+                  await pilot.pause()
+                  assert app.current_key == 'reflector_id'
+                  assert app.query_one('#answer').value == 'PNY'
+
+                  # Fill every answer and reach review.
+                  for key in module.QUESTION_KEYS:
+                      assert app.current_key == key
+                      app.query_one('#answer').value = values[key]
+                      app.move_next()
+                      await pilot.pause()
+
+                  assert app.phase == 'review'
+                  assert app.data['admin_slug'] == 'meu-admin'
+                  assert app.data['admin_user'] == 'pu2pny'
                   assert app.query_one('#next').label.plain == 'INSTALAR AGORA'
+                  review = app.query_one('#review').render().plain
+                  assert '/meu-admin/' in review
+                  assert '12345' in review
+                  assert 'definida e ocultada' in review
+
+                  # Review Back returns to password confirmation, not to a dead end.
+                  app.move_back()
+                  await pilot.pause()
+                  assert app.phase == 'questions'
+                  assert app.current_key == 'admin_password_confirm'
 
           asyncio.run(verify())
           PY
 
-      - name: Verify beginner-first UX rules
+      - name: Verify unattended answer stream protections
+        run: |
+          python - <<'PY'
+          import importlib.util
+          from pathlib import Path
+
+          spec = importlib.util.spec_from_file_location('xlx_simple', Path('tui/simple_installer.py'))
+          module = importlib.util.module_from_spec(spec)
+          assert spec and spec.loader
+          spec.loader.exec_module(module)
+
+          data = {
+              'reflector_id': '026', 'domain': 'xlx026.net',
+              'email': 'sysop@example.net', 'callsign': 'PU2PNY',
+              'country': 'Brazil', 'timezone': 'America/Sao_Paulo',
+              'location': 'Santa Isabel - SP', 'ysf_id': '12345',
+              'admin_user': 'pu2pny', 'admin_slug': 'controle-026',
+              'admin_password': 'ExampleOnly-123!'
+          }
+          answers = module.build_answers(data)
+          assert len(answers) == 24
+          assert answers[13] == '42000'
+          assert answers[14] == '433125000'
+          assert answers[15] == 'Y'
+          assert answers[16] == 'C'
+          assert answers[17] == 'Santa Isabel - SP'
+          assert answers[18] == '12345'
+          assert answers[20] == 'controle-026'
+          assert answers[21] == answers[22]
+          assert answers[23] == ''
+          assert len(module.generated_comment(data)) <= 100
+          PY
+
+      - name: Verify launcher recovery and accessibility rules
         run: |
           set -Eeuo pipefail
           grep -Fq 'Nenhuma resposta é necessária nesta etapa' start.sh
-          grep -Fq 'tmux has-session' start.sh
-          grep -Fq 'Reabrindo a mesma sessão' start.sh
+          grep -Fq 'tmux -L "$TMUX_SOCKET" has-session' start.sh
+          grep -Fq 'new-session -A -s "$SESSION"' start.sh
+          grep -Fq 'screen-256color' start.sh
+          grep -Fq 'ncurses-term' start.sh
+          grep -Fq 'XLX_UI_STATE_FILE' tui/run-simple.sh
+          grep -Fq 'opening compatibility mode' tui/run-simple.sh
+          grep -Fq 'write_ui_state("MOUNTED")' tui/simple_installer.py
+          grep -Fq 'write_ui_state("USER_CLOSED")' tui/simple_installer.py
+          grep -Fq 'background: #ffffff;' tui/simple_installer.py
+          grep -Fq 'color: #000000;' tui/simple_installer.py
+          grep -Fq '#install-progress' tui/simple_installer.py
+          grep -Fq 'height: 6;' tui/simple_installer.py
+          grep -Fq 'Endereço privado da Administração' tui/simple_installer.py
+          grep -Fq 'Mostrar senha' tui/simple_installer.py
           grep -Fq 'Exemplo: 12345' tui/simple_installer.py
-          grep -Fq 'Enter = próxima resposta' tui/simple_installer.py
-          grep -Fq 'INSTALAR AGORA' tui/simple_installer.py
-          grep -Fq 'Configuração automática recomendada' tui/simple_installer.py
+          grep -Fq 'A tela não está travada' tui/simple_installer.py
           ! grep -Fq 'ssh -L' start.sh
           ! grep -Fq 'OUTRO terminal' start.sh
+
+          python - <<'PY'
+          from pathlib import Path
+          text = Path('start.sh').read_text(encoding='utf-8')
+          session_check = text.index('tmux -L "$TMUX_SOCKET" has-session')
+          active_guard = text.index('if [ -x /xlxd/xlxd ]')
+          assert session_check < active_guard, 'tmux recovery must run before fresh-install markers'
+          PY
+
+      - name: Verify release marker
+        run: test "$(cat VERSION)" = "1.4.3"
