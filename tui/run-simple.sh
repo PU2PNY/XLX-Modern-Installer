@@ -15,7 +15,11 @@ rm -f "$STATE_FILE"
 export XLX_UI_STATE_FILE="$STATE_FILE"
 
 echo "[$(date -Is)] starting beginner UI" >>"$UI_LOG"
-"$PYTHON_BIN" "$ROOT_DIR/tui/simple_installer.py" --root "$ROOT_DIR" 2>>"$UI_LOG"
+
+# IMPORTANTE: Textual desenha a interface no descritor de erro (stderr)
+# no Linux. Portanto stderr precisa continuar ligado ao terminal. Redirecioná-lo
+# para UI_LOG deixa o processo vivo, porém a tela fica completamente preta.
+"$PYTHON_BIN" "$ROOT_DIR/tui/simple_installer.py" --root "$ROOT_DIR"
 rc=$?
 state="$(cat "$STATE_FILE" 2>/dev/null || true)"
 rm -f "$STATE_FILE"
@@ -32,7 +36,7 @@ else
 fi
 
 printf '\n[ERRO] A interface visual encerrou antes do esperado.\n'
-printf '[ATENÇÃO] O erro foi registrado em: %s\n' "$UI_LOG"
+printf '[ATENÇÃO] O evento foi registrado em: %s\n' "$UI_LOG"
 printf '[ATENÇÃO] O instalador abrirá automaticamente o modo compatível para não deixar você parado.\n\n'
 sleep 2
 exec bash "$ROOT_DIR/install.sh" --classic
