@@ -1,6 +1,6 @@
 # XLX Modern Installer
 
-**Versão atual: v1.4.2**
+**Versão atual: v1.4.3**
 
 Instalador público e reproduzível para **Debian 12 x86_64**. Instala o núcleo XLXD, Echo Test, painel moderno multiprotocolo, Admin privado, APRS/D-PRS nativo, Certificados nativos verificáveis, CallingHome e observabilidade operacional.
 

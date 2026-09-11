@@ -1,3 +1,15 @@
+## v1.4.3 — Usability and runtime hardening
+
+- Replaces the long scrolling form with one large question at a time so a required answer cannot be skipped silently.
+- Keeps a visible Back action on every question and makes the private Admin URL slug explicitly editable.
+- Uses black text on the bright blue/red/yellow action buttons, a white focused input with black text, wider fields and thicker progress bars for low-vision readability.
+- Adds a Show/Hide password control and keeps the password requirements visible before submission.
+- Validates the generated XLX comment length before installation so the answer stream cannot shift at the upstream 100-character limit.
+- Validates automatic YSF UDP port 42000 before installation so the upstream conditional port prompt cannot shift unattended answers.
+- Checks for an existing tmux installer session before fresh-install markers, preserving SSH-disconnect recovery after `/xlxd` has been created.
+- Starts tmux attached in isolated 256-color mode and records unexpected UI exits instead of silently dropping to `[exited]`.
+- Makes the 91% state explicit: if final validation fails, the UI shows the real captured error and a secure log path instead of looking frozen.
+
 ## v1.4.2 — Beginner-first resilient installer
 
 - Makes `bash start.sh` the recommended one-command installation path for beginners.
