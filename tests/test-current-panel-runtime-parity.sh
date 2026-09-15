@@ -93,7 +93,7 @@ if command -v php >/dev/null 2>&1 && command -v node >/dev/null 2>&1; then
     printf '%s\n' '<?php return []; ' > "$target/config/site.php"
     php "$ROOT/dashboard/i18n/build.php" "$target" "$locale" >/dev/null
     while IFS= read -r -d '' js; do
-      node --check "$js" >/dev/null || fail "generated JS syntax failure: $locale ${js#$target}"
+      node --check "$js" >/dev/null || fail "generated JS syntax failure: $locale ${js#$target/}"
     done < <(find "$target" -type f -name '*.js' -print0)
     if grep -RIF --include='*.js' -- 'root.innerHTML='"'"'<div class="hamwx-skeleton">${tr(' "$target" >/dev/null; then
       fail "literal weather interpolation returned in $locale build"
