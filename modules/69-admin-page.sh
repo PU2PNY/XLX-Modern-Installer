@@ -61,7 +61,7 @@ for command_name in bash grep install php python3 sudo visudo tar sha256sum; do
   command -v "$command_name" >/dev/null 2>&1 || fail "$(say "Comando ausente: $command_name" "Missing command: $command_name")"
 done
 
-reserved='^(ao-vivo|conectados|ranking|refletores|assets|api|config|flags|install|controle|certificado|digital-lab|aprs|aprs-dprs)$'
+reserved='^(ao-vivo|conectados|ranking|refletores|assets|api|config|flags|install|certificado|digital-lab|aprs|aprs-dprs)$'
 validate_slug(){
   local value="$1"
   [[ "$value" =~ ^[a-z0-9][a-z0-9-]{1,31}$ ]] || return 1

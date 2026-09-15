@@ -933,12 +933,13 @@ question_20() {
     echo ""
     print_wrapped "20. Private Admin URL name."
     print_gray "Suggested: admin $ACCEPT"
+    local reserved_admin_slug='^(ao-vivo|conectados|ranking|refletores|assets|api|config|flags|install|certificado|digital-lab|aprs|aprs-dprs)$'
     while true; do
         read_or_abort ADMIN_SLUG
         ADMIN_SLUG="${ADMIN_SLUG:-admin}"
         ADMIN_SLUG="$(printf '%s' "$ADMIN_SLUG" | tr '[:upper:]' '[:lower:]')"
-        if [[ "$ADMIN_SLUG" =~ ^[a-z0-9][a-z0-9-]{1,31}$ ]]; then break; fi
-        msg_caution "Use 2 to 32 characters: lowercase letters, numbers and hyphens."
+        if [[ "$ADMIN_SLUG" =~ ^[a-z0-9][a-z0-9-]{1,31}$ ]] && [[ ! "$ADMIN_SLUG" =~ $reserved_admin_slug ]]; then break; fi
+        msg_caution "Use 2 to 32 characters: lowercase letters, numbers and hyphens; choose a name that does not conflict with a public dashboard route."
     done
     print_yellow "Using: /$ADMIN_SLUG/"
 }
