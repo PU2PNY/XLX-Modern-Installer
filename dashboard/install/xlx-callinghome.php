@@ -8,7 +8,7 @@ declare(strict_types=1);
  * dashboard. Compatible with the CallingHome XML accepted by xlxapi.rlx.lu.
  */
 
-$configFile = '/etc/xlx-modern/callinghome.php';
+$configFile = getenv('XLX_CALLINGHOME_CONFIG') ?: '/etc/xlx-modern/callinghome.php';
 if (!is_file($configFile)) {
     fwrite(STDERR, "callinghome configuration not found\n");
     exit(2);

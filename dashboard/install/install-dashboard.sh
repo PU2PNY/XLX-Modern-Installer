@@ -596,8 +596,11 @@ CALLINGHOME_HASH="$(php -r '
         }
     }
 ' "$CALLINGHOME_CONFIG")"
-if [[ ! "$CALLINGHOME_HASH" =~ ^[a-f0-9]{32,128}$ ]]; then
-    CALLINGHOME_HASH="$(php -r 'echo bin2hex(random_bytes(16));')"
+# Upstream XLXD uses CreateCode(16): a persistent 16-character alphanumeric
+# ownership token. Preserve any already-issued alphanumeric token on upgrades,
+# but generate new installations in the exact upstream format.
+if [[ ! "$CALLINGHOME_HASH" =~ ^[A-Za-z0-9]{16,128}$ ]]; then
+    CALLINGHOME_HASH="$(php -r '$chars="1234567890abcdefghijklmnopqrstuvwyxzABCDEFGHIJKLMNAOPQRSTUVWYXZ"; for($i=0;$i<16;$i++){echo $chars[random_int(0,strlen($chars)-1)];}')"
 fi
 
 CALLINGHOME_SCHEME="http"
@@ -631,7 +634,7 @@ systemctl enable --now xlx-callinghome.timer
 if systemctl start xlx-callinghome.service; then
     printf 'CallingHome: registration submitted successfully.\n'
 else
-    printf 'WARNING / ATENÇÃO: CallingHome could not be confirmed now; the timer will retry every five minutes. Check: journalctl -u xlx-callinghome.service -n 30 --no-pager\n' >&2
+    printf 'WARNING / ATENÇÃO: CallingHome could not be confirmed now; the timer will retry every ten minutes. Check: journalctl -u xlx-callinghome.service -n 30 --no-pager\n' >&2
 fi
 
 printf '\nXLX Modern Dashboard installed / instalado em: %s\n' "$DEST"

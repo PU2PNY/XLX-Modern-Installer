@@ -1,9 +1,9 @@
 [Unit]
-Description=Submit XLX reflector registration every five minutes
+Description=Submit XLX reflector registration every ten minutes
 
 [Timer]
 OnBootSec=2min
-OnUnitActiveSec=5min
+OnUnitActiveSec=10min
 Persistent=true
 Unit=xlx-callinghome.service
 
