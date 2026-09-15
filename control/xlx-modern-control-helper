@@ -3,9 +3,9 @@ set -Eeuo pipefail
 export LANG=C
 PATH=/usr/sbin:/usr/bin:/sbin:/bin
 
-CONF="/etc/xlx-modern-control/helper.conf"
-RADIO_HELPER="/usr/local/sbin/xlx-modern-radioid-helper"
-ACCESS_HELPER="/usr/local/sbin/xlx-modern-access-helper"
+CONF="${XLX_CONTROL_HELPER_CONF:-/etc/xlx-modern-control/helper.conf}"
+RADIO_HELPER="${XLX_CONTROL_RADIO_HELPER:-/usr/local/sbin/xlx-modern-radioid-helper}"
+ACCESS_HELPER="${XLX_CONTROL_ACCESS_HELPER:-/usr/local/sbin/xlx-modern-access-helper}"
 HEALTH_SNAPSHOT="${XLX_HEALTH_SNAPSHOT:-/var/lib/xlx-modern-health-monitor/operational.json}"
 [[ -r "$CONF" ]] || { echo "ERRO: helper.conf ausente" >&2; exit 2; }
 # shellcheck disable=SC1090
