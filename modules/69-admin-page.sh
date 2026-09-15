@@ -285,20 +285,25 @@ validate_admin_marker "RadioID section" 'id="radioid"'
 validate_admin_marker "Interlink action" 'access-interlink-add'
 validate_admin_marker "RadioID save action" 'radioid_save'
 
-# Quando o HTTPS já está disponível, confirme a rota nova antes de declarar
-# sucesso. Isso impede concluir uma atualização que criou os arquivos, mas
-# deixou /admin/ (ou o nome escolhido) respondendo 404. Em uma instalação
-# nova sem certificado ainda, a validação final do instalador cobre HTTPS.
-if curl --silent --show-error --insecure --resolve "$DOMAIN:443:127.0.0.1" \
-  --connect-timeout 5 --max-time 12 "$BASE_URL/$slug/" -o "$WORK/admin-web.html" 2>/dev/null; then
-  grep -Fq "$TITLE" "$WORK/admin-web.html" || fail "$(say 'A rota Admin respondeu, mas não entregou a tela privada correta.' 'Admin route responded but did not deliver the correct private page.')"
-  [[ -s "$WORK/admin-web.html" ]] || fail "$(say 'A rota Admin retornou resposta vazia.' 'Admin route returned an empty response.')"
-  LOGIN_MARKER="$(say 'Acesso restrito' 'Restricted access')"
-  grep -Fq "$LOGIN_MARKER" "$WORK/admin-web.html" || fail "$(say 'A rota Admin não entregou a tela de autenticação.' 'Admin route did not deliver the authentication page.')"
-  ok "$(say 'Rota privada do Admin validada localmente.' 'Private Admin route validated locally.')"
-else
-  warn "$(say 'HTTPS local ainda indisponível; arquivos, credencial e rota foram validados e o teste web será repetido ao fim da instalação.' 'Local HTTPS is not available yet; files, credentials and route were validated and the web test will run at the end of installation.')"
+# Prove the configured private route over whichever local web scheme is
+# actually available at this stage. A pending certificate must not skip it.
+ADMIN_SCHEME='http'
+ADMIN_PORT='80'
+if [[ -s "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" && -s "/etc/letsencrypt/live/$DOMAIN/privkey.pem" ]]; then
+  ADMIN_SCHEME='https'
+  ADMIN_PORT='443'
 fi
+ADMIN_BASE="$ADMIN_SCHEME://$DOMAIN"
+ADMIN_CURL=(curl --silent --show-error --resolve "$DOMAIN:$ADMIN_PORT:127.0.0.1" --connect-timeout 5 --max-time 12)
+[[ "$ADMIN_SCHEME" == https ]] && ADMIN_CURL+=(--insecure)
+if ! "${ADMIN_CURL[@]}" "$ADMIN_BASE/$slug/" -o "$WORK/admin-web.html"; then
+  fail "$(say 'A rota privada do Admin não respondeu localmente.' 'Private Admin route did not respond locally.')"
+fi
+grep -Fq "$TITLE" "$WORK/admin-web.html" || fail "$(say 'A rota Admin respondeu, mas não entregou a tela privada correta.' 'Admin route responded but did not deliver the correct private page.')"
+[[ -s "$WORK/admin-web.html" ]] || fail "$(say 'A rota Admin retornou resposta vazia.' 'Admin route returned an empty response.')"
+LOGIN_MARKER="$(say 'Acesso restrito' 'Restricted access')"
+grep -Fq "$LOGIN_MARKER" "$WORK/admin-web.html" || fail "$(say 'A rota Admin não entregou a tela de autenticação.' 'Admin route did not deliver the authentication page.')"
+ok "$(say "Rota privada do Admin validada localmente por $ADMIN_SCHEME." "Private Admin route validated locally over $ADMIN_SCHEME.")"
 
 SUCCESS=1
 MUTATED=0

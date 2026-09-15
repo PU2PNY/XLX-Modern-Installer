@@ -168,12 +168,28 @@ if(!is_array($d)||empty($d["ok"])) exit(1);
 ' || fail 'live.php JSON validation failed.'
 ok 'live.php data path validated.'
 
-# Page routes must render through the final web edge. Empty current traffic is valid; a
-# broken route, stale asset or server error is not.
-for page in ao-vivo conectados modulos digital-lab certificado refletores; do
-    "${CURL[@]}" "$BASE/?page=$page&fresh_install_probe=1" >/dev/null || fail "Dashboard route failed: $page"
+# Canonical public URLs must render through the final web edge. Empty current
+# traffic is valid; a broken route, redirect mismatch or server error is not.
+for public_path in /ao-vivo /conectados /modulos /ranking /refletores /certificado /aprs-dprs; do
+    "${CURL[@]}" "$BASE$public_path?fresh_install_probe=1" >/dev/null || fail "Dashboard route failed: $public_path"
 done
-ok 'Current dashboard routes validated.'
+ok 'Canonical dashboard routes validated.'
+
+# The private Admin route is also installation readiness. Validate the exact
+# saved slug through the same final Nginx/PHP-FPM edge, even while HTTPS waits.
+ADMIN_ROUTE_FILE='/etc/xlx-modern-control/route'
+[[ -s "$ADMIN_ROUTE_FILE" ]] || fail 'Private Admin route file is missing.'
+ADMIN_SLUG="$(tr -d '\r\n' < "$ADMIN_ROUTE_FILE")"
+[[ "$ADMIN_SLUG" =~ ^[a-z0-9][a-z0-9-]{1,31}$ ]] || fail 'Private Admin route slug is invalid.'
+ADMIN_HTML="$(mktemp /tmp/xlx-admin-readiness.XXXXXX.html)"
+cleanup_admin_probe(){ rm -f "$ADMIN_HTML"; }
+trap cleanup_admin_probe EXIT
+"${CURL[@]}" "$BASE/$ADMIN_SLUG/" -o "$ADMIN_HTML" || fail 'Private Admin route HTTP probe failed.'
+[[ -s "$ADMIN_HTML" ]] || fail 'Private Admin route returned an empty response.'
+grep -Eq 'Restricted access|Acesso restrito' "$ADMIN_HTML" || fail 'Private Admin route did not render the authentication screen.'
+cleanup_admin_probe
+trap - EXIT
+ok 'Private Admin route validated through the final web edge.'
 
 printf 'ASSET_BUILD_TOKEN=%s\n' "$ASSET_TOKEN"
 printf 'PANEL_RUNTIME_PARITY=OK\n'
