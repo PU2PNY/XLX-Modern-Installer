@@ -1,0 +1,134 @@
+name: Fix Admin slug contract
+
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-admin-slug-contract.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Synchronize Admin slug validation
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          module = Path('modules/69-admin-page.sh')
+          s = module.read_text()
+          old = "reserved='^(ao-vivo|conectados|ranking|refletores|assets|api|config|flags|install|controle|certificado|digital-lab|aprs|aprs-dprs)$'"
+          new = "reserved='^(ao-vivo|conectados|ranking|refletores|assets|api|config|flags|install|certificado|digital-lab|aprs|aprs-dprs)$'"
+          if old not in s:
+              raise SystemExit('expected Admin reserved list not found')
+          module.write_text(s.replace(old, new, 1))
+
+          vendor = Path('vendor/pp5pk-installer/installer.sh')
+          s = vendor.read_text()
+          old = '''question_20() {
+              echo ""
+              echo "$SEPQUE"
+              echo ""
+              print_wrapped "20. Private Admin URL name."
+              print_gray "Suggested: admin $ACCEPT"
+              while true; do
+                  read_or_abort ADMIN_SLUG
+                  ADMIN_SLUG="${ADMIN_SLUG:-admin}"
+                  ADMIN_SLUG="$(printf '%s' "$ADMIN_SLUG" | tr '[:upper:]' '[:lower:]')"
+                  if [[ "$ADMIN_SLUG" =~ ^[a-z0-9][a-z0-9-]{1,31}$ ]]; then break; fi
+                  msg_caution "Use 2 to 32 characters: lowercase letters, numbers and hyphens."
+              done
+              print_yellow "Using: /$ADMIN_SLUG/"
+          }'''
+          new = '''question_20() {
+              echo ""
+              echo "$SEPQUE"
+              echo ""
+              print_wrapped "20. Private Admin URL name."
+              print_gray "Suggested: admin $ACCEPT"
+              local reserved_admin_slug='^(ao-vivo|conectados|ranking|refletores|assets|api|config|flags|install|certificado|digital-lab|aprs|aprs-dprs)$'
+              while true; do
+                  read_or_abort ADMIN_SLUG
+                  ADMIN_SLUG="${ADMIN_SLUG:-admin}"
+                  ADMIN_SLUG="$(printf '%s' "$ADMIN_SLUG" | tr '[:upper:]' '[:lower:]')"
+                  if [[ "$ADMIN_SLUG" =~ ^[a-z0-9][a-z0-9-]{1,31}$ ]] && [[ ! "$ADMIN_SLUG" =~ $reserved_admin_slug ]]; then break; fi
+                  msg_caution "Use 2 to 32 characters: lowercase letters, numbers and hyphens; choose a name that does not conflict with a public dashboard route."
+              done
+              print_yellow "Using: /$ADMIN_SLUG/"
+          }'''
+          if old not in s:
+              raise SystemExit('expected question_20 block not found')
+          vendor.write_text(s.replace(old, new, 1))
+
+          digest = __import__('hashlib').sha256(vendor.read_bytes()).hexdigest()
+          install = Path('install.sh')
+          s = install.read_text()
+          s2, n = re.subn(r'readonly EXPECTED_INSTALLER_SHA256="[0-9a-f]{64}"', f'readonly EXPECTED_INSTALLER_SHA256="{digest}"', s, count=1)
+          if n != 1:
+              raise SystemExit('EXPECTED_INSTALLER_SHA256 assignment not found exactly once')
+          install.write_text(s2)
+          print('VENDOR_SHA256=' + digest)
+          PY
+
+          cat > tests/test-admin-slug-contract.sh <<'SH'
+          #!/usr/bin/env bash
+          set -Eeuo pipefail
+          ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+          fail(){ printf 'FAIL | %s\n' "$*" >&2; exit 1; }
+          ok(){ printf 'OK | %s\n' "$*"; }
+
+          module_reserved="$(sed -n "s/^reserved='\(.*\)'$/\1/p" "$ROOT/modules/69-admin-page.sh")"
+          vendor_reserved="$(sed -n "s/^[[:space:]]*local reserved_admin_slug='\(.*\)'$/\1/p" "$ROOT/vendor/pp5pk-installer/installer.sh")"
+          [[ -n "$module_reserved" ]] || fail 'module reserved slug contract missing'
+          [[ -n "$vendor_reserved" ]] || fail 'questionnaire reserved slug contract missing'
+          [[ "$module_reserved" == "$vendor_reserved" ]] || fail 'questionnaire and Admin module reserved slug contracts differ'
+
+          valid(){
+            local value="$1"
+            [[ "$value" =~ ^[a-z0-9][a-z0-9-]{1,31}$ ]] || return 1
+            [[ ! "$value" =~ $module_reserved ]]
+          }
+
+          valid controle || fail 'controle must be accepted as a private Admin route'
+          valid admin || fail 'admin must remain accepted'
+          for value in ao-vivo conectados ranking refletores assets api config flags install certificado digital-lab aprs aprs-dprs; do
+            if valid "$value"; then fail "reserved public route accepted: $value"; fi
+          done
+          if valid a; then fail 'one-character slug accepted'; fi
+          if valid '../admin'; then fail 'unsafe slug accepted'; fi
+          ok 'Admin slug questionnaire and installation contract are synchronized'
+          SH
+          chmod +x tests/test-admin-slug-contract.sh
+
+      - name: Validate repaired installer
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          bash -n install.sh modules/69-admin-page.sh vendor/pp5pk-installer/installer.sh tests/test-admin-slug-contract.sh
+          bash tests/test-admin-slug-contract.sh
+          bash tests/test-install-flow.sh
+          git diff --check
+          test ! -e dashboard/support-native.php
+          test ! -e dashboard/simulado-anatel-view.php
+          test ! -e dashboard/simulado-anatel
+
+      - name: Publish repair and remove one-shot workflow
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -Eeuo pipefail
+          rm -f .github/workflows/fix-admin-slug-contract.yml
+          git config user.name 'PU2PNY Automation'
+          git config user.email '47339656+PU2PNY@users.noreply.github.com'
+          git add install.sh modules/69-admin-page.sh vendor/pp5pk-installer/installer.sh tests/test-admin-slug-contract.sh .github/workflows/fix-admin-slug-contract.yml
+          git commit -m 'Fix Admin slug validation contract'
+          git push origin HEAD:main
