@@ -10,10 +10,17 @@ say(){ [[ "$UI_LANG" == en ]]&&printf '%s' "$2"||printf '%s' "$1"; }
 ok(){ printf '\033[0;32m[OK]\033[0m %s\n' "$*"; }
 fail(){ printf '\033[0;31m[ERROR]\033[0m %s\n' "$*" >&2;exit 1; }
 [[ "$(id -u)" -eq 0 ]]||fail "$(say 'Execute como root.' 'Run as root.')"
-for c in python3 php install systemctl sha256sum timeout;do command -v "$c" >/dev/null||fail "$(say "Comando ausente: $c" "Missing command: $c")";done
+for c in python3 install systemctl sha256sum timeout file;do command -v "$c" >/dev/null||fail "$(say "Comando ausente: $c" "Missing command: $c")";done
 for f in observability/health/health_monitor.py observability/dmr-data/monitor.py observability/dmr-data/dmr_bptc_decode observability/dmr-meta/monitor.py observability/ysf-data/monitor.py observability/ysf-data/ysf_decode observability/history/history-collector.php observability/self-test/regression-self-test;do [[ -f "$ROOT/$f" ]]||fail "$(say "Arquivo ausente: $f" "Missing file: $f")";done
 python3 -m py_compile "$ROOT/observability/health/health_monitor.py" "$ROOT/observability/dmr-data/monitor.py" "$ROOT/observability/dmr-meta/monitor.py" "$ROOT/observability/ysf-data/monitor.py"
-php -l "$ROOT/observability/history/history-collector.php" >/dev/null
+# --check must work on pristine Debian before the base installer adds PHP.
+if command -v php >/dev/null 2>&1; then
+  php -l "$ROOT/observability/history/history-collector.php" >/dev/null
+elif [[ "$MODE" != check ]]; then
+  fail "$(say 'PHP CLI ausente para provisionar observabilidade.' 'PHP CLI is required to provision observability.')"
+else
+  ok "$(say 'PHP ainda não está instalado; o coletor PHP será validado após as dependências.' 'PHP is not installed yet; the PHP collector will be validated after dependencies are installed.')"
+fi
 bash -n "$ROOT/observability/self-test/regression-self-test"
 file "$ROOT/observability/dmr-data/dmr_bptc_decode" "$ROOT/observability/ysf-data/ysf_decode" | grep -q 'x86-64' || fail "$(say 'Helpers de protocolo incompatíveis; requer Debian 12 x86_64.' 'Protocol helpers incompatible; Debian 12 x86_64 required.')"
 [[ "$MODE" == check ]]&&{ ok "$(say 'Observabilidade validada; nenhuma alteração feita.' 'Observability validated; no changes made.')";exit 0; }
