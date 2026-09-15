@@ -8,6 +8,13 @@ bash -n "$ROOT/dashboard/install/fresh-install-parity.sh"
 bash -n "$ROOT/modules/60-dashboard-modern.sh"
 ok 'fresh-install parity scripts have valid Bash syntax'
 
+# Array expansion must stay quoted. The --noproxy '*' argument otherwise
+# expands to filenames/directories in the repository and curl treats them as
+# extra hosts/URLs (the clean-install failure reported as hosts like log/templates).
+grep -Fq 'status_json="$("${CURL[@]}"' "$ROOT/dashboard/install/fresh-install-parity.sh" || fail 'status curl array expansion is unquoted'
+grep -Fq 'live_json="$("${CURL[@]}"' "$ROOT/dashboard/install/fresh-install-parity.sh" || fail 'live curl array expansion is unquoted'
+ok 'fresh-install curl array expansion is protected from wildcard globbing'
+
 # Final-render validation must run after post-install rendering and before later
 # Admin/observability stages.
 python3 - "$ROOT/modules/60-dashboard-modern.sh" <<'PY'

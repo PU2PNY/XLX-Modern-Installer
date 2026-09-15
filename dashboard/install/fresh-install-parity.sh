@@ -109,7 +109,7 @@ CURL=(curl --noproxy '*' -kfsS --max-time 20 --resolve "$DOMAIN:$PORT:127.0.0.1"
 
 # The dashboard is not considered ready merely because files exist. Exercise
 # the same live data APIs the browser uses through Apache on the local server.
-status_json="$(${CURL[@]} "$BASE/api/status.php?history_hours=24&fresh_install_probe=1")" || fail 'status.php HTTP probe failed.'
+status_json="$("${CURL[@]}" "$BASE/api/status.php?history_hours=24&fresh_install_probe=1")" || fail 'status.php HTTP probe failed.'
 printf '%s' "$status_json" | php -r '
 $d=json_decode(stream_get_contents(STDIN),true);
 if(!is_array($d)||empty($d["ok"])) exit(1);
@@ -119,7 +119,7 @@ foreach(["xml","log","db"] as $k){if(empty($s[$k])) exit(3);}
 ' || fail 'status.php JSON/source validation failed.'
 ok 'status.php live data path validated.'
 
-live_json="$(${CURL[@]} "$BASE/api/live.php?fresh_install_probe=1")" || fail 'live.php HTTP probe failed.'
+live_json="$("${CURL[@]}" "$BASE/api/live.php?fresh_install_probe=1")" || fail 'live.php HTTP probe failed.'
 printf '%s' "$live_json" | php -r '
 $d=json_decode(stream_get_contents(STDIN),true);
 if(!is_array($d)||empty($d["ok"])) exit(1);
