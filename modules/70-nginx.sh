@@ -101,7 +101,11 @@ server {
     gzip_comp_level 5;
     gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss image/svg+xml;
     location ^~ /.well-known/acme-challenge/ { root /var/www/certbot; default_type text/plain; try_files \$uri =404; }
-    location = / { return 301 /ao-vivo; }
+    # Preserve old /?page=... links while making clean routes canonical.
+    location = / {
+        if (\$xlxmodern_old_page_redirect != "") { return 301 \$xlxmodern_old_page_redirect; }
+        return 301 /ao-vivo;
+    }
     location = /digital-lab { return 301 /aprs-dprs; }
     location = /digital-lab/ { return 301 /aprs-dprs; }
     location ~ ^/(ao-vivo|modulos|conectados|ranking|refletores|certificado|aprs-dprs)/\$ { return 301 /\$1; }
@@ -182,7 +186,11 @@ server {
     gzip_min_length 1024;
     gzip_comp_level 5;
     gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss image/svg+xml;
-    location = / { return 301 https://$DOMAIN/ao-vivo; }
+    # Preserve old /?page=... links while making clean routes canonical.
+    location = / {
+        if (\$xlxmodern_old_page_redirect != "") { return 301 https://$DOMAIN\$xlxmodern_old_page_redirect; }
+        return 301 https://$DOMAIN/ao-vivo;
+    }
     location = /digital-lab { return 301 https://$DOMAIN/aprs-dprs; }
     location = /digital-lab/ { return 301 https://$DOMAIN/aprs-dprs; }
     location ~ ^/(ao-vivo|modulos|conectados|ranking|refletores|certificado|aprs-dprs)/\$ { return 301 https://$DOMAIN/\$1; }

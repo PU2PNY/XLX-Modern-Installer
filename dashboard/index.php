@@ -7,7 +7,10 @@ $site = is_file(__DIR__ . '/config/site.php') ? require __DIR__ . '/config/site.
 $moduleCount = max(1, min(26, (int)($site['radio']['module_count'] ?? 5)));
 $moduleRange = 'A–' . chr(64 + $moduleCount);
 function nav_class(string $p, string $current): string { return $p === $current ? ' class="active"' : ''; }
-function page_url(string $p): string { return '?page=' . rawurlencode($p); }
+function page_url(string $p): string {
+  if ($p === 'digital-lab') return '/aprs-dprs';
+  return '/' . rawurlencode($p);
+}
 function render_nav(string $page): string {
   $items = [
     'ao-vivo' => 'Ao vivo',
@@ -35,7 +38,7 @@ $seo = [
  'certificado'=>['title'=>'Certificado — {{REFLECTOR_NAME}}','description'=>'Emissão e validação pública de certificados com QR Code verificável.']
 ];
 $meta = $seo[$page];
-$canonical = 'https://{{REFLECTOR_DOMAIN}}/' . ($page === 'ao-vivo' ? '' : '?page=' . rawurlencode($page));
+$canonical = 'https://{{REFLECTOR_DOMAIN}}' . page_url($page);
 ?>
 <!doctype html>
 <html lang="pt-BR"><head>
