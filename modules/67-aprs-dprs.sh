@@ -24,9 +24,18 @@ for f in "$NATIVE/xlx_aprs_dprs.py" "$NATIVE/init-accounts.php" "$NATIVE/xlx-apr
   [[ -s "$f" ]] || fail "$(say "Arquivo APRS/D-PRS nativo ausente: $f" "Native APRS/D-PRS file missing: $f")"
 done
 python3 -m py_compile "$NATIVE/xlx_aprs_dprs.py"
-php -l "$NATIVE/init-accounts.php" >/dev/null
-php -l "$ROOT/dashboard/api/digital-lab.php" >/dev/null
-php -l "$ROOT/dashboard/api/digital-lab-operator.php" >/dev/null
+# A clean Debian host does not have PHP yet. In --check mode we must remain
+# non-mutating and cannot require a dependency that the real install adds later.
+# When PHP is already available, keep the stronger syntax validation.
+if command -v php >/dev/null 2>&1; then
+  php -l "$NATIVE/init-accounts.php" >/dev/null
+  php -l "$ROOT/dashboard/api/digital-lab.php" >/dev/null
+  php -l "$ROOT/dashboard/api/digital-lab-operator.php" >/dev/null
+elif [[ "$MODE" != check ]]; then
+  fail "$(say 'PHP CLI ausente para provisionar APRS/D-PRS.' 'PHP CLI is required to provision APRS/D-PRS.')"
+else
+  ok "$(say 'PHP ainda não está instalado; a sintaxe PHP será validada após as dependências.' 'PHP is not installed yet; PHP syntax will be validated after dependencies are installed.')"
+fi
 if [[ "$MODE" == check ]]; then
   ok "$(say 'APRS/D-PRS nativo validado; nenhuma alteração feita.' 'Native APRS/D-PRS validated; no changes made.')"
   exit 0
@@ -63,7 +72,7 @@ chown root:www-data /etc/xlx-aprs-dprs/config.json; chmod 0640 /etc/xlx-aprs-dpr
 cred="/root/xlx-modern-aprs-admin.txt"
 php "$NATIVE/init-accounts.php" /var/lib/xlx-aprs-dprs/accounts.sqlite "$SYSOP" "$cred"
 chown www-data:www-data /var/lib/xlx-aprs-dprs/accounts.sqlite; chmod 0640 /var/lib/xlx-aprs-dprs/accounts.sqlite
-rm -f /var/lib/xlx-aprs-dprs/accounts.sqlite-wal /var/lib/xlx-aprs-dprs/accounts.sqlite-shm 2>/dev/null || true
+rm -f /var/lib/xlx-aprs-dprs/accounts.sqlite-wal /var/lib/xlx-aprs-dprs/accounts.sqlite-sha 2>/dev/null || true
 systemctl daemon-reload
 systemctl enable --now xlx-aprs-dprs.service >/dev/null
 systemctl is-active --quiet xlx-aprs-dprs.service || fail "$(say 'Serviço APRS/D-PRS não ficou ativo.' 'APRS/D-PRS service did not become active.')"

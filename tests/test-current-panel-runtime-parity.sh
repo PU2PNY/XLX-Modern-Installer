@@ -44,6 +44,17 @@ assert stop < start, (stop,start)
 PYPORT
 ok 'Apache releases port 80 before Nginx starts'
 
+# Preflight on a pristine Debian host must not require PHP before the base installer
+# has had a chance to install it. Runtime provisioning still requires PHP.
+python3 - "$ROOT/modules/67-aprs-dprs.sh" <<'PYAPRS'
+import sys
+s=open(sys.argv[1],encoding='utf-8').read()
+assert 'if command -v php >/dev/null 2>&1; then' in s
+assert 'elif [[ "$MODE" != check ]]' in s
+assert 'PHP CLI ausente para provisionar APRS/D-PRS.' in s
+PYAPRS
+ok 'clean-host APRS preflight does not require preinstalled PHP'
+
 # The exact source-code leak seen in the v1.2.11 screenshot must never return.
 if grep -Fq 'root.innerHTML='"'"'<div class="hamwx-skeleton">${tr(' "$ROOT/dashboard/assets/ham-weather-widget.js"; then
   fail 'weather fallback still prints ${tr(...)} literally'
@@ -60,7 +71,7 @@ fi
 grep -Fq 'XLX_CURRENT_MENU_PARITY_NO_BIP' "$ROOT/dashboard/install/fresh-install-parity.sh" || fail 'static no-Bip parity rule missing'
 ok 'legacy standalone Bip menu control cannot be exposed'
 
-# A fresh installation of the same hostname must receive a new CSS/JS URL and
+# A fresh installation of the same hostname must receive a new CSS/JS URL Ð4 Iït and 
 # cannot reuse browser cache from an older formatted VPS.
 grep -Fq 'ASSET_TOKEN=' "$ROOT/dashboard/install/fresh-install-parity.sh" || fail 'per-install asset token missing'
 grep -Fq 'ASSET_REFERENCES_VERSIONED=' "$ROOT/dashboard/install/fresh-install-parity.sh" || fail 'asset reference rewrite missing'
