@@ -74,6 +74,16 @@ if ! runuser -u www-data -- test -x /xlxd; then
 fi
 runuser -u www-data -- test -x /xlxd || fatal "$(say 'www-data não consegue atravessar /xlxd.' 'www-data cannot traverse /xlxd.')"
 
+# XLXD runs as root and the upstream installer creates the runtime XML under a
+# restrictive umask. The dashboard/PHP worker must be able to read this live
+# source. Match the validated production permission and do not restart XLXD.
+XML_RUNTIME=/var/log/xlxd.xml
+[ -e "$XML_RUNTIME" ] || fatal "$(say 'XML de runtime do XLXD não foi criado.' 'XLXD runtime XML was not created.')"
+chown www-data:www-data "$XML_RUNTIME"
+chmod 0644 "$XML_RUNTIME"
+runuser -u www-data -- test -r "$XML_RUNTIME" || fatal "$(say 'www-data não consegue ler /var/log/xlxd.xml.' 'www-data cannot read /var/log/xlxd.xml.')"
+ok "$(say 'XML de runtime legível pelo painel sem reiniciar o XLXD.' 'Runtime XML is readable by the dashboard without restarting XLXD.')"
+
 install -d -m 0755 -o root -g www-data "$USERS_DIR"
 install -m 0644 -o root -g www-data "$ROOT/tools/create-user-db.php" "$USERS_DIR/create_user_db.php"
 install -m 0750 -o root -g root "$ROOT/tools/xlx-modern-users-refresh.sh" /usr/local/sbin/xlx-modern-users-refresh
