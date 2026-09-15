@@ -1,6 +1,6 @@
 <?php
 $page = $_GET['page'] ?? 'ao-vivo';
-$allowed = ['ao-vivo','modulos','conectados','ranking','refletores','digital-lab','certificado','suporte','simulado-anatel'];
+$allowed = ['ao-vivo','modulos','conectados','ranking','refletores','digital-lab','certificado'];
 if (!in_array($page, $allowed, true)) $page = 'ao-vivo';
 $authorizedPage = in_array($page, ['ao-vivo','modulos','conectados','ranking'], true);
 $site = is_file(__DIR__ . '/config/site.php') ? require __DIR__ . '/config/site.php' : [];
@@ -13,11 +13,9 @@ function render_nav(string $page): string {
     'ao-vivo' => 'Ao vivo',
     'modulos' => 'Módulos',
     'conectados' => 'Conectados',
-    'suporte' => 'Suporte',
     'digital-lab' => 'APRS / D-PRS',
-    'ranking' => 'Ranking',
     'certificado' => 'Certificado',
-    'simulado-anatel' => 'Simulado ANATEL',
+    'ranking' => 'Ranking',
     'refletores' => 'Lista de refletores XLX',
   ];
   $html = '';
@@ -34,12 +32,10 @@ $seo = [
  'ranking'=>['title'=>'Ranking de atividade — {{REFLECTOR_NAME}}','description'=>'Ranking recente do {{REFLECTOR_NAME}} por transmissões, tempo no ar, permanência, horários, protocolos e módulos.'],
  'refletores'=>['title'=>'Lista de refletores XLX — {{REFLECTOR_NAME}}','description'=>'Lista atualizada de refletores XLX registrados, com país, status e descrição.'],
  'digital-lab'=>['title'=>'APRS / D-PRS — {{REFLECTOR_NAME}}','description'=>'Digital Lab nativo APRS/D-PRS com mensagens, GPS, cadastro e recuperação de acesso.'],
- 'certificado'=>['title'=>'Certificado — {{REFLECTOR_NAME}}','description'=>'Emissão e validação pública de certificados com QR Code verificável.'],
- 'suporte'=>['title'=>'Suporte — {{REFLECTOR_NAME}}','description'=>'Tutoriais, vídeos, downloads e referências para DMR, D-STAR, C4FM/YSF, Pi-Star e WPSD.'],
- 'simulado-anatel'=>['title'=>'Simulado ANATEL 2026 para Radioamador — {{REFLECTOR_NAME}}','description'=>'Simulado educacional e não oficial para estudo do Serviço de Radioamador, baseado em normas e fontes oficiais.']
+ 'certificado'=>['title'=>'Certificado — {{REFLECTOR_NAME}}','description'=>'Emissão e validação pública de certificados com QR Code verificável.']
 ];
 $meta = $seo[$page];
-$canonical = $page === 'simulado-anatel' ? 'https://{{REFLECTOR_DOMAIN}}/simulado-anatel/' : ('https://{{REFLECTOR_DOMAIN}}/' . ($page === 'ao-vivo' ? '' : '?page=' . rawurlencode($page)));
+$canonical = 'https://{{REFLECTOR_DOMAIN}}/' . ($page === 'ao-vivo' ? '' : '?page=' . rawurlencode($page));
 ?>
 <!doctype html>
 <html lang="pt-BR"><head>
@@ -118,8 +114,6 @@ $canonical = $page === 'simulado-anatel' ? 'https://{{REFLECTOR_DOMAIN}}/simulad
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="<?=htmlspecialchars($meta['title'], ENT_QUOTES, 'UTF-8')?>"><meta name="twitter:description" content="<?=htmlspecialchars($meta['description'], ENT_QUOTES, 'UTF-8')?>"><meta name="twitter:image" content="https://{{REFLECTOR_DOMAIN}}/assets/logo-{{REFLECTOR_NAME}}.svg">
 <link rel="icon" href="favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png"><link rel="manifest" href="site.webmanifest">
 <title><?=htmlspecialchars($meta['title'], ENT_QUOTES, 'UTF-8')?></title><link rel="stylesheet" href="assets/app.css?v=20260828-xlxmodern-mirror-4">
-<?php if ($page === 'suporte'): ?><link rel="stylesheet" href="assets/support-native.css?v=production-parity"><?php endif; ?>
-<?php if ($page === 'simulado-anatel'): ?><link rel="stylesheet" href="assets/simulado-anatel.css?v=production-parity"><?php endif; ?>
 <?php if ($page === 'ao-vivo'): ?><link rel="stylesheet" href="assets/ao-vivo-core-bundle-v1.css?v=20260907"><?php endif; ?>
 
 <?php if ($page === 'ao-vivo'): ?><link rel="stylesheet" href="assets/ao-vivo-final-bundle-v1.css?v=20260907"><link rel="stylesheet" href="assets/qrz-tx-photo-v1.css?v=20260907"><?php endif; ?>
@@ -254,10 +248,6 @@ $canonical = $page === 'simulado-anatel' ? 'https://{{REFLECTOR_DOMAIN}}/simulad
 <!-- XLXMODERN_RANKING_V2 -->
 <?php require __DIR__.'/ranking-v2-view.php'; ?>
 
-<?php elseif ($page === 'suporte'): ?>
- <?php require __DIR__.'/support-native.php'; ?>
-<?php elseif ($page === 'simulado-anatel'): ?>
- <?php require __DIR__.'/simulado-anatel-view.php'; ?>
 <?php elseif ($page === 'refletores'): ?>
  <section class="page-heading"><p class="eyebrow">REDE MUNDIAL</p><h1>Lista de refletores XLX</h1></section>
  <section class="panel embedded-panel"><div class="embedded-toolbar"><div><b>Refletores registrados</b><span>Nome, país, status e descrição.</span></div></div><div class="table-wrap"><table class="reflectors-table"><thead><tr><th>#</th><th>Refletor</th><th>País</th><th>Status</th><th>Descrição</th></tr></thead><tbody id="reflectorRows"><tr><td colspan="5">Carregando lista de refletores...</td></tr></tbody></table></div></section>
@@ -273,8 +263,7 @@ $canonical = $page === 'simulado-anatel' ? 'https://{{REFLECTOR_DOMAIN}}/simulad
 <?php else: ?>
 <footer><div><a class="brand footer-brand" href="<?=page_url('ao-vivo')?>"><img class="brand-logo" src="assets/logo-{{REFLECTOR_NAME}}.svg" alt="Logotipo {{REFLECTOR_NAME}}"><span><b>{{REFLECTOR_NAME}}</b></span></a><p> para a comunidade radioamadora.</p></div><div class="footer-links"><a href="<?=page_url('ao-vivo')?>">Ao vivo</a><a href="<?=page_url('conectados')?>">Conectados</a><a href="<?=page_url('ranking')?>">Ranking</a></div><small>{{REFLECTOR_NAME}} • D-STAR {{REFLECTOR_NAME}}-D • DMR: TG 6 (voz), A=4001, B=4002, C=4003… • C4FM/YSF {{YSF_ID}}</small></footer>
 <?php endif; ?>
-<div id="toastStack" class="toast-stack"></div><?php if ($page === 'suporte'): ?><script src="assets/support-native.js?v=production-parity"></script><?php endif; ?><script src="assets/mtr.js?v=5"></script><script src="assets/app.js?v=20260907-production-parity"></script>
-<?php if ($page === 'simulado-anatel'): ?><script src="assets/simulado-anatel-questions.js?v=production-parity"></script><script src="assets/simulado-anatel-engine.js?v=production-parity"></script><script src="assets/simulado-anatel.js?v=production-parity"></script><?php endif; ?>
+<div id="toastStack" class="toast-stack"></div><script src="assets/mtr.js?v=5"></script><script src="assets/app.js?v=20260907-production-parity"></script>
 <?php if ($page === 'ao-vivo'): ?>
 <script src="assets/ao-vivo-authorized-sync-v1.js?v=1"></script>
 <script src="assets/ao-vivo-tx-embed-v5.js?v=1" defer></script>

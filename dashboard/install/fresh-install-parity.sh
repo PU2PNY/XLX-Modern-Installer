@@ -170,13 +170,9 @@ ok 'live.php data path validated.'
 
 # Page routes must render through the final web edge. Empty current traffic is valid; a
 # broken route, stale asset or server error is not.
-for page in ao-vivo conectados modulos digital-lab certificado suporte simulado-anatel refletores; do
+for page in ao-vivo conectados modulos digital-lab certificado refletores; do
     "${CURL[@]}" "$BASE/?page=$page&fresh_install_probe=1" >/dev/null || fail "Dashboard route failed: $page"
 done
-for required in support-native.php assets/support-native.css assets/support-native.js simulado-anatel-view.php simulado-anatel/index.php assets/simulado-anatel.css assets/simulado-anatel-questions.js assets/simulado-anatel-engine.js assets/simulado-anatel.js; do
-    [ -s "$DASH/$required" ] || fail "Required public parity component missing: $required"
-done
-ok "Support and ANATEL simulator production-parity components are present."
 ok 'Current dashboard routes validated.'
 
 printf 'ASSET_BUILD_TOKEN=%s\n' "$ASSET_TOKEN"

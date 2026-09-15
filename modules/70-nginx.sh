@@ -80,8 +80,6 @@ map \$arg_page \$xlxmodern_old_page_redirect {
     ao-vivo /ao-vivo;
     modulos /modulos;
     conectados /conectados;
-    suporte /suporte;
-    simulado-anatel /simulado-anatel/;
     ranking /ranking;
     refletores /refletores;
     certificado /certificado;
@@ -106,29 +104,18 @@ server {
     location = / { return 301 /ao-vivo; }
     location = /digital-lab { return 301 /aprs-dprs; }
     location = /digital-lab/ { return 301 /aprs-dprs; }
-    location ~ ^/(ao-vivo|modulos|conectados|suporte|ranking|refletores|certificado|aprs-dprs)/\$ { return 301 /\$1; }
+    location ~ ^/(ao-vivo|modulos|conectados|ranking|refletores|certificado|aprs-dprs)/\$ { return 301 /\$1; }
     location = /index.php {
         if (\$xlxmodern_old_page_redirect != "") { return 301 \$xlxmodern_old_page_redirect; }
         include /etc/nginx/xlx-modern-fastcgi.conf;
         fastcgi_param HTTPS off;
         fastcgi_param HTTP_X_FORWARDED_PROTO http;
     }
-    location ~ ^/(ao-vivo|modulos|conectados|suporte|ranking|refletores|certificado)\$ {
+    location ~ ^/(ao-vivo|modulos|conectados|ranking|refletores|certificado)\$ {
         include fastcgi_params;
         fastcgi_param SCRIPT_FILENAME \$document_root/index.php;
         fastcgi_param SCRIPT_NAME /index.php;
         fastcgi_param QUERY_STRING page=\$1&\$args;
-        fastcgi_param HTTPS off;
-        fastcgi_param HTTP_X_FORWARDED_PROTO http;
-        fastcgi_connect_timeout 2s; fastcgi_send_timeout 15s; fastcgi_read_timeout 15s;
-        fastcgi_pass unix:/run/php/php8.2-fpm.sock;
-    }
-    location = /simulado-anatel { return 301 /simulado-anatel/; }
-    location = /simulado-anatel/ {
-        include fastcgi_params;
-        fastcgi_param SCRIPT_FILENAME \$document_root/index.php;
-        fastcgi_param SCRIPT_NAME /index.php;
-        fastcgi_param QUERY_STRING page=simulado-anatel&\$args;
         fastcgi_param HTTPS off;
         fastcgi_param HTTP_X_FORWARDED_PROTO http;
         fastcgi_connect_timeout 2s; fastcgi_send_timeout 15s; fastcgi_read_timeout 15s;
@@ -162,8 +149,6 @@ map \$arg_page \$xlxmodern_old_page_redirect {
     ao-vivo /ao-vivo;
     modulos /modulos;
     conectados /conectados;
-    suporte /suporte;
-    simulado-anatel /simulado-anatel/;
     ranking /ranking;
     refletores /refletores;
     certificado /certificado;
@@ -200,30 +185,18 @@ server {
     location = / { return 301 https://$DOMAIN/ao-vivo; }
     location = /digital-lab { return 301 https://$DOMAIN/aprs-dprs; }
     location = /digital-lab/ { return 301 https://$DOMAIN/aprs-dprs; }
-    location ~ ^/(ao-vivo|modulos|conectados|suporte|ranking|refletores|certificado|aprs-dprs)/\$ { return 301 https://$DOMAIN/\$1; }
+    location ~ ^/(ao-vivo|modulos|conectados|ranking|refletores|certificado|aprs-dprs)/\$ { return 301 https://$DOMAIN/\$1; }
     location = /index.php {
         if (\$xlxmodern_old_page_redirect != "") { return 301 https://$DOMAIN\$xlxmodern_old_page_redirect; }
         include /etc/nginx/xlx-modern-fastcgi.conf;
         fastcgi_param HTTPS on; fastcgi_param SERVER_PORT 443; fastcgi_param HTTP_X_FORWARDED_PROTO https;
     }
-    location ~ ^/(ao-vivo|modulos|conectados|suporte|ranking|refletores|certificado)\$ {
+    location ~ ^/(ao-vivo|modulos|conectados|ranking|refletores|certificado)\$ {
         include fastcgi_params;
         fastcgi_param SCRIPT_FILENAME \$document_root/index.php;
         fastcgi_param SCRIPT_NAME /index.php;
         fastcgi_param QUERY_STRING page=\$1&\$args;
         fastcgi_param HTTPS on; fastcgi_param SERVER_PORT 443; fastcgi_param HTTP_X_FORWARDED_PROTO https;
-        fastcgi_connect_timeout 2s; fastcgi_send_timeout 15s; fastcgi_read_timeout 15s;
-        fastcgi_pass unix:/run/php/php8.2-fpm.sock;
-    }
-    location = /simulado-anatel { return 301 https://$DOMAIN/simulado-anatel/; }
-    location = /simulado-anatel/ {
-        include fastcgi_params;
-        fastcgi_param SCRIPT_FILENAME \$document_root/index.php;
-        fastcgi_param SCRIPT_NAME /index.php;
-        fastcgi_param QUERY_STRING page=simulado-anatel&\$args;
-        fastcgi_param HTTPS on;
-        fastcgi_param SERVER_PORT 443;
-        fastcgi_param HTTP_X_FORWARDED_PROTO https;
         fastcgi_connect_timeout 2s; fastcgi_send_timeout 15s; fastcgi_read_timeout 15s;
         fastcgi_pass unix:/run/php/php8.2-fpm.sock;
     }
