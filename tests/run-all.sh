@@ -14,6 +14,12 @@ echo "[dashboard i18n]"
 bash "$ROOT/tests/test-dashboard-i18n.sh" || failures=$((failures+1))
 echo "[admin i18n]"
 bash "$ROOT/tests/test-admin-i18n.sh" || failures=$((failures+1))
+echo "[admin slug contract]"
+bash "$ROOT/tests/test-admin-slug-contract.sh" || failures=$((failures+1))
+echo "[admin route readiness]"
+bash "$ROOT/tests/test-admin-route-readiness.sh" || failures=$((failures+1))
+echo "[canonical navigation]"
+bash "$ROOT/tests/test-canonical-navigation.sh" || failures=$((failures+1))
 echo "[vendored installer]"
 bash "$ROOT/tests/test-vendored-installer.sh" || failures=$((failures+1))
 echo "[native i18n]"
