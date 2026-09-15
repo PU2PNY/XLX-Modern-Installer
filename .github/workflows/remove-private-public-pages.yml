@@ -1,0 +1,76 @@
+name: Remove private public pages from package
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/remove-private-public-pages.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Remove Support and ANATEL simulator from distributable tree
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          test "$(git rev-parse HEAD^)" = 4d1e6ed905588b043d0804bf68a2b6b04aff5278
+          BASE=2786d77cbcc24248eba6b41da626948ec6203f36
+
+          git checkout "$BASE" -- \
+            dashboard/index.php \
+            dashboard/install/fresh-install-parity.sh \
+            modules/70-nginx.sh
+
+          git rm -f --ignore-unmatch \
+            dashboard/support-native.php \
+            dashboard/assets/support-native.css \
+            dashboard/assets/support-native.js \
+            dashboard/simulado-anatel-view.php \
+            dashboard/simulado-anatel/index.php \
+            dashboard/assets/simulado-anatel.css \
+            dashboard/assets/simulado-anatel-questions.js \
+            dashboard/assets/simulado-anatel-engine.js \
+            dashboard/assets/simulado-anatel.js \
+            tests/test-public-route-parity.sh
+
+          # Guard: distributable source must no longer expose either page.
+          ! git ls-files | grep -Eq '(^|/)(support-native|simulado-anatel)'
+          ! grep -Eq "'suporte'|'simulado-anatel'" dashboard/index.php
+          ! grep -Eq 'suporte|simulado-anatel' modules/70-nginx.sh
+
+          bash tests/test-current-panel-runtime-parity.sh
+          bash tests/test-install-flow.sh
+          bash tests/test-vendored-installer.sh
+          git diff --check
+
+          # The distributable tree must match the last approved package exactly,
+          # excluding only this temporary workflow which is removed below.
+          git diff --exit-code "$BASE" -- \
+            dashboard/index.php \
+            dashboard/install/fresh-install-parity.sh \
+            modules/70-nginx.sh \
+            dashboard/support-native.php \
+            dashboard/assets/support-native.css \
+            dashboard/assets/support-native.js \
+            dashboard/simulado-anatel-view.php \
+            dashboard/simulado-anatel/index.php \
+            dashboard/assets/simulado-anatel.css \
+            dashboard/assets/simulado-anatel-questions.js \
+            dashboard/assets/simulado-anatel-engine.js \
+            dashboard/assets/simulado-anatel.js \
+            tests/test-public-route-parity.sh
+
+          git config user.name 'PU2PNY Automation'
+          git config user.email '47339656+PU2PNY@users.noreply.github.com'
+          git rm .github/workflows/remove-private-public-pages.yml
+          git add dashboard/index.php dashboard/install/fresh-install-parity.sh modules/70-nginx.sh
+          git commit -m 'Keep Support and ANATEL simulator out of public package'
+          git push origin HEAD:main
