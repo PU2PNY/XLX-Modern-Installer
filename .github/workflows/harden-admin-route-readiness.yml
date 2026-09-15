@@ -1,0 +1,110 @@
+name: Harden Admin route readiness
+on:
+  push:
+    paths:
+      - '.github/workflows/harden-admin-route-readiness.yml'
+permissions:
+  contents: write
+jobs:
+  harden:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Require Admin route over active local scheme
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path('modules/69-admin-page.sh')
+          s = p.read_text()
+          pattern = re.compile(r'''# Quando o HTTPS já está disponível, confirme a rota nova antes de declarar\n.*?^fi\n\nSUCCESS=1''', re.M | re.S)
+          replacement = r'''# Prove the configured private route on the web stack that is actually available
+# at this stage. A pending Let's Encrypt certificate must never skip this check.
+ADMIN_SCHEME='http'
+ADMIN_PORT='80'
+if [[ -s "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" && -s "/etc/letsencrypt/live/$DOMAIN/privkey.pem" ]]; then
+  ADMIN_SCHEME='https'
+  ADMIN_PORT='443'
+fi
+ADMIN_BASE="$ADMIN_SCHEME://$DOMAIN"
+ADMIN_CURL=(curl --silent --show-error --resolve "$DOMAIN:$ADMIN_PORT:127.0.0.1" --connect-timeout 5 --max-time 12)
+[[ "$ADMIN_SCHEME" == https ]] && ADMIN_CURL+=(--insecure)
+if ! "${ADMIN_CURL[@]}" "$ADMIN_BASE/$slug/" -o "$WORK/admin-web.html"; then
+  fail "$(say 'A rota privada do Admin não respondeu localmente.' 'Private Admin route did not respond locally.')"
+fi
+grep -Fq "$TITLE" "$WORK/admin-web.html" || fail "$(say 'A rota Admin respondeu, mas não entregou a tela privada correta.' 'Admin route responded but did not deliver the correct private page.')"
+[[ -s "$WORK/admin-web.html" ]] || fail "$(say 'A rota Admin retornou resposta vazia.' 'Admin route returned an empty response.')"
+LOGIN_MARKER="$(say 'Acesso restrito' 'Restricted access')"
+grep -Fq "$LOGIN_MARKER" "$WORK/admin-web.html" || fail "$(say 'A rota Admin não entregou a tela de autenticação.' 'Admin route did not deliver the authentication page.')"
+ok "$(say "Rota privada do Admin validada localmente por $ADMIN_SCHEME." "Private Admin route validated locally over $ADMIN_SCHEME.")"
+
+SUCCESS=1'''
+          s2, n = pattern.subn(replacement, s, count=1)
+          if n != 1:
+              raise SystemExit(f'admin web validation block replacement count={n}')
+          p.write_text(s2)
+
+          p = Path('dashboard/install/fresh-install-parity.sh')
+          s = p.read_text()
+          marker = "ok 'Current dashboard routes validated.'\n\nprintf 'ASSET_BUILD_TOKEN=%s\\n' \"$ASSET_TOKEN\""
+          insertion = r'''ok 'Current dashboard routes validated.'
+
+# The hidden Admin route is part of installation readiness even when HTTPS is
+# still pending. Validate the saved slug through the final Nginx/PHP-FPM edge.
+ADMIN_ROUTE_FILE='/etc/xlx-modern-control/route'
+[[ -s "$ADMIN_ROUTE_FILE" ]] || fail 'Private Admin route file is missing.'
+ADMIN_SLUG="$(tr -d '\r\n' < "$ADMIN_ROUTE_FILE")"
+[[ "$ADMIN_SLUG" =~ ^[a-z0-9][a-z0-9-]{1,31}$ ]] || fail 'Private Admin route slug is invalid.'
+ADMIN_HTML="$(mktemp /tmp/xlx-admin-readiness.XXXXXX.html)"
+trap 'rm -f "$ADMIN_HTML"' EXIT
+"${CURL[@]}" "$BASE/$ADMIN_SLUG/" -o "$ADMIN_HTML" || fail 'Private Admin route HTTP probe failed.'
+[[ -s "$ADMIN_HTML" ]] || fail 'Private Admin route returned an empty response.'
+if ! grep -Eq 'Restricted access|Acesso restrito' "$ADMIN_HTML"; then
+    fail 'Private Admin route did not render the authentication screen.'
+fi
+rm -f "$ADMIN_HTML"
+trap - EXIT
+ok 'Private Admin route validated through the final web edge.'
+
+printf 'ASSET_BUILD_TOKEN=%s\n' "$ASSET_TOKEN"'''
+          if marker not in s:
+              raise SystemExit('fresh parity insertion marker missing')
+          p.write_text(s.replace(marker, insertion, 1))
+          PY
+
+          cat > tests/test-admin-route-readiness.sh <<'TEST'
+          #!/usr/bin/env bash
+          set -Eeuo pipefail
+          ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+          fail(){ printf 'FAIL | %s\n' "$*" >&2; exit 1; }
+          grep -Fq "ADMIN_SCHEME='http'" "$ROOT/modules/69-admin-page.sh" || fail 'Admin installer does not default readiness probe to HTTP'
+          grep -Fq 'ADMIN_CURL=(curl' "$ROOT/modules/69-admin-page.sh" || fail 'Admin installer local web probe missing'
+          grep -Fq "ADMIN_ROUTE_FILE='/etc/xlx-modern-control/route'" "$ROOT/dashboard/install/fresh-install-parity.sh" || fail 'final parity Admin route probe missing'
+          grep -Fq "Private Admin route validated through the final web edge." "$ROOT/dashboard/install/fresh-install-parity.sh" || fail 'final parity Admin success marker missing'
+          echo 'OK | Admin private route is mandatory in intermediate and final readiness gates'
+          TEST
+          chmod +x tests/test-admin-route-readiness.sh
+      - name: Validate
+        shell: bash
+        run: |
+          bash -n modules/69-admin-page.sh dashboard/install/fresh-install-parity.sh tests/test-admin-route-readiness.sh
+          bash tests/test-admin-slug-contract.sh
+          bash tests/test-admin-route-readiness.sh
+          git diff --check
+          bash tests/run-all.sh
+      - name: Publish hardening and remove one-shot workflow
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          rm -f .github/workflows/harden-admin-route-readiness.yml
+          git config user.name 'PU2PNY Automation'
+          git config user.email '47339656+PU2PNY@users.noreply.github.com'
+          git add modules/69-admin-page.sh dashboard/install/fresh-install-parity.sh tests/test-admin-route-readiness.sh .github/workflows/harden-admin-route-readiness.yml
+          git diff --cached --check
+          git commit -m 'Require private Admin route readiness'
+          git push origin HEAD:main
