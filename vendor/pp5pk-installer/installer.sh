@@ -406,7 +406,11 @@ resolve_timezone() {
 }
 
 #  20. Start of data collection
-clear
+# Keep the interactive screen clear, but never make a headless/non-TTY install
+# fail merely because TERM is unset or unusable.
+if [[ -t 1 && "${TERM:-dumb}" != "dumb" ]]; then
+    clear
+fi
 line_type3
 echo ""
 center_wrap_color $GREEN "XLX MODERN INSTALLER — PU2PNY"
