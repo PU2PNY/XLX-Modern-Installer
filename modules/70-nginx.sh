@@ -225,12 +225,16 @@ write_http_site
 ln -sfn /etc/nginx/sites-available/xlx-modern.conf /etc/nginx/sites-enabled/xlx-modern.conf
 rm -f /etc/nginx/sites-enabled/default
 systemctl enable --now php8.2-fpm
+
+# The upstream base installer leaves Apache active on port 80. Stop it BEFORE
+# starting Nginx, otherwise a clean installation deterministically fails with
+# "bind() to 0.0.0.0:80 failed (98: Address already in use)".
+# Apache remains installed only for compatibility with the upstream base installer;
+# production parity uses Nginx + PHP-FPM as the web edge.
+systemctl disable --now apache2 >/dev/null 2>&1 || true
+
 nginx -t
 systemctl enable --now nginx
-
-# Apache remains installed only for compatibility with the upstream base installer,
-# but production parity uses Nginx + PHP-FPM as the web edge.
-systemctl disable --now apache2 >/dev/null 2>&1 || true
 
 # Replace the legacy Apache Certbot retry with a webroot-based Nginx-safe retry.
 HTTPS_RETRY=/usr/local/sbin/xlx-modern-https-retry
