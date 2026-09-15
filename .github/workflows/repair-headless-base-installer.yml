@@ -1,0 +1,81 @@
+name: Repair headless base installer
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/repair-headless-base-installer.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply verified repair
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          expected_parent=20a8f1a25374601ca2cabe781bb79024d3726272
+          actual_parent="$(git rev-parse HEAD^)"
+          test "$actual_parent" = "$expected_parent"
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib,re
+
+          vendor=Path('vendor/pp5pk-installer/installer.sh')
+          s=vendor.read_text(encoding='utf-8')
+          old='''#  20. Start of data collection
+          clear
+          line_type3
+          '''
+          new='''#  20. Start of data collection
+          # Keep the interactive screen clear, but never make a headless/non-TTY install
+          # fail merely because TERM is unset or unusable.
+          if [[ -t 1 && "${TERM:-dumb}" != "dumb" ]]; then
+              clear
+          fi
+          line_type3
+          '''
+          if old not in s:
+              raise SystemExit('base clear target not found')
+          vendor.write_text(s.replace(old,new,1),encoding='utf-8')
+
+          sha=hashlib.sha256(vendor.read_bytes()).hexdigest()
+          install=Path('install.sh')
+          t=install.read_text(encoding='utf-8')
+          t2,n=re.subn(r'readonly EXPECTED_INSTALLER_SHA256="[0-9a-f]{64}"',f'readonly EXPECTED_INSTALLER_SHA256="{sha}"',t,count=1)
+          if n != 1:
+              raise SystemExit('checksum pin target not found')
+          install.write_text(t2,encoding='utf-8')
+
+          p=Path('tests/test-vendored-installer.sh')
+          u=p.read_text(encoding='utf-8')
+          anchor='''bash -n "$source"\nbash -n "$ROOT/vendor/pp5pk-installer/templates/uninstaller.sh"\n'''
+          insert='''bash -n "$source"\ngrep -Fq 'if [[ -t 1 && "${TERM:-dumb}" != "dumb" ]]; then' "$source" || { echo "[FAIL] vendored installer still requires an interactive TERM" >&2; exit 1; }\nif grep -qx 'clear' "$source"; then echo "[FAIL] unguarded clear remains in vendored installer" >&2; exit 1; fi\nbash -n "$ROOT/vendor/pp5pk-installer/templates/uninstaller.sh"\n'''
+          if anchor not in u:
+              raise SystemExit('vendored test anchor not found')
+          p.write_text(u.replace(anchor,insert,1),encoding='utf-8')
+          PY
+
+          bash -n vendor/pp5pk-installer/installer.sh
+          bash -n install.sh
+          bash tests/test-vendored-installer.sh
+          bash tests/test-install-flow.sh
+          test "$(git hash-object vendor/pp5pk-installer/installer.sh)" = 8943b58a729cdd26794ac009fad1f118110e1aa3
+          test "$(git hash-object install.sh)" = 35b7c99c2abe3fb6719a496277a3bf49e70afac0
+          test "$(git hash-object tests/test-vendored-installer.sh)" = eb6cee7467fb42a9431a5df08ff8751dc517f249
+          test "$(sha256sum vendor/pp5pk-installer/installer.sh | awk '{print $1}')" = fe1e33d24d2b6f138e288e00385d3e9b45a95d4691f51bb99972405bb1bc35ab
+
+          git config user.name 'PU2PNY Automation'
+          git config user.email '47339656+PU2PNY@users.noreply.github.com'
+          git add vendor/pp5pk-installer/installer.sh install.sh tests/test-vendored-installer.sh
+          git rm .github/workflows/repair-headless-base-installer.yml
+          git commit -m 'Fix headless clean-install terminal handling'
+          git push origin HEAD:main
