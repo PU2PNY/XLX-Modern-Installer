@@ -6,6 +6,7 @@ umask 027
 DASH="${XLX_DASHBOARD_DIR:-${INSTALL_DIR:-/var/www/html/xlxd}}"
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
 VERSION="$(cat "$ROOT/VERSION" 2>/dev/null || printf 'dev')"
+EXPECT_WEB_STACK="${XLX_EXPECT_WEB_STACK:-}"
 
 fail(){ printf '[ERROR] %s\n' "$*" >&2; exit 1; }
 ok(){ printf '[OK] %s\n' "$*"; }
@@ -16,6 +17,15 @@ ok(){ printf '[OK] %s\n' "$*"; }
 [[ -f "$DASH/assets/app.css" ]] || fail "Dashboard app.css missing: $DASH/assets/app.css"
 [[ -f "$DASH/assets/ham-weather-widget.js" ]] || fail "Weather widget missing."
 [[ -f "$DASH/config/site.php" ]] || fail "Dashboard site config missing."
+
+if [[ "$EXPECT_WEB_STACK" == nginx ]]; then
+    systemctl is-active --quiet nginx || fail 'Final web stack invalid: Nginx is not active.'
+    systemctl is-active --quiet php8.2-fpm || fail 'Final web stack invalid: PHP-FPM is not active.'
+    if systemctl is-active --quiet apache2; then
+        fail 'Final web stack invalid: Apache is still active.'
+    fi
+    ok 'Final web stack is Nginx + PHP-FPM; Apache is inactive.'
+fi
 
 # A reinstall of the same domain must never reuse JS/CSS cached from an older
 # installation. Rewrite every local CSS/JS asset reference with a build token
@@ -107,16 +117,48 @@ fi
 BASE="$SCHEME://$DOMAIN"
 CURL=(curl --noproxy '*' -kfsS --max-time 20 --resolve "$DOMAIN:$PORT:127.0.0.1")
 
-# The dashboard is not considered ready merely because files exist. Exercise
-# the same live data APIs the browser uses through Apache on the local server.
+# The dashboard is not considered ready merely because files exist. First prove
+# that the PHP worker identity can read every runtime source, then exercise the
+# same live APIs used by the browser. This makes clean-install failures explicit.
+for source_key in xml_path log_path users_db; do
+    source_path="$(php -r '$c=require $argv[1]; echo (string)($c[$argv[2]]??"");' "$DASH/config.php" "$source_key")"
+    [[ -n "$source_path" ]] || fail "Runtime source path missing from config: $source_key"
+    if ! runuser -u www-data -- test -r "$source_path"; then
+        fail "Runtime source is not readable by www-data: $source_key=$source_path"
+    fi
+done
+ok 'Runtime XML/log/database sources are readable by www-data.'
+
+# Remove only generated response caches so this installation gate validates the
+# current filesystem and services, not a response created during an earlier
+# intermediate Apache request. Lock files are intentionally left untouched.
+rm -f /var/cache/xlx-dashboard/status*.json 2>/dev/null || true
+if [[ -d /var/cache/nginx/xlx-modern/fpm ]]; then
+    find /var/cache/nginx/xlx-modern/fpm -type f -delete 2>/dev/null || true
+fi
+
 status_json="$("${CURL[@]}" "$BASE/api/status.php?history_hours=24&fresh_install_probe=1")" || fail 'status.php HTTP probe failed.'
-printf '%s' "$status_json" | php -r '
+if ! printf '%s' "$status_json" | php -r '
 $d=json_decode(stream_get_contents(STDIN),true);
 if(!is_array($d)||empty($d["ok"])) exit(1);
 if(!isset($d["modules"])||!is_array($d["modules"])||count($d["modules"])<1) exit(2);
 $s=$d["sources"]??[];
 foreach(["xml","log","db"] as $k){if(empty($s[$k])) exit(3);}
-' || fail 'status.php JSON/source validation failed.'
+'; then
+    printf '%s' "$status_json" | php -r '
+$d=json_decode(stream_get_contents(STDIN),true);
+if(!is_array($d)){fwrite(STDERR,"[ERROR] status.php returned invalid JSON\n"); exit;}
+$src=$d["sources"]??[];
+fwrite(STDERR,sprintf("[ERROR] status.php diagnostic: ok=%s error=%s modules=%d sources(xml=%s log=%s db=%s)\n",
+    !empty($d["ok"])?"true":"false",
+    (string)($d["error"]??"none"),
+    is_array($d["modules"]??null)?count($d["modules"]):0,
+    !empty($src["xml"])?"true":"false",
+    !empty($src["log"])?"true":"false",
+    !empty($src["db"])?"true":"false"));
+' >&2 || true
+    fail 'status.php JSON/source validation failed.'
+fi
 ok 'status.php live data path validated.'
 
 live_json="$("${CURL[@]}" "$BASE/api/live.php?fresh_install_probe=1")" || fail 'live.php HTTP probe failed.'
@@ -126,7 +168,7 @@ if(!is_array($d)||empty($d["ok"])) exit(1);
 ' || fail 'live.php JSON validation failed.'
 ok 'live.php data path validated.'
 
-# Page routes must render through Apache. Empty current traffic is valid; a
+# Page routes must render through the final web edge. Empty current traffic is valid; a
 # broken route, stale asset or server error is not.
 for page in ao-vivo conectados modulos digital-lab certificado refletores; do
     "${CURL[@]}" "$BASE/?page=$page&fresh_install_probe=1" >/dev/null || fail "Dashboard route failed: $page"

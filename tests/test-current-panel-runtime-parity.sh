@@ -15,18 +15,22 @@ grep -Fq 'status_json="$("${CURL[@]}"' "$ROOT/dashboard/install/fresh-install-pa
 grep -Fq 'live_json="$("${CURL[@]}"' "$ROOT/dashboard/install/fresh-install-parity.sh" || fail 'live curl array expansion is unquoted'
 ok 'fresh-install curl array expansion is protected from wildcard globbing'
 
-# Final-render validation must run after post-install rendering and before later
-# Admin/observability stages.
-python3 - "$ROOT/modules/60-dashboard-modern.sh" <<'PY'
+# Full-install runtime parity must validate the FINAL stack, never the temporary
+# Apache state created by the upstream base installer.
+python3 - "$ROOT/install.sh" "$ROOT/modules/60-dashboard-modern.sh" <<'PY'
 import sys
-s=open(sys.argv[1],encoding='utf-8').read()
-a=s.index('install-dashboard.sh')
-b=s.index('post-install.sh')
-c=s.index('fresh-install-parity.sh')
-d=s.index('65-callsign-directory.sh')
-assert a < b < c < d, (a,b,c,d)
+install=open(sys.argv[1],encoding='utf-8').read()
+module=open(sys.argv[2],encoding='utf-8').read()
+a=install.index('modules/60-dashboard-modern.sh', install.index('execute_installer()'))
+b=install.index('modules/70-nginx.sh', a)
+c=install.index('modules/67-aprs-dprs.sh', b)
+d=install.index('modules/71-observability.sh', c)
+e=install.index('dashboard/install/fresh-install-parity.sh', d)
+assert a < b < c < d < e, (a,b,c,d,e)
+assert 'fresh-install-parity.sh' not in module
+assert 'XLX_EXPECT_WEB_STACK=nginx' in install[e-200:e+300]
 PY
-ok 'parity gate runs on the final rendered dashboard copy'
+ok 'full-install parity gate runs only after Nginx, APRS/D-PRS and observability'
 
 # The exact source-code leak seen in the v1.2.11 screenshot must never return.
 if grep -Fq 'root.innerHTML='"'"'<div class="hamwx-skeleton">${tr(' "$ROOT/dashboard/assets/ham-weather-widget.js"; then
@@ -92,5 +96,7 @@ fi
 # accepting a dashboard that merely has files on disk.
 grep -Fq 'api/status.php?history_hours=24&fresh_install_probe=1' "$ROOT/dashboard/install/fresh-install-parity.sh" || fail 'status API runtime probe missing'
 grep -Fq 'api/live.php?fresh_install_probe=1' "$ROOT/dashboard/install/fresh-install-parity.sh" || fail 'live API runtime probe missing'
-grep -Fq 'foreach(["xml","log","db"]' "$ROOT/dashboard/install/fresh-install-parity.sh" || fail 'runtime source validation missing'
+grep -Fq 'Runtime XML/log/database sources are readable by www-data.' "$ROOT/dashboard/install/fresh-install-parity.sh" || fail 'filesystem runtime source validation missing'
+grep -Fq 'foreach(["xml","log","db"]' "$ROOT/dashboard/install/fresh-install-parity.sh" || fail 'status payload source validation missing'
+grep -Fq 'Final web stack is Nginx + PHP-FPM; Apache is inactive.' "$ROOT/dashboard/install/fresh-install-parity.sh" || fail 'final Nginx stack gate missing'
 ok 'fresh install requires live status/live API and XML/log/DB sources'

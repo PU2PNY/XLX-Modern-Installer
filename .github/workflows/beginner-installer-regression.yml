@@ -57,11 +57,14 @@ jobs:
           assert 'tmux -L "$TMUX_SOCKET"' not in start
           assert 'TUI_MODE="off"' in install
 
+          # The localized runtime is produced by sed expressions in install.sh.
+          # Validate the actual one-backslash sed markers (01\., 02\., ...),
+          # not a doubly escaped representation that never exists in the file.
           for number in range(1, 22):
               prefix = f'{number:02d}.'
               assert prefix in vendor, f'missing vendor question {prefix}'
-              escaped = f'{number:02d}\\\\.'
-              assert escaped in install, f'missing bilingual rewrite for question {prefix}'
+              sed_marker = f'{number:02d}' + r'\.'
+              assert sed_marker in install, f'missing bilingual rewrite for question {prefix}'
 
           for marker in (
               'DADOS DO REFLETOR / REFLECTOR DATA INPUT',
@@ -88,5 +91,5 @@ jobs:
           assert m
           actual = hashlib.sha256(Path('vendor/pp5pk-installer/installer.sh').read_bytes()).hexdigest()
           assert m.group(1) == actual
-          assert Path('VERSION').read_text().strip() == '1.4.5'
+          assert Path('VERSION').read_text().strip() == '1.4.6'
           PY
