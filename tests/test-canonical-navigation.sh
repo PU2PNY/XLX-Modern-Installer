@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# Final canonical-route regression gate.
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 fail(){ printf 'FAIL | %s\n' "$*" >&2; exit 1; }
 INDEX="$ROOT/dashboard/index.php"
