@@ -1,0 +1,77 @@
+/* {{REFLECTOR_NAME}} — Simulado ANATEL nativo V4. Escopo total: somente data-page=simulado-anatel. */
+body[data-page="simulado-anatel"] .simulado-native{max-width:1180px;margin:0 auto;padding:28px 18px 50px;color:#edf8ff}
+body[data-page="simulado-anatel"] .simulado-native *{box-sizing:border-box}
+body[data-page="simulado-anatel"] .simulado-native a{color:#75d3ff}
+body[data-page="simulado-anatel"] .simulado-native .hidden{display:none!important}
+body[data-page="simulado-anatel"] .simulado-hero{padding:22px 0 12px}
+body[data-page="simulado-anatel"] .simulado-native .hero-topline,body[data-page="simulado-anatel"] .simulado-native .section-heading{display:flex;justify-content:space-between;align-items:center;gap:20px}
+body[data-page="simulado-anatel"] .simulado-native .eyebrow{margin:0 0 7px;color:#70d3ff;font-size:12px;font-weight:900;letter-spacing:1.55px}
+body[data-page="simulado-anatel"] .simulado-hero h1{max-width:950px;margin:0 0 14px;color:#edf8ff;font-size:clamp(31px,5.5vw,51px);line-height:1.04;letter-spacing:-.8px}
+body[data-page="simulado-anatel"] .simulado-native .hero-lead{max-width:900px;color:#cbdfea;font-size:18px;line-height:1.55}
+body[data-page="simulado-anatel"] .simulado-native .utility-tools{display:flex;justify-content:flex-end;gap:7px;flex-wrap:wrap}
+body[data-page="simulado-anatel"] .simulado-native .utility-tools button{padding:8px 10px;border:1px solid #375f79;border-radius:9px;background:#0c2638;color:#eaf8ff;font-weight:800;cursor:pointer}
+body[data-page="simulado-anatel"] .simulado-native .not-official{margin-top:20px;padding:15px 17px;border:1px solid #957437;border-radius:13px;background:linear-gradient(135deg,rgba(111,79,21,.34),rgba(16,38,52,.82));box-shadow:0 12px 35px rgba(0,0,0,.12)}
+body[data-page="simulado-anatel"] .simulado-native .not-official>span{display:inline-block;padding:5px 9px;border-radius:999px;background:#f0c96d;color:#261b05;font-size:11px;font-weight:950;letter-spacing:.8px}
+body[data-page="simulado-anatel"] .simulado-native .not-official p{margin:10px 0 0;color:#f4ead2;line-height:1.52}
+body[data-page="simulado-anatel"] .simulado-native .view{margin-top:24px}
+body[data-page="simulado-anatel"] .simulado-native .section-heading{margin-bottom:14px}
+body[data-page="simulado-anatel"] .simulado-native .section-heading h2,body[data-page="simulado-anatel"] .simulado-native .section-heading h3{margin:0}
+body[data-page="simulado-anatel"] .simulado-native .source-badge{padding:7px 10px;border:1px solid #315a73;border-radius:999px;background:#0d2535;color:#b8d1df;font-size:11px;white-space:nowrap}
+body[data-page="simulado-anatel"] .simulado-native .cards{display:flex;gap:14px;flex-wrap:wrap}
+body[data-page="simulado-anatel"] .simulado-native .class-card,body[data-page="simulado-anatel"] .simulado-native .subjects button{flex:1 1 250px;min-height:142px;padding:19px;border:1px solid #315a74;border-radius:15px;background:linear-gradient(145deg,#0c2233,#0e2a3e);box-shadow:0 12px 32px rgba(0,0,0,.18);color:#eff9ff;text-align:left;cursor:pointer;transition:transform .15s ease,border-color .15s ease,background .15s ease}
+body[data-page="simulado-anatel"] .simulado-native .class-card:hover,body[data-page="simulado-anatel"] .simulado-native .class-card.selected,body[data-page="simulado-anatel"] .simulado-native .subjects button:hover{border-color:#6fd4ff;background:linear-gradient(145deg,#0e2c43,#123752);transform:translateY(-2px)}
+body[data-page="simulado-anatel"] .simulado-native .class-card span,body[data-page="simulado-anatel"] .simulado-native .subjects span{display:block;color:#79d7ff;font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:1px}
+body[data-page="simulado-anatel"] .simulado-native .class-card b{display:block;margin-top:8px;font-size:21px}
+body[data-page="simulado-anatel"] .simulado-native .class-card small,body[data-page="simulado-anatel"] .simulado-native .subjects small{display:block;margin-top:10px;color:#b8d0df;line-height:1.45}
+body[data-page="simulado-anatel"] .simulado-native .eligibility{min-height:50px;margin:15px 0;padding:13px 15px;border-left:4px solid #efc261;border-radius:7px;background:#172532;line-height:1.45}
+body[data-page="simulado-anatel"] .simulado-native .mode-row{display:flex;gap:10px;flex-wrap:wrap}
+body[data-page="simulado-anatel"] .simulado-native .mode-row button,body[data-page="simulado-anatel"] .simulado-native .quiz-actions button,body[data-page="simulado-anatel"] .simulado-native .back{padding:11px 15px;border:1px solid #3c647d;border-radius:10px;background:#10283a;color:#f2fbff;font-weight:850;cursor:pointer}
+body[data-page="simulado-anatel"] .simulado-native .mode-row button:disabled{opacity:.45;cursor:not-allowed}
+body[data-page="simulado-anatel"] .simulado-native .primary{border-color:#35b2f5!important;background:#147bb9!important}
+body[data-page="simulado-anatel"] .simulado-native .rules,body[data-page="simulado-anatel"] .simulado-native .sources,body[data-page="simulado-anatel"] .simulado-native .study-guide{margin-top:30px;padding:20px;border:1px solid #294b62;border-radius:15px;background:rgba(9,28,43,.88);box-shadow:0 14px 38px rgba(0,0,0,.12)}
+body[data-page="simulado-anatel"] .simulado-native .rule-grid{display:flex;gap:12px;flex-wrap:wrap}
+body[data-page="simulado-anatel"] .simulado-native .rule-grid div{flex:1 1 220px;padding:14px;border:1px solid #284d65;border-radius:11px;background:#10293b}
+body[data-page="simulado-anatel"] .simulado-native .rule-grid b,body[data-page="simulado-anatel"] .simulado-native .rule-grid span{display:block}
+body[data-page="simulado-anatel"] .simulado-native .rule-grid span{margin-top:5px;color:#b9cedc}
+body[data-page="simulado-anatel"] .simulado-native .quiz-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px}
+body[data-page="simulado-anatel"] .simulado-native .quiz-head h2{margin:0}
+body[data-page="simulado-anatel"] .simulado-native .question-origin{margin:12px 0 8px;color:#f0cf83;font-size:11px;font-weight:900;letter-spacing:.75px}
+body[data-page="simulado-anatel"] .simulado-native .timer{min-width:90px;padding:10px 13px;border:1px solid #386077;border-radius:10px;background:#132d40;font-size:22px;font-weight:950;text-align:center}
+body[data-page="simulado-anatel"] .simulado-native .timer.warning{border-color:#e3a84c;color:#ffd381}
+body[data-page="simulado-anatel"] .simulado-native .progress{height:9px;margin:17px 0 7px;overflow:hidden;border-radius:99px;background:#132b3d}
+body[data-page="simulado-anatel"] .simulado-native .progress i{display:block;width:0;height:100%;background:#36bdf7}
+body[data-page="simulado-anatel"] .simulado-native .progress-text{color:#a9c4d6;font-size:13px}
+body[data-page="simulado-anatel"] .simulado-native .question-card{margin-top:18px;padding:23px;border:1px solid #325b74;border-radius:16px;background:#0b2234;box-shadow:0 15px 40px rgba(0,0,0,.15)}
+body[data-page="simulado-anatel"] .simulado-native .question{min-height:96px;margin:0;font-size:22px;line-height:1.47}
+body[data-page="simulado-anatel"] .simulado-native .answers{display:flex;gap:12px;margin-top:24px}
+body[data-page="simulado-anatel"] .simulado-native .answers button{flex:1;padding:16px;border:2px solid #42718f;border-radius:12px;background:#102c42;color:#fff;font-size:18px;font-weight:950;cursor:pointer}
+body[data-page="simulado-anatel"] .simulado-native .answers button.correct{border-color:#4ac785;background:#194c36}
+body[data-page="simulado-anatel"] .simulado-native .answers button.wrong{border-color:#e06a71;background:#55272a}
+body[data-page="simulado-anatel"] .simulado-native .feedback{margin-top:18px;padding:15px;border-radius:10px;background:#0d2c3f;line-height:1.5}
+body[data-page="simulado-anatel"] .simulado-native .feedback.good{border-left:4px solid #4ac785}
+body[data-page="simulado-anatel"] .simulado-native .feedback.bad{border-left:4px solid #e56c73}
+body[data-page="simulado-anatel"] .simulado-native .quiz-actions{display:flex;justify-content:space-between;gap:10px;margin-top:14px}
+body[data-page="simulado-anatel"] .simulado-native .result-box{margin:12px 0;padding:18px;border:1px solid #31566f;border-radius:14px;background:#0c2132}
+body[data-page="simulado-anatel"] .simulado-native .result-box.pass{border-left:5px solid #42c27e}
+body[data-page="simulado-anatel"] .simulado-native .result-box.fail{border-left:5px solid #e26770}
+body[data-page="simulado-anatel"] .simulado-native .result-score{font-size:30px;font-weight:950}
+body[data-page="simulado-anatel"] .simulado-native .review-item{padding:13px 0;border-top:1px solid #29485d}
+body[data-page="simulado-anatel"] .simulado-native .sources p,body[data-page="simulado-anatel"] .simulado-native .study-guide p{color:#c6d9e5;line-height:1.62}
+body[data-page="simulado-anatel"] .simulado-native .sources li{margin:8px 0}
+body[data-page="simulado-anatel"] .simulado-native .guide-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin:18px 0 24px}
+body[data-page="simulado-anatel"] .simulado-native .guide-grid article{padding:15px;border:1px solid #2d5067;border-radius:12px;background:#10293b}
+body[data-page="simulado-anatel"] .simulado-native .faq{margin-top:20px;border-top:1px solid #294b62}
+body[data-page="simulado-anatel"] .simulado-native .faq details{padding:12px 0;border-bottom:1px solid #294b62}
+body[data-page="simulado-anatel"] .simulado-native .faq summary{color:#edf9ff;font-weight:850;cursor:pointer}
+body[data-page="simulado-anatel"] .simulado-native .xlx026-norm-proof{margin-top:14px;padding:14px 15px;border:1px solid #2c6682;border-radius:11px;background:rgba(6,30,45,.86)}
+body[data-page="simulado-anatel"] .simulado-native .xlx026-norm-proof h4{margin:0 0 8px;color:#7bdcff;font-size:14px}
+body[data-page="simulado-anatel"] .simulado-native .xlx026-norm-proof p{margin:7px 0;line-height:1.5}
+body[data-page="simulado-anatel"] .simulado-native .xlx026-norm-proof a{display:inline-block;margin-top:6px;font-weight:900}
+body[data-page="simulado-anatel"] .simulado-native .xlx026-norm-proof small{display:block;margin-top:10px;color:#b7cbd6;line-height:1.45}
+body.large-text[data-page="simulado-anatel"] .simulado-native{font-size:118%}
+html.high-contrast body[data-page="simulado-anatel"] .simulado-native{color:#fff!important}
+html.high-contrast body[data-page="simulado-anatel"] .simulado-native .class-card,html.high-contrast body[data-page="simulado-anatel"] .simulado-native .subjects button,html.high-contrast body[data-page="simulado-anatel"] .simulado-native .rules,html.high-contrast body[data-page="simulado-anatel"] .simulado-native .sources,html.high-contrast body[data-page="simulado-anatel"] .simulado-native .study-guide,html.high-contrast body[data-page="simulado-anatel"] .simulado-native .question-card,html.high-contrast body[data-page="simulado-anatel"] .simulado-native .result-box,html.high-contrast body[data-page="simulado-anatel"] .simulado-native .guide-grid article{border-color:#fff!important;background:#000!important}
+html.high-contrast body[data-page="simulado-anatel"] .simulado-native a{color:#00ffff!important}
+@media(max-width:900px){body[data-page="simulado-anatel"] .simulado-native .guide-grid{grid-template-columns:1fr}}
+@media(max-width:700px){body[data-page="simulado-anatel"] .simulado-native{padding:20px 14px 40px}body[data-page="simulado-anatel"] .simulado-hero{padding-top:12px}body[data-page="simulado-anatel"] .simulado-native .hero-topline,body[data-page="simulado-anatel"] .simulado-native .section-heading{align-items:flex-start;flex-direction:column}body[data-page="simulado-anatel"] .simulado-native .utility-tools{justify-content:flex-start}body[data-page="simulado-anatel"] .simulado-native .source-badge{white-space:normal}body[data-page="simulado-anatel"] .simulado-hero h1{font-size:31px}body[data-page="simulado-anatel"] .simulado-native .question{font-size:19px}body[data-page="simulado-anatel"] .simulado-native .answers{flex-direction:column}body[data-page="simulado-anatel"] .simulado-native .quiz-head{align-items:center}body[data-page="simulado-anatel"] .simulado-native .timer{font-size:18px}}
+@media(prefers-reduced-motion:reduce){body[data-page="simulado-anatel"] .simulado-native *{scroll-behavior:auto!important;transition:none!important}}
