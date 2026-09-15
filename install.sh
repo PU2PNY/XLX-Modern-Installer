@@ -598,6 +598,7 @@ execute_dashboard_only() {
     for required_file in "$dashboard_dest/index.php" "$dashboard_dest/config/site.php" "$dashboard_dest/api/status.php" "$dashboard_dest/api/live.php"; do
         [ -s "$required_file" ] || fatal "$(msg "Arquivo obrigatório do painel ausente após atualização: $required_file" "Required dashboard file missing after update: $required_file")"
     done
+    XLX_DASHBOARD_DIR="$dashboard_dest" XLX_UI_LANG="$UI_LANG" bash "$ROOT_DIR/dashboard/install/fresh-install-parity.sh"
     systemctl is-active --quiet xlxd || fatal "$(msg "XLXD não está ativo após a atualização do painel; o núcleo não foi reinstalado. Consulte os logs antes de continuar." "XLXD is not active after the dashboard update; the core was not reinstalled. Check the logs before continuing.")"
     section "$(msg "ATUALIZAÇÃO DO PAINEL CONCLUÍDA" "DASHBOARD UPDATE COMPLETE")"
     ok "$(msg "Painel moderno validado e XLXD preservado." "Modern dashboard validated and XLXD preserved.")"
@@ -654,6 +655,9 @@ execute_installer() {
     section "$(msg "PROVISIONANDO APRS/D-PRS NATIVO" "PROVISIONING NATIVE APRS/D-PRS")"
     XLX_DASHBOARD_DIR="$dashboard_dest" XLX_UI_LANG="$UI_LANG" bash "$ROOT_DIR/modules/67-aprs-dprs.sh" "--dashboard-dir=$dashboard_dest"
     XLX_DASHBOARD_DIR="$dashboard_dest" XLX_UI_LANG="$UI_LANG" bash "$ROOT_DIR/modules/71-observability.sh" "--dashboard-dir=$dashboard_dest"
+
+    section "$(msg "VALIDANDO O ESTADO FINAL DO PAINEL" "VALIDATING FINAL DASHBOARD STATE")"
+    XLX_EXPECT_WEB_STACK=nginx XLX_DASHBOARD_DIR="$dashboard_dest" XLX_UI_LANG="$UI_LANG" bash "$ROOT_DIR/dashboard/install/fresh-install-parity.sh"
 
     section "$(msg "VALIDAÇÃO PÓS-INSTALAÇÃO" "POST-INSTALLATION VALIDATION")"
     failures=0

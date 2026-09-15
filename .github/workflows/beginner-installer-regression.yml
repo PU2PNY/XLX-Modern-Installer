@@ -88,5 +88,5 @@ jobs:
           assert m
           actual = hashlib.sha256(Path('vendor/pp5pk-installer/installer.sh').read_bytes()).hexdigest()
           assert m.group(1) == actual
-          assert Path('VERSION').read_text().strip() == '1.4.5'
+          assert Path('VERSION').read_text().strip() == '1.4.6'
           PY

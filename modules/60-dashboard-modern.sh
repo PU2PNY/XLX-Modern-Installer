@@ -46,9 +46,10 @@ XLX_UI_LANG="$UI_LANG" bash "$ROOT/modules/64-runtime-data.sh"
 XLX_UI_LANG="$UI_LANG" INSTALL_DIR="$DASH_DEST" bash "$ROOT/dashboard/install/install-dashboard.sh" "$@"
 XLX_UI_LANG="$UI_LANG" INSTALL_DIR="$DASH_DEST" bash "$ROOT/dashboard/install/post-install.sh"
 
-# Validate the final rendered/deployed copy, not only source templates. This
-# also prepares the Health source consumed later by observability.
-XLX_DASHBOARD_DIR="$DASH_DEST" XLX_UI_LANG="$UI_LANG" bash "$ROOT/dashboard/install/fresh-install-parity.sh"
+# Runtime parity is intentionally executed by the top-level installer only
+# after the production web edge (Nginx + PHP-FPM), APRS/D-PRS and observability
+# are provisioned. Running it here would validate an intermediate Apache state
+# left by the upstream base installer rather than the final installation.
 
 XLX_UI_LANG="$UI_LANG" bash "$ROOT/modules/65-callsign-directory.sh"
 XLX_DASHBOARD_DIR="$DASH_DEST" XLX_UI_LANG="$UI_LANG" bash "$ROOT/modules/69-admin-page.sh" --dashboard-dir="$DASH_DEST"
