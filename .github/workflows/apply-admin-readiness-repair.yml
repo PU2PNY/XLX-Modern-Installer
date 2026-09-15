@@ -1,0 +1,34 @@
+name: Apply Admin readiness repair
+on: push
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply repair
+        run: python3 .github/admin-readiness-fix.py
+      - name: Validate repair
+        run: |
+          bash -n modules/69-admin-page.sh
+          bash -n dashboard/install/fresh-install-parity.sh
+          bash -n modules/70-production-parity.sh
+          bash -n tests/test-admin-route-readiness.sh
+          bash tests/test-admin-slug-contract.sh
+          bash tests/test-admin-route-readiness.sh
+          git diff --check
+          bash tests/run-all.sh
+      - name: Publish repair
+        run: |
+          rm -f .github/admin-readiness-fix.py
+          rm -f .github/workflows/apply-admin-readiness-repair.yml
+          git config user.name 'PU2PNY Automation'
+          git config user.email '47339656+PU2PNY@users.noreply.github.com'
+          git add -A
+          git diff --cached --check
+          git commit -m 'Harden Admin and canonical route readiness'
+          git push origin HEAD:main
