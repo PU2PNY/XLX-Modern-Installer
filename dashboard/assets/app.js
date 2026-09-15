@@ -50,14 +50,20 @@ function xlxmodernSyncQrzPhotoSizes(root=document){
    img.style.setProperty('display','block','important');
   }
 
-  if(desktop && count===1){
+  if(desktop){
    const person=v.closest('.tx-v30-person');
    const data=person?.querySelector('.tx-v30-person-data');
+   const personColumns={
+    1:'132px minmax(0,1fr)',
+    2:'106px minmax(0,1fr)',
+    3:'90px minmax(0,1fr)'
+   }[count]||'90px minmax(0,1fr)';
+   const personGap={1:'20px',2:'10px',3:'8px'}[count]||'8px';
    if(person){
-    person.classList.add('qrz-one-tx-layout');
+    if(count===1)person.classList.add('qrz-one-tx-layout');
     person.style.setProperty('display','grid','important');
-    person.style.setProperty('grid-template-columns','132px minmax(0,1fr)','important');
-    person.style.setProperty('gap','20px','important');
+    person.style.setProperty('grid-template-columns',personColumns,'important');
+    person.style.setProperty('gap',personGap,'important');
     person.style.setProperty('align-items','center','important');
     person.style.setProperty('position','relative','important');
     person.style.setProperty('width','100%','important');
@@ -83,10 +89,13 @@ function xlxmodernSyncQrzPhotoSizes(root=document){
 function operatorVisual(call=''){
  const c=String(call||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
  const cached=xlxmodernQrzPhotoCache.get(c);
- if(typeof cached==='string'&&cached!==''){
-  return `<div class="operator-visual qrz-photo-active"><img class="tx-qrz-photo-target is-qrz-photo" data-qrz-call="${esc(c)}" data-qrz-state="photo" src="${esc(cached)}" alt="Foto pública do QRZ de ${esc(c)}"><span class="signal-ring"></span></div>`;
- }
- return `<div class="operator-visual"><img class="tx-qrz-photo-target" data-qrz-call="${esc(c)}" src="assets/talking-radio.gif" alt="Indicador de transmissão"><span class="signal-ring"></span></div>`
+ const hasPhoto=typeof cached==='string'&&cached!=='';
+ const src=hasPhoto?cached:'assets/talking-radio.gif';
+ const visualClass=hasPhoto?'operator-visual qrz-photo-active':'operator-visual';
+ const imageClass=hasPhoto?'tx-qrz-photo-target is-qrz-photo':'tx-qrz-photo-target';
+ const state=hasPhoto?' data-qrz-state="photo"':'';
+ const alt=hasPhoto?`Foto pública do QRZ de ${c}`:'Indicador de transmissão';
+ return `<div class="${visualClass}"><img class="${imageClass}" data-qrz-call="${esc(c)}"${state} src="${esc(src)}" loading="eager" decoding="async" fetchpriority="high" alt="${esc(alt)}"><span class="signal-ring"></span></div>`
 }
 async function xlxmodernLoadQrzPhoto(img){
  if(!img||img.dataset.qrzState)return;
@@ -135,7 +144,7 @@ function xlxmodernInitQrzPhotoObserver(){
  const grid=document.getElementById('moduleGrid');
  if(!grid||grid.dataset.qrzPhotoObserver==='1')return;
  grid.dataset.qrzPhotoObserver='1';
- new MutationObserver(()=>{xlxmodernHydrateQrzPhotos(grid);xlxmodernSyncQrzPhotoSizes(grid)}).observe(grid,{childList:true,subtree:true});
+ new MutationObserver(()=>{xlxmodernHydrateQrzPhotos(grid);xlxmodernSyncQrzPhotoSizes(grid)}).observe(grid,{childList:true,subtree:false});
  xlxmodernHydrateQrzPhotos(grid);
  xlxmodernSyncQrzPhotoSizes(grid);
 }
@@ -189,8 +198,70 @@ function txCard(m){
    </div>
   </div>
 
-  <div class="spectrum">${'<i></i>'.repeat(18)}</div>
+  <div class="spectrum tx-vu" data-vu-module="${esc(m.module)}" aria-label="Nível de áudio recebido pelo servidor">${'<i></i>'.repeat(18)}<span class="tx-vu-readout" aria-hidden="true">NÍVEL —</span></div>
  </article>`
+}
+
+const xlxmodernVuPeakHold=new Map();
+function xlxmodernVuSegment(value,min=-45,max=-10){
+ const v=Math.max(min,Math.min(max,Number(value)));
+ return Math.max(0,Math.min(18,Math.round(((v-min)/(max-min))*18)));
+}
+function xlxmodernUpdateTxVu(live){
+ if(page!=='ao-vivo')return;
+ const active=live&&live.active?live.active:{};
+ const now=Date.now();
+
+ document.querySelectorAll('#moduleGrid .tx-vu[data-vu-module]').forEach(vu=>{
+  const module=String(vu.dataset.vuModule||'').toUpperCase();
+  const tx=active[module]||lastData?.modules?.[module]?.transmission||null;
+  const audio=tx&&tx.audio_vu?tx.audio_vu:null;
+  const bars=[...vu.querySelectorAll('i')];
+  const readout=vu.querySelector('.tx-vu-readout');
+  const ts=Number(audio?.ts_ms||0);
+  const fresh=audio&&Number.isFinite(ts)&&Math.abs(now-ts)<=1800;
+
+  if(!fresh){
+   vu.classList.remove('is-live','vu-low','vu-ideal','vu-high');
+   bars.forEach(bar=>bar.classList.remove('vu-lit','vu-peak'));
+   if(readout)readout.textContent='NÍVEL —';
+   return;
+  }
+
+  const rms=Number(audio.rms_dbfs);
+  const peak=Number(audio.peak_dbfs);
+  if(!Number.isFinite(rms)||!Number.isFinite(peak))return;
+
+  const backendState=String(audio.level||'').toLowerCase();
+  const state=['low','ideal','high'].includes(backendState)?backendState:(rms<-33?'low':(rms>-20?'high':'ideal'));
+  const label=state==='low'?'BAIXO':(state==='high'?'ALTO':'IDEAL');
+  const lit=xlxmodernVuSegment(rms);
+  const peakSeg=Math.max(1,xlxmodernVuSegment(peak));
+  const holdKey=module||'_';
+  const prev=xlxmodernVuPeakHold.get(holdKey);
+  let hold=prev;
+
+  if(!hold||peakSeg>=hold.segment||now-hold.at>1200){
+   hold={segment:peakSeg,at:now};
+   xlxmodernVuPeakHold.set(holdKey,hold);
+  }
+
+  vu.classList.add('is-live');
+  vu.classList.remove('vu-low','vu-ideal','vu-high');
+  vu.classList.add(`vu-${state}`);
+  vu.title=`Nível recebido pelo servidor: ${rms.toFixed(1)} dBFS · pico ${peak.toFixed(1)} dBFS · ${label}`;
+
+  bars.forEach((bar,index)=>{
+   const n=index+1;
+   bar.classList.toggle('vu-lit',n<=lit);
+   bar.classList.toggle('vu-peak',n===hold.segment);
+  });
+
+  if(readout){
+   readout.textContent=`${label} ${Math.round(rms)} dB`;
+   readout.setAttribute('aria-hidden','false');
+  }
+ });
 }
 
 function standbyCard(m,newest){
@@ -318,7 +389,7 @@ async function xlxmodernLoadAprsPresence(force=false){
    if(lastData){
     if(page==='conectados')renderConnectedTable(lastData);
     if(page==='ao-vivo'){
-     const hr=$('#historyRows'); if(hr)hr.innerHTML=historyMarkup(lastData);
+     xlxmodernRenderHistory(lastData);
     }
    }
   }
@@ -446,7 +517,7 @@ function hotspotRepeaterMarkup(x){
  /*
   * A comparação é feita pelo indicativo-base.
   *
-  * N0CALL B = PU2PNY
+  * N0CALL B = N0CALL
   * PY4RWC B = PY4RWC
   */
  const different=
@@ -528,7 +599,7 @@ function historyToggleMarkup(x,callKey,previousIds){
   ? 'Fechar atividades anteriores'
   : 'Abrir atividades anteriores';
 
- return `<button type="button" class="history-toggle" data-history-toggle="${esc(callKey)}" aria-expanded="${expanded?'true':'false'}" aria-controls="${esc(previousIds.join(' '))}" aria-label="${label} de ${esc(x.callsign)}" title="${label}"><span aria-hidden="true">▼</span></button>`;
+ return `<button type="button" class="history-toggle" data-history-toggle="${esc(callKey)}" aria-expanded="${expanded?'true':'false'}" ${expanded?`aria-controls="${esc(previousIds.join(' '))}"`:""} aria-label="${label} de ${esc(x.callsign)}" title="${label}"><span aria-hidden="true">▼</span></button>`;
 }
 
 /* XLXMODERN_HORARIO_TX_24H_V1 */
@@ -639,7 +710,7 @@ function historyMarkup(d){
     groupIndex+1
    );
 
-   const older=previous.map((x,index)=>{
+   const older=expanded?previous.map((x,index)=>{
     const hidden=expanded
      ? ''
      : ` style="display:none!important"`;
@@ -654,7 +725,7 @@ function historyMarkup(d){
      attrs,
      `${groupIndex+1}.${index+1}`
     );
-   }).join('');
+   }).join(''):'';
 
    return main+older;
   }).join('');
@@ -724,19 +795,10 @@ async function toggleLongHistory(button){
  finally{button.disabled=false;}
 }
 function toggleHistoryGroup(callKey,button){
- const expanded=!historyExpandedCalls.has(callKey);
- if(expanded)historyExpandedCalls.add(callKey);else historyExpandedCalls.delete(callKey);
- button.setAttribute('aria-expanded',expanded?'true':'false');
- const label=expanded?'Fechar atividades anteriores':'Abrir atividades anteriores';
- button.setAttribute('aria-label',`${label} de ${callKey}`);
- button.title=label;
- const main=button.closest('tr');
- main?.classList.toggle('is-expanded',expanded);
- document.querySelectorAll('#historyRows tr[data-history-parent]').forEach(row=>{
-  if(row.dataset.historyParent!==callKey)return;
-  if(expanded)row.style.removeProperty('display');
-  else row.style.setProperty('display','none','important');
- });
+ if(!lastData||xlxmodernHistoryPeriodDays!==1)return;
+ if(historyExpandedCalls.has(callKey))historyExpandedCalls.delete(callKey);
+ else historyExpandedCalls.add(callKey);
+ xlxmodernRenderHistory(lastData);
 }
 const xlxNatoModules=['Alfa','Bravo','Charlie','Delta','Echo','Foxtrot','Golf','Hotel','India','Juliett','Kilo','Lima','Mike','November','Oscar','Papa','Quebec','Romeo','Sierra','Tango','Uniform','Victor','Whiskey','X-Ray','Yankee','Zulu'];
 const xlxReflectorName='{{REFLECTOR_NAME}}';
@@ -836,7 +898,7 @@ function ensureReflectorUi(){
   <div class="reflector-tools">
    <div class="reflector-tools-title"><b>Refletores registrados</b><span id="reflectorSummary">Carregando lista mundial...</span></div>
    <div class="reflector-controls">
-    <label><span>Pesquisar</span><input id="reflectorSearch" type="search" placeholder="XLXMODERN, país ou descrição" autocomplete="off"></label>
+    <label><span>Pesquisar</span><input id="reflectorSearch" type="search" placeholder="XLX, país ou descrição" autocomplete="off"></label>
     <label><span>Status</span><select id="reflectorStatus"><option value="">Todos</option><option value="online">Online</option><option value="offline">Offline</option></select></label>
     <label><span>País</span><select id="reflectorCountry"><option value="">Todos os países</option></select></label>
    </div>
@@ -879,9 +941,31 @@ function renderReflectors(data){
 
 let xlxmodernHistorySignature='';
 let xlxmodernHistoryRenderedAt=0;
+/* XLXMODERN_HISTORY_ON_DEMAND_RESEARCH_V1 */
+function xlxmodernRenderHistory(d){
+ const rows=$('#historyRows');
+ if(!rows||!d||xlxmodernHistoryPeriodDays!==1)return false;
+ // Compare every displayed field, including APRS, alias and online state.
+ // Closed groups retain their data but do not create hidden DOM rows.
+ const markup=historyMarkup(d);
+ if(markup===xlxmodernHistorySignature)return false;
+ const focused=document.activeElement;
+ const focusCall=focused&&rows.contains(focused)&&focused.dataset
+  ?focused.dataset.historyToggle:null;
+ rows.innerHTML=markup;
+ xlxmodernHistorySignature=markup;
+ xlxmodernHistoryRenderedAt=Date.now();
+ if(focusCall){
+  const replacement=[...rows.querySelectorAll('[data-history-toggle]')]
+   .find(button=>button.dataset.historyToggle===focusCall);
+  if(replacement)replacement.focus({preventScroll:true});
+ }
+ setTimeout(()=>xlxmodernEnableRepeaterButtons(rows),0);
+ return true;
+}
 function render(d){lastData=d;$('#syncState').textContent='Ao vivo';updateTitle(d);trackConnectedCountVoice(d);
  xlxmodernIndexGatewayLocalMeta(d);
- if(page==='ao-vivo'){ xlxmodernLoadAprsPresence(); setTimeout(()=>xlxmodernEnableRepeaterButtons(document),0); $('#headerConnected').textContent=d.connected_count; $('#headerActive').textContent=d.active_count; $('#widgetCount').textContent=d.active_count?`${d.active_count} no ar`:'Standby'; const active=Object.values(d.modules).filter(m=>m.transmission); const newest=[...d.history].sort((a,b)=>b.started_at-a.started_at)[0]||null; const standModule=Object.values(d.modules)[0];
+ if(page==='ao-vivo'){ xlxmodernLoadAprsPresence(); $('#headerConnected').textContent=d.connected_count; $('#headerActive').textContent=d.active_count; $('#widgetCount').textContent=d.active_count?`${d.active_count} no ar`:'Standby'; const active=Object.values(d.modules).filter(m=>m.transmission); const newest=[...d.history].sort((a,b)=>b.started_at-a.started_at)[0]||null; const standModule=Object.values(d.modules)[0];
 
  /*
   * A API geral pode preencher o box somente na carga inicial.
@@ -895,35 +979,66 @@ function render(d){lastData=d;$('#syncState').textContent='Ao vivo';updateTitle(
   $('#moduleGrid').innerHTML=active.length
    ?active.slice(0,3).map(txCard).join('')
    :standbyCard(standModule,newest);
+  setTimeout(()=>xlxmodernEnableRepeaterButtons($('#moduleGrid')),0);
  }
 
  ensureHistoryDropdownStyles();
- const historySignature=(d.history||[]).map(x=>[x.callsign||'',x.suffix||'',x.module||'',x.protocol||'',x.started_at||'',x.ended_at||'',x.gateway||''].join('|')).join('~');
- const now=Date.now();
- if(xlxmodernHistoryPeriodDays===1&&(historySignature!==xlxmodernHistorySignature||now-xlxmodernHistoryRenderedAt>=15000)){
-  $('#historyRows').innerHTML=historyMarkup(d);
-  xlxmodernHistorySignature=historySignature;
-  xlxmodernHistoryRenderedAt=now;
- }
+ xlxmodernRenderHistory(d);
  }
  if(page==='modulos')renderModules(d);
  if(page==='conectados'){xlxmodernLoadAprsPresence();renderConnected(d);}
  if(page==='ranking')renderRanking(d);
  const nowSet=new Set(d.connections.map(c=>`${c.callsign}|${c.suffix}|${c.protocol}|${c.module}|${c.ip}`));if(previousConnections!==null)d.connections.forEach(c=>{const k=`${c.callsign}|${c.suffix}|${c.protocol}|${c.module}|${c.ip}`;if(!previousConnections.has(k))toast(c)});previousConnections=nowSet; }
 let statusUpdateRunning=false;
+let xlxmodernAoVivoHistoryReady=false;
+function xlxmodernHistoryItemKey(x){
+ if(!x)return '';
+ return [
+  x.module||'',
+  x.stream_id||x.sid||'',
+  x.callsign||'',
+  x.started_at||''
+ ].join('|');
+}
+function xlxmodernMergeRecentHistory(current,recent,generatedAt,connections){
+ const cutoff=Number(generatedAt||Math.floor(Date.now()/1000))-86400;
+ const onlineCalls=new Set(
+  (Array.isArray(connections)?connections:[])
+   .map(c=>xlxmodernBaseCall(c&&c.callsign))
+   .filter(Boolean)
+ );
+ const merged=new Map();
+ [...(Array.isArray(recent)?recent:[]),...(Array.isArray(current)?current:[])].forEach(x=>{
+  const key=xlxmodernHistoryItemKey(x);
+  if(key&&!merged.has(key))merged.set(key,x);
+ });
+ const rows=[...merged.values()]
+  .filter(x=>Number(x&&x.started_at||0)>=cutoff);
+ rows.forEach(x=>{
+  x.online=onlineCalls.has(xlxmodernBaseCall(x&&x.callsign));
+ });
+ return rows.sort((a,b)=>Number(b.started_at||0)-Number(a.started_at||0));
+}
 async function update(){
- if(statusUpdateRunning||(document.hidden&&page!=='ao-vivo'))return;
+ if(statusUpdateRunning||document.hidden)return;
  statusUpdateRunning=true;
  const controller=new AbortController();
  const timeoutId=setTimeout(()=>controller.abort(),4000);
+ const needFullHistory=page==='ao-vivo'&&!xlxmodernAoVivoHistoryReady;
  try{
   const statusEndpoint=page==='ao-vivo'
-   ?'api/status.php?history_hours=24&ts='
+   ?(needFullHistory?'api/status.php?history_hours=24&ts=':'api/status.php?history=30&ts=')
    :'api/status.php?ts=';
   const r=await fetch(statusEndpoint+Date.now(),{cache:'no-store',signal:controller.signal});
   const d=await r.json();
   if(!d.ok)throw Error();
+  if(page==='ao-vivo'&&!needFullHistory&&lastData&&Array.isArray(lastData.history)){
+   d.history=xlxmodernMergeRecentHistory(lastData.history,d.history,d.generated_at,d.connections);
+  }
   render(d);
+  if(page==='ao-vivo'&&needFullHistory){
+   xlxmodernAoVivoHistoryReady=true;
+  }
  }catch(e){
   $('#syncState').textContent='Reconectando';
  }finally{
@@ -937,42 +1052,6 @@ setInterval(()=>document.querySelectorAll('[data-start]').forEach(e=>e.textConte
 let liveUpdateRunning=false;
 let liveUpdateTimer=null;
 let previousLiveKeys=null;
-
-/*
- * XLXMODERN_LIVE_STABILITY_V1
- *
- * Uma leitura rápida isolada não pode apagar um TX confirmado.
- * Mantém o último estado por 900 ms quando somente um poll perde
- * temporariamente o stream. Evita foto/GIF piscando e falso bip de fim.
- */
-const XLXMODERN_LIVE_END_GRACE_MS=900;
-let xlxmodernStableLiveActive={};
-const xlxmodernLiveMissingSince=new Map();
-
-function xlxmodernStabilizeLiveState(live){
- const now=Date.now();
- const next=Object.assign({},live,{active:Object.assign({},live?.active||{})});
-
- Object.keys(next.active).forEach(module=>{
-  xlxmodernLiveMissingSince.delete(module);
- });
-
- Object.entries(xlxmodernStableLiveActive).forEach(([module,tx])=>{
-  if(next.active[module])return;
-  const since=xlxmodernLiveMissingSince.get(module)??now;
-  xlxmodernLiveMissingSince.set(module,since);
-  if(now-since<XLXMODERN_LIVE_END_GRACE_MS){
-   next.active[module]=tx;
-  }else{
-   xlxmodernLiveMissingSince.delete(module);
-  }
- });
-
- next.active_count=Object.keys(next.active).length;
- xlxmodernStableLiveActive=Object.assign({},next.active);
- return next;
-}
-
 let txRxAudioContext=null;
 let txRxAudioUnlocked=false;
 /*
@@ -1723,7 +1802,7 @@ function playTxEndedSound(){
 function detectTxRxSound(active){
  const currentKeys=new Set(
   Object.values(active||{}).map(tx=>
-   String(tx.key||`${tx.module}:${tx.stream_id}:${tx.started_at||''}`)
+   String(`${tx.module||''}:${tx.stream_id||''}:${tx.started_at||''}`)
   )
  );
 
@@ -1736,31 +1815,35 @@ function detectTxRxSound(active){
   return;
  }
 
- const started=[...currentKeys].some(
-  key=>!previousLiveKeys.has(key)
- );
+ const previousCount=previousLiveKeys.size;
+ const currentCount=currentKeys.size;
 
- const ended=[...previousLiveKeys].some(
-  key=>!currentKeys.has(key)
- );
+ const started=currentCount>previousCount;
+ const ended=previousCount>0 && currentCount===0;
+
+ /* Atualiza primeiro o estado lógico; áudio nunca pode impedir o próximo ciclo. */
+ previousLiveKeys=currentKeys;
 
  if(started){
-  deferConnectedVoiceForTx();
-  playTxStartedSound();
+  try{ deferConnectedVoiceForTx(); }catch(_e){}
+  try{ playTxStartedSound(); }catch(_e){}
  }
 
+ /*
+  * Som de fim somente quando TODO o monitor volta a standby.
+  * Troca de chave/identidade e fim de apenas um TX simultâneo
+  * não devem soar como desconexão geral.
+  */
  if(ended){
-  playTxEndedSound();
+  try{ playTxEndedSound(); }catch(_e){}
  }
-
- previousLiveKeys=currentKeys;
 }
 
 
 let lastLiveVisualSignature=null;
 
 function renderLiveTxRxOnly(live){
- if(page!=='ao-vivo'||!lastData)return;
+ if(page!=='ao-vivo')return;
 
  const moduleGrid=document.getElementById('moduleGrid');
  const widgetCount=document.getElementById('widgetCount');
@@ -1783,13 +1866,8 @@ function renderLiveTxRxOnly(live){
 
      return [
       module.module||'',
-      tx.key||'',
       tx.stream_id||'',
-      tx.callsign||'',
-      tx.suffix||'',
-      tx.gateway||'',
-      tx.ip||'',
-      tx.protocol||''
+      tx.started_at||''
      ].join(':');
     })
     .sort()
@@ -1838,6 +1916,7 @@ function renderLiveTxRxOnly(live){
    window.XLXMODERNMTR?.sync([]);
   }
 
+  setTimeout(()=>xlxmodernEnableRepeaterButtons(moduleGrid),0);
   lastLiveVisualSignature=visualSignature;
  }
 
@@ -1868,15 +1947,11 @@ function xlxmodernBaseCall(value){
 
 function xlxmodernLiveIdentityKey(tx){
  if(!tx)return '';
-
- return String(
-  tx.key||
-  [
-   tx.module||'',
-   tx.stream_id||'',
-   tx.started_at||''
-  ].join(':')
- );
+ return [
+  tx.module||'',
+  tx.stream_id||'',
+  tx.started_at||''
+ ].join(':');
 }
 
 function xlxmodernSameTransmission(a,b){
@@ -1971,13 +2046,34 @@ function xlxmodernLiveIdentityLooksAmbiguous(tx){
 
 /* /XLXMODERN_LIVE_IDENTITY_MERGE_V10 */
 
+/* XLXMODERN_BROWSER_SCALE_V1
+ * Abas do mesmo navegador compartilham o snapshot ao vivo.
+ * Navegadores sem BroadcastChannel mantêm o polling tradicional.
+ */
+let xlxmodernLiveShared=null;
+let xlxmodernLiveSharedAt=0;
+let xlxmodernLiveChannel=null;
+
+try{
+ if(typeof BroadcastChannel==='function'){
+  xlxmodernLiveChannel=new BroadcastChannel('xlxmodern-live-v1');
+  xlxmodernLiveChannel.onmessage=event=>{
+   const live=event&&event.data;
+   if(!live||live.ok!==true)return;
+   xlxmodernLiveShared=live;
+   xlxmodernLiveSharedAt=Date.now();
+   if(page==='ao-vivo'&&!document.hidden&&!liveUpdateRunning){
+    updateLiveTxRx();
+   }
+  };
+ }
+}catch(_liveChannelError){}
 
 async function updateLiveTxRx(){
  if(
   liveUpdateRunning||
   document.hidden||
-  page!=='ao-vivo'||
-  !lastData
+  page!=='ao-vivo'
  )return;
 
  liveUpdateRunning=true;
@@ -1989,20 +2085,67 @@ async function updateLiveTxRx(){
  );
 
  try{
-  const response=await fetch(
-   'api/live.php?ts='+Date.now(),
-   {
-    cache:'no-store',
-    signal:controller.signal
+  let live=null;
+  const sharedAge=Date.now()-xlxmodernLiveSharedAt;
+
+  if(
+   xlxmodernLiveShared&&
+   sharedAge>=0&&
+   sharedAge<=450
+  ){
+   live=xlxmodernLiveShared;
+  }else{
+   const response=await fetch(
+    'api/live.php?ts='+Date.now(),
+    {
+     cache:'no-store',
+     signal:controller.signal
+    }
+   );
+
+   live=await response.json();
+
+   if(live&&live.ok===true){
+    xlxmodernLiveShared=live;
+    xlxmodernLiveSharedAt=Date.now();
+    try{
+     xlxmodernLiveChannel?.postMessage(live);
+    }catch(_liveBroadcastError){}
    }
-  );
+  }
 
-  let live=await response.json();
+  if(!live||!live.ok)throw Error();
 
-  if(!live.ok)throw Error();
+  /*
+   * live.php é a fonte primária do box TX.
+   * Não espera status.php: cria somente o estado mínimo necessário
+   * e deixa a API completa enriquecer nome/gateway depois.
+   */
+  if(!lastData){
+   lastData={
+    ok:true,
+    modules:{},
+    history:[],
+    connections:[],
+    connected_count:0,
+    active_count:Number(live.active_count||0),
+    generated_at:Number(live.generated_at||0)
+   };
+  }
 
-  live=xlxmodernStabilizeLiveState(live);
-  detectTxRxSound(live.active);
+  if(!lastData.modules||typeof lastData.modules!=='object'){
+   lastData.modules={};
+  }
+
+  Object.entries(live.active||{}).forEach(([moduleName,tx])=>{
+   const module=String(tx?.module||moduleName||'').trim().toUpperCase();
+   if(module&&!lastData.modules[module]){
+    lastData.modules[module]={
+     module,
+     transmission:null
+    };
+   }
+  });
 
   let requestIdentityRefresh=false;
 
@@ -2079,6 +2222,12 @@ async function updateLiveTxRx(){
   }
 
   renderLiveTxRxOnly(live);
+  try{xlxmodernUpdateTxVu(live)}catch(_vuError){}
+
+  /* O áudio é efeito secundário: nunca pode bloquear o estado visual. */
+  try{
+   detectTxRxSound(live.active);
+  }catch(_audioError){}
  }catch(error){
  }finally{
   clearTimeout(timeoutId);
@@ -2086,8 +2235,9 @@ async function updateLiveTxRx(){
  }
 }
 
-const LIVE_POLL_ACTIVE_MS=350;
-const LIVE_POLL_STANDBY_MS=500;
+const LIVE_POLL_ACTIVE_MS=500;
+const LIVE_POLL_STANDBY_MS=750;
+const LIVE_POLL_START_JITTER_MS=350;
 
 let liveLoopEnabled=false;
 
@@ -2150,7 +2300,7 @@ function startLiveTxRx(){
 
  liveUpdateTimer=setTimeout(
   runLiveTxRxLoop,
-  0
+  Math.floor(Math.random()*LIVE_POLL_START_JITTER_MS)
  );
 }
 
@@ -2167,7 +2317,7 @@ let statusUpdateTimer=null;
 function startStatusUpdates(){
  if(statusUpdateTimer!==null)return;
  update();
- statusUpdateTimer=setInterval(update,5000);
+ statusUpdateTimer=setInterval(update,15000);
 }
 function stopStatusUpdates(){
  if(statusUpdateTimer===null)return;
@@ -2176,11 +2326,9 @@ function stopStatusUpdates(){
 }
 document.addEventListener('visibilitychange',()=>{
  if(document.hidden){
-  if(page!=='ao-vivo'){
-   stopStatusUpdates();
-  }
-
+  stopStatusUpdates();
   stopLiveTxRx();
+  if(page==='ao-vivo')xlxmodernAoVivoHistoryReady=false;
 
  }else{
   startStatusUpdates();
@@ -2188,7 +2336,7 @@ document.addEventListener('visibilitychange',()=>{
  }
 });
 
-if(page==='ao-vivo'||!document.hidden){
+if(!document.hidden){
  startStatusUpdates();
 }
 
@@ -2213,7 +2361,7 @@ $('#historyPeriodSelect')?.addEventListener('change',event=>{
   const title=$('#historyPeriodTitle'),note=$('#historyCoverageNote');
   if(title)title.textContent=xlxmodernHistoryPeriodText(1);
   if(note)note.textContent='Todos os indicativos';
-  if(lastData){$('#historyRows').innerHTML=historyMarkup(lastData);xlxmodernHistorySignature='';}
+  if(lastData){xlxmodernHistorySignature='';xlxmodernRenderHistory(lastData);}
  }else xlxmodernLoadLongHistory(xlxmodernHistoryPeriodDays);
 });
 function refreshConnectedFilters(){

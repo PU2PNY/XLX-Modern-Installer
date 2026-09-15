@@ -136,8 +136,8 @@ expect 'public dashboard uses production 1240px content width' 'width:min(1240px
 expect 'Modules is a standalone navigation item' "'modulos' => 'Módulos'," "$ROOT/dashboard/index.php"
 expect 'Connected is a standalone navigation item' "'conectados' => 'Conectados'," "$ROOT/dashboard/index.php"
 
-expect 'live state ignores a single transient missing poll' 'XLXMODERN_LIVE_STABILITY_V1' "$ROOT/dashboard/assets/app.js"
-expect 'live end grace prevents false end beep and photo flicker' 'XLXMODERN_LIVE_END_GRACE_MS=900' "$ROOT/dashboard/assets/app.js"
+expect 'live visual is not rebuilt when the TX signature is unchanged' 'visualSignature!==lastLiveVisualSignature' "$ROOT/dashboard/assets/app.js"
+expect 'end beep occurs only when all simultaneous TX return to standby' 'const ended=previousCount>0 && currentCount===0;' "$ROOT/dashboard/assets/app.js"
 expect 'cached QRZ photo renders without returning to fallback GIF' 'data-qrz-state="photo"' "$ROOT/dashboard/assets/app.js"
 expect 'recent mobile visual corrections are shipped' 'mobile-visual-v1.css' "$ROOT/dashboard/index.php"
 expect 'legacy-browser fallback is shipped' 'safari9-test.html' "$ROOT/dashboard/index.php"

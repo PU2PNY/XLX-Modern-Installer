@@ -155,7 +155,7 @@ UNIT
 cat >/etc/systemd/system/xlx-modern-regression-self-test.service <<'UNIT'
 [Unit]
 Description=XLX Modern Regression Self-Test
-After=network-online.target apache2.service xlxd.service
+After=network-online.target nginx.service php8.2-fpm.service xlxd.service
 Wants=network-online.target
 [Service]
 Type=oneshot

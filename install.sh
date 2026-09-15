@@ -34,7 +34,7 @@ DASHBOARD_LANG=""
 UI_LANG="pt-BR"
 UI_LANG_EXPLICIT="no"
 CHECK_READY="yes"
-TUI_MODE="auto"
+TUI_MODE="off"
 TUI_PYTHON=""
 
 for arg in "$@"; do
@@ -72,12 +72,12 @@ Opções / Options:
       pt-BR | en | es | fr | de | it
 
   --tui
-      Força a interface visual Textual quando o terminal for compatível.
-      Forces the Textual interface when the terminal is compatible.
+      Interface visual opcional/experimental. O padrão é o questionário simples.
+      Optional/experimental visual interface. The simple questionnaire is default.
 
   --classic
-      Usa o questionário clássico em texto, sem Textual.
-      Uses the classic text questionnaire without Textual.
+      Usa o questionário simples em texto. Este já é o modo padrão.
+      Uses the simple text questionnaire. This is already the default mode.
 
   --dashboard-only
       Atualiza ou reinstala somente o painel moderno em um XLXD existente.
@@ -361,7 +361,7 @@ create_inventory_and_backup() {
     manifest="${backup}/manifest.txt"
     mkdir -p "$backup"; chmod 700 "$backup"; : > "$manifest"
 
-    for path in /etc/apache2 /etc/systemd/system /etc/ufw /etc/nftables.conf /var/www/html /xlxd /usr/src/xlxd /usr/src/XLXEcho /usr/src/XLX_Dark_Dashboard; do
+    for path in /etc/apache2 /etc/nginx /etc/php/8.2/fpm /etc/systemd/system /etc/ufw /etc/nftables.conf /var/www/html /xlxd /usr/src/xlxd /usr/src/XLXEcho /usr/src/XLX_Dark_Dashboard; do
         [ ! -e "$path" ] || printf '%s\n' "$path" >> "$manifest"
     done
 
@@ -434,45 +434,52 @@ HOOK
         "$translated"
     rm -f "$state_hook"
 
-    [ "$UI_LANG" = "pt-BR" ] || { chmod 700 "$translated"; printf '%s\n' "$translated"; return 0; }
-
+    # Questionário clássico bilíngue: todas as perguntas aparecem em
+    # Português + English. A resposta afirmativa aceita S (sim) ou Y (yes).
     sed -i \
-        -e 's|XLX MULTIPROTOCOL AMATEUR RADIO REFLECTOR INSTALLER PROGRAM|INSTALADOR DO REFLETOR XLX MULTIPROTOCOLO PARA RADIOAMADOR|' \
-        -e 's|Next, you will be asked some questions\. Answer with the requested information or, if applicable, to accept the suggested value, press \[ENTER\]|A seguir, responda às perguntas. Quando houver um valor sugerido, pressione [ENTER] para aceitá-lo.|' \
-        -e 's|At any prompt, type X and press \[ENTER\] to cancel the installation\.|Em qualquer pergunta, digite X e pressione [ENTER] para cancelar a instalação.|' \
-        -e 's|REFLECTOR DATA INPUT|DADOS DO REFLETOR|' \
-        -e 's|Mandatory|Obrigatório|g' \
-        -e 's|01\. XLX Reflector ID, 3 alphanumeric characters\. (e\.g\., 026, 724, PNY)|01. ID do refletor XLX: 3 caracteres alfanuméricos. (ex.: 026, 724, PNY)|' \
-        -e 's|02\. Dashboard FQDN (fully qualified domain name)\. (e\.g\., xlx026\.net)|02. Domínio completo (FQDN) do painel. (ex.: xlx026.net)|' \
-        -e 's|03\. Sysop e-mail address|03. E-mail do sysop|' \
-        -e 's|04\. Sysop callsign\. Only letters and numbers allowed, max 6 characters\.|04. Indicativo do sysop. Use letras e números, máximo de 6 caracteres.|' \
-        -e 's|05\. Reflector country name\.|05. Nome do país do refletor.|' \
-        -e 's|06\. Local timezone\. Detected:|06. Fuso horário local. Detectado:|' \
-        -e 's|Press ENTER to keep it or type another timezone\.|Pressione ENTER para manter ou informe outro fuso horário.|' \
-        -e 's|06\. What is the local timezone? (e\.g\., America/Sao_Paulo, UTC, GMT-3)|06. Qual é o fuso horário local? (ex.: America/Sao_Paulo, UTC, GMT-3)|' \
-        -e 's|07\. Comment to XLX Reflectors list\.|07. Comentário para a lista de refletores XLX.|' \
-        -e 's|08\. Custom text for the dashboard tab\. (max 25 characters)|08. Texto personalizado para a aba do painel. (máximo: 25 caracteres)|' \
-        -e 's|09\. Custom text on footer of the dashboard webpage\.|09. Texto personalizado no rodapé do painel.|' \
-        -e 's|10\. Create an SSL certificate (https) for the dashboard webpage? (Y/N)|10. Criar certificado SSL (HTTPS) para o painel? (S/N)|' \
-        -e 's|11\. Install Echo Test on module E? (Y/N)|11. Instalar Echo Test no módulo E? (S/N)|' \
-        -e 's|12\. Number of active modules for the DStar Reflector\.|12. Quantidade de módulos ativos para o refletor D-STAR.|' \
-        -e 's|13\. YSF Reflector UDP port number\. (1-65535)|13. Porta UDP do refletor YSF. (1-65535)|' \
-        -e 's|14\. YSF Wires-X frequency\. In Hertz, 9 digits\.|14. Frequência YSF Wires-X, em Hertz, 9 dígitos.|' \
-        -e 's|15\. Auto-link YSF to a module? (Y/N)|15. Vincular YSF automaticamente a um módulo? (S/N)|' \
-        -e 's|16\. Module to Auto-link YSF\.|16. Módulo para vínculo automático do YSF.|' \
-        -e 's|17\. City and state/region shown on the dashboard\.|17. Cidade e estado/região exibidos no painel.|' \
-        -e 's|18\. YSF reflector ID shown on the dashboard\. (1-8 digits)|18. ID do refletor YSF exibido no painel. (1-8 dígitos)|' \
-        -e 's|19\. Private Admin username\. (3-64 characters)|19. Usuário do Admin privado. (3-64 caracteres)|' \
-        -e 's|20\. Private Admin URL name\.|20. Nome da URL privada do Admin.|' \
-        -e 's|21\. Private Admin password\. (minimum 8 characters)|21. Senha do Admin privado. (mínimo 8 caracteres)|' \
-        -e 's|Repeat password:|Repita a senha:|' \
-        -e 's|password defined (not displayed)|senha definida (não exibida)|g' \
-        -e 's|City / region:|Cidade / região:|' \
-        -e 's|Admin username:|Usuário Admin:|' \
-        -e 's|Admin password:|Senha Admin:|' \
-        -e 's|PLEASE REVIEW YOUR SETTINGS:|REVISE AS CONFIGURAÇÕES:|' \
-        -e 's|Settings correct? Press \[ENTER\] to confirm, type a question number to edit it, or \[X\] to cancel the installation\.|Configurações corretas? Pressione [ENTER] para confirmar, informe o número para editar ou [X] para cancelar.|' \
+        -e 's|XLX MULTIPROTOCOL AMATEUR RADIO REFLECTOR INSTALLER PROGRAM|INSTALADOR DO REFLETOR XLX MULTIPROTOCOLO / XLX MULTIPROTOCOL AMATEUR RADIO REFLECTOR INSTALLER|' \
+        -e 's|Next, you will be asked some questions\. Answer with the requested information or, if applicable, to accept the suggested value, press \[ENTER\]|A seguir, responda às perguntas. Para aceitar um valor sugerido, pressione [ENTER]. / Answer the questions below. To accept a suggested value, press [ENTER].|' \
+        -e 's|At any prompt, type X and press \[ENTER\] to cancel the installation\.|Em qualquer pergunta, digite X e pressione [ENTER] para cancelar. / At any prompt, type X and press [ENTER] to cancel.|' \
+        -e 's|REFLECTOR DATA INPUT|DADOS DO REFLETOR / REFLECTOR DATA INPUT|' \
+        -e 's|Mandatory|Obrigatório / Mandatory|g' \
+        -e 's|Suggested:|Sugerido / Suggested:|g' \
+        -e 's|Using:|Usando / Using:|g' \
+        -e 's|01\. XLX Reflector ID, 3 alphanumeric characters\. (e\.g\., 026, 724, PNY)|01. ID do refletor XLX: 3 caracteres alfanuméricos (ex.: 026, 724, PNY) / XLX Reflector ID: 3 alphanumeric characters (e.g., 026, 724, PNY)|' \
+        -e 's|02\. Dashboard FQDN (fully qualified domain name)\. (e\.g\., xlx026\.net)|02. Domínio completo FQDN do painel (ex.: xlx026.net) / Dashboard FQDN (e.g., xlx026.net)|' \
+        -e 's|03\. Sysop e-mail address|03. E-mail do sysop / Sysop e-mail address|' \
+        -e 's|04\. Sysop callsign\. Only letters and numbers allowed, max 6 characters\.|04. Indicativo do sysop: letras e números, máximo 6 caracteres / Sysop callsign: letters and numbers, max 6 characters.|' \
+        -e 's|05\. Reflector country name\.|05. Nome do país do refletor / Reflector country name.|' \
+        -e 's|06\. Local timezone\. Detected:|06. Fuso horário local detectado / Local timezone detected:|' \
+        -e 's|Press ENTER to keep it or type another timezone\.|Pressione ENTER para manter ou informe outro fuso / Press ENTER to keep it or type another timezone.|' \
+        -e 's|06\. What is the local timezone? (e\.g\., America/Sao_Paulo, UTC, GMT-3)|06. Qual é o fuso horário local? (ex.: America/Sao_Paulo, UTC, GMT-3) / What is the local timezone? (e.g., America/Sao_Paulo, UTC, GMT-3)|' \
+        -e 's|07\. Comment to XLX Reflectors list\.|07. Comentário para a lista de refletores XLX / Comment to XLX Reflectors list.|' \
+        -e 's|08\. Custom text for the dashboard tab\. (max 25 characters)|08. Texto da aba do painel (máx. 25 caracteres) / Custom text for the dashboard tab (max 25 characters)|' \
+        -e 's|09\. Custom text on footer of the dashboard webpage\.|09. Texto do rodapé do painel / Custom text on the dashboard footer.|' \
+        -e 's|10\. Create an SSL certificate (https) for the dashboard webpage? (Y/N)|10. Criar certificado SSL/HTTPS para o painel? (S/Y/N) / Create an SSL/HTTPS certificate for the dashboard? (S/Y/N)|' \
+        -e 's|11\. Install Echo Test on module E? (Y/N)|11. Instalar Echo Test no módulo E? (S/Y/N) / Install Echo Test on module E? (S/Y/N)|' \
+        -e 's|12\. Number of active modules for the DStar Reflector\.|12. Quantidade de módulos ativos do refletor D-STAR / Number of active D-STAR reflector modules.|' \
+        -e 's|13\. YSF Reflector UDP port number\. (1-65535)|13. Porta UDP do refletor YSF (1-65535) / YSF reflector UDP port (1-65535)|' \
+        -e 's|14\. YSF Wires-X frequency\. In Hertz, 9 digits\.|14. Frequência YSF Wires-X em Hertz, 9 dígitos / YSF Wires-X frequency in Hertz, 9 digits.|' \
+        -e 's|15\. Auto-link YSF to a module? (Y/N)|15. Vincular YSF automaticamente a um módulo? (S/Y/N) / Auto-link YSF to a module? (S/Y/N)|' \
+        -e 's|16\. Module to Auto-link YSF\.|16. Módulo para vínculo automático YSF / Module to Auto-link YSF.|' \
+        -e 's|17\. City and state/region shown on the dashboard\.|17. Cidade e estado/região exibidos no painel / City and state/region shown on the dashboard.|' \
+        -e 's|18\. YSF reflector ID shown on the dashboard\. (1-8 digits)|18. ID do refletor YSF exibido no painel (1-8 dígitos) / YSF reflector ID shown on the dashboard (1-8 digits)|' \
+        -e 's|19\. Private Admin username\. (3-64 characters)|19. Usuário do Admin privado (3-64 caracteres) / Private Admin username (3-64 characters)|' \
+        -e 's|20\. Private Admin URL name\.|20. Nome da URL privada do Admin / Private Admin URL name.|' \
+        -e 's|21\. Private Admin password\. (minimum 8 characters)|21. Senha do Admin privado (mínimo 8 caracteres) / Private Admin password (minimum 8 characters)|' \
+        -e 's|Repeat password:|Repita a senha / Repeat password:|' \
+        -e 's|Do you want to continue anyway? (Y/N)|Continuar mesmo assim? (S/Y/N) / Continue anyway? (S/Y/N)|' \
+        -e 's|Please enter a different port, or \[ENTER\] to accept suggested\.|Informe outra porta ou [ENTER] para aceitar a sugerida / Enter another port or [ENTER] to accept the suggested value.|' \
+        -e "s|Please enter 'Y' or 'N'\.|Digite S/Y para sim/yes ou N para não/no. / Enter S/Y for yes or N for no.|g" \
+        -e 's|Please answer Y or N\.|Digite S/Y ou N. / Answer S/Y or N.|g' \
+        -e 's|PLEASE REVIEW YOUR SETTINGS:|REVISE AS CONFIGURAÇÕES / REVIEW YOUR SETTINGS:|' \
+        -e 's|Settings correct? Press \[ENTER\] to confirm, type a question number to edit it, or \[X\] to cancel the installation\.|Configurações corretas? [ENTER] confirma, número edita, X cancela. / Settings correct? [ENTER] confirms, a number edits, X cancels.|' \
+        -e '/^[[:space:]]*INSTALL_SSL=$(echo /a\        [[ "$INSTALL_SSL" == "S" ]] && INSTALL_SSL="Y"' \
+        -e '/^[[:space:]]*INSTALL_ECHO=$(echo /a\        [[ "$INSTALL_ECHO" == "S" ]] && INSTALL_ECHO="Y"' \
+        -e '/^[[:space:]]*PORT_ANSWER=$(echo /a\                [[ "$PORT_ANSWER" == "S" ]] && PORT_ANSWER="Y"' \
+        -e '/^[[:space:]]*AUTOLINK_USER=$(echo /a\        [[ "$AUTOLINK_USER" == "S" ]] && AUTOLINK_USER="Y"' \
         "$translated"
+
     chmod 700 "$translated"
     printf '%s\n' "$translated"
 }
@@ -498,7 +505,7 @@ The installer will then:
 4. Install systemd services.
 5. Install XLX Echo when selected.
 6. Install the modern dashboard.
-7. Configure Apache and HTTPS when selected.
+7. Configure Nginx + PHP-FPM and HTTPS when selected.
 8. Prepare XLX databases.
 9. Start and validate services.
 10. Provision and validate the native APRS/D-PRS backend.
@@ -529,7 +536,7 @@ Depois o instalador irá:
 4. Instalar serviços systemd.
 5. Instalar XLX Echo quando selecionado.
 6. Instalar o dashboard moderno.
-7. Configurar Apache e HTTPS quando selecionado.
+7. Configurar Nginx + PHP-FPM e HTTPS quando selecionado.
 8. Preparar as bases do XLX.
 9. Iniciar e validar os serviços.
 10. Provisionar e validar o backend APRS/D-PRS nativo.
@@ -640,13 +647,17 @@ execute_installer() {
     fi
 
     dashboard_dest="${INSTALL_DIR:-$DEFAULT_DASHBOARD_DIR}"
+
+    section "$(msg "ATIVANDO NGINX + PHP-FPM" "ENABLING NGINX + PHP-FPM")"
+    XLX_DASHBOARD_DIR="$dashboard_dest" XLX_UI_LANG="$UI_LANG" bash "$ROOT_DIR/modules/70-nginx.sh" "--dashboard-dir=$dashboard_dest"
+
     section "$(msg "PROVISIONANDO APRS/D-PRS NATIVO" "PROVISIONING NATIVE APRS/D-PRS")"
     XLX_DASHBOARD_DIR="$dashboard_dest" XLX_UI_LANG="$UI_LANG" bash "$ROOT_DIR/modules/67-aprs-dprs.sh" "--dashboard-dir=$dashboard_dest"
     XLX_DASHBOARD_DIR="$dashboard_dest" XLX_UI_LANG="$UI_LANG" bash "$ROOT_DIR/modules/71-observability.sh" "--dashboard-dir=$dashboard_dest"
 
     section "$(msg "VALIDAÇÃO PÓS-INSTALAÇÃO" "POST-INSTALLATION VALIDATION")"
     failures=0
-    for service in apache2 xlxd; do
+    for service in nginx php8.2-fpm xlxd; do
         if systemctl is-active --quiet "$service"; then
             ok "$(msg "Serviço $service ativo." "$service service is active.")"
         else
@@ -662,11 +673,17 @@ execute_installer() {
             failures=$((failures + 1))
         fi
     fi
-    if apache2ctl configtest >/dev/null 2>&1; then
-        ok "$(msg "Configuração do Apache válida." "Apache configuration is valid.")"
+    if nginx -t >/dev/null 2>&1; then
+        ok "$(msg "Configuração do Nginx válida." "Nginx configuration is valid.")"
     else
-        warn "$(msg "A validação da configuração do Apache falhou." "Apache configuration validation failed.")"
+        warn "$(msg "A validação da configuração do Nginx falhou." "Nginx configuration validation failed.")"
         failures=$((failures + 1))
+    fi
+    if systemctl is-active --quiet apache2; then
+        warn "$(msg "Apache deveria estar inativo após a migração para Nginx." "Apache should be inactive after the Nginx migration.")"
+        failures=$((failures + 1))
+    else
+        ok "$(msg "Apache inativo, conforme a arquitetura de produção." "Apache inactive, matching the production architecture.")"
     fi
     [ -x /xlxd/xlxd ] || { warn "$(msg "Binário /xlxd/xlxd ausente." "Binary /xlxd/xlxd is missing.")"; failures=$((failures + 1)); }
 
@@ -678,10 +695,10 @@ execute_installer() {
             failures=$((failures + 1))
         fi
     done
-    if [ -f "/etc/apache2/sites-enabled/$DOMAIN.conf" ] && grep -Fq "DocumentRoot $dashboard_dest" "/etc/apache2/sites-enabled/$DOMAIN.conf"; then
-        ok "$(msg "VirtualHost do painel moderno confirmado." "Modern dashboard VirtualHost confirmed.")"
+    if [ -f "/etc/nginx/sites-enabled/xlx-modern.conf" ] && grep -Fq "root $dashboard_dest;" "/etc/nginx/sites-enabled/xlx-modern.conf"; then
+        ok "$(msg "Servidor Nginx do painel moderno confirmado." "Modern dashboard Nginx server confirmed.")"
     else
-        warn "$(msg "VirtualHost do painel moderno não aponta para $dashboard_dest." "Modern dashboard VirtualHost does not point to $dashboard_dest.")"
+        warn "$(msg "Nginx não aponta para $dashboard_dest." "Nginx does not point to $dashboard_dest.")"
         failures=$((failures + 1))
     fi
     if systemctl is-active --quiet xlx-callinghome.timer; then

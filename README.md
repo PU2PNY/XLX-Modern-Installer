@@ -1,6 +1,6 @@
 # XLX Modern Installer
 
-**Current release: v1.4.3**
+**Current release: v1.4.5**
 
 Public, reproducible installer for a fresh **Debian 12 x86_64** server. It installs the XLXD core, Echo Test, the modern multi-protocol dashboard, private Admin, native APRS/D-PRS, native verifiable certificates, CallingHome and operational observability.
 
@@ -23,15 +23,15 @@ cd XLX-Modern-Installer
 bash start.sh
 ```
 
-`start.sh` is the recommended beginner path. It validates the VPS first, prepares the interface automatically and refuses to overwrite an active XLXD installation or unresolved XLXD remnants. `install.sh --check` remains available as a read-only preflight.
+`start.sh` is the recommended beginner path. It opens the classic text questionnaire directly, with Portuguese + English prompts, and refuses to overwrite an active XLXD installation or unresolved XLXD remnants. `install.sh --check` remains available as a read-only preflight.
 
 ## Installation behavior
 
-The normal path uses **one SSH session only**. No second terminal, SSH tunnel or browser setup is required. The beginner interface starts with Portuguese/English and then uses only four clear stages: essential data, private access, review and installation. Pressing Enter validates the current answer and moves to the next field.
+The normal path uses **one SSH session only**. No second terminal, SSH tunnel, browser UI, Python TUI or tmux wrapper is required. The installer asks all configuration questions in sequence, shows one final review, and after confirmation runs unattended through validation and completion.
 
-Only information that really needs a human decision is requested. Recommended technical values are applied automatically: HTTPS, Echo Test on module E, five modules A–E, YSF UDP 42000, YSF frequency 433125000, auto-link module C and the detected timezone. The Admin username/private path are generated from the supplied identity; the operator only creates the private password. The YSF reflector ID uses `12345` as an example, while the XLX reflector ID correctly remains exactly three alphanumeric characters.
+The full configuration questionnaire remains visible: XLX identity, domain, e-mail, callsign, country, timezone, dashboard text, HTTPS, Echo, modules, YSF, city/region and private Admin access. Suggested values can be accepted with Enter. `S` or `Y` are both accepted as yes/sim. APRS/D-PRS and the Certificate page are standard components and are installed and validated automatically after the final review.
 
-The installer runs inside an automatically managed `tmux` session. If SSH disconnects, reconnect to the VPS and run `bash start.sh` again; the existing installer session is reopened instead of starting over. The reviewed `install.sh` remains the single installation engine. `bash install.sh --classic` is the compatibility fallback and `web-install.sh` remains available only as an advanced optional browser interface.
+The default installer is the classic text flow. `install.sh` remains the single installation engine. The optional Textual/web interfaces remain in the repository for advanced use, but they are not launched by `start.sh`.
 
 The installer does **not** run a mandatory full OS upgrade. It updates package indexes and installs only required dependencies using `apt-get`.
 
@@ -41,7 +41,7 @@ The installer does **not** run a mandatory full OS upgrade. It updates package i
 |---|---|
 | XLXD core | Multi-protocol reflector service and configured active modules |
 | XLX Echo | Optional echo test service on module E when selected |
-| Apache + PHP | Serves the dashboard and APIs |
+| Nginx + PHP-FPM | Serves the dashboard and APIs using the production-proven XLX026 web stack |
 | Callsign database | Builds and refreshes the RadioID/callsign directory with persistent local overrides |
 | CallingHome | Timer-based reflector registration/heartbeat using the actually available HTTP/HTTPS scheme |
 | Native APRS/D-PRS | D-PRS/GPS observation, APRS-IS integration, messaging/ACK state and account management |

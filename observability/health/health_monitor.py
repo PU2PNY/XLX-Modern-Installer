@@ -31,7 +31,8 @@ FLIGHT_RETENTION_DAYS = 30
 SERVICES = {
     'XLXD': 'xlxd.service',
     'Echo': 'xlxecho.service',
-    'Web': 'apache2.service',
+    'Web': 'nginx.service',
+    'PHP-FPM': 'php8.2-fpm.service',
     'XLX log': 'xlx_log.service',
 }
 
@@ -1571,7 +1572,7 @@ def collect_checks():
 
 def scan_new_log_events(state):
     definitions = {
-        "/var/log/apache2/error.log": re.compile(
+        "/var/log/nginx/error.log": re.compile(
             r"database is locked|SQLite3::(?:prepare|query)|segfault|out of memory",
             re.I,
         ),

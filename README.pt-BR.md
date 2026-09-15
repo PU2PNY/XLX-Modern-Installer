@@ -1,6 +1,6 @@
 # XLX Modern Installer
 
-**Versão atual: v1.4.3**
+**Versão atual: v1.4.5**
 
 Instalador público e reproduzível para **Debian 12 x86_64**. Instala o núcleo XLXD, Echo Test, painel moderno multiprotocolo, Admin privado, APRS/D-PRS nativo, Certificados nativos verificáveis, CallingHome e observabilidade operacional.
 
@@ -19,15 +19,15 @@ cd XLX-Modern-Installer
 bash start.sh
 ```
 
-`bash start.sh` é o caminho recomendado para leigos. Ele valida a VPS primeiro, prepara a interface automaticamente e recusa sobrescrever um XLXD ativo ou vestígios antigos ainda não revisados. `bash install.sh --check` continua disponível como pré-validação somente leitura.
+`bash start.sh` é o caminho recomendado. Ele abre diretamente o questionário clássico em texto, com perguntas em Português + English, e recusa sobrescrever um XLXD ativo ou vestígios antigos ainda não revisados. `bash install.sh --check` continua disponível como pré-validação somente leitura.
 
 ## Como a instalação funciona
 
-O caminho normal usa **uma única sessão SSH**. Não é necessário abrir outro terminal, criar túnel SSH nem configurar navegador. A primeira tela escolhe Português/English e depois existem somente quatro etapas claras: dados essenciais, acesso privado, revisão e instalação. Ao pressionar Enter, a resposta atual é validada e o cursor vai para o próximo campo.
+O caminho normal usa **uma única sessão SSH**. Não é necessário abrir outro terminal, criar túnel SSH, navegador ou interface visual. Primeiro você escolhe o idioma do instalador e do painel. Depois responde, em sequência, às 21 perguntas completas em Português + English. No fim aparece uma revisão única: pressione Enter para confirmar ou informe o número de uma pergunta para corrigi-la. Após a confirmação, não há novas perguntas e a instalação segue automaticamente até a validação final.
 
-O instalador pergunta apenas o que realmente precisa de decisão humana. Valores técnicos recomendados são automáticos: HTTPS, Echo Test no módulo E, cinco módulos A–E, YSF UDP 42000, frequência YSF 433125000, auto-link no módulo C e fuso horário detectado. Usuário e endereço privado do Admin são gerados a partir da identidade informada; a pessoa cria apenas a senha privada. O YSF ID usa `12345` como exemplo; o ID XLX continua corretamente limitado a exatamente três caracteres alfanuméricos.
+O instalador mostra valores sugeridos, mas mantém todas as perguntas importantes visíveis: identidade XLX, domínio, e-mail, indicativo, país, fuso horário, textos do painel, HTTPS, Echo, módulos, YSF, cidade/região e acesso privado do Admin. `S` ou `Y` significam sim/yes nas perguntas de confirmação. APRS/D-PRS e a página de Certificado não são opcionais nesse fluxo: são instalados como componentes padrão e validados no final.
 
-A instalação roda dentro de uma sessão `tmux` criada automaticamente. Se o SSH cair, basta reconectar na VPS e executar `bash start.sh` novamente; a mesma instalação é reaberta em vez de recomeçar. O `install.sh` revisado continua sendo o único motor real. `bash install.sh --classic` fica como fallback de compatibilidade e `web-install.sh` permanece disponível apenas como opção avançada de navegador.
+O instalador padrão voltou ao fluxo clássico em texto. O `install.sh` continua sendo o único motor real. As interfaces Textual/web permanecem no repositório apenas como opções avançadas e não são abertas pelo `start.sh`.
 
 O instalador **não executa `full-upgrade` obrigatório**. Usa `apt-get` para atualizar índices e instalar apenas as dependências necessárias.
 
@@ -37,7 +37,7 @@ O instalador **não executa `full-upgrade` obrigatório**. Usa `apt-get` para at
 |---|---|
 | XLXD | Núcleo do refletor multiprotocolo e módulos configurados |
 | XLX Echo | Teste de eco opcional no módulo E |
-| Apache + PHP | Painel e APIs |
+| Nginx + PHP-FPM | Painel e APIs, usando a mesma arquitetura web validada no XLX026 |
 | Base de indicativos | RadioID/callsigns com atualizações e correções locais persistentes |
 | CallingHome | Registro/heartbeat por timer usando HTTP/HTTPS realmente disponível |
 | APRS/D-PRS nativo | D-PRS/GPS, APRS-IS, mensagens/ACK e contas |

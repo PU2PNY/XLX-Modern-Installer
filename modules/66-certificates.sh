@@ -52,6 +52,6 @@ PY
   chown root:www-data "$tmp"; chmod 0640 "$tmp"; mv -f "$tmp" "$secret"
 fi
 chown root:www-data "$secret"; chmod 0640 "$secret"
-runuser -u www-data -- test -r "$secret" || fail "$(say 'Apache não consegue ler o segredo HMAC.' 'Apache cannot read the HMAC secret.')"
+runuser -u www-data -- test -r "$secret" || fail "$(say 'PHP-FPM não consegue ler o segredo HMAC.' 'PHP-FPM cannot read the HMAC secret.')"
 php -l "$DASHBOARD/api/certificado.php" >/dev/null
 ok "$(say 'Certificados nativos prontos: emissão, QR e validação HMAC.' 'Native Certificates ready: issuance, QR, and HMAC validation.')"

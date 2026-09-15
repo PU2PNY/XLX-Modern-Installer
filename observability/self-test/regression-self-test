@@ -22,7 +22,8 @@ check_service(){ local s="$1" critical="${2:-1}"; if systemctl is-active --quiet
 exec > >(tee -a "$TXT") 2>&1
 
 check_service xlxd.service 1
-check_service apache2.service 1
+check_service nginx.service 1
+check_service php8.2-fpm.service 1
 for s in xlxecho.service xlx_log.service xlx-aprs-dprs.service xlx-modern-dmr-data-monitor.service xlx-modern-dmr-meta-monitor.service xlx-modern-ysf-data-monitor.service; do check_service "$s" 0; done
 
 pid="$(systemctl show -p MainPID --value xlxd.service 2>/dev/null || echo 0)"

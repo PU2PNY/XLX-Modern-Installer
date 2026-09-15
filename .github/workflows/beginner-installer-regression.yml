@@ -1,23 +1,25 @@
-name: Beginner installer regression
+name: Classic installer regression
 
 on:
   push:
-    branches:
-      - fix-v1.4.4-textual-stderr-render
-      - main
+    branches: [main]
     paths:
       - 'start.sh'
-      - 'tui/simple_installer.py'
-      - 'tui/run-simple.sh'
-      - 'tui/requirements.txt'
+      - 'install.sh'
+      - 'vendor/pp5pk-installer/installer.sh'
+      - 'modules/60-dashboard-modern.sh'
+      - 'modules/66-certificates.sh'
+      - 'modules/67-aprs-dprs.sh'
       - 'VERSION'
       - '.github/workflows/beginner-installer-regression.yml'
   pull_request:
     paths:
       - 'start.sh'
-      - 'tui/simple_installer.py'
-      - 'tui/run-simple.sh'
-      - 'tui/requirements.txt'
+      - 'install.sh'
+      - 'vendor/pp5pk-installer/installer.sh'
+      - 'modules/60-dashboard-modern.sh'
+      - 'modules/66-certificates.sh'
+      - 'modules/67-aprs-dprs.sh'
       - 'VERSION'
       - '.github/workflows/beginner-installer-regression.yml'
 
@@ -27,170 +29,64 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install pinned Textual
-        run: python -m pip install --disable-pip-version-check -r tui/requirements.txt
-
-      - name: Validate shell and Python syntax
+      - name: Validate shell syntax
         run: |
           set -Eeuo pipefail
           bash -n start.sh
-          bash -n tui/run-simple.sh
-          python -m py_compile tui/simple_installer.py
-          python tui/simple_installer.py --self-test
+          bash -n install.sh
+          bash -n vendor/pp5pk-installer/installer.sh
+          bash -n modules/60-dashboard-modern.sh
+          bash -n modules/66-certificates.sh
+          bash -n modules/67-aprs-dprs.sh
 
-      - name: Exercise one-question-at-a-time flow headlessly
+      - name: Verify classic bilingual flow
         run: |
-          python - <<'PY'
-          import asyncio
-          import importlib.util
+          python3 - <<'PY'
           from pathlib import Path
+          import hashlib, re
 
-          module_path = Path('tui/simple_installer.py').resolve()
-          spec = importlib.util.spec_from_file_location('xlx_simple', module_path)
-          module = importlib.util.module_from_spec(spec)
-          assert spec and spec.loader
-          spec.loader.exec_module(module)
-          module.udp_port_available = lambda port: True
+          start = Path('start.sh').read_text()
+          install = Path('install.sh').read_text()
+          vendor = Path('vendor/pp5pk-installer/installer.sh').read_text()
+          dashboard_module = Path('modules/60-dashboard-modern.sh').read_text()
+          dashboard = Path('dashboard/index.php').read_text()
 
-          values = {
-              'reflector_id': 'PNY',
-              'domain': 'xlx026.net',
-              'callsign': 'PU2PNY',
-              'email': 'sysop@example.net',
-              'country': 'Brazil',
-              'location': 'Santa Isabel - SP',
-              'ysf_id': '12345',
-              'admin_slug': 'meu-admin',
-              'admin_password': 'ExampleOnly-123!',
-              'admin_password_confirm': 'ExampleOnly-123!',
-          }
+          assert 'MODO SIMPLES / SIMPLE MODE' in start
+          assert 'exec bash "$ROOT_DIR/install.sh" "$@" --classic' in start
+          assert 'simple_installer.py' not in start
+          assert 'tmux -L "$TMUX_SOCKET"' not in start
+          assert 'TUI_MODE="off"' in install
 
-          async def verify():
-              app = module.SimpleInstaller(Path.cwd())
-              async with app.run_test(size=(150, 46)) as pilot:
-                  await pilot.pause()
-                  assert app.phase == 'language'
-                  assert app.query_one('#lang-pt').label.plain == 'Português (Brasil)'
-                  assert app.query_one('#lang-en').label.plain == 'English'
+          for number in range(1, 22):
+              prefix = f'{number:02d}.'
+              assert prefix in vendor, f'missing vendor question {prefix}'
+              escaped = f'{number:02d}\\\\.'
+              assert escaped in install, f'missing bilingual rewrite for question {prefix}'
 
-                  app.set_language('pt-BR')
-                  await pilot.pause()
-                  assert app.phase == 'questions'
-                  assert app.current_key == 'reflector_id'
-                  assert app.query_one('#counter').render().plain == 'PERGUNTA 1 DE 7'
+          for marker in (
+              'DADOS DO REFLETOR / REFLECTOR DATA INPUT',
+              'REVISE AS CONFIGURAÇÕES / REVIEW YOUR SETTINGS:',
+              'Configurações corretas? [ENTER] confirma',
+              '[[ "$INSTALL_SSL" == "S" ]] && INSTALL_SSL="Y"',
+              '[[ "$INSTALL_ECHO" == "S" ]] && INSTALL_ECHO="Y"',
+              '[[ "$AUTOLINK_USER" == "S" ]] && AUTOLINK_USER="Y"',
+          ):
+              assert marker in install, marker
 
-                  app.query_one('#answer').value = ''
-                  app.move_next()
-                  await pilot.pause()
-                  assert app.current_key == 'reflector_id'
-                  assert app.query_one('#error').display is True
+          review_at = vendor.index('Settings correct?')
+          assert vendor[review_at:].count('read -r') == 1
+          execute_at = install.index('execute_installer()')
+          post = install[execute_at:install.index('\nmain()', execute_at)]
+          assert 'read -r' not in post
 
-                  app.query_one('#answer').value = 'PNY'
-                  app.move_next()
-                  await pilot.pause()
-                  assert app.current_key == 'domain'
-                  app.move_back()
-                  await pilot.pause()
-                  assert app.current_key == 'reflector_id'
-                  assert app.query_one('#answer').value == 'PNY'
+          assert 'modules/66-certificates.sh' in dashboard_module
+          assert 'modules/67-aprs-dprs.sh' in install
+          assert "'certificado'" in dashboard
+          assert "'digital-lab'" in dashboard
 
-                  for key in module.QUESTION_KEYS:
-                      assert app.current_key == key
-                      app.query_one('#answer').value = values[key]
-                      app.move_next()
-                      await pilot.pause()
-
-                  assert app.phase == 'review'
-                  assert app.data['admin_slug'] == 'meu-admin'
-                  assert app.data['admin_user'] == 'pu2pny'
-                  assert app.query_one('#next').label.plain == 'INSTALAR AGORA'
-                  review = app.query_one('#review').render().plain
-                  assert '/meu-admin/' in review
-                  assert '12345' in review
-                  assert 'definida e ocultada' in review
-
-                  app.move_back()
-                  await pilot.pause()
-                  assert app.phase == 'questions'
-                  assert app.current_key == 'admin_password_confirm'
-
-          asyncio.run(verify())
+          m = re.search(r'EXPECTED_INSTALLER_SHA256="([0-9a-f]{64})"', install)
+          assert m
+          actual = hashlib.sha256(Path('vendor/pp5pk-installer/installer.sh').read_bytes()).hexdigest()
+          assert m.group(1) == actual
+          assert Path('VERSION').read_text().strip() == '1.4.5'
           PY
-
-      - name: Verify unattended answer stream protections
-        run: |
-          python - <<'PY'
-          import importlib.util
-          from pathlib import Path
-
-          spec = importlib.util.spec_from_file_location('xlx_simple', Path('tui/simple_installer.py'))
-          module = importlib.util.module_from_spec(spec)
-          assert spec and spec.loader
-          spec.loader.exec_module(module)
-
-          data = {
-              'reflector_id': '026', 'domain': 'xlx026.net',
-              'email': 'sysop@example.net', 'callsign': 'PU2PNY',
-              'country': 'Brazil', 'timezone': 'America/Sao_Paulo',
-              'location': 'Santa Isabel - SP', 'ysf_id': '12345',
-              'admin_user': 'pu2pny', 'admin_slug': 'controle-026',
-              'admin_password': 'ExampleOnly-123!'
-          }
-          answers = module.build_answers(data)
-          assert len(answers) == 24
-          assert answers[13] == '42000'
-          assert answers[14] == '433125000'
-          assert answers[15] == 'Y'
-          assert answers[16] == 'C'
-          assert answers[17] == 'Santa Isabel - SP'
-          assert answers[18] == '12345'
-          assert answers[20] == 'controle-026'
-          assert answers[21] == answers[22]
-          assert answers[23] == ''
-          assert len(module.generated_comment(data)) <= 100
-          PY
-
-      - name: Verify launcher recovery accessibility and terminal rendering
-        run: |
-          set -Eeuo pipefail
-          grep -Fq 'Nenhuma resposta é necessária nesta etapa' start.sh
-          grep -Fq 'tmux -L "$TMUX_SOCKET" has-session' start.sh
-          grep -Fq 'new-session -A -s "$SESSION"' start.sh
-          grep -Fq 'screen-256color' start.sh
-          grep -Fq 'ncurses-term' start.sh
-          grep -Fq 'XLX_UI_STATE_FILE' tui/run-simple.sh
-          grep -Fq 'opening compatibility mode' tui/run-simple.sh
-          grep -Fq 'Textual desenha a interface no descritor de erro (stderr)' tui/run-simple.sh
-          ! grep -Fq '2>>"$UI_LOG"' tui/run-simple.sh
-          ! grep -Fq '2>"$UI_LOG"' tui/run-simple.sh
-          grep -Fq 'write_ui_state("MOUNTED")' tui/simple_installer.py
-          grep -Fq 'write_ui_state("USER_CLOSED")' tui/simple_installer.py
-          grep -Fq 'background: #ffffff;' tui/simple_installer.py
-          grep -Fq 'color: #000000;' tui/simple_installer.py
-          grep -Fq '#install-progress' tui/simple_installer.py
-          grep -Fq 'height: 6;' tui/simple_installer.py
-          grep -Fq 'Endereço privado da Administração' tui/simple_installer.py
-          grep -Fq 'Mostrar senha' tui/simple_installer.py
-          grep -Fq 'Exemplo: 12345' tui/simple_installer.py
-          grep -Fq 'A tela não está travada' tui/simple_installer.py
-          ! grep -Fq 'ssh -L' start.sh
-          ! grep -Fq 'OUTRO terminal' start.sh
-
-          python - <<'PY'
-          from pathlib import Path
-          text = Path('start.sh').read_text(encoding='utf-8')
-          session_check = text.index('tmux -L "$TMUX_SOCKET" has-session')
-          active_guard = text.index('if [ -x /xlxd/xlxd ]')
-          assert session_check < active_guard, 'tmux recovery must run before fresh-install markers'
-
-          wrapper = Path('tui/run-simple.sh').read_text(encoding='utf-8')
-          launch_line = next(line for line in wrapper.splitlines() if 'simple_installer.py' in line and '$PYTHON_BIN' in line)
-          assert '2>' not in launch_line, 'Textual stderr must stay connected to the terminal or the UI is blank'
-          PY
-
-      - name: Verify release marker
-        run: test "$(cat VERSION)" = "1.4.4"
