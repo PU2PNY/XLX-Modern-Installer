@@ -1,0 +1,78 @@
+name: Repair pristine preflight
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/repair-pristine-preflight.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply verified repair
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          expected_parent=61b7411995d928e91d56033ce4eafd99d0e3e96d
+          actual_parent="$(git rev-parse HEAD^)"
+          test "$actual_parent" = "$expected_parent"
+
+          git show b90c028fb1db5845e5de98b8ebc409687d3e3243:tests/test-current-panel-runtime-parity.sh > tests/test-current-panel-runtime-parity.sh
+
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p=Path('modules/71-observability.sh')
+          s=p.read_text(encoding='utf-8')
+          old='''for c in python3 php install systemctl sha256sum timeout;do command -v "$c" >/dev/null||fail "$(say "Comando ausente: $c" "Missing command: $c")";done
+          for f in observability/health/health_monitor.py observability/dmr-data/monitor.py observability/dmr-data/dmr_bptc_decode observability/dmr-meta/monitor.py observability/ysf-data/monitor.py observability/ysf-data/ysf_decode observability/history/history-collector.php observability/self-test/regression-self-test;do [[ -f "$ROOT/$f" ]]||fail "$(say "Arquivo ausente: $f" "Missing file: $f")";done
+          python3 -m py_compile "$ROOT/observability/health/health_monitor.py" "$ROOT/observability/dmr-data/monitor.py" "$ROOT/observability/dmr-meta/monitor.py" "$ROOT/observability/ysf-data/monitor.py"
+          php -l "$ROOT/observability/history/history-collector.php" >/dev/null
+          bash -n "$ROOT/observability/self-test/regression-self-test"
+          '''
+          new='''for c in python3 install systemctl sha256sum timeout file;do command -v "$c" >/dev/null||fail "$(say "Comando ausente: $c" "Missing command: $c")";done
+          for f in observability/health/health_monitor.py observability/dmr-data/monitor.py observability/dmr-data/dmr_bptc_decode observability/dmr-meta/monitor.py observability/ysf-data/monitor.py observability/ysf-data/ysf_decode observability/history/history-collector.php observability/self-test/regression-self-test;do [[ -f "$ROOT/$f" ]]||fail "$(say "Arquivo ausente: $f" "Missing file: $f")";done
+          python3 -m py_compile "$ROOT/observability/health/health_monitor.py" "$ROOT/observability/dmr-data/monitor.py" "$ROOT/observability/dmr-meta/monitor.py" "$ROOT/observability/ysf-data/monitor.py"
+          # --check must work on pristine Debian before the base installer adds PHP.
+          if command -v php >/dev/null 2>&1; then
+            php -l "$ROOT/observability/history/history-collector.php" >/dev/null
+          elif [[ "$MODE" != check ]]; then
+            fail "$(say 'PHP CLI ausente para provisionar observabilidade.' 'PHP CLI is required to provision observability.')"
+          else
+            ok "$(say 'PHP ainda não está instalado; o coletor PHP será validado após as dependências.' 'PHP is not installed yet; the PHP collector will be validated after dependencies are installed.')"
+          fi
+          bash -n "$ROOT/observability/self-test/regression-self-test"
+          '''
+          if old not in s:
+              raise SystemExit('observability patch target not found')
+          p.write_text(s.replace(old,new,1), encoding='utf-8')
+
+          p=Path('tests/test-current-panel-runtime-parity.sh')
+          s=p.read_text(encoding='utf-8')
+          anchor="ok 'Apache releases port 80 before Nginx starts'\n"
+          aprs='''\n# Preflight on a pristine Debian host must not require PHP before the base installer\n# has had a chance to install it. Runtime provisioning still requires PHP.\npython3 - "$ROOT/modules/67-aprs-dprs.sh" <<'PYAPRS'\nimport sys\ns=open(sys.argv[1],encoding='utf-8').read()\nassert 'if command -v php >/dev/null 2>&1; then' in s\nassert 'elif [[ "$MODE" != check ]]' in s\nassert 'PHP CLI ausente para provisionar APRS/D-PRS.' in s\nPYAPRS\nok 'clean-host APRS preflight does not require preinstalled PHP'\n'''
+          obs='''\n# Observability has the same clean-host contract: check mode may run before PHP exists.\npython3 - "$ROOT/modules/71-observability.sh" <<'PYOBS'\nimport sys\ns=open(sys.argv[1],encoding='utf-8').read()\nassert 'if command -v php >/dev/null 2>&1; then' in s\nassert 'elif [[ "$MODE" != check ]]' in s\nassert 'PHP CLI ausente para provisionar observabilidade.' in s\nPYOBS\nok 'clean-host observability preflight does not require preinstalled PHP'\n'''
+          if anchor not in s:
+              raise SystemExit('test anchor not found')
+          p.write_text(s.replace(anchor,anchor+aprs+obs,1), encoding='utf-8')
+          PY
+
+          bash -n modules/71-observability.sh
+          bash -n tests/test-current-panel-runtime-parity.sh
+          test "$(git hash-object modules/71-observability.sh)" = 3a188f5328fde3dd9ab556026e60d72d97f00134
+          test "$(git hash-object tests/test-current-panel-runtime-parity.sh)" = 9ab497ed482da7a494afa2a70bad68f71f21f480
+
+          git config user.name 'PU2PNY Automation'
+          git config user.email '47339656+PU2PNY@users.noreply.github.com'
+          git add modules/71-observability.sh tests/test-current-panel-runtime-parity.sh
+          git rm .github/workflows/repair-pristine-preflight.yml
+          git commit -m 'Fix pristine Debian observability preflight'
+          git push origin HEAD:main
