@@ -2,7 +2,8 @@
 set -Eeuo pipefail
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 TMP="$(mktemp -d /tmp/xlx-control-functional.XXXXXX)"
-trap 'rm -rf "$TMP"' EXIT
+cleanup(){ if [[ $(id -u) -eq 0 ]]; then rm -rf "$TMP"; else sudo rm -rf "$TMP"; fi; }
+trap cleanup EXIT
 fail(){ printf 'FAIL | %s\n' "$*" >&2; exit 1; }
 ok(){ printf 'OK | %s\n' "$*"; }
 run_root(){ if [[ $(id -u) -eq 0 ]]; then "$@"; else sudo "$@"; fi; }
@@ -28,7 +29,7 @@ access add-black BAD123 >/dev/null; grep -Fxq BAD123 "$TMP/access/black"
 access delete-black BAD123 >/dev/null; ! grep -Fxq BAD123 "$TMP/access/black"
 access interlink-add XLX123 203.0.113.5 ABC >/dev/null; grep -Fxq 'XLX123 203.0.113.5 ABC' "$TMP/access/interlink"
 access interlink-delete XLX123 >/dev/null; ! grep -Fq XLX123 "$TMP/access/interlink"
-grep -Fq 'action=interlink-delete' "$TMP/state/audit.log"
+run_root grep -Fq 'action=interlink-delete' "$TMP/state/audit.log"
 ok 'whitelist, blacklist and Interlink add/delete/status are functional'
 
 cat > "$TMP/radio/users.csv" <<'CSV'
