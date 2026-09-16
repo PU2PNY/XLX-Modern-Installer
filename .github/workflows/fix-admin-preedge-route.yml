@@ -1,81 +1,53 @@
-name: Fix Admin pre-edge route validation
+name: Repair Admin route timing
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
 
 permissions:
   contents: write
 
 jobs:
   repair:
-    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
+    env:
+      BLOCK_B64: "IyBUaGUgZGFzaGJvYXJkIG1vZHVsZSBydW5zIGJlZm9yZSBtb2R1bGVzLzcwLW5naW54LnNoIG9uIGEgY2xlYW4gaW5zdGFsbC4KIyBBdCB0aGlzIHBvaW50IHRoZSB0ZW1wb3JhcnkgQXBhY2hlIGVkZ2UgZnJvbSB0aGUgYmFzZSBpbnN0YWxsZXIgbWF5IHN0aWxsIGJlCiMgc2VydmluZyB0aGUgZG9tYWluLCBzbyBhbiBIVFRQIHJlcXVlc3QgdG8gdGhlIGN1c3RvbSBzbHVnIGlzIG5vdCBhdXRob3JpdGF0aXZlLgojIEtlZXAgYWxsIGZpbGVzeXN0ZW0vYXV0aC9zZWN1cml0eSBjaGVja3MgYWJvdmUsIGFuZCBvbmx5IHByb3ZlIHRoZSB3ZWIgcm91dGUKIyBoZXJlIHdoZW4gdGhlIGZpbmFsIE5naW54ICsgUEhQLUZQTSBlZGdlIGlzIGFscmVhZHkgYWN0aXZlLiBUaGUgbWFuZGF0b3J5CiMgZnJlc2gtaW5zdGFsbC1wYXJpdHkgZ2F0ZSByZS10ZXN0cyB0aGUgZXhhY3Qgc2F2ZWQgc2x1ZyBhZnRlciBOZ2lueCBpcyBlbmFibGVkLgpGSU5BTF9BRE1JTl9FREdFX1JFQURZPTAKaWYgc3lzdGVtY3RsIGlzLWFjdGl2ZSAtLXF1aWV0IG5naW54LnNlcnZpY2UgMj4vZGV2L251bGwgXAogICYmIHN5c3RlbWN0bCBpcy1hY3RpdmUgLS1xdWlldCBwaHA4LjItZnBtLnNlcnZpY2UgMj4vZGV2L251bGwgXAogICYmIFtbIC1mIC9ldGMvbmdpbngvc2l0ZXMtZW5hYmxlZC94bHgtbW9kZXJuLmNvbmYgfHwgLUwgL2V0Yy9uZ2lueC9zaXRlcy1lbmFibGVkL3hseC1tb2Rlcm4uY29uZiBdXTsgdGhlbgogIEZJTkFMX0FETUlOX0VER0VfUkVBRFk9MQpmaQoKaWYgW1sgIiRGSU5BTF9BRE1JTl9FREdFX1JFQURZIiAtZXEgMSBdXTsgdGhlbgogIEFETUlOX1NDSEVNRT0naHR0cCcKICBBRE1JTl9QT1JUPSc4MCcKICBpZiBbWyAtcyAiL2V0Yy9sZXRzZW5jcnlwdC9saXZlLyRET01BSU4vZnVsbGNoYWluLnBlbSIgJiYgLXMgIi9ldGMvbGV0c2VuY3J5cHQvbGl2ZS8kRE9NQUlOL3ByaXZrZXkucGVtIiBdXTsgdGhlbgogICAgQURNSU5fU0NIRU1FPSdodHRwcycKICAgIEFETUlOX1BPUlQ9JzQ0MycKICBmaQogIEFETUlOX0JBU0U9IiRBRE1JTl9TQ0hFTUU6Ly8kRE9NQUlOIgogIEFETUlOX0NVUkw9KGN1cmwgLS1zaWxlbnQgLS1zaG93LWVycm9yIC0tcmVzb2x2ZSAiJERPTUFJTjokQURNSU5fUE9SVDoxMjcuMC4wLjEiIC0tY29ubmVjdC10aW1lb3V0IDUgLS1tYXgtdGltZSAxMikKICBbWyAiJEFETUlOX1NDSEVNRSIgPT0gaHR0cHMgXV0gJiYgQURNSU5fQ1VSTCs9KC0taW5zZWN1cmUpCiAgaWYgISAiJHtBRE1JTl9DVVJMW0BdfSIgIiRBRE1JTl9CQVNFLyRzbHVnLyIgLW8gIiRXT1JLL2FkbWluLXdlYi5odG1sIjsgdGhlbgogICAgZmFpbCAiJChzYXkgJ0Egcm90YSBwcml2YWRhIGRvIEFkbWluIG7Do28gcmVzcG9uZGV1IGxvY2FsbWVudGUuJyAnUHJpdmF0ZSBBZG1pbiByb3V0ZSBkaWQgbm90IHJlc3BvbmQgbG9jYWxseS4nKSIKICBmaQogIGdyZXAgLUZxICIkVElUTEUiICIkV09SSy9hZG1pbi13ZWIuaHRtbCIgfHwgZmFpbCAiJChzYXkgJ0Egcm90YSBBZG1pbiByZXNwb25kZXUsIG1hcyBuw6NvIGVudHJlZ291IGEgdGVsYSBwcml2YWRhIGNvcnJldGEuJyAnQWRtaW4gcm91dGUgcmVzcG9uZGVkIGJ1dCBkaWQgbm90IGRlbGl2ZXIgdGhlIGNvcnJlY3QgcHJpdmF0ZSBwYWdlLicpIgogIFtbIC1zICIkV09SSy9hZG1pbi13ZWIuaHRtbCIgXV0gfHwgZmFpbCAiJChzYXkgJ0Egcm90YSBBZG1pbiByZXRvcm5vdSByZXNwb3N0YSB2YXppYS4nICdBZG1pbiByb3V0ZSByZXR1cm5lZCBhbiBlbXB0eSByZXNwb25zZS4nKSIKICBMT0dJTl9NQVJLRVI9IiQoc2F5ICdBY2Vzc28gcmVzdHJpdG8nICdSZXN0cmljdGVkIGFjY2VzcycpIgogIGdyZXAgLUZxICIkTE9HSU5fTUFSS0VSIiAiJFdPUksvYWRtaW4td2ViLmh0bWwiIHx8IGZhaWwgIiQoc2F5ICdBIHJvdGEgQWRtaW4gbsOjbyBlbnRyZWdvdSBhIHRlbGEgZGUgYXV0ZW50aWNhw6fDo28uJyAnQWRtaW4gcm91dGUgZGlkIG5vdCBkZWxpdmVyIHRoZSBhdXRoZW50aWNhdGlvbiBwYWdlLicpIgogIG9rICIkKHNheSAiUm90YSBwcml2YWRhIGRvIEFkbWluIHZhbGlkYWRhIGxvY2FsbWVudGUgcG9yICRBRE1JTl9TQ0hFTUUuIiAiUHJpdmF0ZSBBZG1pbiByb3V0ZSB2YWxpZGF0ZWQgbG9jYWxseSBvdmVyICRBRE1JTl9TQ0hFTUUuIikiCmVsc2UKICBvayAiJChzYXkgJ1JvdGEgQWRtaW4gcHJlcGFyYWRhOyBwcm92YSBIVFRQIGFkaWFkYSBhdMOpIGEgYXRpdmHDp8OjbyBmaW5hbCBkbyBOZ2lueC9QSFAtRlBNLicgJ0FkbWluIHJvdXRlIHByZXBhcmVkOyBIVFRQIHByb29mIGRlZmVycmVkIHVudGlsIGZpbmFsIE5naW54L1BIUC1GUE0gYWN0aXZhdGlvbi4nKSIKZmkK"
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Defer private route HTTP proof until final Nginx edge
+      - name: Patch Admin route timing
         shell: bash
         run: |
           set -Eeuo pipefail
           python3 - <<'PY'
           from pathlib import Path
-
+          import base64, os
           p = Path('modules/69-admin-page.sh')
-          s = p.read_text()
+          s = p.read_text(encoding='utf-8')
           start = s.index('# Prove the configured private route over whichever local web scheme is')
-          end_marker = 'ok "$(say "Rota privada do Admin validada localmente por $ADMIN_SCHEME." "Private Admin route validated locally over $ADMIN_SCHEME.")"\n'
-          end = s.index(end_marker, start) + len(end_marker)
-          new = r'''# The dashboard module runs before modules/70-nginx.sh on a clean install.
-# At this point the temporary Apache edge from the base installer may still be
-# serving the domain, so an HTTP request to the custom slug is not authoritative.
-# Keep all filesystem/auth/security checks above, and only prove the web route
-# here when the final Nginx + PHP-FPM edge is already active.  The mandatory
-# fresh-install-parity gate re-tests the exact saved slug after Nginx is enabled.
-FINAL_ADMIN_EDGE_READY=0
-if systemctl is-active --quiet nginx.service 2>/dev/null \
-  && systemctl is-active --quiet php8.2-fpm.service 2>/dev/null \
-  && [[ -f /etc/nginx/sites-enabled/xlx-modern.conf || -L /etc/nginx/sites-enabled/xlx-modern.conf ]]; then
-  FINAL_ADMIN_EDGE_READY=1
-fi
-
-if [[ "$FINAL_ADMIN_EDGE_READY" -eq 1 ]]; then
-  ADMIN_SCHEME='http'
-  ADMIN_PORT='80'
-  if [[ -s "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" && -s "/etc/letsencrypt/live/$DOMAIN/privkey.pem" ]]; then
-    ADMIN_SCHEME='https'
-    ADMIN_PORT='443'
-  fi
-  ADMIN_BASE="$ADMIN_SCHEME://$DOMAIN"
-  ADMIN_CURL=(curl --silent --show-error --resolve "$DOMAIN:$ADMIN_PORT:127.0.0.1" --connect-timeout 5 --max-time 12)
-  [[ "$ADMIN_SCHEME" == https ]] && ADMIN_CURL+=(--insecure)
-  if ! "${ADMIN_CURL[@]}" "$ADMIN_BASE/$slug/" -o "$WORK/admin-web.html"; then
-    fail "$(say 'A rota privada do Admin não respondeu localmente.' 'Private Admin route did not respond locally.')"
-  fi
-  grep -Fq "$TITLE" "$WORK/admin-web.html" || fail "$(say 'A rota Admin respondeu, mas não entregou a tela privada correta.' 'Admin route responded but did not deliver the correct private page.')"
-  [[ -s "$WORK/admin-web.html" ]] || fail "$(say 'A rota Admin retornou resposta vazia.' 'Admin route returned an empty response.')"
-  LOGIN_MARKER="$(say 'Acesso restrito' 'Restricted access')"
-  grep -Fq "$LOGIN_MARKER" "$WORK/admin-web.html" || fail "$(say 'A rota Admin não entregou a tela de autenticação.' 'Admin route did not deliver the authentication page.')"
-  ok "$(say "Rota privada do Admin validada localmente por $ADMIN_SCHEME." "Private Admin route validated locally over $ADMIN_SCHEME.")"
-else
-  ok "$(say 'Rota Admin preparada; prova HTTP adiada até a ativação final do Nginx/PHP-FPM.' 'Admin route prepared; HTTP proof deferred until final Nginx/PHP-FPM activation.')"
-fi
-'''
-          p.write_text(s[:start] + new + s[end:])
-
+          end = s.index('\nSUCCESS=1', start)
+          block = base64.b64decode(os.environ['BLOCK_B64']).decode('utf-8')
+          p.write_text(s[:start] + block + s[end:], encoding='utf-8')
           t = Path('tests/test-admin-route-readiness.sh')
-          s = t.read_text()
-          s = s.replace(
-              'grep -Fq "ADMIN_SCHEME=\'http\'" "$ROOT/modules/69-admin-page.sh" || fail \'Admin installer must probe HTTP when TLS is pending\'\n'
-              'grep -Fq \'ADMIN_CURL=(curl\' "$ROOT/modules/69-admin-page.sh" || fail \'Admin installer local route probe is missing\'\n',
-              'grep -Fq \'FINAL_ADMIN_EDGE_READY=0\' "$ROOT/modules/69-admin-page.sh" || fail \'Admin installer must distinguish the pre-Nginx stage\'\n'
-              'grep -Fq \'HTTP proof deferred until final Nginx/PHP-FPM activation\' "$ROOT/modules/69-admin-page.sh" || fail \'pre-edge Admin route deferral marker is missing\'\n'
-          )
-          if "FINAL_ADMIN_EDGE_READY=0" not in s:
-              raise SystemExit('test contract replacement failed')
-          t.write_text(s)
+          lines = t.read_text(encoding='utf-8').splitlines()
+          out = []
+          inserted = False
+          for line in lines:
+              if 'Admin installer must probe HTTP when TLS is pending' in line:
+                  continue
+              if 'Admin installer local route probe is missing' in line:
+                  continue
+              if not inserted and 'ADMIN_ROUTE_FILE=' in line:
+                  out.append("grep -Fq 'FINAL_ADMIN_EDGE_READY=0' \"$ROOT/modules/69-admin-page.sh\" || fail 'Admin installer must distinguish the pre-Nginx stage'")
+                  out.append("grep -Fq 'HTTP proof deferred until final Nginx/PHP-FPM activation' \"$ROOT/modules/69-admin-page.sh\" || fail 'pre-edge Admin route deferral marker is missing'")
+                  inserted = True
+              out.append(line)
+          if not inserted:
+              raise SystemExit('route readiness test anchor missing')
+          t.write_text('\n'.join(out) + '\n', encoding='utf-8')
           PY
 
       - name: Validate repair
@@ -88,7 +60,7 @@ fi
           bash tests/test-admin-password-storage-contract.sh
           git diff --check
 
-      - name: Publish repair and remove one-shot workflow
+      - name: Publish repair
         shell: bash
         run: |
           set -Eeuo pipefail
