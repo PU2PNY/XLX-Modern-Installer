@@ -31,11 +31,17 @@ jobs:
           from pathlib import Path
           p = Path('.github/scripts/apply-installer-i18n-fix.py')
           s = p.read_text(encoding='utf-8')
-          old = "s = replace_once(s, '- APRS/D-PRS: native and mandatory / nativo e obrigatório', '- APRS/D-PRS: native and mandatory', \"English plan\")"
-          new = "s = s.replace('- APRS/D-PRS: native and mandatory / nativo e obrigatório', '- APRS/D-PRS: native and mandatory', 1)"
-          if old not in s:
+          old_plan = "s = replace_once(s, '- APRS/D-PRS: native and mandatory / nativo e obrigatório', '- APRS/D-PRS: native and mandatory', \"English plan\")"
+          new_plan = "s = s.replace('- APRS/D-PRS: native and mandatory / nativo e obrigatório', '- APRS/D-PRS: native and mandatory', 1)"
+          old_regex = "out, count = re.subn(pattern, new, text, count=1, flags=re.S)"
+          new_regex = "out, count = re.subn(pattern, lambda _m: new, text, count=1, flags=re.S)"
+          if old_plan not in s:
               raise SystemExit('English plan patch line not found')
-          p.write_text(s.replace(old, new, 1), encoding='utf-8')
+          if old_regex not in s:
+              raise SystemExit('Regex replacement line not found')
+          s = s.replace(old_plan, new_plan, 1)
+          s = s.replace(old_regex, new_regex, 1)
+          p.write_text(s, encoding='utf-8')
           PY
           python3 .github/scripts/apply-installer-i18n-fix.py
 
