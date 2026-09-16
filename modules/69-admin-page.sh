@@ -176,11 +176,12 @@ visudo -cf "$SUDOERS" >/dev/null
 # Build from the audited production control baseline, then remove every production-
 # specific identity/path and add the generic access/quick-links layer.
 cp -a "$ROOT/control/current-production-admin.php" "$WORK/index.php"
-# Admin intentionally supports two complete interfaces only.  The dashboard
-# can use six languages, while the private operational screen stays PT-BR or
-# English so its safety prompts and maintenance actions remain unambiguous.
-ADMIN_UI_LANG='en'
-[[ "$UI_LANG" == pt || "$UI_LANG" == pt-BR || "$UI_LANG" == pt_BR ]] && ADMIN_UI_LANG='pt-BR'
+# Admin follows exactly the dashboard locale. Installer prompts remain PT-BR/English.
+case "$UI_LANG" in
+  pt|pt-BR|pt_BR) ADMIN_UI_LANG='pt-BR' ;;
+  en|es|fr|de|it) ADMIN_UI_LANG="$UI_LANG" ;;
+  *) fail "$(say "Idioma do Admin não suportado: $UI_LANG" "Unsupported Admin language: $UI_LANG")" ;;
+esac
 python3 "$ROOT/control/build-admin.py" "$WORK/index.php" "$ADMIN_UI_LANG"
 php -l "$WORK/index.php" >/dev/null
 

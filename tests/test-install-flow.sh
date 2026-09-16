@@ -71,7 +71,7 @@ expect 'live callsign observer avoids identical text rewrites' 'if (base && raw 
 expect 'standby CSS does not force Portuguese text' 'content:none !important;' "$STANDBY_CSS"
 expect 'Admin route defaults to admin and can be changed' 'Hidden administrative page name [admin]' "$ADMIN_MODULE"
 expect 'Admin installation passes the selected language to its builder' 'XLX_UI_LANG="$UI_LANG"' "$ADMIN_MODULE"
-expect 'Admin source is localized for English installations' 'usage: build-admin.py INDEX.php [pt-BR|en]' "$ROOT/control/build-admin.py"
+expect 'Admin builder supports every dashboard language' 'usage: build-admin.py INDEX.php [pt-BR|en|es|fr|de|it]' "$ROOT/control/build-admin.py"
 expect 'Admin temporary route uses the safe admin default' '"$BASE_URL/admin/"' "$ADMIN_BUILDER"
 expect 'Custom Admin slug removes the bootstrap admin route' 'BOOTSTRAP_DIR' "$ADMIN_MODULE"
 expect 'base installer skips mandatory full OS upgrade' 'Full operating-system upgrade skipped by design' "$ROOT/vendor/pp5pk-installer/installer.sh"
@@ -151,3 +151,8 @@ check_native 'final validation requires private Admin path' grep -Fq 'Private Ad
 
 printf 'failures=%d\n' "$failures"
 exit "$failures"
+
+echo "[admin/dashboard locale parity]"
+grep -Fq 'en|es|fr|de|it) ADMIN_UI_LANG="$UI_LANG"' "$ROOT/modules/69-admin-page.sh" || { echo 'Admin does not inherit dashboard locale' >&2; exit 1; }
+for loc in es fr de it; do test -s "$ROOT/control/admin-$loc.json" || { echo "missing Admin locale catalog: $loc" >&2; exit 1; }; done
+echo "ADMIN_LANGUAGE_PARITY_CONTRACT=OK"
