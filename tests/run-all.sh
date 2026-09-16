@@ -18,6 +18,8 @@ echo "[admin slug contract]"
 bash "$ROOT/tests/test-admin-slug-contract.sh" || failures=$((failures+1))
 echo "[admin route readiness]"
 bash "$ROOT/tests/test-admin-route-readiness.sh" || failures=$((failures+1))
+echo "[admin password storage contract]"
+bash "$ROOT/tests/test-admin-password-storage-contract.sh" || failures=$((failures+1))
 echo "[canonical navigation]"
 bash "$ROOT/tests/test-canonical-navigation.sh" || failures=$((failures+1))
 echo "[vendored installer]"

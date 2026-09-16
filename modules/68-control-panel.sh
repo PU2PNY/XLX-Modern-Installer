@@ -68,6 +68,7 @@ GENERICIZER="$ROOT/control/build-admin.py"
 SOURCE_HELPER="$ROOT/control/xlx-modern-control-helper"
 SOURCE_RADIO="$ROOT/control/xlx-modern-radioid-helper"
 SOURCE_ACCESS="$ROOT/control/xlx-modern-access-helper"
+PASSWORD_VALIDATOR="$ROOT/control/validate-password-storage.php"
 BACKUP_ROOT="/var/backups/xlx-reflector/control"
 WEBUSER="www-data"
 
@@ -93,13 +94,14 @@ build_admin_source(){
 }
 
 validate_sources(){
-  for file in "$BASE_INDEX" "$GENERICIZER" "$SOURCE_HELPER" "$SOURCE_RADIO" "$SOURCE_ACCESS"; do
+  for file in "$BASE_INDEX" "$GENERICIZER" "$SOURCE_HELPER" "$SOURCE_RADIO" "$SOURCE_ACCESS" "$PASSWORD_VALIDATOR"; do
     [[ -f "$file" ]] || { fail "fonte do Admin ausente: $file"; exit 3; }
   done
   bash -n "$SOURCE_HELPER"
   bash -n "$SOURCE_RADIO"
   bash -n "$SOURCE_ACCESS"
   python3 -m py_compile "$GENERICIZER"
+  php -l "$PASSWORD_VALIDATOR" >/dev/null
   [[ -f "$ROOT/control/admin-en.json" ]] || { fail "Admin translation catalog missing"; exit 3; }
   local tmp
   tmp="$(mktemp /tmp/xlx-modern-admin-source.XXXXXX.php)"
@@ -260,7 +262,7 @@ LOG="/var/log/xlx.log"
 BACKUPS="/var/backups/xlx-reflector"
 EOF
 php -l "$TMP/config.php" >/dev/null
-if grep -Fq "$PASSWORD" "$TMP/config.php"; then fail "$(say 'senha em texto puro detectada' 'plain-text password detected')"; exit 30; fi
+if ! printf '%s' "$PASSWORD" | php "$PASSWORD_VALIDATOR" "$TMP/config.php"; then fail "$(say 'armazenamento de senha inválido no candidato' 'invalid password storage in candidate config')"; exit 30; fi
 ok "$(say 'candidato completo e configuração protegida preparados' 'complete candidate and protected configuration prepared')"
 
 section "$(say '4/8 — INSTALAR' '4/8 — INSTALL')"
@@ -315,8 +317,12 @@ ok "$(say 'www-data limitado à allowlist administrativa validada' 'www-data lim
 
 section "$(say '6/8 — VALIDAR CREDENCIAL E SEGURANÇA' '6/8 — VALIDATE CREDENTIAL AND SECURITY')"
 step6_check(){ local label="$1"; shift; if "$@"; then ok "$label"; else fail "$label"; return 1; fi; }
-step6_check "$(say 'credencial Admin validada' 'Admin credential validated')" php -r '$c=require $argv[1]; exit(($c["username"]===$argv[2] && password_verify($argv[3],$c["password_hash"]))?0:1);' "$CFG_FILE" "$USERNAME" "$PASSWORD"
-if grep -Fq "$PASSWORD" "$CFG_FILE"; then fail "$(say 'senha em texto puro detectada após instalação' 'Plain-text password detected after installation')"; exit 60; fi
+if printf '%s' "$PASSWORD" | php -r '$c=require $argv[1];$p=stream_get_contents(STDIN);exit(($c["username"]===$argv[2] && password_verify($p,$c["password_hash"]))?0:1);' "$CFG_FILE" "$USERNAME"; then
+  ok "$(say 'credencial Admin validada' 'Admin credential validated')"
+else
+  fail "$(say 'credencial Admin inválida' 'Invalid Admin credential')"; exit 60
+fi
+if ! printf '%s' "$PASSWORD" | php "$PASSWORD_VALIDATOR" "$CFG_FILE"; then fail "$(say 'armazenamento de senha inválido após instalação' 'Invalid password storage after installation')"; exit 60; fi
 ok "$(say 'senha armazenada somente como hash' 'Password stored as hash only')"
 step6_check 'X-Robots-Tag noindex' grep -Fq 'X-Robots-Tag: noindex, nofollow, noarchive, nosnippet' "$CONTROL_DIR/index.php"
 step6_check "$(say 'bloqueio de crawlers conhecidos' 'Known crawler deny')" grep -Fq 'googlebot|bingbot' "$CONTROL_DIR/index.php"
