@@ -38,6 +38,112 @@ CHECK_READY="yes"
 TUI_MODE="off"
 TUI_PYTHON=""
 
+# Resolve the installer/operator language before parsing options that may print
+# help or errors. Dashboard content language remains an independent setting.
+for arg in "$@"; do
+    case "$arg" in
+        --ui-lang=*) UI_LANG="${arg#*=}"; UI_LANG_EXPLICIT="yes" ;;
+    esac
+done
+if [ "$UI_LANG_EXPLICIT" != "yes" ]; then
+    for arg in "$@"; do
+        case "$arg" in
+            --lang=en) UI_LANG="en" ;;
+            --lang=*) UI_LANG="pt-BR" ;;
+        esac
+    done
+fi
+
+print_help() {
+    if [ "$UI_LANG" = "en" ]; then
+        cat <<'HELP_EN'
+XLX Modern Installer
+
+Usage:
+  sudo bash install.sh --check
+  sudo bash install.sh
+  sudo bash install.sh --lang=en
+  sudo bash install.sh --ui-lang=en --lang=es
+  sudo bash install.sh --dashboard-only
+  sudo bash install.sh --tui
+  sudo bash install.sh --classic
+
+Options:
+  --check
+      Checks the server only. Does not install or change XLX.
+
+  --lang=CODE
+      Sets the public dashboard language independently from the installer language.
+      pt-BR | en | es | fr | de | it
+
+  --ui-lang=CODE
+      Sets the installer/operator language.
+      pt-BR | en
+
+  --tui
+      Optional/experimental visual interface. The simple questionnaire is default.
+
+  --classic
+      Uses the simple text questionnaire. This is already the default mode.
+
+  --dashboard-only
+      Updates or reinstalls only the modern dashboard on an existing XLXD.
+      It preserves the XLXD core, creates a safety backup, and does not run a
+      full reflector installation.
+
+  --allow-remnants
+      Allows continuing when only old installation remnants exist.
+      It never deletes files automatically.
+
+  --force-clean
+      Legacy alias for --allow-remnants. It does not clean files automatically.
+HELP_EN
+    else
+        cat <<'HELP_PT'
+XLX Modern Installer
+
+Uso:
+  sudo bash install.sh --check
+  sudo bash install.sh
+  sudo bash install.sh --lang=pt-BR
+  sudo bash install.sh --ui-lang=pt-BR --lang=es
+  sudo bash install.sh --dashboard-only
+  sudo bash install.sh --tui
+  sudo bash install.sh --classic
+
+Opções:
+  --check
+      Apenas verifica o servidor. Não instala nem altera o XLX.
+
+  --lang=CODE
+      Define o idioma do painel público independentemente do idioma do instalador.
+      pt-BR | en | es | fr | de | it
+
+  --ui-lang=CODE
+      Define o idioma do instalador/operador.
+      pt-BR | en
+
+  --tui
+      Interface visual opcional/experimental. O padrão é o questionário simples.
+
+  --classic
+      Usa o questionário simples em texto. Este já é o modo padrão.
+
+  --dashboard-only
+      Atualiza ou reinstala somente o painel moderno em um XLXD existente.
+      Preserva o núcleo XLXD, cria backup preventivo e não executa a instalação
+      completa do refletor.
+
+  --allow-remnants
+      Permite continuar quando existem apenas vestígios de instalação antiga.
+      Não apaga arquivos automaticamente.
+
+  --force-clean
+      Alias legado de --allow-remnants. Não executa limpeza automática.
+HELP_PT
+    fi
+}
+
 for arg in "$@"; do
     case "$arg" in
         --check|--dry-run) MODE="check" ;;
@@ -48,59 +154,15 @@ for arg in "$@"; do
         --tui) TUI_MODE="force" ;;
         --classic|--no-tui) TUI_MODE="off" ;;
         --tui-child) TUI_MODE="child" ;;
-        -h|--help)
-            cat <<'HELP'
-XLX Modern Installer
-
-Uso / Usage:
-  sudo bash install.sh --check
-  sudo bash install.sh
-  sudo bash install.sh --lang=en
-  sudo bash install.sh --dashboard-only
-  sudo bash install.sh --tui
-  sudo bash install.sh --classic
-
-Opções / Options:
-  --check
-      Apenas verifica o servidor. Não instala nem altera o XLX.
-      Checks the server only. Does not install or change XLX.
-
-  --lang=CODE
-      Define o idioma do dashboard. Com --lang=en, a interface deste
-      instalador também usa inglês.
-      Sets the dashboard language. With --lang=en, this installer UI
-      also uses English.
-      pt-BR | en | es | fr | de | it
-
-  --tui
-      Interface visual opcional/experimental. O padrão é o questionário simples.
-      Optional/experimental visual interface. The simple questionnaire is default.
-
-  --classic
-      Usa o questionário simples em texto. Este já é o modo padrão.
-      Uses the simple text questionnaire. This is already the default mode.
-
-  --dashboard-only
-      Atualiza ou reinstala somente o painel moderno em um XLXD existente.
-      Preserva o núcleo XLXD, cria backup preventivo e não executa a
-      instalação completa do refletor.
-      Updates or reinstalls only the modern dashboard on an existing XLXD.
-      It preserves the XLXD core, creates a preventive backup, and does not
-      run a full reflector installation.
-
-  --allow-remnants
-      Permite continuar quando existem apenas vestígios de instalação antiga.
-      Não apaga arquivos automaticamente.
-      Allows continuing when only old installation remnants exist.
-      It never deletes files automatically.
-
-  --force-clean
-      Alias legado de --allow-remnants. Não executa limpeza automática.
-      Legacy alias for --allow-remnants. It does not clean files automatically.
-HELP
-            exit 0
+        -h|--help) print_help; exit 0 ;;
+        *)
+            if [ "$UI_LANG" = "en" ]; then
+                printf 'ERROR: unknown option: %s\n' "$arg" >&2
+            else
+                printf 'ERRO: opção desconhecida: %s\n' "$arg" >&2
+            fi
+            exit 2
             ;;
-        *) printf 'ERRO / ERROR: opção desconhecida / unknown option: %s\n' "$arg" >&2; exit 2 ;;
     esac
 done
 
@@ -112,7 +174,7 @@ if [ "$UI_LANG_EXPLICIT" != "yes" ]; then
 fi
 case "$UI_LANG" in
     pt-BR|en) ;;
-    *) printf 'ERRO / ERROR: idioma da instalação inválido / invalid installer language: %s\n' "$UI_LANG" >&2; exit 2 ;;
+    *) printf '%s: %s\n' "${UI_LANG,,}" "invalid installer language" >&2; exit 2 ;;
 esac
 export XLX_UI_LANG="$UI_LANG"
 
@@ -730,7 +792,7 @@ execute_installer() {
     if [ -n "${XLX_MODERN_ANSWERS_FILE:-}" ]; then
         if [ ! -r "$XLX_MODERN_ANSWERS_FILE" ]; then
             set -e
-            fatal "Arquivo de respostas da interface visual não está disponível: $XLX_MODERN_ANSWERS_FILE"
+            fatal "$(msg "Arquivo de respostas da interface visual não está disponível: $XLX_MODERN_ANSWERS_FILE" "The visual-interface answers file is not available: $XLX_MODERN_ANSWERS_FILE")"
         fi
         XLX_MODERN_STATE_FILE="$state_file" bash "$base_installer" < "$XLX_MODERN_ANSWERS_FILE" 2>&1 | tee -a "$logfile"
         installer_rc=${PIPESTATUS[0]}

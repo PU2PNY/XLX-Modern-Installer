@@ -20,21 +20,39 @@ for arg in "$@"; do
     case "$arg" in
         --lang=*) DASHBOARD_LANG="${arg#*=}" ;;
         -h|--help)
-            cat <<'HELP'
+            if [ "$UI_LANG" = "en" ]; then
+                cat <<'HELP_EN'
 XLX Modern Dashboard Installer
 
-Usage / Uso:
+Usage:
   sudo bash install-dashboard.sh
   sudo bash install-dashboard.sh --lang=en
 
-Supported dashboard languages / Idiomas suportados:
-  pt-BR  Português (Brasil)
+Supported dashboard languages:
+  pt-BR  Portuguese (Brazil)
   en     English
-  es     Español
-  fr     Français
-  de     Deutsch
+  es     Spanish
+  fr     French
+  de     German
+  it     Italian
+HELP_EN
+            else
+                cat <<'HELP_PT'
+Instalador do Painel XLX Modern
+
+Uso:
+  sudo bash install-dashboard.sh
+  sudo bash install-dashboard.sh --lang=pt-BR
+
+Idiomas disponíveis para o painel:
+  pt-BR  Português (Brasil)
+  en     Inglês
+  es     Espanhol
+  fr     Francês
+  de     Alemão
   it     Italiano
-HELP
+HELP_PT
+            fi
             exit 0
             ;;
         *) echo "$(ui "ERRO: opção desconhecida: $arg" "ERROR: unknown option: $arg")" >&2; exit 2 ;;
