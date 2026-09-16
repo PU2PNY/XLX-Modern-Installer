@@ -593,7 +593,7 @@ def radioid_data_health():
 def identity_health_summary():
     try:
         request = urllib.request.Request(
-            "'+PUBLIC_URL+'/api/status.php?history_hours=24&control=1",
+            PUBLIC_URL + '/api/status.php?history_hours=24&control=1',
             headers={"User-Agent": "XLX Modern-Health-Monitor/1.0"},
         )
         with urllib.request.urlopen(request, timeout=20) as response:
@@ -674,7 +674,7 @@ def ysf_capability_health():
     modules = []
     try:
         request = urllib.request.Request(
-            "'+PUBLIC_URL+'/api/status.php?control=1",
+            PUBLIC_URL + '/api/status.php?control=1',
             headers={"User-Agent": "XLX Modern-Health-Monitor/1.0"},
         )
         with urllib.request.urlopen(request, timeout=10) as response:
@@ -1001,7 +1001,7 @@ def dmr_capability_summary():
 def stream_health_summary():
     try:
         request = urllib.request.Request(
-            "'+PUBLIC_URL+'/api/status.php?history_hours=24&control=1",
+            PUBLIC_URL + '/api/status.php?history_hours=24&control=1',
             headers={"User-Agent": "XLX Modern-Health-Monitor/1.0"},
         )
         with urllib.request.urlopen(request, timeout=20) as response:

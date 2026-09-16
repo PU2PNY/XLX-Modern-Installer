@@ -87,18 +87,20 @@ grep -Fq 'ASSET_TOKEN=' "$ROOT/dashboard/install/fresh-install-parity.sh" || fai
 grep -Fq 'ASSET_REFERENCES_VERSIONED=' "$ROOT/dashboard/install/fresh-install-parity.sh" || fail 'asset reference rewrite missing'
 ok 'per-install asset cache invalidation is enforced'
 
-# Health source currently contains historical exported URL artifacts on main.
-# The installer must normalize all of them before modules/71 copies the file.
-python3 - "$ROOT/observability/health/health_monitor.py" <<'PY'
-import ast,re,sys
-s=open(sys.argv[1],encoding='utf-8').read()
-pat=re.compile(r'"\'\+PUBLIC_URL\+\'([^"\n]*)"')
-fixed,n=pat.subn(lambda m: "PUBLIC_URL + '"+m.group(1)+"'", s)
-assert n >= 1, 'expected historical PUBLIC_URL artifacts not found; remove runtime transform and fix test when source is cleaned'
-assert "\"'+PUBLIC_URL+'" not in fixed
-ast.parse(fixed)
-PY
-ok 'Health PUBLIC_URL normalization is deterministic and syntax-safe'
+# Health source must already be correct in Git. Installation/parity may validate it,
+# but must never rewrite tracked source files in the user's clone.
+python3 - "$ROOT/observability/health/health_monitor.py" "$ROOT/dashboard/install/fresh-install-parity.sh" <<'PYHEALTH'
+import ast,sys
+health=open(sys.argv[1],encoding='utf-8').read()
+parity=open(sys.argv[2],encoding='utf-8').read()
+assert "\"'+PUBLIC_URL+'" not in health, 'historical PUBLIC_URL artifact remains in Git source'
+ast.parse(health)
+for route in ("/api/status.php?history_hours=24&control=1", "/api/status.php?control=1"):
+    assert "PUBLIC_URL + '"+route+"'" in health, f'runtime PUBLIC_URL expression missing: {route}'
+assert "with open(path,'w'" not in parity, 'fresh-install parity still rewrites Health source'
+assert 'Health source is immutable and URL expressions are valid.' in parity
+PYHEALTH
+ok 'Health source is clean in Git and fresh-install parity is read-only for installer source'
 
 # Build every dashboard locale and syntax-check every generated JavaScript
 # file, not only app.js. This catches translation corruption in secondary
