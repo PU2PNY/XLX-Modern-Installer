@@ -1,0 +1,100 @@
+name: Fix Admin pre-edge route validation
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Defer private route HTTP proof until final Nginx edge
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path('modules/69-admin-page.sh')
+          s = p.read_text()
+          start = s.index('# Prove the configured private route over whichever local web scheme is')
+          end_marker = 'ok "$(say "Rota privada do Admin validada localmente por $ADMIN_SCHEME." "Private Admin route validated locally over $ADMIN_SCHEME.")"\n'
+          end = s.index(end_marker, start) + len(end_marker)
+          new = r'''# The dashboard module runs before modules/70-nginx.sh on a clean install.
+# At this point the temporary Apache edge from the base installer may still be
+# serving the domain, so an HTTP request to the custom slug is not authoritative.
+# Keep all filesystem/auth/security checks above, and only prove the web route
+# here when the final Nginx + PHP-FPM edge is already active.  The mandatory
+# fresh-install-parity gate re-tests the exact saved slug after Nginx is enabled.
+FINAL_ADMIN_EDGE_READY=0
+if systemctl is-active --quiet nginx.service 2>/dev/null \
+  && systemctl is-active --quiet php8.2-fpm.service 2>/dev/null \
+  && [[ -f /etc/nginx/sites-enabled/xlx-modern.conf || -L /etc/nginx/sites-enabled/xlx-modern.conf ]]; then
+  FINAL_ADMIN_EDGE_READY=1
+fi
+
+if [[ "$FINAL_ADMIN_EDGE_READY" -eq 1 ]]; then
+  ADMIN_SCHEME='http'
+  ADMIN_PORT='80'
+  if [[ -s "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" && -s "/etc/letsencrypt/live/$DOMAIN/privkey.pem" ]]; then
+    ADMIN_SCHEME='https'
+    ADMIN_PORT='443'
+  fi
+  ADMIN_BASE="$ADMIN_SCHEME://$DOMAIN"
+  ADMIN_CURL=(curl --silent --show-error --resolve "$DOMAIN:$ADMIN_PORT:127.0.0.1" --connect-timeout 5 --max-time 12)
+  [[ "$ADMIN_SCHEME" == https ]] && ADMIN_CURL+=(--insecure)
+  if ! "${ADMIN_CURL[@]}" "$ADMIN_BASE/$slug/" -o "$WORK/admin-web.html"; then
+    fail "$(say 'A rota privada do Admin não respondeu localmente.' 'Private Admin route did not respond locally.')"
+  fi
+  grep -Fq "$TITLE" "$WORK/admin-web.html" || fail "$(say 'A rota Admin respondeu, mas não entregou a tela privada correta.' 'Admin route responded but did not deliver the correct private page.')"
+  [[ -s "$WORK/admin-web.html" ]] || fail "$(say 'A rota Admin retornou resposta vazia.' 'Admin route returned an empty response.')"
+  LOGIN_MARKER="$(say 'Acesso restrito' 'Restricted access')"
+  grep -Fq "$LOGIN_MARKER" "$WORK/admin-web.html" || fail "$(say 'A rota Admin não entregou a tela de autenticação.' 'Admin route did not deliver the authentication page.')"
+  ok "$(say "Rota privada do Admin validada localmente por $ADMIN_SCHEME." "Private Admin route validated locally over $ADMIN_SCHEME.")"
+else
+  ok "$(say 'Rota Admin preparada; prova HTTP adiada até a ativação final do Nginx/PHP-FPM.' 'Admin route prepared; HTTP proof deferred until final Nginx/PHP-FPM activation.')"
+fi
+'''
+          p.write_text(s[:start] + new + s[end:])
+
+          t = Path('tests/test-admin-route-readiness.sh')
+          s = t.read_text()
+          s = s.replace(
+              'grep -Fq "ADMIN_SCHEME=\'http\'" "$ROOT/modules/69-admin-page.sh" || fail \'Admin installer must probe HTTP when TLS is pending\'\n'
+              'grep -Fq \'ADMIN_CURL=(curl\' "$ROOT/modules/69-admin-page.sh" || fail \'Admin installer local route probe is missing\'\n',
+              'grep -Fq \'FINAL_ADMIN_EDGE_READY=0\' "$ROOT/modules/69-admin-page.sh" || fail \'Admin installer must distinguish the pre-Nginx stage\'\n'
+              'grep -Fq \'HTTP proof deferred until final Nginx/PHP-FPM activation\' "$ROOT/modules/69-admin-page.sh" || fail \'pre-edge Admin route deferral marker is missing\'\n'
+          )
+          if "FINAL_ADMIN_EDGE_READY=0" not in s:
+              raise SystemExit('test contract replacement failed')
+          t.write_text(s)
+          PY
+
+      - name: Validate repair
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          bash -n modules/69-admin-page.sh
+          bash tests/test-admin-route-readiness.sh
+          bash tests/test-admin-slug-contract.sh
+          bash tests/test-admin-password-storage-contract.sh
+          git diff --check
+
+      - name: Publish repair and remove one-shot workflow
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          git config user.name 'PU2PNY Automation'
+          git config user.email '47339656+PU2PNY@users.noreply.github.com'
+          git rm .github/workflows/fix-admin-preedge-route.yml
+          git add modules/69-admin-page.sh tests/test-admin-route-readiness.sh
+          git commit -m 'Defer Admin route probe until final Nginx edge'
+          git push origin HEAD:main
