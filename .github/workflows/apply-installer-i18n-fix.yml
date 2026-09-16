@@ -44,7 +44,22 @@ jobs:
           else
             echo 'Core language isolation patch is already applied.'
           fi
-          python3 .github/scripts/finalize-installer-language-fix.py
+
+          if ! grep -Fq 'Resolve the installer/operator language before parsing options' install.sh; then
+            python3 - <<'PY'
+          from pathlib import Path
+          p = Path('.github/scripts/finalize-installer-language-fix.py')
+          s = p.read_text(encoding='utf-8')
+          old = 's = s[:start] + new_parser + s[end:]'
+          new = "s = s[:start] + new_parser + s[end + len('done\\n\\n'):]"
+          if old not in s:
+              raise SystemExit('finalizer slice line not found')
+          p.write_text(s.replace(old, new, 1), encoding='utf-8')
+          PY
+            python3 .github/scripts/finalize-installer-language-fix.py
+          else
+            echo 'Final monolingual installer cleanup is already applied.'
+          fi
 
       - name: Validate shell syntax and language contracts
         run: |
