@@ -1,0 +1,85 @@
+name: One-shot reviewed Admin locale hardening
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  harden-locales:
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install reviewed static Admin catalogs
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          base64 -d .github/locale-payloads/admin-es.json.z.b64 > /tmp/admin-es.z
+          python3 - <<'PY'
+          import zlib
+          from pathlib import Path
+          Path('control/admin-es.json').write_bytes(zlib.decompress(Path('/tmp/admin-es.z').read_bytes()))
+          PY
+          base64 -d .github/locale-payloads/admin-fr-de-it.tar.gz.b64 > /tmp/admin-locales.tar.gz
+          tar -xzf /tmp/admin-locales.tar.gz -C /tmp
+          install -m 0644 /tmp/admin-fr.json control/admin-fr.json
+          install -m 0644 /tmp/admin-de.json control/admin-de.json
+          install -m 0644 /tmp/admin-it.json control/admin-it.json
+      - name: Add permanent linguistic regression guard
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          if ! grep -Fq 'ADMIN_I18N_QUALITY=OK' tests/test-admin-i18n.sh; then
+            cat >> tests/test-admin-i18n.sh <<'SH'
+
+          python3 - "$ROOT" <<'PYQ'
+          import json,sys
+          from pathlib import Path
+          root=Path(sys.argv[1])
+          expected={
+            'es': {'ATENÇÃO':'ATENCIÓN','ATIVO':'ACTIVO','Adicionar novo cadastro':'Añadir nuevo registro','FALHA':'FALLO','FALHOU':'FALLÓ','NÃO HABILITADO':'NO HABILITADO','PENDENTE':'PENDIENTE','pipelines':'pipelines','timeouts observados nos últimos 15 minutos':'timeouts observados en los últimos 15 minutos'},
+            'fr': {'ATENÇÃO':'ATTENTION','ATIVO':'ACTIF','Adicionar novo cadastro':'Ajouter un nouvel enregistrement','FALHA':'ÉCHEC','FALHOU':'ÉCHEC','NÃO HABILITADO':'NON ACTIVÉ','PENDENTE':'EN ATTENTE','OK':'OK','pipelines':'pipelines'},
+            'de': {'ATENÇÃO':'ACHTUNG','ATIVO':'AKTIV','Adicionar novo cadastro':'Neuen Eintrag hinzufügen','FALHA':'FEHLER','FALHOU':'FEHLGESCHLAGEN','NÃO HABILITADO':'NICHT AKTIVIERT','PENDENTE':'AUSSTEHEND'},
+            'it': {'ATENÇÃO':'ATTENZIONE','ATIVO':'ATTIVO','Adicionar novo cadastro':'Aggiungi nuovo record','FALHA':'ERRORE','FALHOU':'NON RIUSCITO','NÃO HABILITADO':'NON ABILITATO','PENDENTE':'IN ATTESA'}
+          }
+          forbidden=('ZXQ','&quot;','NO ENABLED','Query official API','Query RadioID.net','oleoductos','Gardien de porte','FOI')
+          source='Cria um novo <strong>users.db</strong> separado, valida a integridade e só então publica o arquivo pronto. Se falhar, mantém a base anterior.'
+          for loc,checks in expected.items():
+              data=json.loads((root/f'control/admin-{loc}.json').read_text(encoding='utf-8'))
+              for key,value in checks.items():
+                  if data.get(key)!=value:
+                      raise SystemExit(f'{loc}: unexpected translation for {key!r}: {data.get(key)!r}')
+              joined='\n'.join(data.values())
+              for bad in forbidden:
+                  if bad in joined:
+                      raise SystemExit(f'{loc}: forbidden machine-translation artifact: {bad}')
+              if '<strong>users.db</strong>' not in data[source]:
+                  raise SystemExit(f'{loc}: users.db markup was not preserved')
+          print('ADMIN_I18N_QUALITY=OK')
+          PYQ
+          ok 'Admin locale catalogs passed linguistic quality guardrails'
+          SH
+          fi
+      - name: Validate six languages and every Admin control contract
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          for f in control/admin-{es,fr,de,it}.json; do python3 -m json.tool "$f" >/dev/null; done
+          bash -n tests/test-admin-i18n.sh
+          bash tests/test-admin-i18n.sh
+          bash tests/test-dashboard-i18n.sh
+          bash tests/test-control-functional.sh
+          bash tests/run-all.sh
+          git diff --check
+      - name: Publish reviewed catalogs and remove staging payloads
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          git config user.name 'PU2PNY Automation'
+          git config user.email '47339656+PU2PNY@users.noreply.github.com'
+          git rm -f .github/locale-payloads/admin-es.json.z.b64 .github/locale-payloads/admin-fr-de-it.tar.gz.b64
+          git add control/admin-es.json control/admin-fr.json control/admin-de.json control/admin-it.json tests/test-admin-i18n.sh
+          git commit -m 'Replace Admin machine translations with reviewed locale catalogs'
+          git push origin HEAD:main
