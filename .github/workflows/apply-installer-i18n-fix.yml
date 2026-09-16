@@ -23,11 +23,8 @@ jobs:
       - name: Apply strict language isolation
         shell: bash
         run: |
-          if grep -Fq 'Strict language isolation.' install.sh; then
-            echo 'Language isolation patch is already applied; validating only.'
-            exit 0
-          fi
-          python3 - <<'PY'
+          if ! grep -Fq 'Strict language isolation.' install.sh; then
+            python3 - <<'PY'
           from pathlib import Path
           p = Path('.github/scripts/apply-installer-i18n-fix.py')
           s = p.read_text(encoding='utf-8')
@@ -43,7 +40,11 @@ jobs:
           s = s.replace(old_regex, new_regex, 1)
           p.write_text(s, encoding='utf-8')
           PY
-          python3 .github/scripts/apply-installer-i18n-fix.py
+            python3 .github/scripts/apply-installer-i18n-fix.py
+          else
+            echo 'Core language isolation patch is already applied.'
+          fi
+          python3 .github/scripts/finalize-installer-language-fix.py
 
       - name: Validate shell syntax and language contracts
         run: |
@@ -64,5 +65,5 @@ jobs:
             echo "No changes to commit."
             exit 0
           fi
-          git commit -m "Fix strict installer and dashboard language isolation"
+          git commit -m "Complete monolingual installer UX and language tests"
           git push origin HEAD:"$TARGET_BRANCH"
