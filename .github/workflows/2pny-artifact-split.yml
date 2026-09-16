@@ -27,8 +27,14 @@ jobs:
 
       - name: Verify image checksum before splitting
         run: |
-          cd incoming
-          sha256sum -c *.sha256
+          IMAGE=$(find incoming -maxdepth 1 -name '*.img.xz' -type f | head -n1)
+          SUMFILE=$(find incoming -maxdepth 1 -name '*.sha256' -type f | head -n1)
+          test -n "$IMAGE"
+          test -n "$SUMFILE"
+          EXPECTED=$(awk 'NR==1 {print $1}' "$SUMFILE")
+          ACTUAL=$(sha256sum "$IMAGE" | awk '{print $1}')
+          printf 'expected=%s\nactual=%s\n' "$EXPECTED" "$ACTUAL"
+          test "$EXPECTED" = "$ACTUAL"
 
       - name: Split image for transport
         run: |
