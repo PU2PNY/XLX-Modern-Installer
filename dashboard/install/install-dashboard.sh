@@ -8,6 +8,13 @@ DEST="${INSTALL_DIR:-/var/www/html/xlxd}"
 BACKUPS="${BACKUP_ROOT:-/var/backups/xlx-reflector}"
 DASHBOARD_LANG="${DASHBOARD_LANG:-}"
 PROJECT_VERSION="$(cat "$ROOT/../VERSION" 2>/dev/null || printf 'unknown')"
+UI_LANG="${XLX_UI_LANG:-pt-BR}"
+case "$UI_LANG" in pt-BR|en) ;; *) UI_LANG="pt-BR" ;; esac
+
+ui() {
+    local pt="$1" en="$2"
+    if [ "$UI_LANG" = "en" ]; then printf '%s' "$en"; else printf '%s' "$pt"; fi
+}
 
 for arg in "$@"; do
     case "$arg" in
@@ -30,7 +37,7 @@ Supported dashboard languages / Idiomas suportados:
 HELP
             exit 0
             ;;
-        *) echo "ERROR / ERRO: unknown option / opção desconhecida: $arg" >&2; exit 2 ;;
+        *) echo "$(ui "ERRO: opção desconhecida: $arg" "ERROR: unknown option: $arg")" >&2; exit 2 ;;
     esac
 done
 
@@ -66,28 +73,24 @@ choose_language() {
     if [ -n "$DASHBOARD_LANG" ]; then
         normalized="$(normalize_lang "$DASHBOARD_LANG" 2>/dev/null || true)"
         [ -n "$normalized" ] || {
-            echo "ERROR / ERRO: unsupported dashboard language / idioma não suportado: $DASHBOARD_LANG" >&2
+            echo "$(ui "ERRO: idioma do painel não suportado: $DASHBOARD_LANG" "ERROR: unsupported dashboard language: $DASHBOARD_LANG")" >&2
             exit 2
         }
         DASHBOARD_LANG="$normalized"
         return
     fi
 
-    cat <<'MENU'
-
-============================================================
- Dashboard Language / Idioma do Painel
-============================================================
-  1) Português (Brasil)
-  2) English
-  3) Español
-  4) Français
-  5) Deutsch
-  6) Italiano
-MENU
+    printf '\n============================================================\n %s\n============================================================\n' "$(ui 'Idioma do Painel' 'Dashboard Language')"
+    printf '%s\n' \
+        '  1) Português (Brasil)' \
+        '  2) English' \
+        '  3) Español' \
+        '  4) Français' \
+        '  5) Deutsch' \
+        '  6) Italiano'
 
     while :; do
-        read -r -p "Choose / Escolha [1-6]: " answer
+        read -r -p "$(ui 'Escolha [1-6]: ' 'Choose [1-6]: ')" answer
         case "$answer" in
             1) DASHBOARD_LANG='pt-BR'; break ;;
             2) DASHBOARD_LANG='en'; break ;;
@@ -95,14 +98,14 @@ MENU
             4) DASHBOARD_LANG='fr'; break ;;
             5) DASHBOARD_LANG='de'; break ;;
             6) DASHBOARD_LANG='it'; break ;;
-            *) echo "Invalid option / Opção inválida." ;;
+            *) echo "$(ui 'Opção inválida.' 'Invalid option.')" ;;
         esac
     done
 }
 
 prompt_text() {
     local key="$1"
-    case "$DASHBOARD_LANG:$key" in
+    case "$UI_LANG:$key" in
         pt-BR:reflector) printf '%s' 'Identificação do refletor' ;;
         pt-BR:title) printf '%s' 'Nome exibido' ;;
         pt-BR:description) printf '%s' 'Descrição curta' ;;
@@ -111,43 +114,6 @@ prompt_text() {
         pt-BR:country) printf '%s' 'País' ;;
         pt-BR:domain) printf '%s' 'Domínio' ;;
         pt-BR:email) printf '%s' 'E-mail de contato' ;;
-
-        es:reflector) printf '%s' 'Identificación del reflector' ;;
-        es:title) printf '%s' 'Nombre mostrado' ;;
-        es:description) printf '%s' 'Descripción corta' ;;
-        es:sysop) printf '%s' 'Indicativo del responsable' ;;
-        es:location) printf '%s' 'Ciudad y estado/región' ;;
-        es:country) printf '%s' 'País' ;;
-        es:domain) printf '%s' 'Dominio' ;;
-        es:email) printf '%s' 'Correo de contacto' ;;
-
-        fr:reflector) printf '%s' 'Identifiant du réflecteur' ;;
-        fr:title) printf '%s' 'Nom affiché' ;;
-        fr:description) printf '%s' 'Description courte' ;;
-        fr:sysop) printf '%s' 'Indicatif du responsable' ;;
-        fr:location) printf '%s' 'Ville et région' ;;
-        fr:country) printf '%s' 'Pays' ;;
-        fr:domain) printf '%s' 'Domaine' ;;
-        fr:email) printf '%s' 'E-mail de contact' ;;
-
-        de:reflector) printf '%s' 'Reflektorkennung' ;;
-        de:title) printf '%s' 'Angezeigter Name' ;;
-        de:description) printf '%s' 'Kurzbeschreibung' ;;
-        de:sysop) printf '%s' 'Rufzeichen des Betreibers' ;;
-        de:location) printf '%s' 'Stadt und Region' ;;
-        de:country) printf '%s' 'Land' ;;
-        de:domain) printf '%s' 'Domain' ;;
-        de:email) printf '%s' 'Kontakt-E-Mail' ;;
-
-        it:reflector) printf '%s' 'Identificativo del riflettore' ;;
-        it:title) printf '%s' 'Nome visualizzato' ;;
-        it:description) printf '%s' 'Descrizione breve' ;;
-        it:sysop) printf '%s' 'Nominativo del responsabile' ;;
-        it:location) printf '%s' 'Città e regione' ;;
-        it:country) printf '%s' 'Paese' ;;
-        it:domain) printf '%s' 'Dominio' ;;
-        it:email) printf '%s' 'E-mail di contatto' ;;
-
         *:reflector) printf '%s' 'Reflector identifier' ;;
         *:title) printf '%s' 'Displayed name' ;;
         *:description) printf '%s' 'Short description' ;;
@@ -173,7 +139,7 @@ reuse_or_ask() {
     label_key="$2"
     value="${!var_name:-}"
     if [ -n "$value" ]; then
-        printf '%s: %s [reaproveitado]\n' "$(prompt_text "$label_key")" "$value"
+        printf '%s: %s [%s]\n' "$(prompt_text "$label_key")" "$value" "$(ui 'reaproveitado' 'reused')"
     else
         ask "$var_name" "$label_key"
     fi
@@ -188,12 +154,12 @@ module_last_letter() {
 load_install_state() {
     local file="${XLX_INSTALL_STATE_FILE:-}"
     [ -n "$file" ] || return 0
-    [ -f "$file" ] || { echo "ERROR / ERRO: dados iniciais não encontrados: $file" >&2; exit 1; }
+    [ -f "$file" ] || { echo "$(ui "ERRO: dados iniciais não encontrados: $file" "ERROR: initial data not found: $file")" >&2; exit 1; }
     # This file is created by the root-owned base installer using printf %q.
     # It is read only by this same root installation process.
     # shellcheck disable=SC1090
     source "$file"
-    printf 'Dados já informados serão reaproveitados.\n\n'
+    printf '%s\n\n' "$(ui 'Dados já informados serão reaproveitados.' 'Previously supplied data will be reused.')"
 }
 
 dashboard_site_value() {
@@ -246,7 +212,7 @@ escape() {
 }
 
 [ "$(id -u)" -eq 0 ] || {
-    echo "Run as root / Execute como root." >&2
+    echo "$(ui "Execute como root." "Run as root.")" >&2
     exit 1
 }
 
@@ -257,12 +223,12 @@ choose_language
 MODULE_COUNT="${MODULE_COUNT:-5}"
 TIMEZONE="${TIMEZONE:-UTC}"
 if [[ ! "$MODULE_COUNT" =~ ^[0-9]+$ ]] || [ "$MODULE_COUNT" -lt 1 ] || [ "$MODULE_COUNT" -gt 26 ]; then
-    echo "ERROR / ERRO: invalid XLXD module count / quantidade de módulos XLXD inválida: $MODULE_COUNT" >&2
+    echo "$(ui "ERRO: quantidade de módulos XLXD inválida: $MODULE_COUNT" "ERROR: invalid XLXD module count: $MODULE_COUNT")" >&2
     exit 2
 fi
 
-printf 'Dashboard language / Idioma do painel: %s (%s)\n' "$(language_name "$DASHBOARD_LANG")" "$DASHBOARD_LANG"
-printf 'XLXD modules / Módulos XLXD: A-%s (%s)\n\n' "$(module_last_letter "$MODULE_COUNT")" "$MODULE_COUNT"
+printf '%s: %s (%s)\n' "$(ui 'Idioma do painel' 'Dashboard language')" "$(language_name "$DASHBOARD_LANG")" "$DASHBOARD_LANG"
+printf '%s: A-%s (%s)\n\n' "$(ui 'Módulos XLXD' 'XLXD modules')" "$(module_last_letter "$MODULE_COUNT")" "$MODULE_COUNT"
 
 reuse_or_ask REFLECTOR_NAME reflector
 reuse_or_ask REFLECTOR_TITLE title
@@ -278,11 +244,11 @@ case "${ENABLE_HTTPS:-}" in
     N|n|no|NO|nao|não) ENABLE_HTTPS="no"; printf 'HTTPS: não ativado [reaproveitado]\n' ;;
     *)
         while :; do
-            read -r -p "Ativar HTTPS com certificado Let's Encrypt? / Enable HTTPS with a Let's Encrypt certificate? [S/n]: " HTTPS_ANSWER
+            read -r -p "$(ui "Ativar HTTPS com certificado Let's Encrypt? [S/n]: " "Enable HTTPS with a Let's Encrypt certificate? [Y/n]: ")" HTTPS_ANSWER
             case "${HTTPS_ANSWER,,}" in
                 ""|s|sim|y|yes) ENABLE_HTTPS="yes"; break ;;
                 n|nao|não|no) ENABLE_HTTPS="no"; break ;;
-                *) echo "Resposta inválida / Invalid answer. Use S ou N / Y or N." ;;
+                *) echo "$(ui "Resposta inválida. Use S ou N." "Invalid answer. Use Y or N.")" ;;
             esac
         done
         ;;
@@ -291,7 +257,7 @@ esac
 REFLECTOR_NAME="$(printf '%s' "$REFLECTOR_NAME" | tr '[:lower:]' '[:upper:]')"
 
 if [[ ! "$REFLECTOR_NAME" =~ ^XLX([A-Z0-9]{3})$ ]]; then
-    echo "ERROR / ERRO: reflector identifier must use XLX + 3 alphanumeric characters (A-Z/0-9), examples XLX123 or XLXPNY." >&2
+    echo "$(ui "ERRO: o identificador deve usar XLX + 3 caracteres alfanuméricos (A-Z/0-9), exemplos XLX123 ou XLXPNY." "ERROR: reflector identifier must use XLX + 3 alphanumeric characters (A-Z/0-9), examples XLX123 or XLXPNY.")" >&2
     exit 2
 fi
 
@@ -304,23 +270,23 @@ fi
 
 DOMAIN="$(printf '%s' "$DOMAIN" | tr '[:upper:]' '[:lower:]' | sed -E 's#^https?://##; s#/*$##')"
 if [[ ! "$DOMAIN" =~ ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$ ]]; then
-    echo "ERROR / ERRO: domínio inválido: $DOMAIN" >&2
+    echo "$(ui "ERRO: domínio inválido: $DOMAIN" "ERROR: invalid domain: $DOMAIN")" >&2
     exit 2
 fi
 
 if [ -n "${YSF_ID:-}" ]; then
     if [[ ! "$YSF_ID" =~ ^[0-9]{1,8}$ ]]; then
-        echo "ERROR / ERRO: Invalid YSF ID / ID YSF inválido: $YSF_ID" >&2
+        echo "$(ui "ERRO: ID YSF inválido: $YSF_ID" "ERROR: invalid YSF ID: $YSF_ID")" >&2
         exit 2
     fi
-    printf 'YSF reflector ID / ID do refletor YSF: %s [reaproveitado]\n' "$YSF_ID"
+    printf '%s: %s [%s]\n' "$(ui 'ID do refletor YSF' 'YSF reflector ID')" "$YSF_ID" "$(ui 'reaproveitado' 'reused')"
 else
     while :; do
-        read -r -p "YSF reflector ID / ID do refletor YSF: " YSF_ID
+        read -r -p "$(ui "ID do refletor YSF: " "YSF reflector ID: ")" YSF_ID
         if [[ "$YSF_ID" =~ ^[0-9]{1,8}$ ]]; then
             break
         fi
-        echo "Invalid YSF ID / ID YSF inválido."
+        echo "$(ui "ID YSF inválido." "Invalid YSF ID.")"
     done
 fi
 
@@ -397,7 +363,7 @@ return [
 PHP
 
 if [ ! -f "$DEST/i18n/build.php" ]; then
-    echo "ERROR / ERRO: i18n builder not found: $DEST/i18n/build.php" >&2
+    echo "$(ui "ERRO: construtor i18n não encontrado: $DEST/i18n/build.php" "ERROR: i18n builder not found: $DEST/i18n/build.php")" >&2
     exit 1
 fi
 
@@ -406,7 +372,7 @@ php "$DEST/i18n/build.php" "$DEST" "$DASHBOARD_LANG"
 # install/ is intentionally excluded from the deployed web root. Execute the
 # renderer from the source tree against the copied destination.
 if [ ! -f "$ROOT/install/render-placeholders.php" ]; then
-    echo "ERROR / ERRO: placeholder renderer not found: $ROOT/install/render-placeholders.php" >&2
+    echo "$(ui "ERRO: renderizador de placeholders não encontrado: $ROOT/install/render-placeholders.php" "ERROR: placeholder renderer not found: $ROOT/install/render-placeholders.php")" >&2
     exit 1
 fi
 
@@ -554,7 +520,7 @@ https_backoff_active() {
 if [ "$ENABLE_HTTPS" = "yes" ]; then
     if [ -s "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ] \
         && [ -s "/etc/letsencrypt/live/$DOMAIN/privkey.pem" ]; then
-        printf 'HTTPS certificate already present / certificado HTTPS já existente: %s\n' "$DOMAIN"
+        printf '%s: %s\n' "$(ui 'Certificado HTTPS já existente' 'HTTPS certificate already present')" "$DOMAIN"
         HTTPS_READY=1
     elif https_backoff_active; then
         printf '[INFO] HTTPS retry already scheduled for %s; skipping Certbot until the backoff expires.\n' "$HTTPS_PENDING_RETRY_AT" >&2
@@ -574,7 +540,7 @@ if [ "$ENABLE_HTTPS" = "yes" ]; then
             && [ -s "/etc/letsencrypt/live/$DOMAIN/privkey.pem" ]; then
             HTTPS_READY=1
             printf 'HTTPS_OK domain=%s\n' "$DOMAIN" > "$HTTPS_STATUS_FILE"
-            printf '[OK] HTTPS enabled / HTTPS ativado: %s\n' "$DOMAIN"
+            printf '[OK] %s: %s\n' "$(ui 'HTTPS ativado' 'HTTPS enabled')" "$DOMAIN"
         else
             {
                 printf 'HTTPS_PENDING domain=%s rc=%s\n' "$DOMAIN" "$CERTBOT_RC"
@@ -582,11 +548,9 @@ if [ "$ENABLE_HTTPS" = "yes" ]; then
                     printf 'reason=debian12_certbot_2.1_acme_error_masked\n'
                 fi
             } > "$HTTPS_STATUS_FILE"
-            printf '[WARNING] HTTPS certificate could not be issued now; installation will continue over HTTP.\n' >&2
-            printf '[ATENÇÃO] O certificado HTTPS não pôde ser emitido agora; a instalação continuará em HTTP.\n' >&2
+            printf '%s %s\n' "$(ui '[ATENÇÃO]' '[WARNING]')" "$(ui 'O certificado HTTPS não pôde ser emitido agora; a instalação continuará em HTTP.' 'HTTPS certificate could not be issued now; installation will continue over HTTP.')" >&2
             if grep -Fq "AttributeError: can't set attribute" "$CERTBOT_LOG"; then
-                printf '[WARNING] Debian 12 Certbot 2.1.x hit its known Python 3.11 error while reporting an ACME failure.\n' >&2
-                printf '[ATENÇÃO] O Certbot 2.1.x do Debian 12 encontrou o erro conhecido do Python 3.11 ao reportar uma falha ACME.\n' >&2
+                printf '%s %s\n' "$(ui '[ATENÇÃO]' '[WARNING]')" "$(ui 'O Certbot 2.1.x do Debian 12 encontrou o erro conhecido do Python 3.11 ao reportar uma falha ACME.' 'Debian 12 Certbot 2.1.x hit its known Python 3.11 error while reporting an ACME failure.')" >&2
             fi
             if [[ -f $LE_LOG ]]; then
                 printf '%s\n' "--- Let's Encrypt diagnostics ---" >&2
@@ -595,7 +559,7 @@ if [ "$ENABLE_HTTPS" = "yes" ]; then
             if grep -Eqi 'rate.?limit|too many certificates|retry after' $LE_LOG 2>/dev/null; then
                 schedule_https_rate_limit_retry || printf '[WARNING] Rate limit detected but automatic retry could not be scheduled.\n' >&2
             fi
-            printf '[INFO] Manual retry / tentativa manual: %s %q %q\n' "$HTTPS_RETRY" "$DOMAIN" "$CONTACT_EMAIL" >&2
+            printf '[INFO] %s: %s %q %q\n' "$(ui 'Tentativa manual' 'Manual retry')" "$HTTPS_RETRY" "$DOMAIN" "$CONTACT_EMAIL" >&2
         fi
         rm -f "$CERTBOT_LOG"
     fi
