@@ -9,6 +9,12 @@ echo "[locales]"
 grep -F 'Bem-vindo ao XLX Modern Installer' "$ROOT/locales/pt_BR.sh" >/dev/null || failures=$((failures+1))
 grep -F 'Welcome to XLX Modern Installer' "$ROOT/locales/en_US.sh" >/dev/null || failures=$((failures+1))
 echo "locales_checked=YES"
+echo "[installer language contract]"
+bash "$ROOT/tests/test-installer-language-contract.sh" || failures=$((failures+1))
+
+echo "[dashboard locale key parity]"
+php "$ROOT/tests/test-dashboard-locale-key-parity.php" || failures=$((failures+1))
+
 echo "[installation flow]"
 bash "$ROOT/tests/test-install-flow.sh" || failures=$((failures+1))
 echo "[web edge handoff]"
