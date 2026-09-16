@@ -10,12 +10,14 @@ permissions:
 
 jobs:
   apply:
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
+    env:
+      TARGET_BRANCH: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref || github.ref_name }}
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: ${{ env.TARGET_BRANCH }}
           fetch-depth: 0
 
       - name: Apply strict language isolation
@@ -30,7 +32,7 @@ jobs:
           php tests/test-dashboard-locale-key-parity.php
           bash tests/test-dashboard-i18n.sh
 
-      - name: Commit correction to pull request branch
+      - name: Commit correction to target branch
         run: |
           git config user.name "XLX Modern CI"
           git config user.email "actions@users.noreply.github.com"
@@ -41,4 +43,4 @@ jobs:
             exit 0
           fi
           git commit -m "Fix strict installer and dashboard language isolation"
-          git push origin HEAD:${{ github.event.pull_request.head.ref }}
+          git push origin HEAD:"$TARGET_BRANCH"
