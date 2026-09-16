@@ -285,25 +285,40 @@ validate_admin_marker "RadioID section" 'id="radioid"'
 validate_admin_marker "Interlink action" 'access-interlink-add'
 validate_admin_marker "RadioID save action" 'radioid_save'
 
-# Prove the configured private route over whichever local web scheme is
-# actually available at this stage. A pending certificate must not skip it.
-ADMIN_SCHEME='http'
-ADMIN_PORT='80'
-if [[ -s "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" && -s "/etc/letsencrypt/live/$DOMAIN/privkey.pem" ]]; then
-  ADMIN_SCHEME='https'
-  ADMIN_PORT='443'
+# The dashboard module runs before modules/70-nginx.sh on a clean install.
+# At this point the temporary Apache edge from the base installer may still be
+# serving the domain, so an HTTP request to the custom slug is not authoritative.
+# Keep all filesystem/auth/security checks above, and only prove the web route
+# here when the final Nginx + PHP-FPM edge is already active. The mandatory
+# fresh-install-parity gate re-tests the exact saved slug after Nginx is enabled.
+FINAL_ADMIN_EDGE_READY=0
+if systemctl is-active --quiet nginx.service 2>/dev/null \
+  && systemctl is-active --quiet php8.2-fpm.service 2>/dev/null \
+  && [[ -f /etc/nginx/sites-enabled/xlx-modern.conf || -L /etc/nginx/sites-enabled/xlx-modern.conf ]]; then
+  FINAL_ADMIN_EDGE_READY=1
 fi
-ADMIN_BASE="$ADMIN_SCHEME://$DOMAIN"
-ADMIN_CURL=(curl --silent --show-error --resolve "$DOMAIN:$ADMIN_PORT:127.0.0.1" --connect-timeout 5 --max-time 12)
-[[ "$ADMIN_SCHEME" == https ]] && ADMIN_CURL+=(--insecure)
-if ! "${ADMIN_CURL[@]}" "$ADMIN_BASE/$slug/" -o "$WORK/admin-web.html"; then
-  fail "$(say 'A rota privada do Admin não respondeu localmente.' 'Private Admin route did not respond locally.')"
+
+if [[ "$FINAL_ADMIN_EDGE_READY" -eq 1 ]]; then
+  ADMIN_SCHEME='http'
+  ADMIN_PORT='80'
+  if [[ -s "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" && -s "/etc/letsencrypt/live/$DOMAIN/privkey.pem" ]]; then
+    ADMIN_SCHEME='https'
+    ADMIN_PORT='443'
+  fi
+  ADMIN_BASE="$ADMIN_SCHEME://$DOMAIN"
+  ADMIN_CURL=(curl --silent --show-error --resolve "$DOMAIN:$ADMIN_PORT:127.0.0.1" --connect-timeout 5 --max-time 12)
+  [[ "$ADMIN_SCHEME" == https ]] && ADMIN_CURL+=(--insecure)
+  if ! "${ADMIN_CURL[@]}" "$ADMIN_BASE/$slug/" -o "$WORK/admin-web.html"; then
+    fail "$(say 'A rota privada do Admin não respondeu localmente.' 'Private Admin route did not respond locally.')"
+  fi
+  grep -Fq "$TITLE" "$WORK/admin-web.html" || fail "$(say 'A rota Admin respondeu, mas não entregou a tela privada correta.' 'Admin route responded but did not deliver the correct private page.')"
+  [[ -s "$WORK/admin-web.html" ]] || fail "$(say 'A rota Admin retornou resposta vazia.' 'Admin route returned an empty response.')"
+  LOGIN_MARKER="$(say 'Acesso restrito' 'Restricted access')"
+  grep -Fq "$LOGIN_MARKER" "$WORK/admin-web.html" || fail "$(say 'A rota Admin não entregou a tela de autenticação.' 'Admin route did not deliver the authentication page.')"
+  ok "$(say "Rota privada do Admin validada localmente por $ADMIN_SCHEME." "Private Admin route validated locally over $ADMIN_SCHEME.")"
+else
+  ok "$(say 'Rota Admin preparada; prova HTTP adiada até a ativação final do Nginx/PHP-FPM.' 'Admin route prepared; HTTP proof deferred until final Nginx/PHP-FPM activation.')"
 fi
-grep -Fq "$TITLE" "$WORK/admin-web.html" || fail "$(say 'A rota Admin respondeu, mas não entregou a tela privada correta.' 'Admin route responded but did not deliver the correct private page.')"
-[[ -s "$WORK/admin-web.html" ]] || fail "$(say 'A rota Admin retornou resposta vazia.' 'Admin route returned an empty response.')"
-LOGIN_MARKER="$(say 'Acesso restrito' 'Restricted access')"
-grep -Fq "$LOGIN_MARKER" "$WORK/admin-web.html" || fail "$(say 'A rota Admin não entregou a tela de autenticação.' 'Admin route did not deliver the authentication page.')"
-ok "$(say "Rota privada do Admin validada localmente por $ADMIN_SCHEME." "Private Admin route validated locally over $ADMIN_SCHEME.")"
 
 SUCCESS=1
 MUTATED=0
