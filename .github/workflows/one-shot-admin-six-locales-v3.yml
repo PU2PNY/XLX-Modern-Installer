@@ -1,0 +1,53 @@
+name: One-shot six-locale Admin parity v3
+
+on:
+  push:
+    paths:
+      - .github/workflows/one-shot-admin-six-locales-v3.yml
+
+permissions:
+  contents: write
+
+jobs:
+  validate-and-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install one-time catalog generator
+        run: |
+          set -Eeuo pipefail
+          python3 -m pip install --disable-pip-version-check --quiet 'argostranslate==1.9.6'
+
+      - name: Prepare six-locale Admin
+        run: |
+          set -Eeuo pipefail
+          python3 scripts/one-shot-admin-six-locales.py
+
+      - name: Validate all languages and Admin functions
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          for f in control/admin-en.json control/admin-es.json control/admin-fr.json control/admin-de.json control/admin-it.json; do python3 -m json.tool "$f" >/dev/null; done
+          python3 -m py_compile control/build-admin.py
+          bash -n modules/69-admin-page.sh tests/test-admin-i18n.sh tests/test-install-flow.sh
+          bash tests/test-admin-i18n.sh
+          bash tests/test-dashboard-i18n.sh
+          bash tests/test-control-functional.sh
+          bash tests/run-all.sh
+          git diff --check
+
+      - name: Publish only after complete success
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          rm -f scripts/one-shot-admin-six-locales.py
+          rm -rf scripts/__pycache__ control/__pycache__
+          git config user.name 'PU2PNY Automation'
+          git config user.email '47339656+PU2PNY@users.noreply.github.com'
+          git add -A scripts/one-shot-admin-six-locales.py control/build-admin.py control/admin-es.json control/admin-fr.json control/admin-de.json control/admin-it.json modules/69-admin-page.sh tests/test-admin-i18n.sh tests/test-install-flow.sh
+          git commit -m 'Keep Admin faithful to all dashboard languages'
+          git push origin HEAD:main
