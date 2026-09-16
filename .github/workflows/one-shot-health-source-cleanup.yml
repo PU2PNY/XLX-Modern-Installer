@@ -46,20 +46,22 @@ jobs:
           if end < 0:
               raise SystemExit('Health mutation block end not found')
           end += len(end_marker)
-          replacement = '''# Health source is immutable installer input. Historical PUBLIC_URL export artifacts
-# must be fixed in Git, never rewritten inside a user's clone during installation.
-HEALTH_SOURCE="$ROOT/observability/health/health_monitor.py"
-[[ -f "$HEALTH_SOURCE" ]] || fail 'Health source missing.'
-python3 - "$HEALTH_SOURCE" <<'PY'
-import ast,sys
-path=sys.argv[1]
-text=open(path,encoding='utf-8').read()
-if "\"'+PUBLIC_URL+'" in text:
-    raise SystemExit('historical literal PUBLIC_URL artifact present in Health source')
-ast.parse(text,filename=path)
-PY
-ok 'Health source is immutable and URL expressions are valid.'
-'''
+          replacement = "\n".join([
+              "# Health source is immutable installer input. Historical PUBLIC_URL export artifacts",
+              "# must be fixed in Git, never rewritten inside a user's clone during installation.",
+              "HEALTH_SOURCE=\"$ROOT/observability/health/health_monitor.py\"",
+              "[[ -f \"$HEALTH_SOURCE\" ]] || fail 'Health source missing.'",
+              "python3 - \"$HEALTH_SOURCE\" <<'PYHEALTH'",
+              "import ast,sys",
+              "path=sys.argv[1]",
+              "text=open(path,encoding='utf-8').read()",
+              "if \"\\\"'+PUBLIC_URL+'\" in text:",
+              "    raise SystemExit('historical literal PUBLIC_URL artifact present in Health source')",
+              "ast.parse(text,filename=path)",
+              "PYHEALTH",
+              "ok 'Health source is immutable and URL expressions are valid.'",
+              "",
+          ])
           p = p[:start] + replacement + p[end:]
           parity.write_text(p)
 
@@ -74,21 +76,23 @@ ok 'Health source is immutable and URL expressions are valid.'
           if b < 0:
               raise SystemExit('old Health regression block end not found')
           b += len(old_end)
-          new = '''# Health source must already be correct in Git. Installation/parity may validate it,
-# but must never rewrite tracked source files in the user's clone.
-python3 - "$ROOT/observability/health/health_monitor.py" "$ROOT/dashboard/install/fresh-install-parity.sh" <<'PY'
-import ast,sys
-health=open(sys.argv[1],encoding='utf-8').read()
-parity=open(sys.argv[2],encoding='utf-8').read()
-assert "\"'+PUBLIC_URL+'" not in health, 'historical PUBLIC_URL artifact remains in Git source'
-ast.parse(health)
-for route in ("/api/status.php?history_hours=24&control=1", "/api/status.php?control=1"):
-    assert "PUBLIC_URL + '"+route+"'" in health, f'runtime PUBLIC_URL expression missing: {route}'
-assert "with open(path,'w'" not in parity, 'fresh-install parity still rewrites Health source'
-assert 'Health source is immutable and URL expressions are valid.' in parity
-PY
-ok 'Health source is clean in Git and fresh-install parity is read-only for installer source'
-'''
+          new = "\n".join([
+              "# Health source must already be correct in Git. Installation/parity may validate it,",
+              "# but must never rewrite tracked source files in the user's clone.",
+              "python3 - \"$ROOT/observability/health/health_monitor.py\" \"$ROOT/dashboard/install/fresh-install-parity.sh\" <<'PYHEALTH'",
+              "import ast,sys",
+              "health=open(sys.argv[1],encoding='utf-8').read()",
+              "parity=open(sys.argv[2],encoding='utf-8').read()",
+              "assert \"\\\"'+PUBLIC_URL+'\" not in health, 'historical PUBLIC_URL artifact remains in Git source'",
+              "ast.parse(health)",
+              "for route in (\"/api/status.php?history_hours=24&control=1\", \"/api/status.php?control=1\"):",
+              "    assert \"PUBLIC_URL + '\"+route+\"'\" in health, f'runtime PUBLIC_URL expression missing: {route}'",
+              "assert \"with open(path,'w'\" not in parity, 'fresh-install parity still rewrites Health source'",
+              "assert 'Health source is immutable and URL expressions are valid.' in parity",
+              "PYHEALTH",
+              "ok 'Health source is clean in Git and fresh-install parity is read-only for installer source'",
+              "",
+          ])
           t = t[:a] + new + t[b:]
           test.write_text(t)
           PY
@@ -102,10 +106,6 @@ ok 'Health source is clean in Git and fresh-install parity is read-only for inst
           bash tests/test-current-panel-runtime-parity.sh
           bash tests/run-all.sh
           git diff --check
-          if git diff -- dashboard/install/fresh-install-parity.sh | grep -F "open(path,'w'"; then
-            echo 'fresh-install parity source mutation reintroduced' >&2
-            exit 1
-          fi
 
       - name: Publish cleanup and remove one-shot workflow
         shell: bash
