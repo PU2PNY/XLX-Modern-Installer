@@ -58,3 +58,30 @@ for bad in '/etc/legacy-control' '/var/lib/legacy-control' '/usr/local/sbin/lega
   ! grep -Fq "$bad" "$tmp"/*.php || fail "production marker leaked: $bad"
 done
 ok 'Admin has six locale-faithful builds with identical functional structure'
+
+python3 - "$ROOT" <<'PYQ'
+import json,sys
+from pathlib import Path
+root=Path(sys.argv[1])
+expected={
+  'es': {'ATENÇÃO':'ATENCIÓN','ATIVO':'ACTIVO','Adicionar novo cadastro':'Añadir nuevo registro','FALHA':'FALLO','FALHOU':'FALLÓ','NÃO HABILITADO':'NO HABILITADO','PENDENTE':'PENDIENTE','pipelines':'pipelines','timeouts observados nos últimos 15 minutos':'timeouts observados en los últimos 15 minutos'},
+  'fr': {'ATENÇÃO':'ATTENTION','ATIVO':'ACTIF','Adicionar novo cadastro':'Ajouter un nouvel enregistrement','FALHA':'ÉCHEC','FALHOU':'ÉCHEC','NÃO HABILITADO':'NON ACTIVÉ','PENDENTE':'EN ATTENTE','OK':'OK','pipelines':'pipelines'},
+  'de': {'ATENÇÃO':'ACHTUNG','ATIVO':'AKTIV','Adicionar novo cadastro':'Neuen Eintrag hinzufügen','FALHA':'FEHLER','FALHOU':'FEHLGESCHLAGEN','NÃO HABILITADO':'NICHT AKTIVIERT','PENDENTE':'AUSSTEHEND'},
+  'it': {'ATENÇÃO':'ATTENZIONE','ATIVO':'ATTIVO','Adicionar novo cadastro':'Aggiungi nuovo record','FALHA':'ERRORE','FALHOU':'NON RIUSCITO','NÃO HABILITADO':'NON ABILITATO','PENDENTE':'IN ATTESA'}
+}
+forbidden=('ZXQ','&quot;','NO ENABLED','Query official API','Query RadioID.net','oleoductos','Gardien de porte','FOI')
+source='Cria um novo <strong>users.db</strong> separado, valida a integridade e só então publica o arquivo pronto. Se falhar, mantém a base anterior.'
+for loc,checks in expected.items():
+    data=json.loads((root/f'control/admin-{loc}.json').read_text(encoding='utf-8'))
+    for key,value in checks.items():
+        if data.get(key)!=value:
+            raise SystemExit(f'{loc}: unexpected translation for {key!r}: {data.get(key)!r}')
+    joined='\n'.join(data.values())
+    for bad in forbidden:
+        if bad in joined:
+            raise SystemExit(f'{loc}: forbidden machine-translation artifact: {bad}')
+    if '<strong>users.db</strong>' not in data[source]:
+        raise SystemExit(f'{loc}: users.db markup was not preserved')
+print('ADMIN_I18N_QUALITY=OK')
+PYQ
+ok 'Admin locale catalogs passed linguistic quality guardrails'
