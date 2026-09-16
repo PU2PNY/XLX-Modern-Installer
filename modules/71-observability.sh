@@ -241,6 +241,29 @@ if ! timeout 90 /usr/bin/python3 /opt/xlx-modern-health-monitor/health_monitor.p
 fi
 [[ -s /var/lib/xlx-modern-health-monitor/operational.json ]]||fail "$(say 'Health snapshot não foi criado no bootstrap síncrono.' 'Health snapshot was not created by the synchronous bootstrap.')"
 
+# Report only the non-OK Health checks from the freshly generated snapshot.
+# This keeps expected conditions such as a pending ACME certificate visible
+# without treating them as a structural installation failure or exposing secrets.
+python3 - /var/lib/xlx-modern-health-monitor/operational.json <<'PYHEALTHDIAG'
+import json,sys
+path=sys.argv[1]
+with open(path,encoding='utf-8') as f:
+    payload=json.load(f)
+checks=payload.get('checks',{}) if isinstance(payload,dict) else {}
+if not isinstance(checks,dict):
+    raise SystemExit('invalid Health snapshot checks object')
+non_ok=[]
+for key,row in sorted(checks.items()):
+    if not isinstance(row,dict) or bool(row.get('ok')):
+        continue
+    label=' '.join(str(row.get('label','')).split())
+    detail=' '.join(str(row.get('detail','')).split())
+    non_ok.append((str(key),label,detail))
+for key,label,detail in non_ok:
+    print(f'[WARNING] Health check {key}: {label} — {detail}')
+print(f'HEALTH_NON_OK={len(non_ok)}')
+PYHEALTHDIAG
+
 systemctl enable --now xlx-modern-health-monitor.service >/dev/null
 systemctl is-active --quiet xlx-modern-health-monitor.service||fail "$(say 'Serviço Health inativo após bootstrap.' 'Health service inactive after bootstrap.')"
 ok "$(say "Health, DMR, YSF, histórico e Self-Test instalados; Health usando $HEALTH_BASE_URL." "Health, DMR, YSF, history and Self-Test installed; Health using $HEALTH_BASE_URL.")"

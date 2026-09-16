@@ -65,6 +65,13 @@ assert 'PHP CLI ausente para provisionar observabilidade.' in s
 PYOBS
 ok 'clean-host observability preflight does not require preinstalled PHP'
 
+# A nonzero Health bootstrap count must identify the exact checks instead of
+# printing only an opaque warnings_or_failures=N total.
+grep -Fq 'HEALTH_NON_OK=' "$ROOT/modules/71-observability.sh" || fail 'Health bootstrap non-OK count missing'
+grep -Fq '[WARNING] Health check {key}:' "$ROOT/modules/71-observability.sh" || fail 'Health bootstrap per-check diagnostic missing'
+grep -Fq '/var/lib/xlx-modern-health-monitor/operational.json' "$ROOT/modules/71-observability.sh" || fail 'Health bootstrap diagnostic is not based on the generated snapshot'
+ok 'Health bootstrap reports each non-OK check without failing expected warning states'
+
 # The exact source-code leak seen in the v1.2.11 screenshot must never return.
 if grep -Fq 'root.innerHTML='"'"'<div class="hamwx-skeleton">${tr(' "$ROOT/dashboard/assets/ham-weather-widget.js"; then
   fail 'weather fallback still prints ${tr(...)} literally'
