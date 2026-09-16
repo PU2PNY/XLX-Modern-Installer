@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - '.github/workflows/apply-installer-i18n-fix.yml'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -16,301 +17,27 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Apply language isolation patch
-        shell: bash
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          import re
+      - name: Apply strict language isolation
+        run: python3 .github/scripts/apply-installer-i18n-fix.py
 
-          def replace_once(text, old, new, label):
-              count = text.count(old)
-              if count != 1:
-                  raise SystemExit(f'{label}: expected exactly 1 match, got {count}')
-              return text.replace(old, new, 1)
-
-          # ------------------------------------------------------------------
-          # 1) Top-level installer: once a language is chosen, never mix it.
-          # ------------------------------------------------------------------
-          p = Path('install.sh')
-          s = p.read_text(encoding='utf-8')
-
-          s = replace_once(
-              s,
-              '        [ "$TUI_MODE" != "force" ] || fatal "A interface Textual exige uma sessão de terminal interativa compatível."',
-              '        [ "$TUI_MODE" != "force" ] || fatal "$(msg "A interface Textual exige uma sessão de terminal interativa compatível." "The Textual interface requires a compatible interactive terminal session.")"',
-              'tui terminal error')
-          s = replace_once(
-              s,
-              '    [ "$TUI_MODE" != "force" ] || fatal "Não foi possível preparar a interface Textual."',
-              '    [ "$TUI_MODE" != "force" ] || fatal "$(msg "Não foi possível preparar a interface Textual." "The Textual interface could not be prepared.")"',
-              'tui prepare error')
-          s = replace_once(
-              s,
-              '    warn "A interface visual não pôde ser iniciada; continuando com o instalador clássico."',
-              '    warn "$(msg "A interface visual não pôde ser iniciada; continuando com o instalador clássico." "The visual interface could not be started; continuing with the classic installer.")"',
-              'tui fallback warning')
-          s = replace_once(
-              s,
-              '- APRS/D-PRS: native and mandatory / nativo e obrigatório',
-              '- APRS/D-PRS: native and mandatory',
-              'english plan language leak')
-          s = replace_once(
-              s,
-              '- APRS/D-PRS: native and mandatory / nativo e obrigatório',
-              '- APRS/D-PRS: nativo e obrigatório',
-              'portuguese plan language leak')
-          s = replace_once(
-              s,
-              '            fatal "Arquivo de respostas da interface visual não está disponível: $XLX_MODERN_ANSWERS_FILE"',
-              '            fatal "$(msg "Arquivo de respostas da interface visual não está disponível: $XLX_MODERN_ANSWERS_FILE" "The visual-interface answers file is not available: $XLX_MODERN_ANSWERS_FILE")"',
-              'answers-file language leak')
-
-          start = s.index('    # Questionário clássico bilíngue:')
-          end = s.index('    chmod 700 "$translated"', start)
-          old_block = s[start:end]
-          new_block = r'''    # Language isolation contract:
-    # - English keeps the vendored base installer in its native English.
-    # - Portuguese translates XLX-owned/operator-facing messages to pt-BR only.
-    # The initial language chooser is the only intentionally bilingual screen.
-    if [ "$UI_LANG" = "pt-BR" ]; then
-        sed -i \
-            -e 's|XLX MULTIPROTOCOL AMATEUR RADIO REFLECTOR INSTALLER PROGRAM|INSTALADOR DO REFLETOR XLX MULTIPROTOCOLO|' \
-            -e 's|Next, you will be asked some questions\. Answer with the requested information or, if applicable, to accept the suggested value, press \[ENTER\]|A seguir, responda às perguntas. Para aceitar um valor sugerido, pressione [ENTER].|' \
-            -e 's|At any prompt, type X and press \[ENTER\] to cancel the installation\.|Em qualquer pergunta, digite X e pressione [ENTER] para cancelar a instalação.|' \
-            -e 's|REFLECTOR DATA INPUT|DADOS DO REFLETOR|' \
-            -e 's|Mandatory|Obrigatório|g' \
-            -e 's|Suggested:|Sugerido:|g' \
-            -e 's|Using:|Usando:|g' \
-            -e 's|01\. XLX Reflector ID, 3 alphanumeric characters\. (e\.g\., 026, 724, PNY)|01. ID do refletor XLX: 3 caracteres alfanuméricos (ex.: 026, 724, PNY)|' \
-            -e 's|02\. Dashboard FQDN (fully qualified domain name)\. (e\.g\., xlx026\.net)|02. Domínio completo FQDN do painel (ex.: xlx026.net)|' \
-            -e 's|03\. Sysop e-mail address|03. E-mail do sysop|' \
-            -e 's|04\. Sysop callsign\. Only letters and numbers allowed, max 6 characters\.|04. Indicativo do sysop: somente letras e números, máximo 6 caracteres.|' \
-            -e 's|05\. Reflector country name\.|05. Nome do país do refletor.|' \
-            -e 's|06\. Local timezone\. Detected:|06. Fuso horário local detectado:|' \
-            -e 's|Press ENTER to keep it or type another timezone\.|Pressione ENTER para manter ou informe outro fuso.|' \
-            -e 's|06\. What is the local timezone? (e\.g\., America/Sao_Paulo, UTC, GMT-3)|06. Qual é o fuso horário local? (ex.: America/Sao_Paulo, UTC, GMT-3)|' \
-            -e 's|07\. Comment to XLX Reflectors list\.|07. Comentário para a lista de refletores XLX.|' \
-            -e 's|08\. Custom text for the dashboard tab\. (max 25 characters)|08. Texto da aba do painel (máximo 25 caracteres)|' \
-            -e 's|09\. Custom text on footer of the dashboard webpage\.|09. Texto do rodapé do painel.|' \
-            -e 's|10\. Create an SSL certificate (https) for the dashboard webpage? (Y/N)|10. Criar certificado SSL/HTTPS para o painel? (S/N)|' \
-            -e 's|11\. Install Echo Test on module E? (Y/N)|11. Instalar Echo Test no módulo E? (S/N)|' \
-            -e 's|12\. Number of active modules for the DStar Reflector\.|12. Quantidade de módulos ativos do refletor D-STAR.|' \
-            -e 's|13\. YSF Reflector UDP port number\. (1-65535)|13. Porta UDP do refletor YSF (1-65535)|' \
-            -e 's|14\. YSF Wires-X frequency\. In Hertz, 9 digits\.|14. Frequência YSF Wires-X em Hertz, 9 dígitos.|' \
-            -e 's|15\. Auto-link YSF to a module? (Y/N)|15. Vincular YSF automaticamente a um módulo? (S/N)|' \
-            -e 's|16\. Module to Auto-link YSF\.|16. Módulo para vínculo automático YSF.|' \
-            -e 's|17\. City and state/region shown on the dashboard\.|17. Cidade e estado/região exibidos no painel.|' \
-            -e 's|18\. YSF reflector ID shown on the dashboard\. (1-8 digits)|18. ID do refletor YSF exibido no painel (1-8 dígitos)|' \
-            -e 's|19\. Private Admin username\. (3-64 characters)|19. Usuário do Admin privado (3-64 caracteres)|' \
-            -e 's|20\. Private Admin URL name\.|20. Nome da URL privada do Admin.|' \
-            -e 's|21\. Private Admin password\. (minimum 8 characters)|21. Senha do Admin privado (mínimo 8 caracteres)|' \
-            -e 's|Repeat password:|Repita a senha:|' \
-            -e 's|Do you want to continue anyway? (Y/N)|Deseja continuar mesmo assim? (S/N)|' \
-            -e 's|Please enter a different port, or \[ENTER\] to accept suggested\.|Informe outra porta ou pressione [ENTER] para aceitar a sugerida.|' \
-            -e "s|Please enter 'Y' or 'N'\.|Digite 'S' ou 'N'.|g" \
-            -e 's|Please answer Y or N\.|Responda S ou N.|g' \
-            -e 's|PLEASE REVIEW YOUR SETTINGS:|REVISE AS CONFIGURAÇÕES:|' \
-            -e 's|Settings correct? Press \[ENTER\] to confirm, type a question number to edit it, or \[X\] to cancel the installation\.|Configurações corretas? Pressione [ENTER] para confirmar, digite o número da pergunta para editar ou [X] para cancelar.|' \
-            -e 's|UPDATING OS\.\.\.|ATUALIZANDO O SISTEMA...|g' \
-            -e 's|Timezone adjustment:|Ajuste de fuso horário:|g' \
-            -e 's|Detected system timezone preserved:|Fuso horário detectado preservado:|g' \
-            -e 's|System updated successfully!|Sistema atualizado com sucesso!|g' \
-            -e 's|INSTALLING DEPENDENCIES\.\.\.|INSTALANDO DEPENDÊNCIAS...|g' \
-            -e 's|Dependencies installed!|Dependências instaladas!|g' \
-            -e 's|DOWNLOADING THE XLX APP\.\.\.|BAIXANDO O XLX...|g' \
-            -e 's|Cloning repository\.\.\.|Clonando repositório...|g' \
-            -e 's|Seeding customizations\.\.\.|Aplicando personalizações...|g' \
-            -e 's|Ethernet IP address:|Endereço IP Ethernet:|g' \
-            -e 's|Public IP address:|Endereço IP público:|g' \
-            -e 's|Network adapter name:|Nome do adaptador de rede:|g' \
-            -e 's|Repository cloned and customizations applied!|Repositório clonado e personalizações aplicadas!|g' \
-            -e 's|COMPILING\.\.\.|COMPILANDO...|g' \
-            -e 's|COMPILATION SUCCESSFUL!!!|COMPILAÇÃO CONCLUÍDA COM SUCESSO!!!|g' \
-            -e 's|COPYING COMPONENTS\.\.\.|COPIANDO COMPONENTES...|g' \
-            -e 's|Downloading DMR ID file\.\.\.|Baixando arquivo de IDs DMR...|g' \
-            -e 's|DMR ID file downloaded successfully\.|Arquivo de IDs DMR baixado com sucesso.|g' \
-            -e 's|Creating custom XLX log\.\.\.|Criando log personalizado do XLX...|g' \
-            -e 's|Components copied and configured!|Componentes copiados e configurados!|g' \
-            -e 's|INSTALLING ECHO TEST SERVER\.\.\.|INSTALANDO SERVIDOR DE TESTE ECHO...|g' \
-            -e 's|Compiling Echo Test\.\.\.|Compilando Echo Test...|g' \
-            -e 's|Copying files and adjusting properties\.\.\.|Copiando arquivos e ajustando propriedades...|g' \
-            -e 's|Echo Test server successfully installed!|Servidor Echo Test instalado com sucesso!|g' \
-            -e 's|Configuration completed!|Configuração concluída!|g' \
-            -e 's|STARTING \(.*\) REFLECTOR\.\.\.|INICIANDO REFLETOR \1...|g' \
-            -e 's|Initializing XLX log|Inicializando log XLX|g' \
-            -e 's|Initializing Echo Test|Inicializando Echo Test|g' \
-            -e 's|Initialization completed!|Inicialização concluída!|g' \
-            -e 's|Running post-installation validation\.\.\.|Executando validação pós-instalação...|g' \
-            -e 's|XLXD binary found|Binário XLXD encontrado|g' \
-            -e 's|XLXD service is running|Serviço XLXD está ativo|g' \
-            -e 's|XLX log service is running|Serviço de log XLX está ativo|g' \
-            -e 's|Echo Test service is running|Serviço Echo Test está ativo|g' \
-            -e 's|REFLECTOR INSTALLED SUCCESSFULLY!!!|REFLETOR INSTALADO COM SUCESSO!!!|g' \
-            -e 's|Your Reflector \(.*\) is now installed and running!|Seu refletor \1 está instalado e em funcionamento!|g' \
-            -e 's|For Public Reflectors:|Para refletores públicos:|g' \
-            -e '/^[[:space:]]*INSTALL_SSL=$(echo /a\        [[ "$INSTALL_SSL" == "S" ]] && INSTALL_SSL="Y"' \
-            -e '/^[[:space:]]*INSTALL_ECHO=$(echo /a\        [[ "$INSTALL_ECHO" == "S" ]] && INSTALL_ECHO="Y"' \
-            -e '/^[[:space:]]*PORT_ANSWER=$(echo /a\                [[ "$PORT_ANSWER" == "S" ]] && PORT_ANSWER="Y"' \
-            -e '/^[[:space:]]*AUTOLINK_USER=$(echo /a\        [[ "$AUTOLINK_USER" == "S" ]] && AUTOLINK_USER="Y"' \
-            "$translated"
-    fi
-
-'''
-          s = s[:start] + new_block + s[end:]
-          p.write_text(s, encoding='utf-8')
-
-          # ------------------------------------------------------------------
-          # 2) Simple entry point: no bilingual copy after selection begins.
-          # ------------------------------------------------------------------
-          Path('start.sh').write_text('''#!/usr/bin/env bash
-set -Eeuo pipefail
-umask 077
-
-ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-
-printf '\\n============================================================\\n'
-printf 'XLX MODERN INSTALLER — PU2PNY\\n'
-printf '============================================================\\n\\n'
-
-exec bash "$ROOT_DIR/install.sh" "$@" --classic
-''', encoding='utf-8')
-
-          # ------------------------------------------------------------------
-          # 3) Dashboard installer: operator-facing UI obeys XLX_UI_LANG.
-          # ------------------------------------------------------------------
-          p = Path('dashboard/install/install-dashboard.sh')
-          d = p.read_text(encoding='utf-8')
-          d = replace_once(
-              d,
-              'PROJECT_VERSION="$(cat "$ROOT/../VERSION" 2>/dev/null || printf \'unknown\')"\n',
-              'PROJECT_VERSION="$(cat "$ROOT/../VERSION" 2>/dev/null || printf \'unknown\')"\nUI_LANG="${XLX_UI_LANG:-pt-BR}"\n\nui() {\n    local pt="$1" en="$2"\n    if [ "$UI_LANG" = "en" ]; then printf \'%s\' "$en"; else printf \'%s\' "$pt"; fi\n}\n',
-              'dashboard ui helper')
-
-          replacements = [
-              ('        *) echo "ERROR / ERRO: unknown option / opção desconhecida: $arg" >&2; exit 2 ;;',
-               '        *) echo "$(ui "ERRO: opção desconhecida: $arg" "ERROR: unknown option: $arg")" >&2; exit 2 ;;'),
-              ('            echo "ERROR / ERRO: unsupported dashboard language / idioma não suportado: $DASHBOARD_LANG" >&2',
-               '            echo "$(ui "ERRO: idioma do painel não suportado: $DASHBOARD_LANG" "ERROR: unsupported dashboard language: $DASHBOARD_LANG")" >&2'),
-              ('            *) echo "Invalid option / Opção inválida." ;;',
-               '            *) echo "$(ui "Opção inválida." "Invalid option.")" ;;'),
-              ("        printf '%s: %s [reaproveitado]\\n' \"$(prompt_text \"$label_key\")\" \"$value\"",
-               "        printf '%s: %s [%s]\\n' \"$(prompt_text \"$label_key\")\" \"$value\" \"$(ui 'reaproveitado' 'reused')\""),
-              ('    [ -f "$file" ] || { echo "ERROR / ERRO: dados iniciais não encontrados: $file" >&2; exit 1; }',
-               '    [ -f "$file" ] || { echo "$(ui "ERRO: dados iniciais não encontrados: $file" "ERROR: initial data not found: $file")" >&2; exit 1; }'),
-              ("    printf 'Dados já informados serão reaproveitados.\\n\\n'",
-               "    printf '%s\\n\\n' \"$(ui 'Dados já informados serão reaproveitados.' 'Previously supplied data will be reused.')\""),
-              ('    echo "Run as root / Execute como root." >&2',
-               '    echo "$(ui "Execute como root." "Run as root.")" >&2'),
-              ('    echo "ERROR / ERRO: invalid XLXD module count / quantidade de módulos XLXD inválida: $MODULE_COUNT" >&2',
-               '    echo "$(ui "ERRO: quantidade de módulos XLXD inválida: $MODULE_COUNT" "ERROR: invalid XLXD module count: $MODULE_COUNT")" >&2'),
-              ("printf 'Dashboard language / Idioma do painel: %s (%s)\\n' \"$(language_name \"$DASHBOARD_LANG\")\" \"$DASHBOARD_LANG\"",
-               "printf '%s: %s (%s)\\n' \"$(ui 'Idioma do painel' 'Dashboard language')\" \"$(language_name \"$DASHBOARD_LANG\")\" \"$DASHBOARD_LANG\""),
-              ("printf 'XLXD modules / Módulos XLXD: A-%s (%s)\\n\\n' \"$(module_last_letter \"$MODULE_COUNT\")\" \"$MODULE_COUNT\"",
-               "printf '%s: A-%s (%s)\\n\\n' \"$(ui 'Módulos XLXD' 'XLXD modules')\" \"$(module_last_letter \"$MODULE_COUNT\")\" \"$MODULE_COUNT\""),
-              ('    Y|y|yes|YES|s|sim) ENABLE_HTTPS="yes"; printf \'HTTPS: ativado [reaproveitado]\\n\' ;;',
-               '    Y|y|yes|YES|s|sim) ENABLE_HTTPS="yes"; printf \'HTTPS: %s [%s]\\n\' "$(ui \'ativado\' \'enabled\')" "$(ui \'reaproveitado\' \'reused\')" ;;'),
-              ('    N|n|no|NO|nao|não) ENABLE_HTTPS="no"; printf \'HTTPS: não ativado [reaproveitado]\\n\' ;;',
-               '    N|n|no|NO|nao|não) ENABLE_HTTPS="no"; printf \'HTTPS: %s [%s]\\n\' "$(ui \'não ativado\' \'not enabled\')" "$(ui \'reaproveitado\' \'reused\')" ;;'),
-              ('            read -r -p "Ativar HTTPS com certificado Let\'s Encrypt? / Enable HTTPS with a Let\'s Encrypt certificate? [S/n]: " HTTPS_ANSWER',
-               '            read -r -p "$(ui "Ativar HTTPS com certificado Let\'s Encrypt? [S/n]: " "Enable HTTPS with a Let\'s Encrypt certificate? [Y/n]: ")" HTTPS_ANSWER'),
-              ('                *) echo "Resposta inválida / Invalid answer. Use S ou N / Y or N." ;;',
-               '                *) echo "$(ui "Resposta inválida. Use S ou N." "Invalid answer. Use Y or N.")" ;;'),
-              ('    echo "ERROR / ERRO: reflector identifier must use XLX + 3 alphanumeric characters (A-Z/0-9), examples XLX123 or XLXPNY." >&2',
-               '    echo "$(ui "ERRO: o identificador deve usar XLX + 3 caracteres alfanuméricos (A-Z/0-9), exemplos XLX123 ou XLXPNY." "ERROR: reflector identifier must use XLX + 3 alphanumeric characters (A-Z/0-9), examples XLX123 or XLXPNY.")" >&2'),
-              ('    echo "ERROR / ERRO: domínio inválido: $DOMAIN" >&2',
-               '    echo "$(ui "ERRO: domínio inválido: $DOMAIN" "ERROR: invalid domain: $DOMAIN")" >&2'),
-              ('        echo "ERROR / ERRO: Invalid YSF ID / ID YSF inválido: $YSF_ID" >&2',
-               '        echo "$(ui "ERRO: ID YSF inválido: $YSF_ID" "ERROR: Invalid YSF ID: $YSF_ID")" >&2'),
-              ("    printf 'YSF reflector ID / ID do refletor YSF: %s [reaproveitado]\\n' \"$YSF_ID\"",
-               "    printf '%s: %s [%s]\\n' \"$(ui 'ID do refletor YSF' 'YSF reflector ID')\" \"$YSF_ID\" \"$(ui 'reaproveitado' 'reused')\""),
-              ('        read -r -p "YSF reflector ID / ID do refletor YSF: " YSF_ID',
-               '        read -r -p "$(ui "ID do refletor YSF: " "YSF reflector ID: ")" YSF_ID'),
-              ('        echo "Invalid YSF ID / ID YSF inválido."',
-               '        echo "$(ui "ID YSF inválido." "Invalid YSF ID.")"'),
-              ('    echo "ERROR / ERRO: i18n builder not found: $DEST/i18n/build.php" >&2',
-               '    echo "$(ui "ERRO: construtor i18n não encontrado: $DEST/i18n/build.php" "ERROR: i18n builder not found: $DEST/i18n/build.php")" >&2'),
-              ('    echo "ERROR / ERRO: placeholder renderer not found: $ROOT/install/render-placeholders.php" >&2',
-               '    echo "$(ui "ERRO: renderizador de placeholders não encontrado: $ROOT/install/render-placeholders.php" "ERROR: placeholder renderer not found: $ROOT/install/render-placeholders.php")" >&2'),
-              ("        printf 'HTTPS certificate already present / certificado HTTPS já existente: %s\\n' \"$DOMAIN\"",
-               "        printf '%s: %s\\n' \"$(ui 'Certificado HTTPS já existente' 'HTTPS certificate already present')\" \"$DOMAIN\""),
-              ("            printf '[OK] HTTPS enabled / HTTPS ativado: %s\\n' \"$DOMAIN\"",
-               "            printf '[OK] %s: %s\\n' \"$(ui 'HTTPS ativado' 'HTTPS enabled')\" \"$DOMAIN\""),
-              ("            printf '[WARNING] HTTPS certificate could not be issued now; installation will continue over HTTP.\\n' >&2\n            printf '[ATENÇÃO] O certificado HTTPS não pôde ser emitido agora; a instalação continuará em HTTP.\\n' >&2",
-               "            printf '%s %s\\n' \"$(ui '[ATENÇÃO]' '[WARNING]')\" \"$(ui 'O certificado HTTPS não pôde ser emitido agora; a instalação continuará em HTTP.' 'HTTPS certificate could not be issued now; installation will continue over HTTP.')\" >&2"),
-              ("                printf '[WARNING] Debian 12 Certbot 2.1.x hit its known Python 3.11 error while reporting an ACME failure.\\n' >&2\n                printf '[ATENÇÃO] O Certbot 2.1.x do Debian 12 encontrou o erro conhecido do Python 3.11 ao reportar uma falha ACME.\\n' >&2",
-               "                printf '%s %s\\n' \"$(ui '[ATENÇÃO]' '[WARNING]')\" \"$(ui 'O Certbot 2.1.x do Debian 12 encontrou o erro conhecido do Python 3.11 ao reportar uma falha ACME.' 'Debian 12 Certbot 2.1.x hit its known Python 3.11 error while reporting an ACME failure.')\" >&2"),
-              ("            printf '[INFO] Manual retry / tentativa manual: %s %q %q\\n' \"$HTTPS_RETRY\" \"$DOMAIN\" \"$CONTACT_EMAIL\" >&2",
-               "            printf '[INFO] %s: %s %q %q\\n' \"$(ui 'Tentativa manual' 'Manual retry')\" \"$HTTPS_RETRY\" \"$DOMAIN\" \"$CONTACT_EMAIL\" >&2"),
-          ]
-          for old, new in replacements:
-              d = replace_once(d, old, new, old[:55])
-
-          # Choose-language menu is allowed to list language names, but labels obey installer UI.
-          d = replace_once(d, ' Dashboard Language / Idioma do Painel', ' $(ui "Idioma do Painel" "Dashboard Language")', 'dashboard menu heading')
-          d = replace_once(d, '        read -r -p "Choose / Escolha [1-6]: " answer', '        read -r -p "$(ui "Escolha [1-6]: " "Choose [1-6]: ")" answer', 'dashboard menu prompt')
-
-          p.write_text(d, encoding='utf-8')
-
-          # ------------------------------------------------------------------
-          # 4) Regression test: installer language is isolated and dashboard
-          #    catalogs remain complete for all six visitor languages.
-          # ------------------------------------------------------------------
-          test = Path('tests/test-installer-language-contract.sh')
-          test.write_text(r'''#!/usr/bin/env bash
-set -Eeuo pipefail
-ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-fail(){ printf '[FAIL] %s\n' "$*" >&2; exit 1; }
-ok(){ printf '[OK] %s\n' "$*"; }
-
-bash -n "$ROOT/install.sh"
-bash -n "$ROOT/start.sh"
-bash -n "$ROOT/dashboard/install/install-dashboard.sh"
-
-grep -Fq '# Language isolation contract:' "$ROOT/install.sh" || fail 'language-isolation contract missing'
-grep -Fq 'if [ "$UI_LANG" = "pt-BR" ]; then' "$ROOT/install.sh" || fail 'pt-BR-only base translation guard missing'
-! grep -Fq 'Questionário clássico bilíngue' "$ROOT/install.sh" || fail 'legacy bilingual base-installer mode still present'
-! grep -Fq 'Perguntas em Português + English' "$ROOT/start.sh" || fail 'simple entry point still advertises bilingual output'
-
-grep -Fq 'UI_LANG="${XLX_UI_LANG:-pt-BR}"' "$ROOT/dashboard/install/install-dashboard.sh" || fail 'dashboard installer does not consume XLX_UI_LANG'
-grep -Fq 'ui() {' "$ROOT/dashboard/install/install-dashboard.sh" || fail 'dashboard installer UI selector missing'
-! grep -Fq 'ERROR / ERRO:' "$ROOT/dashboard/install/install-dashboard.sh" || fail 'bilingual dashboard-installer error remains'
-! grep -Fq 'HTTPS enabled / HTTPS ativado' "$ROOT/dashboard/install/install-dashboard.sh" || fail 'bilingual HTTPS success remains'
-! grep -Fq 'Manual retry / tentativa manual' "$ROOT/dashboard/install/install-dashboard.sh" || fail 'bilingual HTTPS retry remains'
-
-for locale in pt-BR en es fr de it; do
-  [[ -s "$ROOT/dashboard/i18n/locales/$locale.php" ]] || fail "missing dashboard locale $locale"
-done
-
-ok 'installer pt-BR/en output isolation contract is present'
-ok 'dashboard keeps six complete locale catalogs under the existing i18n gate'
-''', encoding='utf-8')
-          test.chmod(0o755)
-
-          runall = Path('tests/run-all.sh')
-          r = runall.read_text(encoding='utf-8')
-          marker = 'echo "[installation flow]"\n'
-          insertion = 'echo "[installer language contract]"\nbash "$ROOT/tests/test-installer-language-contract.sh" || failures=$((failures+1))\n'
-          if insertion not in r:
-              r = replace_once(r, marker, insertion + marker, 'run-all insertion')
-          runall.write_text(r, encoding='utf-8')
-          PY
-
-      - name: Validate syntax and language contracts
-        shell: bash
+      - name: Validate shell syntax and language contracts
         run: |
           bash -n install.sh
           bash -n start.sh
           bash -n dashboard/install/install-dashboard.sh
           bash tests/test-installer-language-contract.sh
+          php tests/test-dashboard-locale-key-parity.php
           bash tests/test-dashboard-i18n.sh
 
       - name: Commit correction
-        shell: bash
         run: |
           git config user.name "XLX Modern CI"
           git config user.email "actions@users.noreply.github.com"
-          git add install.sh start.sh dashboard/install/install-dashboard.sh tests/test-installer-language-contract.sh tests/run-all.sh
+          git add install.sh start.sh dashboard/install/install-dashboard.sh tests/test-installer-language-contract.sh tests/test-dashboard-locale-key-parity.php tests/run-all.sh
           git diff --cached --check
-          git commit -m "Fix strict installer language isolation"
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git commit -m "Fix strict installer and dashboard language isolation"
           git push origin HEAD:main
