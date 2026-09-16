@@ -1,0 +1,97 @@
+name: One-shot final installer hardening
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  harden:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply final runtime fixes
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_exact(path, old, new):
+              p=Path(path)
+              text=p.read_text(encoding='utf-8')
+              if old not in text:
+                  raise SystemExit(f'{path}: expected block not found')
+              if text.count(old) != 1:
+                  raise SystemExit(f'{path}: expected block is not unique')
+              p.write_text(text.replace(old,new,1),encoding='utf-8')
+
+          # Health must follow the modern CallingHome systemd contract instead
+          # of the legacy dashboard marker file that is intentionally absent.
+          old='''    callhome_age = file_age("/xlxd/lastcallhome.php")\n    checks["callinghome"] = {\n        "ok": callhome_age is not None and callhome_age <= 900,\n        "label": "CallingHome",\n        "detail": "arquivo ausente" if callhome_age is None else f"há {callhome_age}s",\n    }\n'''
+          new='''    callinghome = callinghome_runtime_health()\n    checks["callinghome"] = {\n        "ok": callinghome["ok"],\n        "label": "CallingHome",\n        "detail": (\n            "timer ativo; última execução concluída"\n            if callinghome["ok"]\n            else (\n                f"timer={'ativo' if callinghome['timer_active'] else 'inativo'}; "\n                f"resultado={callinghome['result'] or 'desconhecido'}; "\n                f"exit={callinghome['exit_code'] or 'desconhecido'}"\n            )\n        ),\n    }\n'''
+          replace_exact('observability/health/health_monitor.py',old,new)
+
+          # Prevent Python runtime/tests from mutating the checked-out installer
+          # tree with __pycache__ directories.
+          for name in ('install.sh','recover-incomplete-install.sh','tests/run-all.sh'):
+              p=Path(name)
+              text=p.read_text(encoding='utf-8')
+              anchor='set -Eeuo pipefail\n'
+              marker='export PYTHONDONTWRITEBYTECODE=1\n'
+              if marker in text:
+                  continue
+              if anchor not in text:
+                  raise SystemExit(f'{name}: strict-mode anchor not found')
+              p.write_text(text.replace(anchor,anchor+marker,1),encoding='utf-8')
+
+          # Permanent regression: never reintroduce the legacy marker-file check.
+          p=Path('tests/test-callinghome-contract.sh')
+          text=p.read_text(encoding='utf-8')
+          anchor="# Contract constants must match the upstream XLXD dashboard.\n"
+          block='''# Modern Health must use the installed systemd timer/service as its source of truth.\n! grep -Fq '/xlxd/lastcallhome.php' "$ROOT/observability/health/health_monitor.py" || fail 'Health still depends on legacy lastcallhome.php'\ngrep -Fq 'callinghome = callinghome_runtime_health()' "$ROOT/observability/health/health_monitor.py" || fail 'Health does not use modern CallingHome runtime state'\ngrep -Fq 'systemctl start xlx-callinghome.service' "$ROOT/dashboard/install/install-dashboard.sh" || fail 'installer does not perform an initial CallingHome run'\n\n'''
+          if block not in text:
+              if anchor not in text:
+                  raise SystemExit('test-callinghome-contract.sh: anchor not found')
+              p.write_text(text.replace(anchor,block+anchor,1),encoding='utf-8')
+
+          # Permanent regression for source-tree cleanliness.
+          p=Path('tests/test-current-panel-runtime-parity.sh')
+          text=p.read_text(encoding='utf-8')
+          marker="PYTHONDONTWRITEBYTECODE"
+          if marker not in text:
+              append='''\nfor entry in install.sh recover-incomplete-install.sh tests/run-all.sh; do\n  grep -Fq 'export PYTHONDONTWRITEBYTECODE=1' "$ROOT/$entry" || fail "$entry does not prevent Python bytecode pollution"\ndone\nok 'installer, recovery and regression suite prevent Python bytecode pollution'\n'''
+              p.write_text(text+append,encoding='utf-8')
+          PY
+
+      - name: Validate complete release
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          find . -type d -name __pycache__ -prune -exec rm -rf {} +
+          bash tests/run-all.sh
+          bash scripts/public-release-audit.sh
+          if find . -type d -name __pycache__ -print -quit | grep -q .; then
+            echo 'FAIL: regression suite polluted repository with __pycache__' >&2
+            find . -type d -name __pycache__ -print
+            exit 1
+          fi
+          ! grep -RniE 'simulado|suporte' --exclude-dir=.git . || {
+            echo 'FAIL: excluded public pages leaked into release tree' >&2
+            exit 1
+          }
+          git diff --check
+
+      - name: Publish only after all tests pass
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          git config user.name 'PU2PNY Automation'
+          git config user.email '47339656+PU2PNY@users.noreply.github.com'
+          rm -f .github/workflows/one-shot-final-installer-hardening.yml
+          git add observability/health/health_monitor.py install.sh recover-incomplete-install.sh tests/run-all.sh tests/test-callinghome-contract.sh tests/test-current-panel-runtime-parity.sh .github/workflows/one-shot-final-installer-hardening.yml
+          git diff --cached --check
+          git commit -m 'Finalize CallingHome health and clean installer runtime'
+          git push origin HEAD:main
