@@ -6,20 +6,24 @@ on:
     paths:
       - 'start.sh'
       - 'install.sh'
+      - 'dashboard/install/install-dashboard.sh'
       - 'vendor/pp5pk-installer/installer.sh'
       - 'modules/60-dashboard-modern.sh'
       - 'modules/66-certificates.sh'
       - 'modules/67-aprs-dprs.sh'
+      - 'tests/test-installer-language-contract.sh'
       - 'VERSION'
       - '.github/workflows/beginner-installer-regression.yml'
   pull_request:
     paths:
       - 'start.sh'
       - 'install.sh'
+      - 'dashboard/install/install-dashboard.sh'
       - 'vendor/pp5pk-installer/installer.sh'
       - 'modules/60-dashboard-modern.sh'
       - 'modules/66-certificates.sh'
       - 'modules/67-aprs-dprs.sh'
+      - 'tests/test-installer-language-contract.sh'
       - 'VERSION'
       - '.github/workflows/beginner-installer-regression.yml'
 
@@ -34,12 +38,13 @@ jobs:
           set -Eeuo pipefail
           bash -n start.sh
           bash -n install.sh
+          bash -n dashboard/install/install-dashboard.sh
           bash -n vendor/pp5pk-installer/installer.sh
           bash -n modules/60-dashboard-modern.sh
           bash -n modules/66-certificates.sh
           bash -n modules/67-aprs-dprs.sh
 
-      - name: Verify classic bilingual flow
+      - name: Verify classic strict-language flow
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -51,25 +56,30 @@ jobs:
           dashboard_module = Path('modules/60-dashboard-modern.sh').read_text()
           dashboard = Path('dashboard/index.php').read_text()
 
-          assert 'MODO SIMPLES / SIMPLE MODE' in start
           assert 'exec bash "$ROOT_DIR/install.sh" "$@" --classic' in start
           assert 'simple_installer.py' not in start
           assert 'tmux -L "$TMUX_SOCKET"' not in start
           assert 'TUI_MODE="off"' in install
+          assert 'Strict language isolation.' in install
 
-          # The localized runtime is produced by sed expressions in install.sh.
-          # Validate the actual one-backslash sed markers (01\., 02\., ...),
-          # not a doubly escaped representation that never exists in the file.
+          # The vendored questionnaire keeps its canonical English source.
+          # install.sh carries the pt-BR rewrite rules used only when pt-BR is selected.
           for number in range(1, 22):
               prefix = f'{number:02d}.'
               assert prefix in vendor, f'missing vendor question {prefix}'
               sed_marker = f'{number:02d}' + r'\.'
-              assert sed_marker in install, f'missing bilingual rewrite for question {prefix}'
+              assert sed_marker in install, f'missing pt-BR rewrite for question {prefix}'
 
-          for marker in (
+          for forbidden in (
               'DADOS DO REFLETOR / REFLECTOR DATA INPUT',
               'REVISE AS CONFIGURAÇÕES / REVIEW YOUR SETTINGS:',
-              'Configurações corretas? [ENTER] confirma',
+              'Perguntas em Português + English',
+              'Questionário clássico bilíngue',
+              'native and mandatory / nativo e obrigatório',
+          ):
+              assert forbidden not in install, forbidden
+
+          for marker in (
               '[[ "$INSTALL_SSL" == "S" ]] && INSTALL_SSL="Y"',
               '[[ "$INSTALL_ECHO" == "S" ]] && INSTALL_ECHO="Y"',
               '[[ "$AUTOLINK_USER" == "S" ]] && AUTOLINK_USER="Y"',
@@ -93,3 +103,6 @@ jobs:
           assert m.group(1) == actual
           assert Path('VERSION').read_text().strip() == '1.4.6'
           PY
+
+      - name: Verify installer language contract
+        run: bash tests/test-installer-language-contract.sh
