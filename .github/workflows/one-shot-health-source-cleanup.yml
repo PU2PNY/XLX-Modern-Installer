@@ -1,0 +1,119 @@
+name: One-shot Health source cleanup
+
+on:
+  push:
+    paths:
+      - .github/workflows/one-shot-health-source-cleanup.yml
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Clean Health source and remove runtime source mutation
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          health = Path('observability/health/health_monitor.py')
+          s = health.read_text()
+          pat = re.compile(r'"\'\+PUBLIC_URL\+\'([^"\n]*)"')
+          fixed, n = pat.subn(lambda m: "PUBLIC_URL + '" + m.group(1) + "'", s)
+          if n < 1:
+              raise SystemExit('expected historical PUBLIC_URL artifacts not found')
+          if '"\'+PUBLIC_URL+\'' in fixed:
+              raise SystemExit('unresolved PUBLIC_URL artifact')
+          health.write_text(fixed)
+          print(f'normalized_health_urls={n}')
+
+          parity = Path('dashboard/install/fresh-install-parity.sh')
+          p = parity.read_text()
+          start_marker = '# Normalize a historical bad export pattern in Health before observability is\n'
+          end_marker = "ok 'Health URL expressions validated.'\n"
+          start = p.find(start_marker)
+          if start < 0:
+              raise SystemExit('Health mutation block start not found')
+          end = p.find(end_marker, start)
+          if end < 0:
+              raise SystemExit('Health mutation block end not found')
+          end += len(end_marker)
+          replacement = '''# Health source is immutable installer input. Historical PUBLIC_URL export artifacts
+# must be fixed in Git, never rewritten inside a user's clone during installation.
+HEALTH_SOURCE="$ROOT/observability/health/health_monitor.py"
+[[ -f "$HEALTH_SOURCE" ]] || fail 'Health source missing.'
+python3 - "$HEALTH_SOURCE" <<'PY'
+import ast,sys
+path=sys.argv[1]
+text=open(path,encoding='utf-8').read()
+if "\"'+PUBLIC_URL+'" in text:
+    raise SystemExit('historical literal PUBLIC_URL artifact present in Health source')
+ast.parse(text,filename=path)
+PY
+ok 'Health source is immutable and URL expressions are valid.'
+'''
+          p = p[:start] + replacement + p[end:]
+          parity.write_text(p)
+
+          test = Path('tests/test-current-panel-runtime-parity.sh')
+          t = test.read_text()
+          old_start = '# Health source currently contains historical exported URL artifacts on main.\n'
+          old_end = "ok 'Health PUBLIC_URL normalization is deterministic and syntax-safe'\n"
+          a = t.find(old_start)
+          if a < 0:
+              raise SystemExit('old Health regression block start not found')
+          b = t.find(old_end, a)
+          if b < 0:
+              raise SystemExit('old Health regression block end not found')
+          b += len(old_end)
+          new = '''# Health source must already be correct in Git. Installation/parity may validate it,
+# but must never rewrite tracked source files in the user's clone.
+python3 - "$ROOT/observability/health/health_monitor.py" "$ROOT/dashboard/install/fresh-install-parity.sh" <<'PY'
+import ast,sys
+health=open(sys.argv[1],encoding='utf-8').read()
+parity=open(sys.argv[2],encoding='utf-8').read()
+assert "\"'+PUBLIC_URL+'" not in health, 'historical PUBLIC_URL artifact remains in Git source'
+ast.parse(health)
+for route in ("/api/status.php?history_hours=24&control=1", "/api/status.php?control=1"):
+    assert "PUBLIC_URL + '"+route+"'" in health, f'runtime PUBLIC_URL expression missing: {route}'
+assert "with open(path,'w'" not in parity, 'fresh-install parity still rewrites Health source'
+assert 'Health source is immutable and URL expressions are valid.' in parity
+PY
+ok 'Health source is clean in Git and fresh-install parity is read-only for installer source'
+'''
+          t = t[:a] + new + t[b:]
+          test.write_text(t)
+          PY
+
+      - name: Validate complete repository
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python3 -m py_compile observability/health/health_monitor.py
+          bash -n dashboard/install/fresh-install-parity.sh
+          bash tests/test-current-panel-runtime-parity.sh
+          bash tests/run-all.sh
+          git diff --check
+          if git diff -- dashboard/install/fresh-install-parity.sh | grep -F "open(path,'w'"; then
+            echo 'fresh-install parity source mutation reintroduced' >&2
+            exit 1
+          fi
+
+      - name: Publish cleanup and remove one-shot workflow
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          rm -f .github/workflows/one-shot-health-source-cleanup.yml
+          git config user.name 'PU2PNY Automation'
+          git config user.email '47339656+PU2PNY@users.noreply.github.com'
+          git add observability/health/health_monitor.py dashboard/install/fresh-install-parity.sh tests/test-current-panel-runtime-parity.sh .github/workflows/one-shot-health-source-cleanup.yml
+          git commit -m 'Keep Health source immutable during installation'
+          git push origin HEAD:main
