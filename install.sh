@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
+export PYTHONDONTWRITEBYTECODE=1
 # XLX_ERROR_TRACE_V1 — never return silently to the shell on an unexpected failure.
 _xlx_error_trace(){
   local rc=$?

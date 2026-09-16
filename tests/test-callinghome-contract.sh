@@ -7,6 +7,11 @@ trap cleanup EXIT
 fail(){ printf 'FAIL | %s\n' "$*" >&2; exit 1; }
 ok(){ printf 'OK | %s\n' "$*"; }
 
+# Modern Health must use the installed systemd timer/service as its source of truth.
+! grep -Fq '/xlxd/lastcallhome.php' "$ROOT/observability/health/health_monitor.py" || fail 'Health still depends on legacy lastcallhome.php'
+grep -Fq 'callinghome = callinghome_runtime_health()' "$ROOT/observability/health/health_monitor.py" || fail 'Health does not use modern CallingHome runtime state'
+grep -Fq 'systemctl start xlx-callinghome.service' "$ROOT/dashboard/install/install-dashboard.sh" || fail 'installer does not perform an initial CallingHome run'
+
 # Contract constants must match the upstream XLXD dashboard.
 grep -Fq "'server_url' => 'http://xlxapi.rlx.lu/api.php'" "$ROOT/dashboard/install/install-dashboard.sh" || fail 'official CallingHome server URL drifted'
 grep -Fq 'OnUnitActiveSec=10min' "$ROOT/dashboard/install/xlx-callinghome.timer" || fail 'CallingHome timer is not the upstream 600-second cadence'

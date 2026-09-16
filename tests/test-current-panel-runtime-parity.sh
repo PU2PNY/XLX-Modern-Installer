@@ -142,3 +142,8 @@ grep -Fq 'Runtime XML/log/database sources are readable by www-data.' "$ROOT/das
 grep -Fq 'foreach(["xml","log","db"]' "$ROOT/dashboard/install/fresh-install-parity.sh" || fail 'status payload source validation missing'
 grep -Fq 'Final web stack is Nginx + PHP-FPM; Apache is inactive.' "$ROOT/dashboard/install/fresh-install-parity.sh" || fail 'final Nginx stack gate missing'
 ok 'fresh install requires live status/live API and XML/log/DB sources'
+
+for entry in install.sh recover-incomplete-install.sh tests/run-all.sh; do
+  grep -Fq 'export PYTHONDONTWRITEBYTECODE=1' "$ROOT/$entry" || fail "$entry does not prevent Python bytecode pollution"
+done
+ok 'installer, recovery and regression suite prevent Python bytecode pollution'

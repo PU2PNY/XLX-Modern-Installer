@@ -1417,11 +1417,19 @@ def collect_checks():
         "detail": "arquivo ausente" if xml_age is None else f"há {xml_age}s",
     }
 
-    callhome_age = file_age("/xlxd/lastcallhome.php")
+    callinghome = callinghome_runtime_health()
     checks["callinghome"] = {
-        "ok": callhome_age is not None and callhome_age <= 900,
+        "ok": callinghome["ok"],
         "label": "CallingHome",
-        "detail": "arquivo ausente" if callhome_age is None else f"há {callhome_age}s",
+        "detail": (
+            "timer ativo; última execução concluída"
+            if callinghome["ok"]
+            else (
+                f"timer={'ativo' if callinghome['timer_active'] else 'inativo'}; "
+                f"resultado={callinghome['result'] or 'desconhecido'}; "
+                f"exit={callinghome['exit_code'] or 'desconhecido'}"
+            )
+        ),
     }
 
     disk = disk_used_percent()
