@@ -1,0 +1,87 @@
+name: 2PNY OS Artifact Split
+
+on:
+  push:
+    branches: [ 2pny-os-build ]
+    paths:
+      - '.github/workflows/2pny-artifact-split.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  split:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download successful ARM64 image artifact
+        run: |
+          mkdir -p incoming split
+          gh run download 35144748910 --repo "$GITHUB_REPOSITORY" --name 2PNY-OS-0.1.1-alpha-arm64 --dir incoming
+          ls -lh incoming
+
+      - name: Verify image checksum before splitting
+        run: |
+          cd incoming
+          sha256sum -c *.sha256
+
+      - name: Split image for transport
+        run: |
+          IMAGE=$(find incoming -maxdepth 1 -name '*.img.xz' -type f | head -n1)
+          test -n "$IMAGE"
+          BASENAME=$(basename "$IMAGE")
+          printf '%s\n' "$BASENAME" > split/IMAGE-NAME.txt
+          cp incoming/*.sha256 incoming/BUILD-INFO.txt split/
+          split -b 250M -d -a 2 "$IMAGE" "split/${BASENAME}.part-"
+          ls -lh split
+
+      - name: Upload part 00
+        uses: actions/upload-artifact@v4
+        with:
+          name: 2PNY-image-part-00
+          path: split/*.part-00
+          compression-level: 0
+          retention-days: 14
+
+      - name: Upload part 01
+        if: ${{ hashFiles('split/*.part-01') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: 2PNY-image-part-01
+          path: split/*.part-01
+          compression-level: 0
+          retention-days: 14
+
+      - name: Upload part 02
+        if: ${{ hashFiles('split/*.part-02') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: 2PNY-image-part-02
+          path: split/*.part-02
+          compression-level: 0
+          retention-days: 14
+
+      - name: Upload part 03
+        if: ${{ hashFiles('split/*.part-03') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: 2PNY-image-part-03
+          path: split/*.part-03
+          compression-level: 0
+          retention-days: 14
+
+      - name: Upload metadata
+        uses: actions/upload-artifact@v4
+        with:
+          name: 2PNY-image-metadata
+          path: |
+            split/*.sha256
+            split/BUILD-INFO.txt
+            split/IMAGE-NAME.txt
+          compression-level: 0
+          retention-days: 14
