@@ -28,30 +28,32 @@ jobs:
           anchor = '[[ -s /var/lib/xlx-modern-health-monitor/operational.json ]]||fail "$(say \'Health snapshot não foi criado no bootstrap síncrono.\' \'Health snapshot was not created by the synchronous bootstrap.\')"\n\n'
           if anchor not in s:
               raise SystemExit('Health bootstrap snapshot anchor not found')
-          block = r'''# Report only the non-OK Health checks from the freshly generated snapshot.
-# This keeps expected conditions such as a pending ACME certificate visible
-# without treating them as a structural installation failure or exposing secrets.
-python3 - /var/lib/xlx-modern-health-monitor/operational.json <<'PYHEALTHDIAG'
-import json,sys
-path=sys.argv[1]
-with open(path,encoding='utf-8') as f:
-    payload=json.load(f)
-checks=payload.get('checks',{}) if isinstance(payload,dict) else {}
-if not isinstance(checks,dict):
-    raise SystemExit('invalid Health snapshot checks object')
-non_ok=[]
-for key,row in sorted(checks.items()):
-    if not isinstance(row,dict) or bool(row.get('ok')):
-        continue
-    label=' '.join(str(row.get('label','')).split())
-    detail=' '.join(str(row.get('detail','')).split())
-    non_ok.append((str(key),label,detail))
-for key,label,detail in non_ok:
-    print(f'[WARNING] Health check {key}: {label} — {detail}')
-print(f'HEALTH_NON_OK={len(non_ok)}')
-PYHEALTHDIAG
-
-'''
+          block = "\n".join([
+              "# Report only the non-OK Health checks from the freshly generated snapshot.",
+              "# This keeps expected conditions such as a pending ACME certificate visible",
+              "# without treating them as a structural installation failure or exposing secrets.",
+              "python3 - /var/lib/xlx-modern-health-monitor/operational.json <<'PYHEALTHDIAG'",
+              "import json,sys",
+              "path=sys.argv[1]",
+              "with open(path,encoding='utf-8') as f:",
+              "    payload=json.load(f)",
+              "checks=payload.get('checks',{}) if isinstance(payload,dict) else {}",
+              "if not isinstance(checks,dict):",
+              "    raise SystemExit('invalid Health snapshot checks object')",
+              "non_ok=[]",
+              "for key,row in sorted(checks.items()):",
+              "    if not isinstance(row,dict) or bool(row.get('ok')):",
+              "        continue",
+              "    label=' '.join(str(row.get('label','')).split())",
+              "    detail=' '.join(str(row.get('detail','')).split())",
+              "    non_ok.append((str(key),label,detail))",
+              "for key,label,detail in non_ok:",
+              "    print(f'[WARNING] Health check {key}: {label} — {detail}')",
+              "print(f'HEALTH_NON_OK={len(non_ok)}')",
+              "PYHEALTHDIAG",
+              "",
+              "",
+          ])
           if 'HEALTH_NON_OK=' not in s:
               s = s.replace(anchor, anchor + block, 1)
           module.write_text(s)
@@ -59,14 +61,16 @@ PYHEALTHDIAG
           test = Path('tests/test-current-panel-runtime-parity.sh')
           t = test.read_text()
           test_anchor = "ok 'clean-host observability preflight does not require preinstalled PHP'\n"
-          additions = r'''
-# A nonzero Health bootstrap count must identify the exact checks instead of
-# printing only an opaque warnings_or_failures=N total.
-grep -Fq 'HEALTH_NON_OK=' "$ROOT/modules/71-observability.sh" || fail 'Health bootstrap non-OK count missing'
-grep -Fq '[WARNING] Health check {key}:' "$ROOT/modules/71-observability.sh" || fail 'Health bootstrap per-check diagnostic missing'
-grep -Fq '/var/lib/xlx-modern-health-monitor/operational.json' "$ROOT/modules/71-observability.sh" || fail 'Health bootstrap diagnostic is not based on the generated snapshot'
-ok 'Health bootstrap reports each non-OK check without failing expected warning states'
-'''
+          additions = "\n".join([
+              "",
+              "# A nonzero Health bootstrap count must identify the exact checks instead of",
+              "# printing only an opaque warnings_or_failures=N total.",
+              "grep -Fq 'HEALTH_NON_OK=' \"$ROOT/modules/71-observability.sh\" || fail 'Health bootstrap non-OK count missing'",
+              "grep -Fq '[WARNING] Health check {key}:' \"$ROOT/modules/71-observability.sh\" || fail 'Health bootstrap per-check diagnostic missing'",
+              "grep -Fq '/var/lib/xlx-modern-health-monitor/operational.json' \"$ROOT/modules/71-observability.sh\" || fail 'Health bootstrap diagnostic is not based on the generated snapshot'",
+              "ok 'Health bootstrap reports each non-OK check without failing expected warning states'",
+              "",
+          ])
           if 'Health bootstrap non-OK count missing' not in t:
               if test_anchor not in t:
                   raise SystemExit('runtime parity test anchor not found')
