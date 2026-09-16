@@ -2,6 +2,7 @@
 set -Eeuo pipefail
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 MODULE="$ROOT/modules/60-dashboard-modern.sh"
+RECOVERY="$ROOT/recover-incomplete-install.sh"
 fail(){ printf 'FAIL | %s\n' "$*" >&2; exit 1; }
 
 for marker in \
@@ -31,5 +32,13 @@ start_nginx = s.index('systemctl start nginx.service', stop_apache)
 if not (restore < stop_apache < start_nginx):
     raise SystemExit('failure rollback must stop Apache before restoring Nginx')
 PY
+
+for marker in \
+  'REPO_DIFF_HASH_BEFORE=' \
+  'REPO_DIFF_HASH_AFTER=' \
+  'git -C "$ROOT" diff --no-ext-diff --binary HEAD' \
+  'A recuperação não alterou o código-fonte rastreado do instalador'; do
+  grep -Fq "$marker" "$RECOVERY" || fail "missing recovery source-integrity marker: $marker"
+done
 
 printf 'OK | partial-install recovery serializes Apache/Nginx port ownership and restores Nginx on failure\n'

@@ -21,6 +21,10 @@ fi
 [ "$(grep -Fc 'LE_LOG="${XLX_LETSENCRYPT_LOG:-/var/log/letsencrypt/letsencrypt.log}"' "$ROOT/dashboard/install/install-dashboard.sh")" -ge 2 ]
 grep -Fq 'retry_at_utc=' "$ROOT/dashboard/install/install-dashboard.sh"
 grep -Fq 'xlx-modern-https-retry.timer' "$ROOT/dashboard/install/install-dashboard.sh"
+grep -Fq 'https_backoff_active() {' "$ROOT/dashboard/install/install-dashboard.sh"
+grep -Fq 'elif https_backoff_active; then' "$ROOT/dashboard/install/install-dashboard.sh"
+grep -Fq 'skipping Certbot until the backoff expires' "$ROOT/dashboard/install/install-dashboard.sh"
+grep -Fq 'now_epoch < retry_epoch' "$ROOT/dashboard/install/install-dashboard.sh"
 grep -Fq 'OnCalendar=$retry_at' "$ROOT/dashboard/install/install-dashboard.sh"
 grep -Fq 'Available URL now:' "$ROOT/install.sh"
 grep -Fq 'URL disponível agora:' "$ROOT/install.sh"

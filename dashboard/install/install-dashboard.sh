@@ -537,11 +537,32 @@ UNIT
     return 0
 }
 
+https_backoff_active() {
+    local retry_raw retry_epoch now_epoch
+    HTTPS_PENDING_RETRY_AT=""
+    [[ -f "$HTTPS_STATUS_FILE" ]] || return 1
+    retry_raw="$(sed -n 's/^retry_at_utc=//p' "$HTTPS_STATUS_FILE" | tail -n 1)"
+    [[ -n "$retry_raw" ]] || return 1
+    retry_epoch="$(date -u -d "$retry_raw" '+%s' 2>/dev/null || true)"
+    now_epoch="$(date -u '+%s')"
+    [[ "$retry_epoch" =~ ^[0-9]+$ ]] || return 1
+    (( now_epoch < retry_epoch )) || return 1
+    HTTPS_PENDING_RETRY_AT="$retry_raw"
+    return 0
+}
+
 if [ "$ENABLE_HTTPS" = "yes" ]; then
     if [ -s "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ] \
         && [ -s "/etc/letsencrypt/live/$DOMAIN/privkey.pem" ]; then
         printf 'HTTPS certificate already present / certificado HTTPS já existente: %s\n' "$DOMAIN"
         HTTPS_READY=1
+    elif https_backoff_active; then
+        printf '[INFO] HTTPS retry already scheduled for %s; skipping Certbot until the backoff expires.\n' "$HTTPS_PENDING_RETRY_AT" >&2
+        printf '[INFO] Nova tentativa HTTPS já agendada para %s; Certbot não será executado antes do fim do bloqueio.\n' "$HTTPS_PENDING_RETRY_AT" >&2
+        if [[ "${XLX_HTTPS_RETRY_TEST_MODE:-0}" != "1" ]] \
+            && systemctl list-unit-files xlx-modern-https-retry.timer --no-legend 2>/dev/null | grep -q .; then
+            systemctl enable --now xlx-modern-https-retry.timer >/dev/null 2>&1 || true
+        fi
     else
         CERTBOT_LOG="$(mktemp /tmp/xlx-modern-certbot.XXXXXX.log)"
         set +e

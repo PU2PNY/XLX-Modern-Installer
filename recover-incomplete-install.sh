@@ -42,6 +42,12 @@ mkdir -p "$BACKUP" "$LOG_ROOT"
 chmod 700 "$BACKUP" "$LOG_ROOT"
 exec > >(tee -a "$LOG") 2>&1
 
+repo_diff_hash(){
+  git -C "$ROOT" diff --no-ext-diff --binary HEAD 2>/dev/null | sha256sum | awk '{print $1}'
+}
+REPO_DIFF_HASH_BEFORE="$(repo_diff_hash)"
+REPO_TRACKED_STATUS_BEFORE="$(git -C "$ROOT" status --porcelain --untracked-files=no 2>/dev/null || true)"
+
 echo '=== XLX MODERN — RECUPERAÇÃO DE INSTALAÇÃO INCOMPLETA ==='
 echo "Commit: $(git -C "$ROOT" rev-parse HEAD 2>/dev/null || echo unknown)"
 echo "Dashboard: $DASH"
@@ -106,6 +112,14 @@ else
     warn 'Timer automático HTTPS não está habilitado; revise a etapa de certificado.'
   fi
 fi
+
+REPO_DIFF_HASH_AFTER="$(repo_diff_hash)"
+REPO_TRACKED_STATUS_AFTER="$(git -C "$ROOT" status --porcelain --untracked-files=no 2>/dev/null || true)"
+if [[ "$REPO_DIFF_HASH_AFTER" != "$REPO_DIFF_HASH_BEFORE" || "$REPO_TRACKED_STATUS_AFTER" != "$REPO_TRACKED_STATUS_BEFORE" ]]; then
+  printf '%s\n' "$REPO_TRACKED_STATUS_AFTER" >&2
+  fail 'A recuperação alterou arquivos rastreados do próprio instalador; execução interrompida para preservar a árvore Git.'
+fi
+ok 'A recuperação não alterou o código-fonte rastreado do instalador; alterações locais preexistentes foram preservadas.'
 
 printf '\nRECOVERY_STATUS=OK\n'
 printf 'ADMIN_ROUTE=/%s/\n' "$XLX_ADMIN_SLUG"
