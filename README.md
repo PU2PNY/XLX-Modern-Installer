@@ -8,7 +8,7 @@ This repository publishes the XLX Modern installer and dashboard stack derived f
 
 **Live production example:** [XLX026 Brasil — xlx026.net](https://xlx026.net/)
 
-[Português (Brasil)](README.pt-BR.md) · [English](README.en.md) · [Changelog](CHANGELOG.md) · [Features](docs/FEATURES.md)
+[Português (Brasil)](README.pt-BR.md) · [English](README.en.md) · [Changelog](CHANGELOG.md) · [Features](docs/FEATURES.md) · [Project Start / Fonte de verdade](PROJECT_START_HERE.md)
 
 ## Quick install
 
