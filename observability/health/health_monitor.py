@@ -28,6 +28,45 @@ OPERATIONAL_FILE = STATE_DIR / "operational.json"
 FLIGHT_DIR = STATE_DIR / "flight-recorder"
 FLIGHT_RETENTION_DAYS = 30
 
+_DASHBOARD_STATUS_CACHE = {}
+_DASHBOARD_STATUS_CACHE_TTL = 45.0
+
+
+def dashboard_status(history24=False):
+    now = time.monotonic()
+    full = _DASHBOARD_STATUS_CACHE.get("full")
+    if full and now - full[0] < _DASHBOARD_STATUS_CACHE_TTL:
+        return full[1]
+
+    key = "full" if history24 else "base"
+    cached = _DASHBOARD_STATUS_CACHE.get(key)
+    if cached and now - cached[0] < _DASHBOARD_STATUS_CACHE_TTL:
+        return cached[1]
+
+    url = (
+        PUBLIC_URL + "/api/status.php?history_hours=24"
+        if history24
+        else PUBLIC_URL + "/api/runtime.php"
+    )
+    request = urllib.request.Request(
+        url,
+        headers={
+            "Accept": "application/json",
+            "User-Agent": "XLX Modern-Health-Monitor/1.0",
+        },
+    )
+    with urllib.request.urlopen(request, timeout=20) as response:
+        data = json.loads(response.read().decode("utf-8", errors="replace"))
+
+    if not isinstance(data, dict) or not data.get("ok"):
+        raise RuntimeError("dashboard_status_invalid")
+
+    _DASHBOARD_STATUS_CACHE[key] = (now, data)
+    if history24:
+        _DASHBOARD_STATUS_CACHE["base"] = (now, data)
+    return data
+
+
 SERVICES = {
     'XLXD': 'xlxd.service',
     'Echo': 'xlxecho.service',
@@ -592,12 +631,7 @@ def radioid_data_health():
 # XLX Modern_IDENTITY_HEALTH_V1
 def identity_health_summary():
     try:
-        request = urllib.request.Request(
-            PUBLIC_URL + '/api/status.php?history_hours=24&control=1',
-            headers={"User-Agent": "XLX Modern-Health-Monitor/1.0"},
-        )
-        with urllib.request.urlopen(request, timeout=20) as response:
-            data = json.loads(response.read().decode("utf-8", errors="replace"))
+        data = dashboard_status(history24=True)
     except Exception as error:
         return {"ok": False, "detail": type(error).__name__}
     history = data.get("history", []) if isinstance(data, dict) else []
@@ -673,12 +707,7 @@ def ysf_capability_health():
 
     modules = []
     try:
-        request = urllib.request.Request(
-            PUBLIC_URL + '/api/status.php?control=1',
-            headers={"User-Agent": "XLX Modern-Health-Monitor/1.0"},
-        )
-        with urllib.request.urlopen(request, timeout=10) as response:
-            data = json.loads(response.read().decode("utf-8", errors="replace"))
+        data = dashboard_status(history24=False)
         raw_modules = data.get("modules", {}) if isinstance(data, dict) else {}
         if isinstance(raw_modules, dict):
             modules = sorted(
@@ -1000,12 +1029,7 @@ def dmr_capability_summary():
 # XLX Modern_STREAM_HEALTH_V1
 def stream_health_summary():
     try:
-        request = urllib.request.Request(
-            PUBLIC_URL + '/api/status.php?history_hours=24&control=1',
-            headers={"User-Agent": "XLX Modern-Health-Monitor/1.0"},
-        )
-        with urllib.request.urlopen(request, timeout=20) as response:
-            data = json.loads(response.read().decode("utf-8", errors="replace"))
+        data = dashboard_status(history24=True)
     except Exception as error:
         return {"ok": False, "detail": type(error).__name__, "protocols": {}}
 
