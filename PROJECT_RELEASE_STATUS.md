@@ -55,5 +55,5 @@ Os documentos antigos `STATUS.md`, `ARCHITECTURE.md` e `RELEASE_CHECKLIST.md` de
 - Causa confirmada: reconstrução/validação atômica do users.db (~319 mil registros) consumia quase todo o orçamento de 15 s e a página ainda executava diagnósticos síncronos.
 - Decisão: manter 15 s no dashboard/APIs públicos e usar 30 s somente na rota privada do Admin.
 - Implementação versionada: branch fix/admin-control-timeout-20260923; produção recebeu hotfix equivalente após backup.
-- Validação PROD: nginx -t PASS, reload sem restart, Nginx/PHP-FPM/XLXD ativos, um processo XLXD e probes /ao-vivo, /api/live.php, /api/status.php e /controle/ com HTTP 200.
+- Validação SW/ENV: suíte `tests/test-current-panel-runtime-parity.sh` PASS completa na WartyWallaby; render da rota Admin e `nginx -t` PASS.\n- Validação PROD: nginx -t PASS, reload sem restart, Nginx/PHP-FPM/XLXD ativos, um processo XLXD e probes /ao-vivo, /api/live.php, /api/status.php e /controle/ com HTTP 200.
 - Limite de evidência: um novo radioid_save autenticado e mutável não foi executado pela automação porque a senha em texto puro não é armazenada; portanto o teste funcional final da ação permanece pendente.
