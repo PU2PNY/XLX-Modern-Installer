@@ -6,7 +6,7 @@ Este é o ponto inicial obrigatório para qualquer IA, desenvolvedor ou mantened
 - Repositório principal: `PU2PNY/XLX-Modern-Installer`
 - Repositório do dashboard standalone: `PU2PNY/XLX-Modern-Dashboard`
 - Branch padrão confirmada em 2026-09-21: `main`
-- Commit de referência observado em `main`: `1d54417fe55e8a12f246fdf440df35428a38ec8d`
+- Commit de referência observado em `main` em 2026-09-23: `4c538252a11c018c39b3602fadb5671fe79b4caa` (PR #55 — hotfix de timeout privado do Admin)
 - Versão declarada em `VERSION` e README: `1.4.6`
 - XLX026 é a referência de produção e demonstração, mas credenciais/dados privados não pertencem ao repositório.
 
