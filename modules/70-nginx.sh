@@ -24,6 +24,40 @@ TIMEZONE="$(php -r '$c=require $argv[1];echo (string)($c["timezone"]??"UTC");' "
 [[ "$DOMAIN" =~ ^[A-Za-z0-9.-]+$ ]] || fail "$(say 'Domínio inválido.' 'Invalid domain.')"
 [[ "$DASH" = /* ]] || fail "$(say 'Diretório do painel inválido.' 'Invalid dashboard directory.')"
 
+# XLX_ADMIN_BOUNDED_TIMEOUT_V1
+# Administrative maintenance can legitimately take longer than public page/API
+# requests (for example a validated RadioID database rebuild). Keep the public
+# 15-second budget unchanged and grant only the private Admin route a bounded
+# 30-second FastCGI read window.
+ADMIN_ROUTE_FILE="/etc/xlx-modern-control/route"
+ADMIN_SLUG=""
+if [[ -s "$ADMIN_ROUTE_FILE" ]]; then
+  ADMIN_SLUG="$(tr -d '\r\n' < "$ADMIN_ROUTE_FILE")"
+  [[ "$ADMIN_SLUG" =~ ^[a-z0-9][a-z0-9-]{1,31}$ ]] || fail "$(say 'Slug administrativo inválido no arquivo de rota.' 'Invalid administrative slug in route file.')"
+fi
+
+render_admin_location(){
+  local https="$1" port="$2" proto="$3"
+  [[ -n "$ADMIN_SLUG" ]] || return 0
+  cat <<NGINX
+    # XLX_ADMIN_BOUNDED_TIMEOUT_V1 — private maintenance only.
+    location ~ ^/${ADMIN_SLUG}/(?:index\\.php)?$ {
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME \$document_root/${ADMIN_SLUG}/index.php;
+        fastcgi_param SCRIPT_NAME /${ADMIN_SLUG}/index.php;
+        fastcgi_param HTTPS $https;
+        fastcgi_param SERVER_PORT $port;
+        fastcgi_param HTTP_X_FORWARDED_PROTO $proto;
+        fastcgi_connect_timeout 2s;
+        fastcgi_send_timeout 15s;
+        fastcgi_read_timeout 30s;
+        fastcgi_pass unix:/run/php/php8.2-fpm.sock;
+    }
+NGINX
+}
+ADMIN_LOCATION_HTTP="$(render_admin_location off 80 http)"
+ADMIN_LOCATION_HTTPS="$(render_admin_location on 443 https)"
+
 if [[ "$MODE" == check ]]; then
   for f in "$DASH/index.php" "$DASH/api/status.php" "$DASH/api/live.php"; do [[ -s "$f" ]] || fail "$(say "Arquivo ausente: $f" "Missing file: $f")"; done
   ok "$(say 'Pré-validação Nginx/PHP-FPM concluída.' 'Nginx/PHP-FPM pre-check passed.')"
@@ -135,6 +169,7 @@ server {
         fastcgi_connect_timeout 2s; fastcgi_send_timeout 15s; fastcgi_read_timeout 15s;
         fastcgi_pass unix:/run/php/php8.2-fpm.sock;
     }
+$ADMIN_LOCATION_HTTP
     location = /api/status.php { include /etc/nginx/xlx-modern-fastcgi.conf; fastcgi_cache xlxmodern_fpm_api; fastcgi_cache_key "\$uri|history=\$arg_history|hours=\$arg_history_hours"; fastcgi_cache_valid 200 1s; fastcgi_cache_lock on; fastcgi_ignore_headers Cache-Control Expires; }
     location = /api/mtr.php { include /etc/nginx/xlx-modern-fastcgi.conf; fastcgi_cache xlxmodern_fpm_api; fastcgi_cache_key "\$uri|\$arg_key|\$arg_module|\$arg_callsign|\$arg_suffix"; fastcgi_cache_valid 200 10s; fastcgi_cache_lock on; fastcgi_ignore_headers Cache-Control Expires; }
     location = /api/repeater.php { include /etc/nginx/xlx-modern-fastcgi.conf; fastcgi_cache xlxmodern_fpm_api; fastcgi_cache_key "\$uri|\$arg_callsign"; fastcgi_cache_valid 200 1h; fastcgi_cache_valid 404 10m; fastcgi_cache_lock on; fastcgi_ignore_headers Cache-Control Expires; }
@@ -217,6 +252,7 @@ server {
         fastcgi_connect_timeout 2s; fastcgi_send_timeout 15s; fastcgi_read_timeout 15s;
         fastcgi_pass unix:/run/php/php8.2-fpm.sock;
     }
+$ADMIN_LOCATION_HTTPS
     location = /api/live.php { include /etc/nginx/xlx-modern-fastcgi.conf; fastcgi_param HTTPS on; fastcgi_param SERVER_PORT 443; fastcgi_param HTTP_X_FORWARDED_PROTO https; add_header X-XLX-Modern-Edge nginx-fpm always; }
     location = /api/status.php { include /etc/nginx/xlx-modern-fastcgi.conf; fastcgi_param HTTPS on; fastcgi_param SERVER_PORT 443; fastcgi_param HTTP_X_FORWARDED_PROTO https; fastcgi_cache xlxmodern_fpm_api; fastcgi_cache_key "\$uri|history=\$arg_history|hours=\$arg_history_hours"; fastcgi_cache_valid 200 1s; fastcgi_cache_lock on; fastcgi_ignore_headers Cache-Control Expires; add_header X-XLX-Modern-Edge-Cache \$upstream_cache_status always; }
     location = /api/mtr.php { include /etc/nginx/xlx-modern-fastcgi.conf; fastcgi_param HTTPS on; fastcgi_param SERVER_PORT 443; fastcgi_param HTTP_X_FORWARDED_PROTO https; fastcgi_cache xlxmodern_fpm_api; fastcgi_cache_key "\$uri|\$arg_key|\$arg_module|\$arg_callsign|\$arg_suffix"; fastcgi_cache_valid 200 10s; fastcgi_cache_lock on; fastcgi_ignore_headers Cache-Control Expires; add_header X-XLX-Modern-Edge-Cache \$upstream_cache_status always; }
