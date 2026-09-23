@@ -44,6 +44,21 @@ assert stop < start, (stop,start)
 PYPORT
 ok 'Apache releases port 80 before Nginx starts'
 
+# Long-running private Admin maintenance must not inherit the tight public
+# FastCGI read budget. The exception is bounded and scoped to the hidden slug.
+bash -n "$ROOT/modules/70-nginx.sh"
+python3 - "$ROOT/modules/70-nginx.sh" <<'PYADMIN'
+import sys
+s=open(sys.argv[1],encoding='utf-8').read()
+assert 'XLX_ADMIN_BOUNDED_TIMEOUT_V1' in s
+assert 'ADMIN_ROUTE_FILE="/etc/xlx-modern-control/route"' in s
+assert 'fastcgi_read_timeout 30s;' in s
+assert 'fastcgi_read_timeout 15s;' in s
+assert 'ADMIN_LOCATION_HTTP="$(render_admin_location off 80 http)"' in s
+assert 'ADMIN_LOCATION_HTTPS="$(render_admin_location on 443 https)"' in s
+PYADMIN
+ok 'private Admin gets a bounded 30s FastCGI window while public routes remain at 15s'
+
 # Preflight on a pristine Debian host must not require PHP before the base installer
 # has had a chance to install it. Runtime provisioning still requires PHP.
 python3 - "$ROOT/modules/67-aprs-dprs.sh" <<'PYAPRS'

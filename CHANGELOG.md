@@ -1,3 +1,9 @@
+## Unreleased — Admin maintenance timeout hardening
+
+- Gives only the private Admin route a bounded 30-second FastCGI read window for validated maintenance operations such as RadioID rebuilds.
+- Keeps the public dashboard and API FastCGI budget at 15 seconds, avoiding a global timeout increase.
+- Adds a regression gate so future Nginx changes cannot silently remove the Admin-specific timeout or widen the public timeout.
+
 ## v1.4.3 — Usability and runtime hardening
 
 - Replaces the long scrolling form with one large question at a time so a required answer cannot be skipped silently.
