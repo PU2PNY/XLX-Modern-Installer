@@ -364,7 +364,7 @@ function xlxmodernDmrTalkerAliasMarkup(call){
 }
 async function xlxmodernLoadAprsPresence(force=false){
  if(xlxmodernAprsPresenceLoading)return;
- if(!force && Date.now()-xlxmodernAprsPresenceAt<15000)return;
+ if(!force && Date.now()-xlxmodernAprsPresenceAt<60000)return;
  xlxmodernAprsPresenceLoading=true;
  try{
   const r=await fetch('/api/digital-lab.php?presence=1&ts='+Date.now(),{cache:'no-store',headers:{Accept:'application/json'}});
@@ -443,11 +443,23 @@ async function xlxmodernOpenRepeater(call){
 }
 async function xlxmodernEnableRepeaterButtons(root=document){
  const nodes=[...root.querySelectorAll('[data-repeater-call]')];
+ const eagerLookup=Boolean(root&&root.id==='moduleGrid');
  for(const n of nodes){
   if(n.dataset.repeaterBound==='1')continue;
   n.dataset.repeaterBound='1';
   const call=xlxmodernBaseCall(n.dataset.repeaterCall||'');
   if(!call)continue;
+  if(!eagerLookup){
+   const b=document.createElement('button');
+   b.type='button';
+   b.className='repeater-info-button';
+   b.textContent='i';
+   b.title='Consultar informações do gateway / repetidora';
+   b.setAttribute('aria-label','Consultar dados de '+call);
+   b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();xlxmodernOpenRepeater(call)});
+   n.appendChild(b);
+   continue;
+  }
   const info=await xlxmodernRepeaterInfo(call);
   if(!info){
    n.dataset.gatewayType='gateway-unknown';
@@ -853,6 +865,7 @@ function syncConnectedProtocolFilter(d){
  select.dataset.signature=signature;
 }
 
+let xlxmodernConnectedRowsSignature='';
 function renderConnectedTable(d){
  const query=$('#connectedSearch')?.value||'';
  const moduleFilter=$('#connectedModuleFilter')?.value||'';
@@ -868,9 +881,13 @@ function renderConnectedTable(d){
    :`${base} • ${visible} exibida${visible===1?'':'s'}`;
  }
 
- $('#connectedRows').innerHTML=
-  connectedRows(d,query,moduleFilter,protocolFilter);
- xlxmodernEnableRepeaterButtons(document);
+ const connectedRowsElement=$('#connectedRows');
+ const connectedMarkup=connectedRows(d,query,moduleFilter,protocolFilter);
+ if(connectedRowsElement&&connectedMarkup!==xlxmodernConnectedRowsSignature){
+  connectedRowsElement.innerHTML=connectedMarkup;
+  xlxmodernConnectedRowsSignature=connectedMarkup;
+  xlxmodernEnableRepeaterButtons(connectedRowsElement);
+ }
 }
 
 function renderConnected(d){
@@ -940,11 +957,30 @@ function renderReflectors(data){
 /* /XLXMODERN_REFLETORES_COMPLETO_V2B */
 
 let xlxmodernHistorySignature='';
+let xlxmodernHistoryQuickSignature='';
 let xlxmodernHistoryRenderedAt=0;
+function xlxmodernHistoryQuickKey(d){
+ const recent=(Array.isArray(d&&d.history)?d.history:[]).slice(0,30)
+  .map(x=>[
+   xlxmodernHistoryItemKey(x),
+   Number(x&&x.duration||0),
+   x&&x.online?1:0,
+   x&&x.gateway||'',
+   x&&x.identity_source||''
+  ].join('~')).join('|');
+ const online=(Array.isArray(d&&d.connections)?d.connections:[])
+  .map(c=>xlxmodernBaseCall(c&&c.callsign)).filter(Boolean).sort().join(',');
+ const expanded=[...historyExpandedCalls].sort().join(',');
+ const minute=Math.floor(Date.now()/60000);
+ return [recent,online,expanded,xlxmodernAprsPresenceAt,minute].join('||');
+}
 /* XLXMODERN_HISTORY_ON_DEMAND_RESEARCH_V1 */
 function xlxmodernRenderHistory(d){
  const rows=$('#historyRows');
  if(!rows||!d||xlxmodernHistoryPeriodDays!==1)return false;
+ const quickSignature=xlxmodernHistoryQuickKey(d);
+ if(quickSignature===xlxmodernHistoryQuickSignature)return false;
+ xlxmodernHistoryQuickSignature=quickSignature;
  // Compare every displayed field, including APRS, alias and online state.
  // Closed groups retain their data but do not create hidden DOM rows.
  const markup=historyMarkup(d);
@@ -1533,6 +1569,25 @@ function armConnectedVoice(){
  if(page!=='ao-vivo')return;
 
  connectedVoiceUserActivated=true;
+
+ if(
+  connectedVoicePendingEvent&&
+  connectedVoiceCurrentTotal!==null&&
+  xlxmodernConnectedVoiceEnabled()&&
+  connectedVoiceSupported()&&
+  !connectedVoiceTxActive()
+ ){
+  clearConnectedVoiceEventTimer();
+  if(
+   speakConnectedCount(
+    connectedVoiceCurrentTotal,
+    'user-activate'
+   )
+  ){
+   connectedVoicePendingEvent=false;
+   return;
+  }
+ }
 
  scheduleConnectedVoiceEvent();
 }
@@ -2314,23 +2369,39 @@ function stopLiveTxRx(){
 }
 
 let statusUpdateTimer=null;
+function xlxmodernStatusInterval(){
+ if(page==='ao-vivo')return 15000;
+ if(page==='conectados')return 30000;
+ if(page==='modulos'||page==='ranking')return 60000;
+ return 0;
+}
 function startStatusUpdates(){
- if(statusUpdateTimer!==null)return;
+ const interval=xlxmodernStatusInterval();
+ if(interval<=0||statusUpdateTimer!==null)return;
  update();
- statusUpdateTimer=setInterval(update,15000);
+ statusUpdateTimer=setInterval(update,interval);
 }
 function stopStatusUpdates(){
  if(statusUpdateTimer===null)return;
  clearInterval(statusUpdateTimer);
  statusUpdateTimer=null;
 }
+let xlxmodernStatusHiddenAt=0;
 document.addEventListener('visibilitychange',()=>{
  if(document.hidden){
+  xlxmodernStatusHiddenAt=Date.now();
   stopStatusUpdates();
   stopLiveTxRx();
-  if(page==='ao-vivo')xlxmodernAoVivoHistoryReady=false;
 
  }else{
+  if(
+   page==='ao-vivo'&&
+   xlxmodernStatusHiddenAt&&
+   Date.now()-xlxmodernStatusHiddenAt>300000
+  ){
+   xlxmodernAoVivoHistoryReady=false;
+  }
+  xlxmodernStatusHiddenAt=0;
   startStatusUpdates();
   startLiveTxRx();
  }
@@ -3063,7 +3134,7 @@ window.XLXMODERNAudioControl={
   if(!enabled){
 
    try{
-    clearConnectedVoiceTimer();
+    clearConnectedVoiceEventTimer();
    }catch(error){}
 
    try{
@@ -3104,7 +3175,7 @@ window.XLXMODERNAudioControl={
   if(!enabled){
 
    try{
-    clearConnectedVoiceTimer();
+    clearConnectedVoiceEventTimer();
    }catch(error){}
 
    try{
@@ -3112,6 +3183,24 @@ window.XLXMODERNAudioControl={
      window.speechSynthesis.cancel();
     }
    }catch(error){}
+  }else if(page==='ao-vivo'){
+   connectedVoiceUserActivated=true;
+   if(lastData){
+    connectedVoiceCurrentTotal=connectedVoiceValue(lastData.connected_count);
+    connectedVoicePendingEvent=true;
+    clearConnectedVoiceEventTimer();
+    if(
+     !connectedVoiceTxActive()&&
+     speakConnectedCount(
+      connectedVoiceCurrentTotal,
+      'manual-enable'
+     )
+    ){
+     connectedVoicePendingEvent=false;
+    }else{
+     scheduleConnectedVoiceEvent();
+    }
+   }
   }
 
   return true;
@@ -3195,7 +3284,7 @@ window.XLXMODERNAudioControl={
  stopAll:function(){
 
   try{
-   clearConnectedVoiceTimer();
+   clearConnectedVoiceEventTimer();
   }catch(error){}
 
   try{
