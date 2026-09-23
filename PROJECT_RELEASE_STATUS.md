@@ -48,3 +48,12 @@ Os documentos antigos `STATUS.md`, `ARCHITECTURE.md` e `RELEASE_CHECKLIST.md` de
 4. validar em VPS Debian 12 descartável;
 5. apenas depois considerar backlog técnico;
 6. não alterar produção enquanto o baseline estiver saudável sem necessidade comprovada.
+
+
+## Hotfix Admin /controle — 2026-09-23
+- Evidência PROD: POSTs administrativos de RadioID em /controle registraram HTTP 504 por timeout do FastCGI a 15 s; o audit log correlacionou os eventos com radioid_save.
+- Causa confirmada: reconstrução/validação atômica do users.db (~319 mil registros) consumia quase todo o orçamento de 15 s e a página ainda executava diagnósticos síncronos.
+- Decisão: manter 15 s no dashboard/APIs públicos e usar 30 s somente na rota privada do Admin.
+- Implementação versionada: branch fix/admin-control-timeout-20260923; produção recebeu hotfix equivalente após backup.
+- Validação PROD: nginx -t PASS, reload sem restart, Nginx/PHP-FPM/XLXD ativos, um processo XLXD e probes /ao-vivo, /api/live.php, /api/status.php e /controle/ com HTTP 200.
+- Limite de evidência: um novo radioid_save autenticado e mutável não foi executado pela automação porque a senha em texto puro não é armazenada; portanto o teste funcional final da ação permanece pendente.
