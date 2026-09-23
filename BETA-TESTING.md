@@ -1,8 +1,8 @@
 # 🧪 XLX Modern Installer — Public Beta Testing / Teste Beta Público
 
-> **Status:** public beta candidate. The codebase has automated syntax, i18n and publication audits, but still needs independent clean-server validation before a stable `v1.0.0` release.
+> **Status atual:** guia histórico de validação, mantido pelo valor operacional. A versão declarada do projeto é `v1.4.6`; cada novo candidato ainda deve ser validado em Debian 12 limpo antes de promoção.
 >
-> **Status:** candidato a beta público. O código já possui auditorias automáticas de sintaxe, internacionalização e publicação, mas ainda precisa de validação independente em servidor limpo antes da versão estável `v1.0.0`.
+> **Current status:** historical validation guide retained for operational use. The declared project version is `v1.4.6`; every new candidate must still be validated on clean Debian 12 before promotion.
 
 ---
 
@@ -71,8 +71,9 @@ O instalador deve permitir instalar/reinstalar apenas o painel sem reinstalar o 
 
 ```bash
 sudo systemctl status xlxd.service --no-pager
-sudo systemctl status apache2 --no-pager
-sudo apache2ctl configtest
+sudo systemctl status nginx --no-pager
+sudo systemctl status php8.2-fpm --no-pager
+sudo nginx -t
 sudo ss -lntup
 sudo bash scripts/health-check.sh
 ```
