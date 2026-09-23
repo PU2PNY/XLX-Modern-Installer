@@ -43,6 +43,7 @@ Fornecer um instalador público, reproduzível e seguro para refletor XLXD em De
 ### ADMIN / SECURITY
 - **ADMIN-001** — Administração privada não deve expor terminal SSH/Linux nem terminal XLXD arbitrário.
 - **ADMIN-002** — Ações privilegiadas devem usar helpers limitados, não sudo arbitrário no navegador.
+- **ADMIN-003** — Operações administrativas legítimas que excedam o orçamento HTTP público devem usar exceção de timeout limitada à rota privada; não ampliar o timeout global para mascarar operação lenta.
 - **SEC-001** — Nenhum segredo de produção no Git.
 - **SEC-002** — `.gitignore` deve continuar cobrindo chaves, certificados, bancos, env, backups e segredos.
 - **SEC-003** — Admin deve preservar CSRF, sessão, rate limiting e auditoria.
