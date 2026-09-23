@@ -1,3 +1,16 @@
+## 2026-09-22 — Performance and low-consumption hotfix on 1.4.6 baseline
+
+- Keeps the Live Core v2/WebSocket path authoritative for TX/RX while reducing background status polling by page: Live 15 s, Connected 30 s, Modules/Ranking 60 s, and no status loop on static pages.
+- Stops re-downloading the complete 24-hour Live history on every short tab hide/show cycle; a full refresh is required only after more than five minutes hidden.
+- Raises APRS/D-PRS presence enrichment cache from 15 s to 60 s and avoids rebuilding Connected/history DOM when the rendered data has not changed.
+- Makes repeater/RadioID detail lookup lazy outside the active Live TX grid instead of preloading it for every historical/connected row.
+- Fixes the connected-count voice path by removing the stale `clearConnectedVoiceTimer()` call and attempting speech directly from an authorized user gesture.
+- Adds `dashboard/api/runtime.php`, a compact runtime endpoint with only module/connection fields needed by lightweight internal consumers.
+- Reuses one dashboard snapshot across Health Monitor checks and removes the forced `control=1` cache bypass for repeated 24-hour status reads.
+- Adds a regression gate covering polling cadence, history reuse, voice timer correctness, runtime endpoint privacy, and Health Monitor cache behavior.
+- Production validation on XLX026 confirmed Nginx, PHP-FPM, XLXD, Health Monitor and APRS/D-PRS active after the hotfix. Browser long-duration soak on the operator workstation remains a separate validation level.
+- No XLXD core, protocol port, transcoder/audio, DMR, D-STAR or YSF/C4FM routing behavior was changed.
+
 ## v1.4.3 — Usability and runtime hardening
 
 - Replaces the long scrolling form with one large question at a time so a required answer cannot be skipped silently.
