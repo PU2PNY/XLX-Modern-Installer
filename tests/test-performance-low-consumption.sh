@@ -38,7 +38,7 @@ if grep -F "history_hours=24&control=1" "$HEALTH" >/dev/null; then
   exit 1
 fi
 
-grep -F "'connected_count' => count($compactConnections)" "$RUNTIME" >/dev/null
+grep -F "'connected_count' => count(\$compactConnections)" "$RUNTIME" >/dev/null
 grep -F "'callsign' =>" "$RUNTIME" >/dev/null
 grep -F "'protocol' =>" "$RUNTIME" >/dev/null
 grep -F "'module' =>" "$RUNTIME" >/dev/null
