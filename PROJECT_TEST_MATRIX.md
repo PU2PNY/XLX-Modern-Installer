@@ -11,7 +11,7 @@ Níveis de evidência: DOC / SW / ENV / HW / PROD / OPERATOR.
 | TEST-002 | UI-002 | Live mantém início/fim e multi-TX sem travar | `tests/regression-production-parity.sh` e testes de runtime existem | PENDENTE |
 | TEST-003 | UI-005/006 | Identidade de stream/callsign/TA sem colisão | `tests/regression-stream-identity.php` existe | PENDENTE |
 | TEST-004 | ADMIN-001/002 | Admin funcional sem terminal arbitrário | testes de control/admin existem | PENDENTE |
-| TEST-014 | ADMIN-003 / PERF-001 | Operação privada >15 s não deve herdar timeout público nem ampliar o orçamento global | branch `fix/admin-control-timeout-20260923`: sintaxe/regra focada PASS; WartyWallaby `nginx -t` PASS; XLX026 `nginx -t`, reload e probes públicos/Admin HTTP 200 PASS; novo POST autenticado mutável ainda não repetido | PARCIAL (SW/ENV/PROD) |
+| TEST-014 | ADMIN-003 / PERF-001 | Operação privada >15 s não deve herdar timeout público nem ampliar o orçamento global | branch `fix/admin-control-timeout-20260923`: suíte `tests/test-current-panel-runtime-parity.sh` PASS completa em WartyWallaby, render da rota + `nginx -t` PASS; XLX026 `nginx -t`, reload e probes públicos/Admin HTTP 200 PASS; novo POST autenticado mutável ainda não repetido | PARCIAL (SW/ENV/PROD) |
 | TEST-005 | SEC-001/002 | Auditoria de segredos e artefatos privados | CI e política existem; execução atual não confirmada | PENDENTE |
 | TEST-006 | APRS-001/002 | Conta/reset preserva hash e revogação | testes de contrato documentados no repositório | PENDENTE |
 | TEST-007 | CERT-001/002 | HMAC válido aceita e adulteração rejeita | `tests/test-certificate-hmac.php` existe | PENDENTE |
