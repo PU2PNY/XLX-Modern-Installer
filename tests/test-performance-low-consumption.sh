@@ -30,7 +30,7 @@ if grep -F "clearConnectedVoiceTimer();" "$APP" >/dev/null; then
   exit 1
 fi
 
-grep -F "function dashboard_status(history24=False):" "$HEALTH" >/dev/null
+grep -F "def dashboard_status(history24=False):" "$HEALTH" >/dev/null
 grep -F 'PUBLIC_URL + "/api/runtime.php"' "$HEALTH" >/dev/null
 grep -F 'PUBLIC_URL + "/api/status.php?history_hours=24"' "$HEALTH" >/dev/null
 if grep -F "history_hours=24&control=1" "$HEALTH" >/dev/null; then
