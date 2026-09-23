@@ -45,6 +45,8 @@ echo "[control functional sandbox]"
 bash "$ROOT/tests/test-control-functional.sh" || failures=$((failures+1))
 echo "[current panel runtime parity]"
 bash "$ROOT/tests/test-current-panel-runtime-parity.sh" || failures=$((failures+1))
+echo "[performance low-consumption]"
+bash "$ROOT/tests/test-performance-low-consumption.sh" || failures=$((failures+1))
 echo "[release hardening]"
 bash "$ROOT/tests/test-release-hardening.sh" || failures=$((failures+1))
 echo "[forbidden permissions]"
