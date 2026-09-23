@@ -17,3 +17,7 @@ Não atualizar XLXD apenas por número de versão. Compatibilidade de D-Star/DMR
 
 ## DEC-2026-09-21-006 — Backlog de fórum não é ordem de execução
 Itens de comunidade ficam em `docs/RESEARCH_BACKLOG.md` até existir evidência local, critério de aceitação, teste e rollback.
+
+
+## DEC-2026-09-23-007 — Timeout administrativo deve ser específico da rota
+Quando uma manutenção administrativa validada (ex.: reconstrução atômica do RadioID) exceder o orçamento FastCGI público, a correção preferida é uma janela adicional limitada à rota privada. Não aumentar o timeout global do dashboard/APIs apenas para acomodar a operação administrativa.
