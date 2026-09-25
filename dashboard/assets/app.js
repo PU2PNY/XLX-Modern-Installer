@@ -448,6 +448,8 @@ async function xlxmodernEnableRepeaterButtons(root=document){
   n.dataset.repeaterBound='1';
   const call=xlxmodernBaseCall(n.dataset.repeaterCall||'');
   if(!call)continue;
+  const inHistory=Boolean(n.closest('#historyRows'));
+  if(inHistory&&!n.classList.contains('gateway-different'))continue;
   const info=await xlxmodernRepeaterInfo(call);
   if(!info){
    n.dataset.gatewayType='gateway-unknown';
