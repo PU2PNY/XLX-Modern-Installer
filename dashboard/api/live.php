@@ -912,6 +912,10 @@ foreach ($active as $vuModule => $vuTx) {
 }
 /* /XLXMODERN_MULTI_AUDIO_VU_V3 */
 
+require_once __DIR__ . '/radioid-current-alias.php';
+foreach ($active as &$row) xlx026_current_radioid_call($row);
+unset($row);
+
 $liveJson = json_encode(
     [
         'ok' => true,

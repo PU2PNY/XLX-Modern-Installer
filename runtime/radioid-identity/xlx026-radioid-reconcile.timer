@@ -1,0 +1,9 @@
+[Unit]
+Description=Check newly observed XLX026 DMR identities
+[Timer]
+OnBootSec=20sec
+OnUnitActiveSec=15sec
+AccuracySec=2sec
+Unit=xlx026-radioid-reconcile.service
+[Install]
+WantedBy=timers.target

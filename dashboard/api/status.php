@@ -215,6 +215,18 @@ try {
         ],
     ];
 
+    require_once __DIR__ . '/radioid-current-alias.php';
+    foreach ($payload['connections'] as &$row) xlx026_current_radioid_call($row);
+    unset($row);
+    foreach ($payload['history'] as &$row) xlx026_current_radioid_call($row);
+    unset($row);
+    foreach ($payload['modules'] as &$module) {
+        foreach (['transmission', 'last_transmission'] as $key) {
+            if (is_array($module[$key] ?? null)) xlx026_current_radioid_call($module[$key]);
+        }
+    }
+    unset($module);
+
     $json = json_encode(
         $payload,
         JSON_UNESCAPED_UNICODE |
