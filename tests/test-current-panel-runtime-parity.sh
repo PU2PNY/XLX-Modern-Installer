@@ -103,6 +103,21 @@ fi
 grep -Fq 'XLX_CURRENT_MENU_PARITY_NO_BIP' "$ROOT/dashboard/install/fresh-install-parity.sh" || fail 'static no-Bip parity rule missing'
 ok 'legacy standalone Bip menu control cannot be exposed'
 
+# In the 24-hour activity table, repeater details are actionable only when
+# the observed gateway is different from the operator callsign. RadioID still
+# has to confirm the different gateway as a repeater before the "i" is added.
+python3 - "$ROOT/dashboard/assets/app.js" <<'PYGATEWAY'
+import sys
+s=open(sys.argv[1],encoding='utf-8').read()
+a=s.index('async function xlxmodernEnableRepeaterButtons')
+b=s.index('function hotspotRepeaterMarkup', a)
+f=s[a:b]
+assert "const inHistory=Boolean(n.closest('#historyRows'));" in f
+assert "if(inHistory&&!n.classList.contains('gateway-different'))continue;" in f
+assert f.index('const info=await xlxmodernRepeaterInfo(call);') < f.index("b.className='repeater-info-button';")
+PYGATEWAY
+ok '24h history only exposes repeater info for a different confirmed gateway'
+
 # A fresh installation of the same hostname must receive a new CSS/JS URL and
 # cannot reuse browser cache from an older formatted VPS.
 grep -Fq 'ASSET_TOKEN=' "$ROOT/dashboard/install/fresh-install-parity.sh" || fail 'per-install asset token missing'
