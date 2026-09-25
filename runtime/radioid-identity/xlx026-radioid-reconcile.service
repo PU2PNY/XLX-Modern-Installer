@@ -1,0 +1,13 @@
+[Unit]
+Description=XLX026 reconcile observed DMR gateway IDs with RadioID
+After=xlx-dmr-meta-monitor.service
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /opt/xlx-dmr-meta-monitor/reconcile_radioid.py
+TimeoutStartSec=55
+Nice=10
+MemoryMax=96M
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/xlx026-identity /xlxd/users_db /root/backups-xlx026/radioid-control /run/lock
