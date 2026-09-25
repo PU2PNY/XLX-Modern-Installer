@@ -1,3 +1,9 @@
+## Unreleased — 24h gateway repeater info correction
+
+- Restricts the information button in the 24-hour activity Gateway / Repeater column to rows where the gateway callsign is actually different from the operator callsign.
+- Keeps the RadioID confirmation requirement: a different gateway receives the information button only after it is confirmed as a repeater.
+- Adds a regression gate so same-callsign gateways cannot regain the repeater information button.
+
 ## Unreleased — Admin maintenance timeout hardening
 
 - Gives only the private Admin route a bounded 30-second FastCGI read window for validated maintenance operations such as RadioID rebuilds.
