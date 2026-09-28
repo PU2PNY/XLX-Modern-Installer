@@ -1,3 +1,9 @@
+## Unreleased — Admin RadioID timeout root-cause fix
+
+- Stops RadioID save/delete/refresh POST requests before the heavy Admin diagnostic rendering path by using a 303 Post/Redirect/Get flow with session flash messages.
+- Removes the redundant full CSV search after a successful RadioID save.
+- Adds a regression contract ensuring the redirect remains before Admin diagnostics.
+
 ## Unreleased — Canonical governance and documentation parity
 
 - Restores the mandatory project governance documents to the maintained branch.
