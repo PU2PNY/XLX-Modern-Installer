@@ -18,6 +18,7 @@ grep -Fq "Version: **$version**" "$ROOT/docs/FEATURES.md" || fail "docs/FEATURES
 grep -Fq 'modules/70-nginx.sh' "$ROOT/ARCHITECTURE.md" || fail "architecture does not identify authoritative Nginx module"
 grep -Fq 'Nginx + PHP-FPM' "$ROOT/ARCHITECTURE.md" || fail "architecture does not identify Nginx + PHP-FPM"
 ! grep -Fq 'Apache/PHP dashboard stack' "$ROOT/docs/FEATURES.md" || fail "features still claim Apache as dashboard stack"
+! grep -Fq 'Apache configuration' "$ROOT/README.md" || fail "README still claims Apache configuration as current validation"
 ! grep -Fq 'sudo systemctl status apache2 --no-pager' "$ROOT/BETA-TESTING.md" || fail "beta guide still validates Apache as active stack"
 ! grep -Fq 'sudo apache2ctl configtest' "$ROOT/BETA-TESTING.md" || fail "beta guide still uses apache2ctl"
 ! grep -Fq 'Nenhum módulo que altere produção está habilitado' "$ROOT/STATUS.md" || fail "status still claims production-changing modules are disabled"
