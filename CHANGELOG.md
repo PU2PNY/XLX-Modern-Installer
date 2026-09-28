@@ -1,3 +1,9 @@
+## Unreleased — Canonical governance and documentation parity
+
+- Restores the mandatory project governance documents to the maintained branch.
+- Aligns Architecture, Status, Features, beta validation guidance and README with the authoritative Nginx + PHP-FPM stack.
+- Adds a regression test that blocks missing canonical documents, version drift and obsolete Apache/dry-run documentation.
+
 ## Unreleased — 24h gateway repeater info correction
 
 - Restricts the information button in the 24-hour activity Gateway / Repeater column to rows where the gateway callsign is actually different from the operator callsign.
