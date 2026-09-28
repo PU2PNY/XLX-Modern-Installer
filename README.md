@@ -197,4 +197,4 @@ See [LICENSE](LICENSE), [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) and [CO
 
 ## HTTPS and final readiness
 
-If Let's Encrypt returns a rate limit, the installer keeps the dashboard available over HTTP, records the `retry after` time and automatically schedules Certbot for another attempt. Completion is shown only after validating the dashboard, APIs, APRS/D-PRS, Health, private Admin, Apache, XLXD and Echo.
+If Let's Encrypt returns a rate limit, the installer keeps the dashboard available over HTTP, records the `retry after` time and automatically schedules Certbot for another attempt. Completion is shown only after validating the dashboard, APIs, APRS/D-PRS, Health, private Admin, Nginx/PHP-FPM, XLXD and Echo.
