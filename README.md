@@ -147,7 +147,7 @@ Routes, filenames, IDs, API paths and other technical contracts are protected fr
 
 Changes create preventive backups under `/var/backups/xlx-reflector/`. Critical scripts use `set -Eeuo pipefail` and report unexpected failures with file, line, return code and failing command instead of silently returning to the shell. Component-level rollback is used where applicable.
 
-A successful full installation must reach **INSTALLATION COMPLETE** after post-install validation. The validation checks essential services, Apache configuration, XLXD binary, required dashboard files, VirtualHost, CallingHome and the locally reachable dashboard protocol.
+A successful full installation must reach **INSTALLATION COMPLETE** after post-install validation. The validation checks essential services, Nginx configuration, PHP-FPM, XLXD binary, required dashboard files, server block, CallingHome and the locally reachable dashboard protocol.
 
 ## Persistent callsign corrections
 
