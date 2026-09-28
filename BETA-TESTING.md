@@ -1,8 +1,8 @@
 # 🧪 XLX Modern Installer — Public Beta Testing / Teste Beta Público
 
-> **Status:** public beta candidate. The codebase has automated syntax, i18n and publication audits, but still needs independent clean-server validation before a stable `v1.0.0` release.
+> **Status atual:** guia de validação mantido para candidatos da série declarada **v1.4.6**. CI automatizado não substitui uma instalação limpa independente em Debian 12.
 >
-> **Status:** candidato a beta público. O código já possui auditorias automáticas de sintaxe, internacionalização e publicação, mas ainda precisa de validação independente em servidor limpo antes da versão estável `v1.0.0`.
+> **Current status:** validation guide for candidates in the declared **v1.4.6** series. Automated CI does not replace an independent clean Debian 12 installation.
 
 ---
 
@@ -71,8 +71,9 @@ O instalador deve permitir instalar/reinstalar apenas o painel sem reinstalar o 
 
 ```bash
 sudo systemctl status xlxd.service --no-pager
-sudo systemctl status apache2 --no-pager
-sudo apache2ctl configtest
+sudo systemctl status nginx --no-pager
+sudo systemctl status php8.2-fpm --no-pager
+sudo nginx -t
 sudo ss -lntup
 sudo bash scripts/health-check.sh
 ```
@@ -105,7 +106,7 @@ Abra uma **Issue** no repositório e informe:
 - saída de `sudo bash install.sh --check`;
 - saída relevante do instalador;
 - `systemctl status xlxd.service --no-pager`;
-- `apache2ctl configtest`;
+- `nginx -t`;
 - print do dashboard, se o problema for visual.
 
 **Remova IPs privados, e-mails pessoais, tokens, senhas e qualquer segredo antes de publicar logs.**
@@ -161,8 +162,9 @@ sudo bash modules/60-dashboard-modern.sh --lang=en
 
 ```bash
 sudo systemctl status xlxd.service --no-pager
-sudo systemctl status apache2 --no-pager
-sudo apache2ctl configtest
+sudo systemctl status nginx --no-pager
+sudo systemctl status php8.2-fpm --no-pager
+sudo nginx -t
 sudo ss -lntup
 sudo bash scripts/health-check.sh
 ```
@@ -187,7 +189,7 @@ Open a GitHub Issue and include:
 - failing step;
 - relevant installer output;
 - `systemctl status xlxd.service --no-pager`;
-- `apache2ctl configtest`;
+- `nginx -t`;
 - dashboard screenshot for visual issues.
 
 **Remove passwords, tokens, private keys, private user data and other secrets before posting logs.**
@@ -196,7 +198,7 @@ Open a GitHub Issue and include:
 
 ## ✅ Beta exit criteria / Critérios para sair do beta
 
-The project can be promoted to stable `v1.0.0` after independent testers confirm:
+The current candidate can be considered operationally ready at its declared version only after independent testers confirm:
 
 - clean Debian 12 installation succeeds;
 - XLXD starts and stays active;
@@ -207,4 +209,4 @@ The project can be promoted to stable `v1.0.0` after independent testers confirm
 - production overwrite protection is confirmed;
 - no critical security or data-loss issue remains open.
 
-Quando esses critérios forem confirmados por testes independentes, o projeto poderá avançar de **beta público** para **v1.0.0 estável**.
+Quando esses critérios forem confirmados por testes independentes, o candidato poderá ser promovido no nível de release correspondente, sem tratar CI como validação de produção.
