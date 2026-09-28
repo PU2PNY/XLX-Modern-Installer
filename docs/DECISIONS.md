@@ -25,3 +25,7 @@ Quando uma manutenção administrativa validada (ex.: reconstrução atômica do
 
 ## DEC-2026-09-28-008 — Documentos canônicos ficam na branch principal
 Os documentos de governança obrigatórios devem existir no `main` mantido, não apenas em branch lateral. Drift documental que descreva Apache/dry-run como estado atual deve falhar em teste automatizado enquanto o fluxo autoritativo permanecer Nginx + PHP-FPM.
+
+
+## DEC-2026-09-28-009 — RadioID mutável encerra POST antes dos diagnósticos
+Produção registrou quatro timeouts FastCGI na rota privada em 2026-09-28. Evidência correlacionou cada caso a `radioid_save`: a reconstrução/alteração concluiu e foi auditada, mas o mesmo POST continuou executando os diagnósticos completos do Admin até ultrapassar 30 s. A correção escolhida é Post/Redirect/Get com mensagem em sessão, removendo também a segunda busca CSV do caminho crítico. Não ampliar timeout global para mascarar o custo.

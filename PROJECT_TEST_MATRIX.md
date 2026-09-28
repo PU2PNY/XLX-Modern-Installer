@@ -1,4 +1,4 @@
-# PROJECT_TEST_MATRIX — XLX Modern Installer
+| TEST-016 | ADMIN-003/004 / PERF-001 | RadioID save/delete/refresh encerram o POST com 303 antes dos diagnósticos pesados; save não repete busca CSV | PR #59: cinco workflows PASS; WartyWallaby executou PHP lint, `test-admin-radioid-prg.sh`, `test-control-functional.sh`, i18n e route-readiness no commit `cb91e431` | PASS (SW/CI + ENV) |\n# PROJECT_TEST_MATRIX — XLX Modern Installer
 
 Status permitidos: PASS / FAIL / PARCIAL / PENDENTE.
 Níveis de evidência: DOC / SW / ENV / HW / PROD / OPERATOR.
@@ -21,7 +21,7 @@ Níveis de evidência: DOC / SW / ENV / HW / PROD / OPERATOR.
 | TEST-012 | PERF-003 | Performance comparada contra baseline | não houve benchmark novo nesta auditoria documental | PENDENTE |
 | TEST-013 | PROD baseline | Servidor e tela ativos sem regressão | relato do operador em 2026-09-21 | PARCIAL (OPERATOR) |
 | TEST-014 | ADMIN-003 / PERF-001 | Timeout privado não amplia orçamento público | PR #55 + evidência SW/ENV/PROD registrada em 2026-09-23; novo POST mutável autenticado ainda pendente | PARCIAL (SW/ENV/PROD) |
-| TEST-015 | GOV-001/002 | Documentos canônicos presentes e arquitetura web coerente | `tests/test-project-governance.sh` adicionado nesta correção; aguarda CI da PR | PENDENTE |
+| TEST-015 | GOV-001/002 | Documentos canônicos presentes e arquitetura web coerente | PR #58 passou CI geral, Debian 12 runtime gate e Stream Identity antes do merge | PASS (SW/CI) |
 
 ## Como registrar PASS
 Atualize a linha com:

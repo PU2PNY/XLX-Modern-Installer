@@ -56,3 +56,13 @@ O `main` não continha os quatro documentos canônicos e ainda havia documentaç
 4. executar nova instalação limpa em VPS Debian 12 descartável;
 5. manter branches funcionais pendentes isoladas até validação específica;
 6. não alterar produção saudável sem necessidade comprovada.
+
+
+## Auditoria 2026-09-28 — Admin RadioID
+Evidência `PROD` somente leitura:
+- quatro `upstream timed out` na rota privada do Admin em 2026-09-28;
+- auditoria registrou `radioid_save` imediatamente antes dos quatro eventos;
+- backups mostraram operações de save entre 18 s e 29 s;
+- montagem read-only dos diagnósticos do Admin mediu aproximadamente 3,4 s no momento da auditoria;
+- páginas públicas e APIs testadas retornaram HTTP 200; últimas 5.000 requisições observadas não continham 5xx;
+- correção validada na PR #59: redirect 303 após operações mutáveis de RadioID, antes dos diagnósticos pesados. Evidência: cinco workflows GitHub Actions PASS e WartyWallaby PASS no commit `cb91e431`; produção ainda aguarda aplicação controlada.
