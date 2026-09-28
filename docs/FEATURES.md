@@ -1,13 +1,13 @@
 # XLX Modern Installer — Public Feature Set
 
-Version: **1.2.12**
+Version: **1.4.6**
 
 ## Server
 
 - Debian 12 x86_64 fresh installation.
 - XLXD core and configurable active modules.
 - Optional XLX Echo on module E.
-- Apache/PHP dashboard stack.
+- Nginx + PHP-FPM dashboard stack.
 - RadioID/callsign database with persistent local overrides.
 - Timer-based CallingHome.
 - Health, DMR data/meta, YSF data, history collection and regression self-test.
