@@ -1,4 +1,4 @@
-| TEST-016 | ADMIN-003/004 / PERF-001 | RadioID save/delete/refresh encerram o POST com 303 antes dos diagnósticos pesados; save não repete busca CSV | `tests/test-admin-radioid-prg.sh`; aguarda CI desta PR | PENDENTE |\n# PROJECT_TEST_MATRIX — XLX Modern Installer
+| TEST-016 | ADMIN-003/004 / PERF-001 | RadioID save/delete/refresh encerram o POST com 303 antes dos diagnósticos pesados; save não repete busca CSV | PR #59: cinco workflows PASS; WartyWallaby executou PHP lint, `test-admin-radioid-prg.sh`, `test-control-functional.sh`, i18n e route-readiness no commit `cb91e431` | PASS (SW/CI + ENV) |\n# PROJECT_TEST_MATRIX — XLX Modern Installer
 
 Status permitidos: PASS / FAIL / PARCIAL / PENDENTE.
 Níveis de evidência: DOC / SW / ENV / HW / PROD / OPERATOR.
