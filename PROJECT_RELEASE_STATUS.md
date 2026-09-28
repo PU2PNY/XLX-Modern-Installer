@@ -65,4 +65,4 @@ Evidência `PROD` somente leitura:
 - backups mostraram operações de save entre 18 s e 29 s;
 - montagem read-only dos diagnósticos do Admin mediu aproximadamente 3,4 s no momento da auditoria;
 - páginas públicas e APIs testadas retornaram HTTP 200; últimas 5.000 requisições observadas não continham 5xx;
-- correção proposta: redirect 303 após operações mutáveis de RadioID, antes dos diagnósticos pesados; aguarda CI antes de promoção.
+- correção validada na PR #59: redirect 303 após operações mutáveis de RadioID, antes dos diagnósticos pesados. Evidência: cinco workflows GitHub Actions PASS e WartyWallaby PASS no commit `cb91e431`; produção ainda aguarda aplicação controlada.
