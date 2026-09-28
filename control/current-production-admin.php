@@ -83,7 +83,7 @@ function radioid_api_lookup(string $call):array{
 /* RADIOID_API_V1 */
 function posted(string $k,int $max=120):string{$v=trim((string)($_POST[$k]??''));return mb_substr($v,0,$max,'UTF-8');}
 
-$msg='';$bad=false;$tests=[];$restart='';$radioRows=[];$radioSearchTerm='';$radioSearchField='callsign';$radioActionResult=[];$radioApiRows=[];$radioApiTerm='';$access=[];
+$msg=(string)($_SESSION['flash_msg']??'');$bad=(bool)($_SESSION['flash_bad']??false);unset($_SESSION['flash_msg'],$_SESSION['flash_bad']);$tests=[];$restart='';$radioRows=[];$radioSearchTerm='';$radioSearchField='callsign';$radioActionResult=[];$radioApiRows=[];$radioApiTerm='';$access=[];
 if(isset($_GET['logout'])){audit('logout');$_SESSION=[];session_destroy();header('Location:'.$adminPath);exit;}
 if(!auth()){
  if($_SERVER['REQUEST_METHOD']==='POST'&&($_POST['action']??'')==='login'){
@@ -127,18 +127,21 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
  if($a==='radioid_save'){
   $args=[posted('orig_dmrid',10),posted('orig_callsign',12),posted('dmrid',10),strtoupper(posted('callsign',12)),posted('first_name',80),posted('last_name',80),posted('city',80),posted('state',80),posted('country',80)];
   [$ok,$j,$detail,$rc]=jr('radioid-save',$args);
-  if($ok){$radioActionResult=$j;$msg=($j['action']??'')==='added'?'Registro RadioID adicionado e banco sincronizado.':'Registro RadioID atualizado e banco sincronizado.';$radioSearchField='callsign';$radioSearchTerm=$args[3];[$sok,$sj]=jr('radioid-search',[$radioSearchField,$radioSearchTerm]);if($sok)$radioRows=$sj['rows']??[];audit('radioid_save');}
+  if($ok){$radioActionResult=$j;$msg=($j['action']??'')==='added'?'Registro RadioID adicionado e banco sincronizado.':'Registro RadioID atualizado e banco sincronizado.';audit('radioid_save');}
   else{$msg=helper_reason($detail,'Não foi possível salvar. A base anterior foi preservada.');$bad=true;audit('radioid_save_fail');}
+  $_SESSION['flash_msg']=$msg;$_SESSION['flash_bad']=$bad;header('Location:'.$adminPath.'#radioid',true,303);exit;
  }
  if($a==='radioid_delete'){
   $p=(string)($_POST['radio_password']??'');$c=($_POST['confirm_radio_delete']??'')==='yes';
   if(!$c||!password_verify($p,$cfg['password_hash'])){$msg='Exclusão cancelada: confirmação ou senha inválida.';$bad=true;audit('radioid_delete_denied');}
   else{[$ok,$j,$detail,$rc]=jr('radioid-delete',[posted('orig_dmrid',10),strtoupper(posted('orig_callsign',12))]);if($ok){$msg='Registro excluído e banco sincronizado com segurança.';audit('radioid_delete');}else{$msg=helper_reason($detail,'Não foi possível excluir. A base anterior foi preservada.');$bad=true;audit('radioid_delete_fail');}}
+  $_SESSION['flash_msg']=$msg;$_SESSION['flash_bad']=$bad;header('Location:'.$adminPath.'#radioid',true,303);exit;
  }
  if($a==='radioid_refresh'){
   $p=(string)($_POST['radio_password']??'');$c=($_POST['confirm_radio_refresh']??'')==='yes';
   if(!$c||!password_verify($p,$cfg['password_hash'])){$msg='Atualização cancelada: confirmação ou senha inválida.';$bad=true;audit('radioid_refresh_denied');}
   else{[$ok,$j,$detail,$rc]=jr('radioid-refresh');if($ok){$radioActionResult=$j;$msg='Novo banco de indicativos criado, validado e publicado com segurança.';audit('radioid_refresh');}else{$msg=helper_reason($detail,'A atualização falhou. A base anterior foi restaurada automaticamente.');$bad=true;audit('radioid_refresh_fail');}}
+  $_SESSION['flash_msg']=$msg;$_SESSION['flash_bad']=$bad;header('Location:'.$adminPath.'#radioid',true,303);exit;
  }
  if($a==='radioid_check'){[$ok,$j]=jr('radioid-check');$msg=$ok?'Integridade do banco de indicativos: OK.':'A verificação de integridade encontrou problema.';$bad=!$ok;audit($ok?'radioid_check':'radioid_check_fail');}
 }
