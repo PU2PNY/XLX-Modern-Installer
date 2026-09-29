@@ -1,3 +1,10 @@
+## Unreleased — AI monitor API validated in production
+
+- Validated the real OpenAI API credential through the root-only helper without exposing the secret.
+- Runs the monitor as `www-data:www-data`; public sanitized state is readable at `/run/xlx-ai-monitor/public.json`.
+- Production returned `configured=true`, `api_connected=true` and `state=monitoring` during an active transmission.
+- Keeps continuous monitoring local; V1 performs no model inference in the TX/RX path.
+
 ## Unreleased — AI monitor status in TX box
 
 - Adds a compact AI/DSP status pill to each active TX card without a new browser polling loop.

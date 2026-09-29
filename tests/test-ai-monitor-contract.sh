@@ -12,6 +12,12 @@ grep -F "/etc/xlx-ai-monitor.env" "$ROOT/runtime/ai-monitor/xlx-ai-key.sh" >/dev
 grep -F "chmod 0600" "$ROOT/runtime/ai-monitor/xlx-ai-key.sh" >/dev/null
 grep -F "api_connected" "$ROOT/dashboard/api/status.php" >/dev/null
 grep -F "RuntimeDirectory=xlx-ai-monitor" "$ROOT/runtime/ai-monitor/xlx-ai-monitor.service" >/dev/null
+grep -F "User=www-data" "$ROOT/runtime/ai-monitor/xlx-ai-monitor.service" >/dev/null
+grep -F "Group=www-data" "$ROOT/runtime/ai-monitor/xlx-ai-monitor.service" >/dev/null
+if grep -F "DynamicUser=yes" "$ROOT/runtime/ai-monitor/xlx-ai-monitor.service" >/dev/null; then
+  echo "ERRO: DynamicUser não pode ser usado no estado público do monitor." >&2
+  exit 1
+fi
 grep -F "/run/xlx-ai-monitor/public.json" "$ROOT/dashboard/api/status.php" >/dev/null
 grep -F "tx-ai-monitor" "$ROOT/dashboard/assets/app.js" >/dev/null
 grep -F "xlxmodernUpdateTxAi(live)" "$ROOT/dashboard/assets/app.js" >/dev/null

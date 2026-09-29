@@ -99,3 +99,10 @@ O `main` não continha os quatro documentos canônicos e ainda havia documentaç
 - O primeiro deploy mostrou que `DynamicUser=yes` + `StateDirectory=xlx-ai-monitor` move o estado para `/var/lib/private/xlx-ai-monitor`, tornando o JSON sanitizado inacessível ao PHP público.
 - O estado público foi movido para `/run/xlx-ai-monitor/public.json` usando `RuntimeDirectory=xlx-ai-monitor`.
 - A chave continua separada em `/etc/xlx-ai-monitor.env` com `root:root 0600`.
+
+### AI Monitor V1 — API real validada em produção (2026-09-29)
+- Chave cadastrada pelo operador via `sudo xlx-ai-key`; segredo não foi lido, exibido ou copiado para o dashboard.
+- Serviço corrigido para executar como `www-data:www-data`; `DynamicUser` foi rejeitado porque privatizava o runtime público.
+- Estado sanitizado confirmado em produção durante TX ativa: `configured=true`, `api_connected=true`, `state=monitoring`.
+- Mensagem pública: **IA conectada • monitoramento local ativo**.
+- Backup da unidade anterior: `/root/backups-xlx026/AI_MONITOR_SERVICE_FIX_20260929_151310`.
