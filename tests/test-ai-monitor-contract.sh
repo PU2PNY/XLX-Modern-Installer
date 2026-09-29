@@ -11,6 +11,8 @@ bash -n "$ROOT/runtime/ai-monitor/install.sh"
 grep -F "/etc/xlx-ai-monitor.env" "$ROOT/runtime/ai-monitor/xlx-ai-key.sh" >/dev/null
 grep -F "chmod 0600" "$ROOT/runtime/ai-monitor/xlx-ai-key.sh" >/dev/null
 grep -F "api_connected" "$ROOT/dashboard/api/status.php" >/dev/null
+grep -F "RuntimeDirectory=xlx-ai-monitor" "$ROOT/runtime/ai-monitor/xlx-ai-monitor.service" >/dev/null
+grep -F "/run/xlx-ai-monitor/public.json" "$ROOT/dashboard/api/status.php" >/dev/null
 grep -F "tx-ai-monitor" "$ROOT/dashboard/assets/app.js" >/dev/null
 grep -F "xlxmodernUpdateTxAi(live)" "$ROOT/dashboard/assets/app.js" >/dev/null
 grep -F "ai-monitor-v1.css" "$ROOT/dashboard/index.php" >/dev/null
