@@ -1,3 +1,10 @@
+## Unreleased — prominent AI status banner
+
+- Moves the AI status from the small top-right pill to a full-width in-card banner below the TX header.
+- Makes the server AI state immediately visible while preserving NO AR and all operational TX data.
+- Reuses the existing sanitized state and update path: no new polling, fetch loop or continuous animation.
+- Cleans the AI-specific stylesheet to one authoritative V2 block.
+
 ## Unreleased — AI monitor API validated in production
 
 - Validated the real OpenAI API credential through the root-only helper without exposing the secret.

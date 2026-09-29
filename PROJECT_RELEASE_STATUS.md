@@ -106,3 +106,10 @@ O `main` não continha os quatro documentos canônicos e ainda havia documentaç
 - Estado sanitizado confirmado em produção durante TX ativa: `configured=true`, `api_connected=true`, `state=monitoring`.
 - Mensagem pública: **IA conectada • monitoramento local ativo**.
 - Backup da unidade anterior: `/root/backups-xlx026/AI_MONITOR_SERVICE_FIX_20260929_151310`.
+
+### AI Monitor V2 — banner visível dentro do box TX
+- O indicador deixa o canto superior direito e passa a ocupar uma faixa horizontal dentro do box TX, logo abaixo do cabeçalho.
+- Texto-base: **IA DO SERVIDOR • estado • MONITORAMENTO LOCAL ATIVO**.
+- O banner reutiliza o mesmo estado já recebido pelo dashboard; não cria fetch, timer ou polling.
+- Não usa animação contínua. Estados continuam diferenciados por cor: conectado, analisando, recomendação/aplicação, DSP e erro.
+- NO AR, MTR/VU, indicativo, gateway, protocolo e tempo TX permanecem independentes.

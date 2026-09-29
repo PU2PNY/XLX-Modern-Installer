@@ -20,6 +20,14 @@ if grep -F "DynamicUser=yes" "$ROOT/runtime/ai-monitor/xlx-ai-monitor.service" >
 fi
 grep -F "/run/xlx-ai-monitor/public.json" "$ROOT/dashboard/api/status.php" >/dev/null
 grep -F "tx-ai-monitor" "$ROOT/dashboard/assets/app.js" >/dev/null
+grep -F "tx-ai-monitor-wrap" "$ROOT/dashboard/assets/app.js" >/dev/null
+grep -F "IA DO SERVIDOR" "$ROOT/dashboard/assets/app.js" >/dev/null
+grep -F "MONITORAMENTO LOCAL ATIVO" "$ROOT/dashboard/assets/app.js" >/dev/null
+grep -F "min-height:34px" "$ROOT/dashboard/assets/ai-monitor-v1.css" >/dev/null
+if grep -Eq '@keyframes|animation[[:space:]]*:' "$ROOT/dashboard/assets/ai-monitor-v1.css"; then
+  echo "ERRO: banner IA não pode usar animação contínua." >&2
+  exit 1
+fi
 grep -F "xlxmodernUpdateTxAi(live)" "$ROOT/dashboard/assets/app.js" >/dev/null
 grep -F "ai-monitor-v1.css" "$ROOT/dashboard/index.php" >/dev/null
 
