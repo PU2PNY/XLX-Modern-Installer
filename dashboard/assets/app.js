@@ -254,8 +254,8 @@ function xlxmodernUpdateTxAi(live){
    title=String(action?.message||'A IA gerou uma recomendação; nenhuma alteração automática é presumida.');
   }else if(configured&&connected){
    css='is-monitoring';
-   text='IA monitorando';
-   title=String(ai.message||'IA conectada. Nenhum ajuste necessário neste momento.');
+   text='IA conectada';
+   title=String(ai.message||'IA conectada; telemetria local ativa. A IA só é chamada quando houver análise real.');
   }else if(configured){
    css='is-error';
    text='IA reconectando';
