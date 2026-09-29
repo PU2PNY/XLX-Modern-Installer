@@ -3946,3 +3946,79 @@ body[data-page="conectados"] .connected-table td{
 }
 
 /* /XLXMODERN_CONECTADOS_LEGIBILIDADE_V2 */
+
+
+/* XLX026_TX_TOT_180_ALERT_V3 — high-visibility warning from 165s */
+body[data-page='ao-vivo'] .tx-card.live.tx-tot-warning,
+body[data-page='ao-vivo'] .tx-card.live.tx-tot-expired {
+  border-width: 5px;
+  border-style: solid;
+  border-color: #ff174f !important;
+  outline: 3px solid rgba(255,23,79,.92);
+  outline-offset: 1px;
+  box-shadow:
+    0 0 0 3px rgba(255,23,79,.76),
+    0 0 18px 5px rgba(255,23,79,.98),
+    0 0 42px 10px rgba(255,23,79,.86),
+    0 0 88px 18px rgba(255,23,79,.58),
+    inset 0 0 24px rgba(255,23,79,.22);
+  animation: xlx026TotNeonPulse .52s ease-in-out infinite alternate;
+}
+body[data-page='ao-vivo'] .tx-card.live.tx-tot-warning::after,
+body[data-page='ao-vivo'] .tx-card.live.tx-tot-expired::after {
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+  z-index: 7;
+  padding: 5px 10px;
+  border: 2px solid rgba(255,255,255,.72);
+  border-radius: 999px;
+  background: rgba(125,0,28,.96);
+  color: #fff;
+  box-shadow: 0 0 14px rgba(255,23,79,.72);
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: .08em;
+  pointer-events: none;
+}
+body[data-page='ao-vivo'] .tx-card.live.tx-tot-warning::after {
+  content: 'LIMITE EM ' attr(data-tot-remaining) 's';
+}
+body[data-page='ao-vivo'] .tx-card.live.tx-tot-expired::after {
+  content: 'LIMITE 180s';
+}
+@keyframes xlx026TotNeonPulse {
+  from {
+    border-color: #ff174f;
+    outline-color: rgba(255,23,79,.62);
+    box-shadow:
+      0 0 0 2px rgba(255,23,79,.58),
+      0 0 10px 3px rgba(255,23,79,.72),
+      0 0 26px 7px rgba(255,23,79,.55),
+      0 0 56px 12px rgba(255,23,79,.36),
+      inset 0 0 14px rgba(255,23,79,.14);
+  }
+  to {
+    border-color: #ff4a72;
+    outline-color: rgba(255,65,110,1);
+    box-shadow:
+      0 0 0 4px rgba(255,23,79,.98),
+      0 0 22px 7px rgba(255,23,79,1),
+      0 0 52px 13px rgba(255,23,79,.96),
+      0 0 104px 22px rgba(255,23,79,.72),
+      inset 0 0 30px rgba(255,23,79,.28);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  body[data-page='ao-vivo'] .tx-card.live.tx-tot-warning,
+  body[data-page='ao-vivo'] .tx-card.live.tx-tot-expired {
+    animation: none;
+    border-width: 5px;
+    outline-color: rgba(255,23,79,1);
+    box-shadow:
+      0 0 0 4px rgba(255,23,79,.94),
+      0 0 24px 8px rgba(255,23,79,.95),
+      0 0 58px 14px rgba(255,23,79,.72),
+      inset 0 0 24px rgba(255,23,79,.22);
+  }
+}
