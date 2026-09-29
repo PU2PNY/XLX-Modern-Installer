@@ -84,5 +84,5 @@ O `main` não continha os quatro documentos canônicos e ainda havia documentaç
 - Adiciona contrato de estado sanitizado para o box TX, sem expor chave ao navegador.
 - Local seguro planejado para a chave: `/etc/xlx-ai-monitor.env`, `root:root 0600`.
 - V1 não envia áudio e não faz inferência: valida conectividade da API e mantém 0 tokens de inferência.
-- O box diferencia `IA monitorando`, `IA analisando`, `IA recomendou`, `IA orientou ajuste` e `DSP ajustando`.
+- O box diferencia `IA conectada`, `IA analisando`, `IA recomendou`, `IA orientou ajuste` e `DSP ajustando`.
 - Nenhuma atribuição à IA é exibida quando a correção foi apenas local.
