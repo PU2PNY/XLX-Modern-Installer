@@ -51,6 +51,8 @@ echo "[audio adaptive gain]"
 bash "$ROOT/tests/test-audio-adaptive-gain.sh" || failures=$((failures+1))
 echo "[ai monitor]"
 bash "$ROOT/tests/test-ai-monitor-contract.sh" || failures=$((failures+1))
+echo "[admin ai monitor]"
+bash "$ROOT/tests/test-admin-ai-monitor.sh" || failures=$((failures+1))
 echo "[release hardening]"
 bash "$ROOT/tests/test-release-hardening.sh" || failures=$((failures+1))
 echo "[forbidden permissions]"

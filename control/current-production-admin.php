@@ -142,13 +142,56 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
  }
  if($a==='radioid_check'){[$ok,$j]=jr('radioid-check');$msg=$ok?'Integridade do banco de indicativos: OK.':'A verificação de integridade encontrou problema.';$bad=!$ok;audit($ok?'radioid_check':'radioid_check_fail');}
 }
-[$ok,$st]=runh('status');$s=kv($st);[$code,$body]=probe($baseUrl.'/api/status.php?history_hours=24&control=1');$api=json_decode($body,true);if(!is_array($api))$api=[];[, $listeners]=runh('listeners');[, $logs]=runh('logs');[, $backups]=runh('backups');[$healthOk,$health]=jr('health-status');[$radioStatusOk,$radioStatus]=jr('radioid-status');if(!$access){[$accessOk,$access]=jr('access-status');}else{$accessOk=true;}$token=csrf();
+[$ok,$st]=runh('status');$s=kv($st);[$code,$body]=probe($baseUrl.'/api/status.php?history_hours=24&control=1');$api=json_decode($body,true);if(!is_array($api))$api=[];
+$ai=(array)($api['ai_monitor']??[]);
+$aiConfigured=!empty($ai['configured']);
+$aiConnected=!empty($ai['api_connected']);
+$aiState=(string)($ai['state']??'ready');
+$aiStateLabels=[
+ 'ready'=>'Preparada',
+ 'monitoring'=>'Monitoramento local ativo',
+ 'analyzing'=>'IA analisando',
+ 'recommendation'=>'IA recomendou',
+ 'ai_applied'=>'IA orientou ajuste',
+ 'error'=>'Falha de conexão',
+];
+$aiStateLabel=(string)($aiStateLabels[$aiState]??'Preparada');
+$aiConnectionLabel=$aiConnected?'CONECTADA':($aiConfigured?'VERIFICAR':'NÃO CONFIGURADA');
+$aiConnectionClass=$aiConnected?'ok':($aiConfigured?'warn':'bad');
+$aiMessage=trim((string)($ai['message']??''));
+$aiUpdated=(int)($ai['updated_at']??0);
+$aiUpdatedText=$aiUpdated>0?date('d/m/Y H:i:s',$aiUpdated):'Sem atualização';
+$aiAction=is_array($ai['last_action']??null)?$ai['last_action']:[];
+$aiActionMessage=trim((string)($aiAction['message']??''));
+$aiActionAt=(int)($aiAction['at']??0);
+$aiActionText=$aiActionMessage!==''?$aiActionMessage:'Nenhuma ação da IA registrada.';
+$aiActionTime=$aiActionAt>0?date('d/m/Y H:i:s',$aiActionAt):'—';
+[, $listeners]=runh('listeners');[, $logs]=runh('logs');[, $backups]=runh('backups');[$healthOk,$health]=jr('health-status');[$radioStatusOk,$radioStatus]=jr('radioid-status');if(!$access){[$accessOk,$access]=jr('access-status');}else{$accessOk=true;}$token=csrf();
 ?><!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow,noarchive"><title><?=h($title)?></title><style>
 *{box-sizing:border-box}body{margin:0;background:#07111f;color:#e8f0ff;font:15px system-ui}.w{max-width:1180px;margin:auto;padding:20px}.top{display:flex;justify-content:space-between;align-items:center}.title{font-size:28px;font-weight:850}.muted{color:#8fa6c4}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:18px}.c,.p{background:#0d1b2e;border:1px solid #27466f;border-radius:14px}.c{padding:15px}.v{font-size:22px;font-weight:850;margin-top:5px}.ok{color:#54d98c}.bad{color:#ff7a88}.warn{color:#f4cc62}.p{padding:18px;margin-top:14px}.p h2{margin:0 0 5px;font-size:19px}.sub{margin:0 0 16px;color:#8fa6c4}.section-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}.badge{padding:5px 9px;border-radius:999px;background:#123622;color:#54d98c;font-size:12px;font-weight:800}button,.btn{padding:10px 14px;border:0;border-radius:9px;background:#1f6feb;color:white;font-weight:750;text-decoration:none;cursor:pointer}.danger{background:#a83243}.secondary{background:#26435f}.good{background:#176f48}pre{white-space:pre-wrap;word-break:break-word;background:#07111f;border:1px solid #203a5f;border-radius:9px;padding:11px;max-height:300px;overflow:auto}.msg{padding:11px 13px;border-radius:9px;background:#123622;margin-top:14px}.msg.bad{background:#4b1d25;color:#ffd8de}.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}table{width:100%;border-collapse:collapse}td,th{padding:8px;border-bottom:1px solid #203a5f;text-align:left;vertical-align:top}.table-wrap{overflow:auto}.restart input[type=password],.field,input,select{padding:10px;background:#07111f;color:#fff;border:1px solid #37577f;border-radius:8px;min-height:40px}.logout{color:#c8daf3}.foot{text-align:center;color:#7188a6;margin:20px}.radio-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:12px 0 16px}.radio-card{background:#091626;border:1px solid #203a5f;border-radius:11px;padding:12px}.radio-card strong{display:block;font-size:20px;margin-top:4px}.search-form{display:grid;grid-template-columns:180px 1fr auto;gap:9px;margin:12px 0}.search-form button{white-space:nowrap}.editbox{margin-top:8px}.editbox summary{cursor:pointer;color:#8fc4ff;font-weight:750}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}.form-grid label{font-size:12px;color:#9fb3cf}.form-grid input{width:100%;margin-top:4px}.wide{grid-column:1/-1}.maintenance{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-top:16px}.mini{background:#091626;border:1px solid #203a5f;border-radius:11px;padding:14px}.mini h3{margin:0 0 7px}.mini p{color:#8fa6c4}.confirm{display:flex;gap:8px;align-items:flex-start;margin:10px 0;color:#cbd8e9}.confirm input{min-height:auto;margin-top:3px}.password{width:min(100%,300px)}details.new{margin-top:14px;border:1px solid #203a5f;border-radius:10px;padding:12px}details.new>summary{cursor:pointer;font-weight:800;color:#8fc4ff}
 .health-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-top:14px}.health-card{background:#091626;border:1px solid #203a5f;border-radius:11px;padding:13px}.health-card strong{display:block;font-size:19px;margin-top:5px}.health-meta{font-size:12px;color:#8fa6c4;margin-top:5px}.health-table td:first-child{font-weight:750}.health-status-ok{color:#54d98c}.health-status-warn{color:#f4cc62}.health-status-bad{color:#ff7a88}
+.ai-panel{border-color:#176c88;background:linear-gradient(135deg,#0c2031,#0b1829)}
+.ai-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:14px 0}
+.ai-card{background:#071826;border:1px solid #20516c;border-radius:11px;padding:13px;min-width:0}
+.ai-card strong{display:block;font-size:18px;margin-top:5px;overflow-wrap:anywhere}
+.ai-card small{display:block;color:#8fa6c4;margin-top:6px;line-height:1.35}
+.ai-note{background:#081624;border:1px solid #203a5f;border-radius:11px;padding:13px;margin:12px 0}
+.ai-note p{margin:6px 0 0;line-height:1.45}
+.ai-badge-on{background:#0b4c46;color:#86f7df}
+.ai-badge-off{background:#4b2f13;color:#ffd484}
 @media(max-width:720px){.w{padding:12px}.title{font-size:23px}.search-form{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.hide-mobile{display:none}td,th{white-space:nowrap}.actions>*{flex:1}.actions button,.actions .btn{width:100%;text-align:center}}
 </style></head><body><div class="w"><div class="top"><div><div class="title"><?=h($title)?></div><div class="muted">Área técnica privada</div></div><a class="logout" href="?logout=1">Sair</a></div><?php if($msg):?><div class="msg <?=$bad?'bad':''?>"><?=h($msg)?></div><?php endif;?>
 <div class="grid"><div class="c"><div class="muted">XLXD</div><div class="v <?=($s['service']??'')==='active'?'ok':'bad'?>"><?=h($s['service']??'?')?></div></div><div class="c"><div class="muted">Core</div><div class="v"><?=h($s['version']??'?')?></div></div><div class="c"><div class="muted">PID</div><div class="v"><?=h($s['pid']??'?')?></div></div><div class="c"><div class="muted">Processos</div><div class="v"><?=h($s['processes']??'?')?></div></div><div class="c"><div class="muted">Conectados</div><div class="v"><?=h((string)($api['connected_count']??'?'))?></div></div><div class="c"><div class="muted">TX ativa</div><div class="v"><?=h((string)($api['active_count']??'?'))?></div></div></div>
+<section class="p ai-panel" id="ia-server"><div class="section-head"><div><h2>IA do Servidor</h2><p class="sub">Status da conexão, estado atual e histórico da última ação registrada pela IA.</p></div><span class="badge <?=$aiConnected?'ai-badge-on':'ai-badge-off'?>"><?=$aiConnected?'OpenAI conectada':'Verificar conexão'?></span></div>
+<div class="ai-grid">
+<div class="ai-card"><span class="muted">Conexão OpenAI</span><strong class="<?=$aiConnectionClass?>"><?=h($aiConnectionLabel)?></strong><small>Credencial protegida no servidor</small></div>
+<div class="ai-card"><span class="muted">Estado atual</span><strong><?=h($aiStateLabel)?></strong><small><?=h($aiMessage!==''?$aiMessage:'—')?></small></div>
+<div class="ai-card"><span class="muted">Última atualização</span><strong><?=h($aiUpdatedText)?></strong><small>Estado sanitizado do monitor</small></div>
+<div class="ai-card"><span class="muted">Última ação da IA</span><strong><?=h($aiActionText)?></strong><small><?=h($aiActionTime)?></small></div>
+</div>
+<div class="ai-note"><strong>Como usar</strong><p>O monitoramento contínuo é local. Quando a IA realmente analisar, recomendar ou orientar um ajuste, o resultado aparece aqui e no box TX.</p><p class="warn">Análise automática por IA ainda não está habilitada nesta versão.</p></div>
+<div class="actions"><a class="btn" href="?refresh=1#ia-server">Atualizar estado</a><a class="btn secondary" href="#health">Ver saúde operacional</a></div>
+</section>
 <section class="p" id="health"><div class="section-head"><div><h2>Saúde Operacional</h2><p class="sub">Diagnóstico por camadas do XLXD, protocolos, Interlink, CallingHome e dados operacionais. Somente leitura.</p></div><span class="badge">Health V1 · atualização automática</span></div>
 <?php if(!$healthOk):?><div class="msg bad">Snapshot operacional indisponível.</div><?php else:$hx=(array)($health['xlxd']??[]);$hi=(array)($health['interlink_5m']??[]);$hpeer=(array)($health['interlink_5m']??[]);$hc=(array)($health['callinghome']??[]);$hr=(array)($health['radioid_data']??[]);$hid=(array)($health['identity_health']??[]);$hs=(array)($health['stream_health']??[]);$hy=(array)($health['ysf_capabilities']??[]);$hyo=(array)($hy['observed_modes']??[]);$hym=(array)($hyo['modes']??[]);$hvd1=(array)($hym['0']??[]);$hdw=(array)($hym['1']??[]);$hvd2=(array)($hym['2']??[]);$hvw=(array)($hym['3']??[]);$hds=(array)($health['dstar_capabilities']??[]);$hdmr=(array)($health['dmr_capabilities']??[]);$hdmre=(array)($hdmr['embedded_monitor']??[]);$hdh=(array)($health['data_health']??[]);$hdhp=(array)($hdh['pipelines']??[]);$hf=(array)($health['flight_recorder']??[]);$ha=(array)($health['activity_15m']??[]);$hp=(array)($health['protocol_ports']??[]);$missing=array_keys(array_filter($hp,fn($x)=>!($x['listener']??false)));?>
 <div class="health-grid">
