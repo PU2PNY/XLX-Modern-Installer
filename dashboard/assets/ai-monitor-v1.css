@@ -22,6 +22,21 @@ html body[data-page="ao-vivo"] #moduleGrid .xlx026-tx-stack-v4 > .tx-card.live.t
  grid-template-rows:auto auto auto 14px auto !important;
 }
 
+/* XLXMODERN_AI_BANNER_GRID_V5
+ * V5 embeds MTR/details inside tx-v30-content, so there are four direct rows:
+ * header, AI banner, content, VU.
+ */
+html body[data-page="ao-vivo"] #moduleGrid .xlx026-tx-stack-v5 .tx-card.live.tx-v30{
+ grid-template-rows:auto auto minmax(0,1fr) 10px !important;
+}
+
+@media (max-width:720px){
+ html body[data-page="ao-vivo"] #moduleGrid .xlx026-tx-stack-v5 .tx-card.live.tx-v30{
+  grid-template-rows:auto auto auto 10px !important;
+ }
+}
+
+
 body[data-page="ao-vivo"] #moduleGrid .tx-ai-monitor-wrap{
  display:flex;
  width:100%;
