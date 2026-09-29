@@ -1,3 +1,10 @@
+## Unreleased — AI monitor status in TX box
+
+- Adds a compact AI/DSP status pill to each active TX card without a new browser polling loop.
+- Keeps the OpenAI API key server-side only in a root-readable environment file.
+- Adds a low-frequency server-side API connectivity check; V1 sends no audio and performs no inference, so it consumes zero inference tokens.
+- Separates local DSP actions from genuine AI recommendation/application states.
+
 ## Unreleased — Adaptive DMR gain normalization (experimental)
 
 - Versions the DMR normalizer source observed on the XLX026 runtime instead of leaving this audio experiment only on the server.

@@ -164,7 +164,12 @@ function txCard(m){
     <span class="module-badge">MÓDULO ${esc(m.module)} • ${esc(tx.protocol)}</span>
     <h3>Transmitindo agora</h3>
    </div>
-   <span class="on-air"><i></i> NO AR</span>
+   <div class="tx-top-actions">
+    <span class="tx-ai-monitor is-ready" data-ai-module="${esc(m.module)}" role="status" aria-live="polite" title="Monitoramento local ativo; API de IA ainda não configurada.">
+     <i></i><b>IA</b><span>Preparada</span>
+    </span>
+    <span class="on-air"><i></i> NO AR</span>
+   </div>
   </div>
 
   <div class="tx-v30-content">
@@ -200,6 +205,68 @@ function txCard(m){
 
   <div class="spectrum tx-vu" data-vu-module="${esc(m.module)}" aria-label="Nível de áudio recebido pelo servidor">${'<i></i>'.repeat(18)}<span class="tx-vu-readout" aria-hidden="true">NÍVEL —</span></div>
  </article>`
+}
+
+
+function xlxmodernAiPublicState(){
+ const ai=lastData&&lastData.ai_monitor&&typeof lastData.ai_monitor==='object'
+  ?lastData.ai_monitor
+  :{};
+ return ai;
+}
+
+function xlxmodernUpdateTxAi(live){
+ if(page!=='ao-vivo')return;
+ const ai=xlxmodernAiPublicState();
+ const active=live&&live.active?live.active:{};
+
+ document.querySelectorAll('#moduleGrid .tx-ai-monitor[data-ai-module]').forEach(pill=>{
+  const module=String(pill.dataset.aiModule||'').trim().toUpperCase();
+  const tx=active[module]||lastData?.modules?.[module]?.transmission||null;
+  const audio=tx&&tx.audio_vu?tx.audio_vu:null;
+  const audioMode=String(audio?.mode||'').toLowerCase();
+  const configured=Boolean(ai.configured);
+  const connected=Boolean(ai.api_connected);
+  const state=String(ai.state||'ready').toLowerCase();
+  const action=ai.last_action&&typeof ai.last_action==='object'?ai.last_action:null;
+  const actionAt=Number(action?.at||0);
+  const actionFresh=actionAt>0&&Math.abs(Date.now()/1000-actionAt)<=900;
+
+  let css='is-ready';
+  let text='Preparada';
+  let title='Monitoramento local ativo; API de IA ainda não configurada.';
+
+  if(audioMode==='adaptive-gain'){
+   css='is-dsp';
+   text='DSP ajustando';
+   title='O normalizador local está aplicando uma microcorreção de áudio. Não é uma alteração feita pela IA.';
+  }else if(configured&&connected&&state==='analyzing'){
+   css='is-analyzing';
+   text='IA analisando';
+   title='A IA está analisando telemetria resumida do servidor.';
+  }else if(configured&&connected&&actionFresh&&state==='ai_applied'){
+   css='is-applied';
+   text='IA orientou ajuste';
+   title=String(action?.message||'Ajuste dentro dos limites de segurança orientado pela IA.');
+  }else if(configured&&connected&&actionFresh&&state==='recommendation'){
+   css='is-recommendation';
+   text='IA recomendou';
+   title=String(action?.message||'A IA gerou uma recomendação; nenhuma alteração automática é presumida.');
+  }else if(configured&&connected){
+   css='is-monitoring';
+   text='IA monitorando';
+   title=String(ai.message||'IA conectada. Nenhum ajuste necessário neste momento.');
+  }else if(configured){
+   css='is-error';
+   text='IA reconectando';
+   title=String(ai.message||'Chave configurada, mas a API ainda não foi validada.');
+  }
+
+  pill.className='tx-ai-monitor '+css;
+  const label=pill.querySelector('span');
+  if(label&&label.textContent!==text)label.textContent=text;
+  if(pill.title!==title)pill.title=title;
+ });
 }
 
 const xlxmodernVuPeakHold=new Map();
@@ -2225,6 +2292,7 @@ async function updateLiveTxRx(){
 
   renderLiveTxRxOnly(live);
   try{xlxmodernUpdateTxVu(live)}catch(_vuError){}
+  try{xlxmodernUpdateTxAi(live)}catch(_aiUiError){}
 
   /* O áudio é efeito secundário: nunca pode bloquear o estado visual. */
   try{

@@ -86,3 +86,8 @@ main
 ```
 
 Security fixes should be applied to the maintained branch and documented in the project changelog when they affect users.
+
+### OpenAI / AI monitor
+- OpenAI credentials must live only in the server-side root-readable environment file `/etc/xlx-ai-monitor.env` or an equivalent secret store.
+- Never expose the key through PHP/JSON, JavaScript, HTML, logs, screenshots, Git, backup bundles intended for publication, or support output.
+- The public dashboard may expose only sanitized booleans/state labels and bounded action messages.

@@ -28,3 +28,6 @@ Os documentos de governança obrigatórios devem existir no `main` mantido, não
 
 ## DEC-2026-09-29-009 — Padronização de áudio sem LLM no caminho TX/RX
 A normalização em tempo real deve ser local e determinística. OpenAI poderá ser usada futuramente apenas para diagnóstico agregado e sob demanda. A V1 atua somente em DMR, aprende o nível por transmissão, falha aberta quando faltam amostras e modifica o ganho AMBE+2 sem nova geração PCM/AMBE. Replay provou que o valor codificado não é 1:1 com dB PCM; por isso a candidata ±3 foi rejeitada e o teto passou a ±1,0 codificado, com escala empírica 0,125, referência ativa próxima de -30 dBFS, deadband ±3,5 dB e aprendizagem de 40 quadros ativos. A janela menor de 12 quadros também foi rejeitada porque o início de TX não representou corretamente PU2MIZ/PU2UJY. O recurso permanece desligado por padrão até validação ENV + rádio real/HW.
+
+## DEC-2026-09-29-010 — Status de IA deve ser verificável e não promocional
+O dashboard só pode dizer que a IA analisou, recomendou ou orientou um ajuste quando existir evento server-side correspondente. Ajustes do DSP local aparecem como DSP, não como IA. A chave OpenAI fica fora do webroot/Git e V1 não envia áudio nem consome tokens de inferência.

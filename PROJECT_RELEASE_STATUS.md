@@ -79,3 +79,10 @@ O `main` não continha os quatro documentos canônicos e ainda havia documentaç
 - Escala: 0,125 de ganho AMBE codificado por 1 dB de erro PCM; hard cap ±1,0 codificado.
 - Replay ENV/offline: mid e PU2UJY permaneceram bit-exact; PU2MIZ foi de -23,42 para -27,95 dBFS; vetores low/loud moveram-se na direção correta; MMDVM/DMRPlus failed=0.
 - Estado: **não ativado em produção**. HW/rádio real permanece gate obrigatório.
+
+## Experimental — AI Monitor TX badge
+- Adiciona contrato de estado sanitizado para o box TX, sem expor chave ao navegador.
+- Local seguro planejado para a chave: `/etc/xlx-ai-monitor.env`, `root:root 0600`.
+- V1 não envia áudio e não faz inferência: valida conectividade da API e mantém 0 tokens de inferência.
+- O box diferencia `IA monitorando`, `IA analisando`, `IA recomendou`, `IA orientou ajuste` e `DSP ajustando`.
+- Nenhuma atribuição à IA é exibida quando a correção foi apenas local.

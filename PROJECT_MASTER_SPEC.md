@@ -56,6 +56,13 @@ Fornecer um instalador público, reproduzível e seguro para refletor XLXD em De
 - **AUDIO-004** — Recurso permanece desativado por padrão até ENV + rádio real/HW + rollback.
 - **AUDIO-005** — YSF e D-Star não podem mudar como efeito colateral da V1 DMR.
 
+### AI / MONITORAMENTO
+- **AI-001** — Chave OpenAI nunca pode ser enviada ao browser, gravada no Git ou exposta em API pública; deve permanecer server-side com permissão restrita.
+- **AI-002** — O box TX deve distinguir claramente ação local DSP de ação/recomendação real da IA; não atribuir à IA o que ela não fez.
+- **AI-003** — Monitor de IA não pode criar polling adicional no navegador; deve reutilizar o estado já transportado pelo status do dashboard.
+- **AI-004** — Política de custo: DSP/telemetria local primeiro; inferência externa somente por exceção/agregação. V1 não envia áudio nem consome tokens de inferência.
+- **AI-005** — IA não pode aplicar ganho/EQ/filtros arbitrários. Qualquer ação futura exige controlador local com limites, auditoria e rollback.
+
 ### OBSERVABILITY / PERFORMANCE
 - **OBS-001** — Serviços críticos devem ter estado verificável por health/status/logs.
 - **OBS-002** — Erros operacionais devem ser diagnosticáveis sem expor segredos.
