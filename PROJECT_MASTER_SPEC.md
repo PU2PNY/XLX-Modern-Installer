@@ -49,6 +49,13 @@ Fornecer um instalador público, reproduzível e seguro para refletor XLXD em De
 - **SEC-003** — Admin deve preservar CSRF, sessão, rate limiting e auditoria.
 - **SEC-004** — Portas e serviços devem seguir princípio de menor exposição.
 
+### AUDIO
+- **AUDIO-001** — Normalização em tempo real deve ser determinística e local; nenhuma chamada OpenAI/LLM/API externa no caminho TX/RX.
+- **AUDIO-002** — DMR V1 deve evitar nova geração AMBE; a correção adaptativa atua no ganho AMBE+2 codificado.
+- **AUDIO-003** — Correção por transmissão deve ser fail-open, usar deadband e ter limite rígido de ±3 dB.
+- **AUDIO-004** — Recurso permanece desativado por padrão até ENV + rádio real/HW + rollback.
+- **AUDIO-005** — YSF e D-Star não podem mudar como efeito colateral da V1 DMR.
+
 ### OBSERVABILITY / PERFORMANCE
 - **OBS-001** — Serviços críticos devem ter estado verificável por health/status/logs.
 - **OBS-002** — Erros operacionais devem ser diagnosticáveis sem expor segredos.
