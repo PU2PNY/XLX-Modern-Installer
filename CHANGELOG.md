@@ -1,3 +1,10 @@
+## Unreleased — AI status centered in TX header
+
+- Moves the AI indicator into the TX header itself, centered between “Transmitindo agora” and “NO AR”.
+- Uses a three-column auto-adjusting header so the AI status remains visible without adding a new card row.
+- Removes the extra AI grid row that could push lower TX data on narrow screens.
+- Keeps the existing sanitized state path and zero additional polling.
+
 ## Unreleased — prominent AI status banner
 
 - Moves the AI status from the small top-right pill to a full-width in-card banner below the TX header.

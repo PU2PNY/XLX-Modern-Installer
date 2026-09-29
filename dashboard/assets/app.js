@@ -160,19 +160,18 @@ function txCard(m){
 
  return `<article class="tx-card live compact-tx tx-v30">
   <div class="tx-top">
-   <div>
+   <div class="tx-top-main">
     <span class="module-badge">MÓDULO ${esc(m.module)} • ${esc(tx.protocol)}</span>
     <h3>Transmitindo agora</h3>
+   </div>
+   <div class="tx-ai-monitor-wrap">
+    <span class="tx-ai-monitor is-ready" data-ai-module="${esc(m.module)}" role="status" aria-live="polite" title="Monitoramento local ativo; API de IA ainda não configurada.">
+     <i></i><b>IA DO SERVIDOR</b><span>Preparada</span><em>MONITORAMENTO LOCAL</em>
+    </span>
    </div>
    <div class="tx-top-actions">
     <span class="on-air"><i></i> NO AR</span>
    </div>
-  </div>
-
-  <div class="tx-ai-monitor-wrap">
-   <span class="tx-ai-monitor is-ready" data-ai-module="${esc(m.module)}" role="status" aria-live="polite" title="Monitoramento local ativo; API de IA ainda não configurada.">
-    <i></i><b>IA DO SERVIDOR</b><span>Preparada</span><em>• MONITORAMENTO LOCAL ATIVO</em>
-   </span>
   </div>
 
   <div class="tx-v30-content">

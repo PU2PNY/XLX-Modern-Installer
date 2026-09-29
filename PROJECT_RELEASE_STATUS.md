@@ -120,3 +120,9 @@ O `main` não continha os quatro documentos canônicos e ainda havia documentaç
 - Assets públicos confirmados com o novo banner; estado real permaneceu `configured=true`, `api_connected=true`, `state=monitoring`.
 - Validação visual externa em 1440×900: **IA DO SERVIDOR · IA conectada · MONITORAMENTO LOCAL ATIVO** aparece como faixa horizontal interna; **NO AR**, MTR, VU, indicativo, gateway/repetidora, protocolo e tempo TX permaneceram visíveis e sem sobreposição.
 - Nginx/PHP-FPM/XLXD/Unified Voice/VU Tap permaneceram ativos e não houve erro Nginx/PHP registrado após a alteração.
+
+### AI Monitor V3 — indicador central na linha do TX
+- Substitui a faixa horizontal separada por um indicador central na própria linha do cabeçalho: **Transmitindo agora — IA — NO AR**.
+- O indicador usa largura automática e reduz conteúdo secundário em containers estreitos.
+- A mudança remove a linha extra do grid do card, evitando empurrar MTR/VU/gateway/protocolo/tempo TX.
+- Mantém o mesmo estado sanitizado e não adiciona polling, fetch ou animação contínua.

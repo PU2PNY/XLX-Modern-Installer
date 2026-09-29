@@ -1,177 +1,200 @@
-/* XLXMODERN AI MONITOR V2 — prominent in-card banner, no animation loop */
-body[data-page="ao-vivo"] #moduleGrid .tx-top-actions{
- display:flex;
- align-items:center;
- justify-content:flex-end;
- gap:6px;
- min-width:0;
+/* XLXMODERN AI MONITOR V3 — centered in TX header, no extra card row */
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-top{
+ display:grid !important;
+ grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) !important;
+ align-items:center !important;
+ column-gap:8px !important;
+ width:100% !important;
+ min-width:0 !important;
 }
 
-/* XLXMODERN_AI_BANNER_GRID_V2
- * The AI banner adds one row before TX content.
- * Preserve the integrated order: header, AI, content, VU, MTR.
- */
-body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30{
- grid-template-rows:auto auto auto 14px auto !important;
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-top-main{
+ display:flex !important;
+ align-items:center !important;
+ justify-content:flex-start !important;
+ gap:7px !important;
+ min-width:0 !important;
+ overflow:hidden !important;
 }
 
-/* Production/current integrated TX wrapper has a stronger !important selector.
- * Match its specificity so the fifth AI row is not collapsed into the 14px VU row.
- */
-html body[data-page="ao-vivo"] #moduleGrid .xlx026-tx-stack-v4 > .tx-card.live.tx-v30{
- grid-template-rows:auto auto auto 14px auto !important;
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-top-main > *{
+ min-width:0 !important;
 }
 
-/* XLXMODERN_AI_BANNER_GRID_V5
- * V5 embeds MTR/details inside tx-v30-content, so there are four direct rows:
- * header, AI banner, content, VU.
- */
-html body[data-page="ao-vivo"] #moduleGrid .xlx026-tx-stack-v5 .tx-card.live.tx-v30{
- grid-template-rows:auto auto minmax(0,1fr) 10px !important;
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-top-actions{
+ display:flex !important;
+ align-items:center !important;
+ justify-content:flex-end !important;
+ gap:6px !important;
+ min-width:0 !important;
 }
 
-@media (max-width:720px){
- html body[data-page="ao-vivo"] #moduleGrid .xlx026-tx-stack-v5 .tx-card.live.tx-v30{
-  grid-template-rows:auto auto auto 10px !important;
- }
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor-wrap{
+ display:flex !important;
+ align-items:center !important;
+ justify-content:center !important;
+ width:auto !important;
+ max-width:min(46cqw,360px) !important;
+ min-width:0 !important;
+ margin:0 !important;
+ padding:0 !important;
+ box-sizing:border-box !important;
 }
 
-
-body[data-page="ao-vivo"] #moduleGrid .tx-ai-monitor-wrap{
- display:flex;
- width:100%;
- margin:6px 0 9px;
- padding:0;
- box-sizing:border-box;
-}
-
-body[data-page="ao-vivo"] #moduleGrid .tx-ai-monitor{
- display:flex;
- align-items:center;
- justify-content:center;
- flex-wrap:wrap;
- gap:7px;
- width:100%;
- min-height:34px;
- padding:7px 12px;
- border:1px solid rgba(125,211,252,.56);
- border-radius:10px;
- background:linear-gradient(90deg,rgba(2,29,45,.94),rgba(7,53,72,.94),rgba(2,29,45,.94));
- color:#e6f8ff;
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor{
+ display:inline-flex !important;
+ align-items:center !important;
+ justify-content:center !important;
+ gap:5px !important;
+ width:auto !important;
+ max-width:100% !important;
+ min-width:0 !important;
+ min-height:25px !important;
+ padding:4px 10px !important;
+ border:1px solid rgba(125,211,252,.62) !important;
+ border-radius:999px !important;
+ background:rgba(3,32,47,.94) !important;
+ color:#e6f8ff !important;
  box-shadow:
   inset 0 0 0 1px rgba(56,189,248,.10),
-  0 0 14px rgba(34,211,238,.14);
- font-size:clamp(10px,.9vw,13px);
- line-height:1.2;
- text-align:center;
- box-sizing:border-box;
+  0 0 12px rgba(34,211,238,.16) !important;
+ font-size:clamp(8px,.72vw,10px) !important;
+ line-height:1 !important;
+ white-space:nowrap !important;
+ overflow:hidden !important;
+ text-overflow:ellipsis !important;
+ box-sizing:border-box !important;
 }
 
-body[data-page="ao-vivo"] #moduleGrid .tx-ai-monitor > i{
- width:9px;
- height:9px;
- min-width:9px;
- border-radius:50%;
- background:#94a3b8;
- box-shadow:0 0 9px rgba(148,163,184,.72);
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor > i{
+ width:8px !important;
+ height:8px !important;
+ min-width:8px !important;
+ border-radius:50% !important;
+ background:#94a3b8 !important;
+ box-shadow:0 0 8px rgba(148,163,184,.72) !important;
 }
 
-body[data-page="ao-vivo"] #moduleGrid .tx-ai-monitor > b{
- font-size:1em;
- letter-spacing:.08em;
- color:#f0fbff;
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor > b{
+ font-size:1em !important;
+ letter-spacing:.07em !important;
+ color:#f0fbff !important;
+ overflow:hidden !important;
+ text-overflow:ellipsis !important;
 }
 
-body[data-page="ao-vivo"] #moduleGrid .tx-ai-monitor > span{
- font-weight:800;
- letter-spacing:.025em;
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor > span{
+ font-weight:850 !important;
+ letter-spacing:.02em !important;
+ overflow:hidden !important;
+ text-overflow:ellipsis !important;
 }
 
-body[data-page="ao-vivo"] #moduleGrid .tx-ai-monitor > em{
- font-style:normal;
- font-size:.88em;
- font-weight:700;
- letter-spacing:.03em;
- opacity:.82;
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor > em{
+ font-style:normal !important;
+ font-size:.78em !important;
+ font-weight:700 !important;
+ letter-spacing:.03em !important;
+ opacity:.72 !important;
+ overflow:hidden !important;
+ text-overflow:ellipsis !important;
 }
 
-body[data-page="ao-vivo"] #moduleGrid .tx-ai-monitor.is-monitoring{
- border-color:rgba(34,211,238,.84);
- background:linear-gradient(90deg,rgba(4,48,67,.96),rgba(8,75,91,.96),rgba(4,48,67,.96));
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor.is-monitoring{
+ border-color:rgba(34,211,238,.86) !important;
+ background:rgba(6,59,76,.96) !important;
  box-shadow:
-  inset 0 0 0 1px rgba(103,232,249,.16),
-  0 0 18px rgba(34,211,238,.25);
+  inset 0 0 0 1px rgba(103,232,249,.14),
+  0 0 14px rgba(34,211,238,.24) !important;
 }
-body[data-page="ao-vivo"] #moduleGrid .tx-ai-monitor.is-monitoring > i{
- background:#22d3ee;
- box-shadow:0 0 13px rgba(34,211,238,.98);
-}
-
-body[data-page="ao-vivo"] #moduleGrid .tx-ai-monitor.is-analyzing{
- border-color:rgba(192,132,252,.85);
- background:linear-gradient(90deg,rgba(47,15,77,.96),rgba(75,29,105,.96),rgba(47,15,77,.96));
- box-shadow:0 0 18px rgba(192,132,252,.24);
-}
-body[data-page="ao-vivo"] #moduleGrid .tx-ai-monitor.is-analyzing > i{
- background:#c084fc;
- box-shadow:0 0 13px rgba(192,132,252,.98);
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor.is-monitoring > i{
+ background:#22d3ee !important;
+ box-shadow:0 0 11px rgba(34,211,238,.98) !important;
 }
 
-body[data-page="ao-vivo"] #moduleGrid .tx-ai-monitor.is-recommendation,
-body[data-page="ao-vivo"] #moduleGrid .tx-ai-monitor.is-applied{
- border-color:rgba(250,204,21,.88);
- background:linear-gradient(90deg,rgba(63,39,5,.96),rgba(91,56,6,.96),rgba(63,39,5,.96));
- color:#fff8c5;
- box-shadow:0 0 18px rgba(250,204,21,.22);
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor.is-analyzing{
+ border-color:rgba(192,132,252,.86) !important;
+ background:rgba(63,24,91,.96) !important;
+ box-shadow:0 0 14px rgba(192,132,252,.24) !important;
 }
-body[data-page="ao-vivo"] #moduleGrid .tx-ai-monitor.is-recommendation > i,
-body[data-page="ao-vivo"] #moduleGrid .tx-ai-monitor.is-applied > i{
- background:#facc15;
- box-shadow:0 0 13px rgba(250,204,21,.98);
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor.is-analyzing > i{
+ background:#c084fc !important;
+ box-shadow:0 0 11px rgba(192,132,252,.98) !important;
 }
 
-body[data-page="ao-vivo"] #moduleGrid .tx-ai-monitor.is-dsp{
- border-color:rgba(74,222,128,.86);
- background:linear-gradient(90deg,rgba(5,46,22,.96),rgba(9,71,35,.96),rgba(5,46,22,.96));
- color:#e3ffe9;
- box-shadow:0 0 18px rgba(74,222,128,.22);
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor.is-recommendation,
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor.is-applied{
+ border-color:rgba(250,204,21,.88) !important;
+ background:rgba(83,51,6,.96) !important;
+ color:#fff8c5 !important;
+ box-shadow:0 0 14px rgba(250,204,21,.22) !important;
 }
-body[data-page="ao-vivo"] #moduleGrid .tx-ai-monitor.is-dsp > i{
- background:#4ade80;
- box-shadow:0 0 13px rgba(74,222,128,.98);
-}
-
-body[data-page="ao-vivo"] #moduleGrid .tx-ai-monitor.is-error{
- border-color:rgba(248,113,113,.84);
- background:linear-gradient(90deg,rgba(68,10,10,.96),rgba(91,20,20,.96),rgba(68,10,10,.96));
- color:#ffe4e4;
- box-shadow:0 0 18px rgba(248,113,113,.20);
-}
-body[data-page="ao-vivo"] #moduleGrid .tx-ai-monitor.is-error > i{
- background:#f87171;
- box-shadow:0 0 12px rgba(248,113,113,.95);
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor.is-recommendation > i,
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor.is-applied > i{
+ background:#facc15 !important;
+ box-shadow:0 0 11px rgba(250,204,21,.98) !important;
 }
 
-@container (max-width:650px){
- body[data-page="ao-vivo"] #moduleGrid .tx-ai-monitor-wrap{
-  margin:5px 0 7px;
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor.is-dsp{
+ border-color:rgba(74,222,128,.86) !important;
+ background:rgba(7,61,29,.96) !important;
+ color:#e3ffe9 !important;
+ box-shadow:0 0 14px rgba(74,222,128,.22) !important;
+}
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor.is-dsp > i{
+ background:#4ade80 !important;
+ box-shadow:0 0 11px rgba(74,222,128,.98) !important;
+}
+
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor.is-error{
+ border-color:rgba(248,113,113,.86) !important;
+ background:rgba(79,15,15,.96) !important;
+ color:#ffe4e4 !important;
+ box-shadow:0 0 14px rgba(248,113,113,.20) !important;
+}
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor.is-error > i{
+ background:#f87171 !important;
+ box-shadow:0 0 10px rgba(248,113,113,.95) !important;
+}
+
+@container (max-width:700px){
+ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-top{
+  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) !important;
+  column-gap:5px !important;
  }
- body[data-page="ao-vivo"] #moduleGrid .tx-ai-monitor{
-  min-height:32px;
-  padding:6px 8px;
-  gap:5px;
-  font-size:10px;
+ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor{
+  min-height:23px !important;
+  padding:3px 7px !important;
+  gap:4px !important;
+  font-size:8px !important;
  }
- body[data-page="ao-vivo"] #moduleGrid .tx-ai-monitor > em{
-  flex-basis:100%;
-  font-size:8px;
-  margin-top:-1px;
+ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor > em{
+  display:none !important;
+ }
+}
+
+@container (max-width:430px){
+ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-top-main .module-badge{
+  display:none !important;
+ }
+ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-top-main{
+  gap:3px !important;
+ }
+ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-top-main h3{
+  font-size:8px !important;
+ }
+ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor{
+  padding:3px 6px !important;
+  font-size:7.5px !important;
+ }
+ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor > b{
+  max-width:72px !important;
  }
 }
 
 @media (prefers-reduced-motion: reduce){
- body[data-page="ao-vivo"] #moduleGrid .tx-ai-monitor,
- body[data-page="ao-vivo"] #moduleGrid .tx-ai-monitor > i{
+ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor,
+ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor > i{
   transition:none !important;
  }
 }
