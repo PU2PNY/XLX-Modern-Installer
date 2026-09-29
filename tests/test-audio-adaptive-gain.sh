@@ -19,7 +19,7 @@ src = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8")
 
 required = {
     "target_dbfs": "-30.0",
-    "deadband_db": "3.0",
+    "deadband_db": "3.5",
     "hard_limit_db": "1.0",
     "coded_gain_per_pcm_db": "0.125",
     "speech_gate_dbfs": "-50.0",
@@ -35,7 +35,7 @@ if "std::min(1.0" not in src:
 if "correction_db_ = 0.0; // fail open" not in src:
     raise SystemExit("fail-open contract missing")
 
-def correction(values, target=-30.0, deadband=3.0, hard_limit=1.0, scale=0.125, gate=-50.0, minimum=12, max_frames=30):
+def correction(values, target=-30.0, deadband=3.5, hard_limit=1.0, scale=0.125, gate=-50.0, minimum=40, max_frames=100):
     usable = [v for v in values[:max_frames] if math.isfinite(v) and v >= gate]
     if len(usable) < minimum:
         return 0.0
@@ -50,6 +50,7 @@ cases = [
     ([-38.0] * 40, 1.0, "low"),
     ([-17.0] * 40, -1.0, "high"),
     ([-30.0] * 40, 0.0, "ideal"),
+    ([-26.60] * 40, 0.0, "mid-neutral"),
     ([-40.0] * 40, 1.0, "hard-cap"),
     ([-90.0] * 100, 0.0, "fail-open"),
     ([-23.42] * 40, -0.8225, "miz-like"),

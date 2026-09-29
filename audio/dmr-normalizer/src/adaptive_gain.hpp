@@ -8,7 +8,7 @@ namespace xlx026 {
 
 struct AdaptiveGainConfig {
     double target_dbfs = -30.0;
-    double deadband_db = 3.0;
+    double deadband_db = 3.5;
     double hard_limit_db = 1.0;
     double coded_gain_per_pcm_db = 0.125;
     double speech_gate_dbfs = -50.0;

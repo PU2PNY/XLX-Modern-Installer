@@ -32,7 +32,7 @@ struct VoiceProfile {
     double limiter_dbfs = -3.0;
     double active_gate_dbfs = -48.0;
     double adaptive_target_rms_dbfs = -30.0;
-    double adaptive_deadband_db = 3.0;
+    double adaptive_deadband_db = 3.5;
     double adaptive_max_gain_db = 1.0;
     double adaptive_coded_gain_per_pcm_db = 0.125;
     double adaptive_speech_gate_dbfs = -50.0;
