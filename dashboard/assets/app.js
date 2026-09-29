@@ -1057,11 +1057,16 @@ setInterval(()=>{
   const card=e.closest('.tx-card.live');
   if(!card||!Number.isFinite(started)||started<=0)return;
   const seconds=Math.max(0,Math.floor(nowSeconds-started));
-  const warning=seconds>=165&&seconds<180;
+  const yellowWarning=seconds>=160&&seconds<170;
+  const redWarning=seconds>=170&&seconds<180;
   const expired=seconds>=180;
-  card.classList.toggle('tx-tot-warning',warning);
+  card.classList.remove('tx-tot-warning');
+  card.classList.toggle('tx-tot-warning-yellow',yellowWarning);
+  card.classList.toggle('tx-tot-warning-red',redWarning);
   card.classList.toggle('tx-tot-expired',expired);
-  card.dataset.totRemaining=warning?String(Math.max(0,180-seconds)):'';
+  card.dataset.totRemaining=(yellowWarning||redWarning)
+   ?String(Math.max(0,180-seconds))
+   :'';
  });
 },1000);
 
