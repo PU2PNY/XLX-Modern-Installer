@@ -21,7 +21,7 @@ Future analysis must remain exception-driven: local DSP/telemetry first, API onl
 ## Public states
 
 - `ready`: local monitoring active, API not configured;
-- `monitoring`: API key validated, no action needed;
+- `monitoring`: API key validated; local telemetry remains the continuous monitor;
 - `analyzing`: AI analysis in progress;
 - `recommendation`: AI recommendation exists;
 - `ai_applied`: an AI-guided action was actually applied by a bounded local controller;
