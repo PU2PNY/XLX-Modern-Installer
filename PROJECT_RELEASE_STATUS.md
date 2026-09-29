@@ -131,3 +131,10 @@ O `main` não continha os quatro documentos canônicos e ainda havia documentaç
 - O texto permanece **IA DO SERVIDOR · estado · MONITORAMENTO LOCAL ATIVO**.
 - A alteração visual é limitada ao cabeçalho TX: módulo/“Transmitindo agora” à esquerda, IA ao centro e “NO AR” à direita.
 - Nenhum dado operacional é removido; em telas estreitas apenas o conteúdo secundário do próprio indicador de IA pode ser reduzido para caber.
+
+### AI Monitor V3 — validação final de posição em produção
+- Backup/rollback: `/root/backups-xlx026/AI_HEADER_MOVE_PRE_20260929_163322`.
+- Validação visual externa em ~1365×768 confirmou o indicador na mesma linha entre **Transmitindo agora** e **NO AR**.
+- Texto visível: **IA DO SERVIDOR · IA conectada · MONITORAMENTO LOCAL ATIVO**.
+- Sem faixa extra abaixo, sem sobreposição e sem perda de indicativo, MTR/VU, gateway, protocolo ou tempo TX.
+- XLXD, Nginx, PHP-FPM, Unified Voice e VU Tap permaneceram ativos; sem erros Nginx/PHP após a mudança.
