@@ -154,3 +154,14 @@ O `main` não continha os quatro documentos canônicos e ainda havia documentaç
 ### Fechamento de regressão — IA no Controle
 - WartyWallaby executou a suíte completa em `06b988b727039074823a887130390d88911817b5` com `failures=0`.
 - O HEAD documental subsequente `2741b39c284ef20c86cd0577193088e30259190b` concluiu os cinco workflows com sucesso: Control CI, Installer CI, Debian 12 runtime, Production parity e Stream identity.
+
+### Controle dividido em páginas internas (2026-09-29)
+- A rota privada permanece única: `/controle/`. Não houve alteração no Nginx.
+- Menu criado: **Início**, **Saúde Operacional**, **Controle de Acesso e Interlink**, **Indicativos & RadioID**.
+- Views: `home` (padrão), `health`, `access`, `radioid`; valor inválido cai para Início.
+- **Início** preserva resumo, IA do Servidor, integridade/testes, listeners, logs, backups e reinício protegido.
+- Saúde, Acesso/Interlink e RadioID são renderizados separadamente, mantendo a mesma sessão, CSRF, rate limiting, helpers limitados e auditoria.
+- WartyWallaby: `test-admin-view-navigation.sh`, `test-admin-ai-monitor.sh`, i18n e Controle funcional PASS em `2f5f35d5b4069a05e70f80321f4358d414d4f93e`.
+- GitHub: os cinco workflows concluíram com sucesso no commit acima.
+- PROD: `/controle/`, `?view=health`, `?view=access` e `?view=radioid` responderam HTTP 200; XLXD/Nginx/PHP-FPM/Unified Voice/VU Tap permaneceram ativos; sem erros web observados após a alteração.
+- Backup/rollback: `/root/backups-xlx026/CONTROL_MENU_PRE_20260929_181548`.

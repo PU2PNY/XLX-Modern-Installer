@@ -1,3 +1,11 @@
+## Unreleased — private Control split into pages
+
+- Adds a responsive private menu with Home, Operational Health, Access Control & Interlink, and Callsigns & RadioID.
+- Uses internal `?view=` navigation under the existing private Admin route; no new Nginx route is required.
+- Keeps summary, Server AI, tests, listeners, logs, backups and protected XLXD restart on Home.
+- Preserves the existing session, CSRF, rate limiting, audit and limited-helper security model.
+- Adds navigation regression coverage and locale entries for the new menu.
+
 ## Unreleased — AI observability in private Control page
 
 - Adds a clear **Server AI** section to the private Control page.

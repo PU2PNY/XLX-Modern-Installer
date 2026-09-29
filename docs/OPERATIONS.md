@@ -44,3 +44,10 @@ Registrar:
 - O helper grava `/etc/xlx-ai-monitor.env` como `root:root 0600`; nunca colar a chave em JavaScript, PHP público, GitHub, chat de suporte ou logs.
 - O estado público vem de `/run/xlx-ai-monitor/public.json` e contém apenas campos sanitizados.
 - V1 valida autenticação da API sem inferência; análise de IA futura deve ser por exceção e manter DSP/telemetria local como caminho contínuo.
+
+## Navegação da página Controle
+- `/controle/` — Início.
+- `/controle/?view=health` — Saúde Operacional.
+- `/controle/?view=access` — Controle de Acesso e Interlink.
+- `/controle/?view=radioid` — Indicativos & RadioID.
+- As views compartilham a mesma autenticação e não exigem novas regras Nginx.

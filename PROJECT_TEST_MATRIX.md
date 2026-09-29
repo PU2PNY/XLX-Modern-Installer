@@ -48,4 +48,4 @@ Nunca transformar `OPERATOR` em `PROD`, ou `SW` em `ENV`, sem novo teste.
 
 | TEST-024 | AI-007 / SEC-001 | Controle exibe estado sanitizado da IA sem segredo e sem inferência fictícia | WartyWallaby: contrato, i18n e Controle funcional PASS; suíte completa `tests/run-all.sh` terminou `failures=0` no commit 06b988b727039074823a887130390d88911817b5; 5 workflows CI PASS; PROD: /controle/ HTTP 200, seção IA instalada, api_connected=true e serviços preservados | PASS (SW/ENV/PROD) |
 
-| TEST-025 | ADMIN-004 | Controle dividido em Início, Saúde Operacional, Acesso/Interlink e Indicativos/RadioID, preservando autenticação/CSRF | requisito aprovado; implementação/teste pendentes | PENDENTE |
+| TEST-025 | ADMIN-004 | Controle dividido em Início, Saúde Operacional, Acesso/Interlink e Indicativos/RadioID, preservando autenticação/CSRF | WartyWallaby: navegação, IA, i18n e Controle funcional PASS no commit 2f5f35d5b4069a05e70f80321f4358d414d4f93e; 5 workflows CI PASS; PROD: quatro views HTTP 200 na rota privada, serviços preservados e sem erros web | PASS (SW/ENV/PROD) |
