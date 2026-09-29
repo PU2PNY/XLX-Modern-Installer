@@ -28,3 +28,6 @@ Future analysis must remain exception-driven: local DSP/telemetry first, API onl
 - `error`: configured but API validation failed.
 
 Local adaptive DSP is displayed separately as **DSP ajustando**, never mislabeled as an AI action.
+
+## Runtime identity
+The oneshot runs as the static restricted web user `www-data`, not root. systemd reads the root-only EnvironmentFile and injects the key into the process environment; the process writes only the sanitized public state under `/run/xlx-ai-monitor/public.json`.
