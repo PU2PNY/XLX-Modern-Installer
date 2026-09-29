@@ -1,7 +1,7 @@
 ## Unreleased — AI monitor status in TX box
 
 - Adds a compact AI/DSP status pill to each active TX card without a new browser polling loop.
-- Keeps the OpenAI API key server-side only in a root-readable environment file.
+- Keeps the OpenAI API key server-side only in a root-readable environment file. Public sanitized AI state uses `/run/xlx-ai-monitor/public.json`, avoiding DynamicUser private state-directory isolation.
 - Adds a low-frequency server-side API connectivity check; V1 sends no audio and performs no inference, so it consumes zero inference tokens. A valid key is labeled **AI connected**, while continuous monitoring remains local DSP/telemetry.
 - Separates local DSP actions from genuine AI recommendation/application states. Production XLX026 received the UI/status integration as a minimal patch over its live baseline, with backup/rollback, because the active dashboard files still differ from repository main.
 
