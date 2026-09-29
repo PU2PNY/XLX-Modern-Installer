@@ -94,3 +94,8 @@ O `main` não continha os quatro documentos canônicos e ainda havia documentaç
 - Estado atual: **sem chave OpenAI configurada**; `/etc/xlx-ai-monitor.env` não existe e o box deve mostrar estado preparado/local.
 - A mensagem padrão após uma chave válida será **IA conectada**, não “IA monitorando”: a telemetria/DSP local é o monitor contínuo; a IA só recebe rótulos de análise/recomendação quando houver evento real.
 - Nenhum serviço de áudio/protocolo foi reiniciado ou alterado; XLXD, Nginx, Unified Voice e VU Tap permaneceram ativos.
+
+### AI Monitor V1 — correção de runtime state (2026-09-29)
+- O primeiro deploy mostrou que `DynamicUser=yes` + `StateDirectory=xlx-ai-monitor` move o estado para `/var/lib/private/xlx-ai-monitor`, tornando o JSON sanitizado inacessível ao PHP público.
+- O estado público foi movido para `/run/xlx-ai-monitor/public.json` usando `RuntimeDirectory=xlx-ai-monitor`.
+- A chave continua separada em `/etc/xlx-ai-monitor.env` com `root:root 0600`.
