@@ -52,7 +52,7 @@ O `main` não continha os quatro documentos canônicos e ainda havia documentaç
 ## TOT 180 s — evidência PROD 2026-09-29
 - Core em produção: XLXD 2.5.3, binário SHA-256 `c0283b7f6c7644b84284140ecaa20e7643bd60a99b961a8f099f9fea19976441`.
 - Entre 2026-09-23 e 2026-09-29 foram observados 51 registros do core indicando `TX time limit reached ... after 180 seconds`.
-- Dashboard de produção inicia alerta visual em 165 s e usa borda neon V3 de alta visibilidade; não houve reinício do XLXD para a alteração visual.
+- Dashboard de produção inicia alerta amarelo em 160 s e vermelho em 170 s, usando borda neon V4 de alta visibilidade; não houve reinício do XLXD para a alteração visual.
 - Após o V3: XLXD, Nginx e PHP-FPM ativos; `/ao-vivo`, CSS e Live Core health responderam HTTP 200 em aproximadamente 16–18 ms na amostra pós-mudança.
 - Validação visual perceptiva final permanece `OPERATOR`; a evidência técnica acima é `PROD`.
 
