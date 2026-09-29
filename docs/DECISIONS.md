@@ -34,3 +34,6 @@ O dashboard só pode dizer que a IA analisou, recomendou ou orientou um ajuste q
 
 ## DEC-2026-09-29-011 — Estado da IA deve ser visível dentro do box TX sem pesar o Live
 O indicador de IA deve ficar centralizado no cabeçalho do próprio box TX, na mesma linha entre “Transmitindo agora” e “NO AR”. O componente usa largura automática e reduz conteúdo secundário em telas estreitas para preservar o restante do box. Reutiliza o mesmo estado sanitizado já existente, não cria fetch/polling, não usa animação contínua e não pode ocultar NO AR, MTR/VU, indicativo, gateway, protocolo ou tempo de TX.
+
+## DEC-2026-09-29-012 — IA no Controle é observabilidade privada antes de automação
+A página privada Controle deve exibir conexão OpenAI, estado atual, última atualização e última ação real usando exclusivamente o objeto sanitizado `ai_monitor` já obtido por `status.php`. Nenhuma chave é lida pelo PHP público/privado e nenhum novo polling é criado. Enquanto não existir backend de inferência manual/automática validado, o Controle deve informar explicitamente que análise automática por IA ainda não está habilitada, em vez de oferecer um botão enganoso.

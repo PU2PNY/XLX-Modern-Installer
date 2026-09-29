@@ -63,6 +63,7 @@ Fornecer um instalador público, reproduzível e seguro para refletor XLXD em De
 - **AI-004** — Política de custo: DSP/telemetria local primeiro; inferência externa somente por exceção/agregação. V1 não envia áudio nem consome tokens de inferência.
 - **AI-005** — IA não pode aplicar ganho/EQ/filtros arbitrários. Qualquer ação futura exige controlador local com limites, auditoria e rollback.
 - **AI-006** — O estado da IA no Live deve ficar claramente visível dentro do box TX, centralizado na mesma linha entre “Transmitindo agora” e “NO AR”, autoajustável em telas estreitas, sem ocultar dados operacionais, sem animação contínua e sem adicionar polling.
+- **AI-007** — A página privada Controle deve apresentar de forma clara o estado sanitizado da IA, conexão, última atualização e última ação registrada, reutilizando o status já carregado; nunca deve expor a chave ou afirmar que houve análise/inferência quando não houve.
 
 ### OBSERVABILITY / PERFORMANCE
 - **OBS-001** — Serviços críticos devem ter estado verificável por health/status/logs.

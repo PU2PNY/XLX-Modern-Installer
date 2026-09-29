@@ -45,3 +45,5 @@ Nunca transformar `OPERATOR` em `PROD`, ou `SW` em `ENV`, sem novo teste.
 | TEST-022 | AI-004 | V1 não envia áudio nem faz inferência; valida somente conectividade da API | WartyWallaby + PROD: autenticação da API confirmada; mensagem pública “IA conectada • monitoramento local ativo”; sem inferência contínua | PASS (SW/ENV/PROD) |
 
 | TEST-023 | AI-006 / UI-002 | Indicador IA central na mesma linha do cabeçalho TX, autoajustável, sem animação contínua e sem novo polling | WartyWallaby contrato PASS; PROD 1365×768 confirmou IA entre “Transmitindo agora” e “NO AR”, sem linha extra, sobreposição ou perda de MTR/VU/dados | PASS (SW/ENV/PROD) |
+
+| TEST-024 | AI-007 / SEC-001 | Controle exibe estado sanitizado da IA sem segredo e sem inferência fictícia | requisito aprovado; implementação e validação pendentes | PENDENTE |
