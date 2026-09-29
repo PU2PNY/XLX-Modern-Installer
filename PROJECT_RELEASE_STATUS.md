@@ -150,3 +150,7 @@ O `main` não continha os quatro documentos canônicos e ainda havia documentaç
 - GitHub: Control CI, Installer CI, Debian 12 runtime, Production parity e Stream identity PASS no commit de implementação.
 - PROD: publicação por patch mínimo em `/var/www/html/xlxd/controle/index.php`; backup/rollback `/root/backups-xlx026/CONTROL_AI_PRE_20260929_174348`.
 - PROD: rota `/controle/` respondeu HTTP 200; estado sanitizado confirmou `configured=true`, `api_connected=true`, `state=monitoring`; XLXD/Nginx/PHP-FPM/Unified Voice/VU Tap permaneceram ativos e sem erros web observados após a mudança.
+
+### Fechamento de regressão — IA no Controle
+- WartyWallaby executou a suíte completa em `06b988b727039074823a887130390d88911817b5` com `failures=0`.
+- O HEAD documental subsequente `2741b39c284ef20c86cd0577193088e30259190b` concluiu os cinco workflows com sucesso: Control CI, Installer CI, Debian 12 runtime, Production parity e Stream identity.

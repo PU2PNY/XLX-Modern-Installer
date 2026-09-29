@@ -46,4 +46,4 @@ Nunca transformar `OPERATOR` em `PROD`, ou `SW` em `ENV`, sem novo teste.
 
 | TEST-023 | AI-006 / UI-002 | Indicador IA central na mesma linha do cabeçalho TX, autoajustável, sem animação contínua e sem novo polling | WartyWallaby contrato PASS; PROD 1365×768 confirmou IA entre “Transmitindo agora” e “NO AR”, sem linha extra, sobreposição ou perda de MTR/VU/dados | PASS (SW/ENV/PROD) |
 
-| TEST-024 | AI-007 / SEC-001 | Controle exibe estado sanitizado da IA sem segredo e sem inferência fictícia | WartyWallaby: contrato, i18n e Controle funcional PASS; 5 workflows CI PASS no commit 06b988b727039074823a887130390d88911817b5; PROD: /controle/ HTTP 200, seção IA instalada, api_connected=true e serviços preservados | PASS (SW/ENV/PROD) |
+| TEST-024 | AI-007 / SEC-001 | Controle exibe estado sanitizado da IA sem segredo e sem inferência fictícia | WartyWallaby: contrato, i18n e Controle funcional PASS; suíte completa `tests/run-all.sh` terminou `failures=0` no commit 06b988b727039074823a887130390d88911817b5; 5 workflows CI PASS; PROD: /controle/ HTTP 200, seção IA instalada, api_connected=true e serviços preservados | PASS (SW/ENV/PROD) |
