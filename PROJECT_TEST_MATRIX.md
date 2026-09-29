@@ -44,8 +44,10 @@ Nunca transformar `OPERATOR` em `PROD`, ou `SW` em `ENV`, sem novo teste.
 | TEST-021 | AI-002/003 | Badge TX diferencia IA/DSP sem novo polling | PROD: status público retornou configured=true/api_connected=true com TX ativa; assets/integração já implantados | PASS (SW/ENV/PROD) |
 | TEST-022 | AI-004 | V1 não envia áudio nem faz inferência; valida somente conectividade da API | WartyWallaby + PROD: autenticação da API confirmada; mensagem pública “IA conectada • monitoramento local ativo”; sem inferência contínua | PASS (SW/ENV/PROD) |
 
-| TEST-023 | AI-006 / UI-002 | Indicador IA central na mesma linha do cabeçalho TX, autoajustável, sem animação contínua e sem novo polling | WartyWallaby contrato PASS; PROD 1365×768 confirmou IA entre “Transmitindo agora” e “NO AR”, sem linha extra, sobreposição ou perda de MTR/VU/dados | PASS (SW/ENV/PROD) |
+| TEST-023 | AI-006 / UI-002 | Indicador IA central na mesma linha do cabeçalho TX, autoajustável e sem novo polling | V3: WartyWallaby contrato PASS; PROD 1365×768 confirmou IA entre “Transmitindo agora” e “NO AR”, sem linha extra, sobreposição ou perda de MTR/VU/dados | PASS (SW/ENV/PROD) |
 
 | TEST-024 | AI-007 / SEC-001 | Controle exibe estado sanitizado da IA sem segredo e sem inferência fictícia | WartyWallaby: contrato, i18n e Controle funcional PASS; suíte completa `tests/run-all.sh` terminou `failures=0` no commit 06b988b727039074823a887130390d88911817b5; 5 workflows CI PASS; PROD: /controle/ HTTP 200, seção IA instalada, api_connected=true e serviços preservados | PASS (SW/ENV/PROD) |
 
 | TEST-025 | ADMIN-004 | Controle dividido em Início, Saúde Operacional, Acesso/Interlink e Indicativos/RadioID, preservando autenticação/CSRF | WartyWallaby: navegação, IA, i18n e Controle funcional PASS no commit 2f5f35d5b4069a05e70f80321f4358d414d4f93e; 5 workflows CI PASS; PROD: quatro views HTTP 200 na rota privada, serviços preservados e sem erros web | PASS (SW/ENV/PROD) |
+
+| TEST-026 | AI-006/008 / PERF-001/002 | V4: rótulo sem redundância, `IA CONECTADA · coletando dados` somente com conexão real, scanner segmentado CSS contínuo sem polling/fetch/timer JS e com reduced-motion | Teste de contrato atualizado; validação ENV/visual e PROD pendentes neste commit | PENDENTE |

@@ -165,3 +165,11 @@ O `main` não continha os quatro documentos canônicos e ainda havia documentaç
 - GitHub: os cinco workflows concluíram com sucesso no commit acima.
 - PROD: `/controle/`, `?view=health`, `?view=access` e `?view=radioid` responderam HTTP 200; XLXD/Nginx/PHP-FPM/Unified Voice/VU Tap permaneceram ativos; sem erros web observados após a alteração.
 - Backup/rollback: `/root/backups-xlx026/CONTROL_MENU_PRE_20260929_181548`.
+
+
+## Candidato — AI Monitor V4 living scan (2026-09-29)
+- Branch: `feature/ai-monitor-living-scan-v4-20260929`.
+- Mudança visual limitada ao indicador central do box TX: remove redundância, amplia o status e adiciona scanner segmentado CSS.
+- Estado conectado/monitoring previsto: **IA CONECTADA · coletando dados**.
+- A animação não cria polling, fetch ou timer JavaScript; `prefers-reduced-motion` desativa o movimento.
+- Estado nesta revisão: **candidato não promovido**; validação ENV/visual e PROD ainda pendentes.

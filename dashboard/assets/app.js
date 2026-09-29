@@ -165,8 +165,8 @@ function txCard(m){
     <h3>Transmitindo agora</h3>
    </div>
    <div class="tx-ai-monitor-wrap">
-    <span class="tx-ai-monitor is-ready" data-ai-module="${esc(m.module)}" role="status" aria-live="polite" title="Monitoramento local ativo; API de IA ainda não configurada.">
-     <i></i><b>IA DO SERVIDOR</b><span>Preparada</span><em>MONITORAMENTO LOCAL ATIVO</em>
+    <span class="tx-ai-monitor is-ready" data-ai-module="${esc(m.module)}" role="status" aria-live="polite" title="Monitoramento local ativo; verificando estado da IA.">
+     <i aria-hidden="true"></i><b>IA</b><span>carregando</span><em class="tx-ai-scan" aria-hidden="true"></em>
     </span>
    </div>
    <div class="tx-top-actions">
@@ -235,37 +235,46 @@ function xlxmodernUpdateTxAi(live){
   const actionFresh=actionAt>0&&Math.abs(Date.now()/1000-actionAt)<=900;
 
   let css='is-ready';
-  let text='Preparada';
+  let primary='IA';
+  let text='preparada';
   let title='Monitoramento local ativo; API de IA ainda não configurada.';
 
   if(audioMode==='adaptive-gain'){
    css='is-dsp';
+   primary=connected?'IA CONECTADA':'IA';
    text='DSP ajustando';
    title='O normalizador local está aplicando uma microcorreção de áudio. Não é uma alteração feita pela IA.';
   }else if(configured&&connected&&state==='analyzing'){
    css='is-analyzing';
-   text='IA analisando';
+   primary='IA CONECTADA';
+   text='analisando';
    title='A IA está analisando telemetria resumida do servidor.';
   }else if(configured&&connected&&actionFresh&&state==='ai_applied'){
    css='is-applied';
-   text='IA orientou ajuste';
+   primary='IA CONECTADA';
+   text='ajuste orientado';
    title=String(action?.message||'Ajuste dentro dos limites de segurança orientado pela IA.');
   }else if(configured&&connected&&actionFresh&&state==='recommendation'){
    css='is-recommendation';
-   text='IA recomendou';
+   primary='IA CONECTADA';
+   text='recomendação';
    title=String(action?.message||'A IA gerou uma recomendação; nenhuma alteração automática é presumida.');
   }else if(configured&&connected){
    css='is-monitoring';
-   text='IA conectada';
+   primary='IA CONECTADA';
+   text='coletando dados';
    title=String(ai.message||'IA conectada; telemetria local ativa. A IA só é chamada quando houver análise real.');
   }else if(configured){
    css='is-error';
-   text='IA reconectando';
+   primary='IA';
+   text='reconectando';
    title=String(ai.message||'Chave configurada, mas a API ainda não foi validada.');
   }
 
   pill.className='tx-ai-monitor '+css;
+  const primaryLabel=pill.querySelector('b');
   const label=pill.querySelector('span');
+  if(primaryLabel&&primaryLabel.textContent!==primary)primaryLabel.textContent=primary;
   if(label&&label.textContent!==text)label.textContent=text;
   if(pill.title!==title)pill.title=title;
  });

@@ -24,12 +24,32 @@ grep -F "tx-ai-monitor-wrap" "$ROOT/dashboard/assets/app.js" >/dev/null
 grep -F "tx-top-main" "$ROOT/dashboard/assets/app.js" >/dev/null
 grep -F 'grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)' "$ROOT/dashboard/assets/ai-monitor-v1.css" >/dev/null
 grep -F "min-height:25px" "$ROOT/dashboard/assets/ai-monitor-v1.css" >/dev/null
-grep -F "IA DO SERVIDOR" "$ROOT/dashboard/assets/app.js" >/dev/null
-grep -F "MONITORAMENTO LOCAL ATIVO" "$ROOT/dashboard/assets/app.js" >/dev/null
-if grep -Eq '@keyframes|animation[[:space:]]*:' "$ROOT/dashboard/assets/ai-monitor-v1.css"; then
-  echo "ERRO: banner IA não pode usar animação contínua." >&2
+grep -F '<em class="tx-ai-scan" aria-hidden="true"></em>' "$ROOT/dashboard/assets/app.js" >/dev/null
+grep -F "primary='IA CONECTADA'" "$ROOT/dashboard/assets/app.js" >/dev/null
+grep -F "text='coletando dados'" "$ROOT/dashboard/assets/app.js" >/dev/null
+if grep -F "<b>IA DO SERVIDOR</b>" "$ROOT/dashboard/assets/app.js" >/dev/null; then
+  echo "ERRO: rótulo redundante IA DO SERVIDOR voltou ao box TX." >&2
   exit 1
 fi
+if grep -F "<em>MONITORAMENTO LOCAL ATIVO</em>" "$ROOT/dashboard/assets/app.js" >/dev/null; then
+  echo "ERRO: texto redundante MONITORAMENTO LOCAL ATIVO voltou ao box TX." >&2
+  exit 1
+fi
+grep -F "@keyframes xlxmodernAiScanSweep" "$ROOT/dashboard/assets/ai-monitor-v1.css" >/dev/null
+grep -F "@keyframes xlxmodernAiScanTrail" "$ROOT/dashboard/assets/ai-monitor-v1.css" >/dev/null
+grep -F "@media (prefers-reduced-motion: reduce)" "$ROOT/dashboard/assets/ai-monitor-v1.css" >/dev/null
+grep -F "repeating-linear-gradient" "$ROOT/dashboard/assets/ai-monitor-v1.css" >/dev/null
+python3 - "$ROOT/dashboard/assets/app.js" <<'PY'
+import pathlib, sys
+s=pathlib.Path(sys.argv[1]).read_text()
+a=s.index('function xlxmodernUpdateTxAi(live){')
+b=s.index('const xlxmodernVuPeakHold', a)
+block=s[a:b]
+for forbidden in ('fetch(', 'setInterval(', 'setTimeout('):
+    if forbidden in block:
+        raise SystemExit(f'ERRO: monitor IA introduziu loop/chamada extra: {forbidden}')
+print('ai_monitor_no_extra_polling=PASS')
+PY
 grep -F "xlxmodernUpdateTxAi(live)" "$ROOT/dashboard/assets/app.js" >/dev/null
 grep -F "ai-monitor-v1.css" "$ROOT/dashboard/index.php" >/dev/null
 
