@@ -5,7 +5,7 @@
 - Adds a continuous CSS-only light sweep using transform/opacity; no fetch, browser polling or JavaScript timer is added.
 - Keeps DSP, analyzing, recommendation, applied and reconnecting states distinct, and never shows **IA CONECTADA** unless the sanitized API state is connected.
 - Honors `prefers-reduced-motion` with a static scanner fallback and keeps responsive reductions for narrow TX cards.
-- WartyWallaby contract/parity checks and GitHub PR #62 `regression`/`parity` checks passed. XLX026 then received the change as a minimal two-asset patch with verified rollback backup; public assets, sanitized AI state and critical services were validated after deploy. Final visual confirmation during a real TX remains pending because no transmission was active during the post-deploy check.
+- WartyWallaby contract/parity checks and GitHub PR #62 `regression`/`parity` checks passed. XLX026 then received the change as a minimal two-asset patch with verified rollback backup; public assets, sanitized AI state and critical services were validated after deploy. Final visual confirmation during a real TX remains pending because no transmission was active during the post-deploy check.\n- Narrow-card/multi-TX fit was tightened in `10be6fe789981eb8af9b5d8828b2e7b28811d41e` (34 px scanner at ≤700 px and 22 px at ≤430 px). WartyWallaby contract/current-panel parity and GitHub checks passed; the V4 PR was merged into the IA/audio feature branch as `0126938d3f7e50459a9e06197c9b875aea6d43db`.
 
 ## Unreleased — private Control split into pages
 
