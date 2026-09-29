@@ -8,6 +8,7 @@ Type=oneshot
 DynamicUser=yes
 RuntimeDirectory=xlx-ai-monitor
 RuntimeDirectoryMode=0755
+RuntimeDirectoryPreserve=yes
 EnvironmentFile=-/etc/xlx-ai-monitor.env
 ExecStart=/usr/local/lib/xlx-modern/xlx-ai-monitor.py
 NoNewPrivileges=yes
