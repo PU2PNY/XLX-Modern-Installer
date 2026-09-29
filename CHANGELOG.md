@@ -1,3 +1,12 @@
+## Unreleased — AI Monitor V4 living scan display
+
+- Simplifies the TX header indicator to a truthful primary connection label plus a larger live status; connected monitoring renders **IA CONECTADA · coletando dados**.
+- Replaces the redundant visible “IA DO SERVIDOR / MONITORAMENTO LOCAL ATIVO” wording with a thin segmented digital scanner.
+- Adds a continuous CSS-only light sweep using transform/opacity; no fetch, browser polling or JavaScript timer is added.
+- Keeps DSP, analyzing, recommendation, applied and reconnecting states distinct, and never shows **IA CONECTADA** unless the sanitized API state is connected.
+- Honors `prefers-reduced-motion` with a static scanner fallback and keeps responsive reductions for narrow TX cards.
+- WartyWallaby contract/parity checks and GitHub PR #62 `regression`/`parity` checks passed. XLX026 then received the change as a minimal two-asset patch with verified rollback backup; public assets, sanitized AI state and critical services were validated after deploy. Final visual confirmation during a real TX remains pending because no transmission was active during the post-deploy check.
+
 ## Unreleased — private Control split into pages
 
 - Adds a responsive private menu with Home, Operational Health, Access Control & Interlink, and Callsigns & RadioID.

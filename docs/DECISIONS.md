@@ -40,3 +40,7 @@ A página privada Controle deve exibir conexão OpenAI, estado atual, última at
 
 ## DEC-2026-09-29-013 — Controle dividido por visualizações internas
 A rota privada existente permanece única. A navegação usa `?view=home|health|access|radioid` sob o mesmo `adminPath`, evitando qualquer nova regra Nginx. Início contém resumo, IA do Servidor, integridade/testes, listeners, logs, backups e reinício. Saúde Operacional, Controle de Acesso e Interlink e Indicativos & RadioID ficam em visualizações próprias. Ações POST continuam protegidas pela mesma sessão, CSRF, helpers limitados e auditoria.
+
+
+## DEC-2026-09-29-014 — Scanner vivo da IA pode animar sem criar carga operacional
+A solicitação do operador em 2026-09-29 substitui **somente** a cláusula “sem animação contínua” da DEC-2026-09-29-011. O indicador central continua no cabeçalho TX e pode usar um scanner segmentado com movimento contínuo desde que a animação seja puramente CSS, limitada a propriedades leves como `transform` e `opacity`, sem `fetch`, polling ou timer JavaScript adicional. `prefers-reduced-motion` é obrigatório. O texto `IA CONECTADA` continua dependente de conexão real; `coletando dados` e o scanner indicam telemetria/monitoramento visual e não podem ser interpretados como prova de inferência da OpenAI.

@@ -165,3 +165,16 @@ O `main` não continha os quatro documentos canônicos e ainda havia documentaç
 - GitHub: os cinco workflows concluíram com sucesso no commit acima.
 - PROD: `/controle/`, `?view=health`, `?view=access` e `?view=radioid` responderam HTTP 200; XLXD/Nginx/PHP-FPM/Unified Voice/VU Tap permaneceram ativos; sem erros web observados após a alteração.
 - Backup/rollback: `/root/backups-xlx026/CONTROL_MENU_PRE_20260929_181548`.
+
+
+## AI Monitor V4 living scan — validação e produção (2026-09-29)
+- Branch: `feature/ai-monitor-living-scan-v4-20260929`; implementação-base: `7e4dc650568bafeca80af8717f070d5d739eba9c`; PR #62 contra a branch de IA/áudio.
+- Mudança visual limitada ao indicador central do box TX: remove redundância, amplia o status e adiciona scanner segmentado CSS.
+- Estado conectado/monitoring: **IA CONECTADA · coletando dados**. Estados de DSP/análise/recomendação/reconexão permanecem distintos.
+- A animação usa CSS (`transform`/`opacity`), sem polling, fetch ou timer JavaScript; `prefers-reduced-motion` desativa o movimento.
+- ENV WartyWallaby: `node --check`, sanity CSS, `test-ai-monitor-contract.sh`, current-panel parity, dashboard i18n, governance, Admin IA e Controle funcional concluíram com sucesso.
+- GitHub PR #62: checks `regression` e `parity` concluíram com sucesso no commit de implementação.
+- PROD: patch mínimo aplicado somente em `assets/app.js` e `assets/ai-monitor-v1.css`; nenhum serviço de rádio/áudio foi reiniciado.
+- Backup/rollback: `/root/backups-xlx026/AI_SCANNER_PRE_V4_20260929_190923`, com hashes verificados antes da publicação.
+- PROD após publicação: página HTTP 200; assets públicos contêm `coletando dados` e `xlxmodernAiScanSweep`; estado sanitizado `configured=true`, `api_connected=true`, `state=monitoring`; Nginx, PHP-FPM, XLXD, Unified Voice e VU Tap ativos; sem erro FastCGI/PHP/upstream observado no recorte pós-deploy.
+- Limite da evidência: `active_count=0` nas verificações após o deploy, portanto a validação visual final do V4 durante uma TX real permanece pendente e não é convertida por inferência.

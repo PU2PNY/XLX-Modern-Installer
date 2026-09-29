@@ -199,3 +199,190 @@ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor.i
   transition:none !important;
  }
 }
+
+
+/* XLXMODERN AI MONITOR V4 — living scan display */
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor{
+ gap:7px !important;
+ padding-right:8px !important;
+}
+
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor > b{
+ flex:0 0 auto !important;
+ letter-spacing:.055em !important;
+}
+
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor > span{
+ flex:0 1 auto !important;
+ font-size:clamp(10px,.9vw,12px) !important;
+ font-weight:800 !important;
+ letter-spacing:.025em !important;
+ color:#dffbff !important;
+ text-shadow:0 0 8px rgba(103,232,249,.34) !important;
+}
+
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor > em.tx-ai-scan{
+ position:relative !important;
+ display:block !important;
+ flex:0 0 82px !important;
+ width:82px !important;
+ height:12px !important;
+ min-width:44px !important;
+ padding:0 !important;
+ border:1px solid rgba(103,232,249,.42) !important;
+ border-radius:999px !important;
+ opacity:1 !important;
+ overflow:hidden !important;
+ background:
+  repeating-linear-gradient(
+   90deg,
+   rgba(34,211,238,.22) 0 3px,
+   rgba(34,211,238,.22) 3px 4px,
+   transparent 4px 7px
+  ) !important;
+ box-shadow:
+  inset 0 0 9px rgba(34,211,238,.13),
+  0 0 8px rgba(34,211,238,.13) !important;
+ contain:paint !important;
+}
+
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor > em.tx-ai-scan::before{
+ content:"" !important;
+ position:absolute !important;
+ top:-3px !important;
+ bottom:-3px !important;
+ left:0 !important;
+ width:18% !important;
+ border-radius:999px !important;
+ background:linear-gradient(
+  90deg,
+  rgba(255,255,255,0),
+  rgba(103,232,249,.42) 25%,
+  rgba(255,255,255,.98) 52%,
+  rgba(34,211,238,.72) 68%,
+  rgba(255,255,255,0)
+ ) !important;
+ box-shadow:
+  0 0 7px 2px rgba(34,211,238,.86),
+  0 0 15px 4px rgba(34,211,238,.34) !important;
+ transform:translateX(-140%) !important;
+ animation:xlxmodernAiScanSweep 1.45s linear infinite !important;
+ will-change:transform,opacity !important;
+}
+
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor > em.tx-ai-scan::after{
+ content:"" !important;
+ position:absolute !important;
+ inset:0 !important;
+ border-radius:inherit !important;
+ background:linear-gradient(
+  90deg,
+  transparent 0 10%,
+  rgba(34,211,238,.06) 28%,
+  rgba(103,232,249,.20) 48%,
+  rgba(34,211,238,.07) 68%,
+  transparent 88% 100%
+ ) !important;
+ background-size:45% 100% !important;
+ background-repeat:no-repeat !important;
+ transform:translateX(-55%) !important;
+ animation:xlxmodernAiScanTrail 1.45s linear infinite !important;
+ will-change:transform,opacity !important;
+}
+
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor.is-monitoring > i,
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor.is-analyzing > i{
+ animation:xlxmodernAiLedPulse 1.7s ease-in-out infinite !important;
+ will-change:transform,opacity !important;
+}
+
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor.is-error > em.tx-ai-scan::before,
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor.is-error > em.tx-ai-scan::after{
+ animation-play-state:paused !important;
+ opacity:.18 !important;
+}
+
+@keyframes xlxmodernAiScanSweep{
+ 0%{transform:translateX(-140%);opacity:.15}
+ 8%{opacity:.92}
+ 50%{opacity:1}
+ 92%{opacity:.92}
+ 100%{transform:translateX(650%);opacity:.12}
+}
+
+@keyframes xlxmodernAiScanTrail{
+ 0%{transform:translateX(-55%);opacity:.22}
+ 12%{opacity:.68}
+ 88%{opacity:.68}
+ 100%{transform:translateX(235%);opacity:.16}
+}
+
+@keyframes xlxmodernAiLedPulse{
+ 0%,100%{transform:scale(.88);opacity:.82}
+ 50%{transform:scale(1.10);opacity:1}
+}
+
+@container (max-width:700px){
+ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor{
+  gap:3px !important;
+  padding-left:5px !important;
+  padding-right:5px !important;
+  font-size:7.2px !important;
+ }
+ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor > i{
+  width:6px !important;
+  height:6px !important;
+  min-width:6px !important;
+ }
+ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor > b{
+  max-width:62px !important;
+  font-size:7.2px !important;
+  letter-spacing:.035em !important;
+ }
+ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor > span{
+  max-width:58px !important;
+  font-size:7.2px !important;
+ }
+ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor > em.tx-ai-scan{
+  display:block !important;
+  flex-basis:34px !important;
+  width:34px !important;
+  min-width:34px !important;
+  height:9px !important;
+ }
+}
+
+@container (max-width:430px){
+ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor{
+  gap:2px !important;
+  padding-left:4px !important;
+  padding-right:4px !important;
+ }
+ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor > b{
+  max-width:48px !important;
+  font-size:6.8px !important;
+ }
+ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor > span{
+  max-width:46px !important;
+  font-size:6.8px !important;
+ }
+ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor > em.tx-ai-scan{
+  flex-basis:22px !important;
+  width:22px !important;
+  min-width:22px !important;
+  height:8px !important;
+ }
+}
+
+@media (prefers-reduced-motion: reduce){
+ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor > em.tx-ai-scan::before,
+ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor > em.tx-ai-scan::after,
+ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor > i{
+  animation:none !important;
+  will-change:auto !important;
+ }
+ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor > em.tx-ai-scan::before{
+  transform:translateX(235%) !important;
+  opacity:.72 !important;
+ }
+}
