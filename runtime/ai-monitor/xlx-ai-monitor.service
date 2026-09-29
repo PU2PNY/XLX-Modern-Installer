@@ -1,0 +1,26 @@
+[Unit]
+Description=XLX Modern AI monitor status
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=www-data
+Group=www-data
+RuntimeDirectory=xlx-ai-monitor
+RuntimeDirectoryMode=0755
+RuntimeDirectoryPreserve=yes
+EnvironmentFile=-/etc/xlx-ai-monitor.env
+ExecStart=/usr/local/lib/xlx-modern/xlx-ai-monitor.py
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+UMask=0022

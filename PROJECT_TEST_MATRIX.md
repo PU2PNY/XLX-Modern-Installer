@@ -34,3 +34,20 @@ Atualize a linha com:
 - nível de evidência.
 
 Nunca transformar `OPERATOR` em `PROD`, ou `SW` em `ENV`, sem novo teste.
+
+| TEST-016 | AUDIO-001/003 | Controlador adaptativo: referência, outliers, fail-open, janela robusta e hard cap ±1,0 codificado | WartyWallaby + commit 66d0dec5f92f22b11e34ad4e1e91bcd4d9f187f8: teste C++/contrato PASS; candidato ±3 anterior rejeitado e não promovido | PASS (ENV) |
+| TEST-017 | AUDIO-002 | Modo adaptativo usa AdjustAmbeGain sem re-encode PCM/AMBE e preserva áudio nominal | replay offline no XLX026: mid e PU2UJY bit-exact; low/loud/MIZ corrigidos; MMDVM/DMRPlus failed=0 | PASS (ENV) |
+| TEST-018 | AUDIO-001 | Sem OpenAI/API externa no caminho de áudio; 0 tokens por TX | contrato estático + WartyWallaby PASS no candidato atual | PASS (ENV) |
+| TEST-019 | AUDIO-004/005 | Desativado por padrão; YSF/D-Star inalterados | adaptive_gain_dmr=0; escopo DMR somente; teste de rádio real/HW e PROD ainda pendentes | PARCIAL (DOC/SW/ENV) |
+
+| TEST-020 | AI-001 | Segredo OpenAI fica fora do Git/browser e arquivo server-side usa 0600 | WartyWallaby: contrato 0600 PASS; PROD: API autenticada sem expor segredo e estado público sanitizado | PASS (ENV/PROD) |
+| TEST-021 | AI-002/003 | Badge TX diferencia IA/DSP sem novo polling | PROD: status público retornou configured=true/api_connected=true com TX ativa; assets/integração já implantados | PASS (SW/ENV/PROD) |
+| TEST-022 | AI-004 | V1 não envia áudio nem faz inferência; valida somente conectividade da API | WartyWallaby + PROD: autenticação da API confirmada; mensagem pública “IA conectada • monitoramento local ativo”; sem inferência contínua | PASS (SW/ENV/PROD) |
+
+| TEST-023 | AI-006 / UI-002 | Indicador IA central na mesma linha do cabeçalho TX, autoajustável e sem novo polling | V3: WartyWallaby contrato PASS; PROD 1365×768 confirmou IA entre “Transmitindo agora” e “NO AR”, sem linha extra, sobreposição ou perda de MTR/VU/dados | PASS (SW/ENV/PROD) |
+
+| TEST-024 | AI-007 / SEC-001 | Controle exibe estado sanitizado da IA sem segredo e sem inferência fictícia | WartyWallaby: contrato, i18n e Controle funcional PASS; suíte completa `tests/run-all.sh` terminou `failures=0` no commit 06b988b727039074823a887130390d88911817b5; 5 workflows CI PASS; PROD: /controle/ HTTP 200, seção IA instalada, api_connected=true e serviços preservados | PASS (SW/ENV/PROD) |
+
+| TEST-025 | ADMIN-004 | Controle dividido em Início, Saúde Operacional, Acesso/Interlink e Indicativos/RadioID, preservando autenticação/CSRF | WartyWallaby: navegação, IA, i18n e Controle funcional PASS no commit 2f5f35d5b4069a05e70f80321f4358d414d4f93e; 5 workflows CI PASS; PROD: quatro views HTTP 200 na rota privada, serviços preservados e sem erros web | PASS (SW/ENV/PROD) |
+
+| TEST-026 | AI-006/008 / PERF-001/002 | V4: rótulo sem redundância, `IA CONECTADA · coletando dados` somente com conexão real, scanner segmentado CSS contínuo sem polling/fetch/timer JS, reduced-motion e fit em cards estreitos/multi-TX | WartyWallaby em `10be6fe789981eb8af9b5d8828b2e7b28811d41e`: JS/CSS sanity, contrato IA e current-panel parity PASS; PR #62: checks `regression` e `parity` PASS; merge na branch de IA/áudio `0126938d3f7e50459a9e06197c9b875aea6d43db`. PROD: assets V4 + ajuste responsivo públicos, `api_connected=true`, `state=monitoring` e serviços críticos ativos; `active_count=0`, portanto validação visual durante TX real continua pendente | PARCIAL (SW/ENV/PROD) |

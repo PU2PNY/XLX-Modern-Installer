@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+TMP="$(mktemp -d)"
+trap 'rm -rf "$TMP"' EXIT
+
+if command -v g++ >/dev/null 2>&1; then
+    g++ -std=c++17 -Wall -Wextra -Werror "$ROOT/tests/test-audio-adaptive-gain.cpp" -o "$TMP/t"
+    "$TMP/t"
+    echo "compiler_test=PASS"
+else
+    python3 - "$ROOT/audio/dmr-normalizer/src/adaptive_gain.hpp" <<'PY'
+import math
+import pathlib
+import re
+import sys
+
+src = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8")
+
+required = {
+    "target_dbfs": "-30.0",
+    "deadband_db": "3.5",
+    "hard_limit_db": "1.0",
+    "coded_gain_per_pcm_db": "0.125",
+    "speech_gate_dbfs": "-50.0",
+    "min_samples": "40",
+    "max_frames": "100",
+}
+for key, value in required.items():
+    if not re.search(rf"\b{re.escape(key)}\s*=\s*{re.escape(value)}\s*;", src):
+        raise SystemExit(f"missing/default mismatch: {key}={value}")
+
+if "std::min(1.0" not in src:
+    raise SystemExit("hard ±1.0 coded-gain ceiling missing")
+if "correction_db_ = 0.0; // fail open" not in src:
+    raise SystemExit("fail-open contract missing")
+
+def correction(values, target=-30.0, deadband=3.5, hard_limit=1.0, scale=0.125, gate=-50.0, minimum=40, max_frames=100):
+    usable = [v for v in values[:max_frames] if math.isfinite(v) and v >= gate]
+    if len(usable) < minimum:
+        return 0.0
+    x = sorted(usable[:minimum])
+    median = (x[minimum//2-1] + x[minimum//2]) / 2 if minimum % 2 == 0 else x[minimum//2]
+    err = target - median
+    hard = min(1.0, max(0.0, abs(hard_limit)))
+    requested = err * max(0.0, scale)
+    return 0.0 if abs(err) <= max(0.0, deadband) else max(-hard, min(hard, requested))
+
+cases = [
+    ([-38.0] * 40, 1.0, "low"),
+    ([-17.0] * 40, -1.0, "high"),
+    ([-30.0] * 40, 0.0, "ideal"),
+    ([-26.60] * 40, 0.0, "mid-neutral"),
+    ([-40.0] * 40, 1.0, "hard-cap"),
+    ([-90.0] * 100, 0.0, "fail-open"),
+    ([-23.42] * 40, -0.8225, "miz-like"),
+    ([-30.53] * 40, 0.0, "ujy-like"),
+]
+for values, expected, name in cases:
+    got = correction(values, hard_limit=9.0 if name == "hard-cap" else 1.0)
+    if abs(got - expected) > 1e-9:
+        raise SystemExit(f"{name}: expected {expected}, got {got}")
+
+print("python_contract=PASS")
+PY
+    echo "compiler_test=SKIP_NO_GXX"
+fi
+
+grep -F 'adaptive_gain_dmr=0' "$ROOT/audio/dmr-normalizer/xlx-dmr-normalizer.conf.example" >/dev/null
+grep -F 'std::min(1.0' "$ROOT/audio/dmr-normalizer/src/adaptive_gain.hpp" >/dev/null
+grep -F 'CYsfUtils::AdjustAmbeGain' "$ROOT/audio/dmr-normalizer/src/dmr_audio_core.hpp" >/dev/null
+
+if grep -RniE 'openai|api\.openai|curl .*openai|https?://'     "$ROOT/audio/dmr-normalizer/src"     "$ROOT/audio/dmr-normalizer/xlx-dmr-normalizer.conf.example"; then
+    echo "ERROR: external/AI dependency found in real-time audio component" >&2
+    exit 1
+fi
+
+echo "audio_adaptive_gain_contract=PASS"

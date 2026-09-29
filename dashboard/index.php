@@ -161,6 +161,7 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}' . page_url($page);
 <link rel="stylesheet" href="assets/ao-vivo-top-layout-v2.css?v=1">
 <link rel="stylesheet" href="assets/ao-vivo-compact-v3.css?v=1">
 <link rel="stylesheet" href="assets/ao-vivo-tx-embed-v5.css?v=1">
+<link rel="stylesheet" href="assets/ai-monitor-v1.css?v=1">
 <link rel="stylesheet" href="assets/ao-vivo-tx-finetune-v6.css?v=1">
 <link rel="stylesheet" href="assets/ao-vivo-visual-fix-v7.css?v=1">
 <link rel="stylesheet" href="assets/ao-vivo-gif-scale-v8.css?v=1">

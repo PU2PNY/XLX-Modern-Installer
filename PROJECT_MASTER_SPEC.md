@@ -44,10 +44,28 @@ Fornecer um instalador público, reproduzível e seguro para refletor XLXD em De
 - **ADMIN-001** — Administração privada não deve expor terminal SSH/Linux nem terminal XLXD arbitrário.
 - **ADMIN-002** — Ações privilegiadas devem usar helpers limitados, não sudo arbitrário no navegador.
 - **ADMIN-003** — Operações administrativas legítimas que excedam o orçamento HTTP público devem usar exceção de timeout limitada à rota privada; não ampliar o timeout global para mascarar operação lenta.
+- **ADMIN-004** — A página privada Controle deve oferecer navegação interna por visualizações separadas: Início, Saúde Operacional, Controle de Acesso e Interlink, e Indicativos & RadioID. A separação não deve criar novas rotas Nginx nem reduzir autenticação, CSRF, rate limiting ou auditoria.
 - **SEC-001** — Nenhum segredo de produção no Git.
 - **SEC-002** — `.gitignore` deve continuar cobrindo chaves, certificados, bancos, env, backups e segredos.
 - **SEC-003** — Admin deve preservar CSRF, sessão, rate limiting e auditoria.
 - **SEC-004** — Portas e serviços devem seguir princípio de menor exposição.
+
+### AUDIO
+- **AUDIO-001** — Normalização em tempo real deve ser determinística e local; nenhuma chamada OpenAI/LLM/API externa no caminho TX/RX.
+- **AUDIO-002** — DMR V1 deve evitar nova geração AMBE; a correção adaptativa atua no ganho AMBE+2 codificado e deve ser calibrada contra capturas de referência aprovadas.
+- **AUDIO-003** — Correção por transmissão deve ser fail-open, usar deadband e ter limite rígido de ±3 dB.
+- **AUDIO-004** — Recurso permanece desativado por padrão até ENV + rádio real/HW + rollback.
+- **AUDIO-005** — YSF e D-Star não podem mudar como efeito colateral da V1 DMR.
+
+### AI / MONITORAMENTO
+- **AI-001** — Chave OpenAI nunca pode ser enviada ao browser, gravada no Git ou exposta em API pública; deve permanecer server-side com permissão restrita.
+- **AI-002** — O box TX deve distinguir claramente ação local DSP de ação/recomendação real da IA; não atribuir à IA o que ela não fez.
+- **AI-003** — Monitor de IA não pode criar polling adicional no navegador; deve reutilizar o estado já transportado pelo status do dashboard.
+- **AI-004** — Política de custo: DSP/telemetria local primeiro; inferência externa somente por exceção/agregação. V1 não envia áudio nem consome tokens de inferência.
+- **AI-005** — IA não pode aplicar ganho/EQ/filtros arbitrários. Qualquer ação futura exige controlador local com limites, auditoria e rollback.
+- **AI-006** — O estado da IA no Live deve ficar claramente visível dentro do box TX, centralizado na mesma linha entre “Transmitindo agora” e “NO AR”, autoajustável em telas estreitas e sem ocultar dados operacionais. Animação contínua é permitida somente como indicador visual CSS leve, baseada em `transform`/`opacity`, sem novo polling/fetch/timer JavaScript e com `prefers-reduced-motion` obrigatório.
+- **AI-007** — A página privada Controle deve apresentar de forma clara o estado sanitizado da IA, conexão, última atualização e última ação registrada, reutilizando o status já carregado; nunca deve expor a chave ou afirmar que houve análise/inferência quando não houve.
+- **AI-008** — No Live, `IA CONECTADA` só pode aparecer quando `configured && api_connected` for verdadeiro. Em estado conectado/monitoring, o status visual pode mostrar `coletando dados`; o scanner representa atividade de telemetria/monitoramento e não prova, por si só, que houve inferência da OpenAI.
 
 ### OBSERVABILITY / PERFORMANCE
 - **OBS-001** — Serviços críticos devem ter estado verificável por health/status/logs.

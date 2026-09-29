@@ -1,3 +1,71 @@
+## Unreleased — AI Monitor V4 living scan display
+
+- Simplifies the TX header indicator to a truthful primary connection label plus a larger live status; connected monitoring renders **IA CONECTADA · coletando dados**.
+- Replaces the redundant visible “IA DO SERVIDOR / MONITORAMENTO LOCAL ATIVO” wording with a thin segmented digital scanner.
+- Adds a continuous CSS-only light sweep using transform/opacity; no fetch, browser polling or JavaScript timer is added.
+- Keeps DSP, analyzing, recommendation, applied and reconnecting states distinct, and never shows **IA CONECTADA** unless the sanitized API state is connected.
+- Honors `prefers-reduced-motion` with a static scanner fallback and keeps responsive reductions for narrow TX cards.
+- WartyWallaby contract/parity checks and GitHub PR #62 `regression`/`parity` checks passed. XLX026 then received the change as a minimal two-asset patch with verified rollback backup; public assets, sanitized AI state and critical services were validated after deploy. Final visual confirmation during a real TX remains pending because no transmission was active during the post-deploy check.\n- Narrow-card/multi-TX fit was tightened in `10be6fe789981eb8af9b5d8828b2e7b28811d41e` (34 px scanner at ≤700 px and 22 px at ≤430 px). WartyWallaby contract/current-panel parity and GitHub checks passed; the V4 PR was merged into the IA/audio feature branch as `0126938d3f7e50459a9e06197c9b875aea6d43db`.
+
+## Unreleased — private Control split into pages
+
+- Adds a responsive private menu with Home, Operational Health, Access Control & Interlink, and Callsigns & RadioID.
+- Uses internal `?view=` navigation under the existing private Admin route; no new Nginx route is required.
+- Keeps summary, Server AI, tests, listeners, logs, backups and protected XLXD restart on Home.
+- Preserves the existing session, CSRF, rate limiting, audit and limited-helper security model.
+- Adds navigation regression coverage and locale entries for the new menu.
+
+## Unreleased — AI observability in private Control page
+
+- Adds a clear **Server AI** section to the private Control page.
+- Reuses the already-loaded sanitized `ai_monitor` object; no direct OpenAI call, API key access or new polling is introduced.
+- Shows connection, current state, last update and last recorded AI action.
+- Explicitly states that automatic model analysis is not enabled yet, avoiding a misleading “Analyze now” control.
+- Adds six-language Admin translations and a dedicated contract test.
+- Production XLX026 received the section as a minimal patch with backup/rollback; the private route and core services remained healthy.
+
+## Unreleased — AI indicator fitted into TX header gap
+
+- Keeps the existing AI wording and moves only the indicator into the unused space between “Transmitindo agora” and “NO AR”.
+- Preserves the module badge and all TX/MTR/VU/details; no new polling or animation is introduced.
+
+## Unreleased — AI status centered in TX header
+
+- Moves the AI indicator into the TX header itself, centered between “Transmitindo agora” and “NO AR”.
+- Uses a three-column auto-adjusting header so the AI status remains visible without adding a new card row.
+- Removes the extra AI grid row that could push lower TX data on narrow screens.
+- Keeps the existing sanitized state path and zero additional polling.
+
+## Unreleased — prominent AI status banner
+
+- Moves the AI status from the small top-right pill to a full-width in-card banner below the TX header.
+- Makes the server AI state immediately visible while preserving NO AR and all operational TX data.
+- Reuses the existing sanitized state and update path: no new polling, fetch loop or continuous animation.
+- Cleans the AI-specific stylesheet to one authoritative V2 block. Production desktop validation at 1440×900 confirmed the banner is prominent inside the TX card without hiding NO AR, MTR/VU or TX metadata.
+
+## Unreleased — AI monitor API validated in production
+
+- Validated the real OpenAI API credential through the root-only helper without exposing the secret.
+- Runs the monitor as `www-data:www-data`; public sanitized state is readable at `/run/xlx-ai-monitor/public.json`.
+- Production returned `configured=true`, `api_connected=true` and `state=monitoring` during an active transmission.
+- Keeps continuous monitoring local; V1 performs no model inference in the TX/RX path.
+
+## Unreleased — AI monitor status in TX box
+
+- Adds a compact AI/DSP status pill to each active TX card without a new browser polling loop.
+- Keeps the OpenAI API key server-side only in a root-readable environment file. Public sanitized AI state uses `/run/xlx-ai-monitor/public.json`, avoiding DynamicUser private state-directory isolation.
+- Adds a low-frequency server-side API connectivity check; V1 sends no audio and performs no inference, so it consumes zero inference tokens. A valid key is labeled **AI connected**, while continuous monitoring remains local DSP/telemetry.
+- Separates local DSP actions from genuine AI recommendation/application states. Production XLX026 received the UI/status integration as a minimal patch over its live baseline, with backup/rollback, because the active dashboard files still differ from repository main.
+
+## Unreleased — Adaptive DMR gain normalization (experimental)
+
+- Versions the DMR normalizer source observed on the XLX026 runtime instead of leaving this audio experiment only on the server.
+- Adds deterministic per-transmission level learning with fail-open behavior and coded-domain AMBE+2 gain adjustment. Offline replay rejected the initial ±3 coded ceiling and recalibrated V1 to a -30 dBFS reference, ±3 dB deadband, 0.125 coded-gain/PCM-error scale, ±1.0 coded hard cap, a ±3.5 dB neutral band and a 40-active-frame learning window. Offline replay preserves mid/PU2UJY bit-exact while correcting low/loud/PU2MIZ.
+- Keeps OpenAI and every external API out of TX/RX: zero LLM tokens per transmission.
+- Keeps the feature disabled by default; YSF and D-Star are unchanged in V1.
+- Adds an ENV contract test validated on WartyWallaby; real DMR/HW audio validation remains required before production.
+- Records the production XLXD `CYsfUtils::AdjustAmbeGain()` delta required by this experiment.
+
 ## Unreleased — Canonical governance and documentation parity
 
 - Restores the mandatory project governance documents to the maintained branch.

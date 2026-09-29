@@ -9,6 +9,90 @@ header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
 
+
+function xlx_ai_monitor_public_status(): array
+{
+    $default = [
+        'available' => true,
+        'configured' => false,
+        'api_connected' => false,
+        'state' => 'ready',
+        'message' => 'Monitoramento local ativo',
+        'updated_at' => 0,
+        'last_action' => null,
+    ];
+
+    $path = '/run/xlx-ai-monitor/public.json';
+
+    if (!is_readable($path)) {
+        return $default;
+    }
+
+    clearstatcache(true, $path);
+    $size = @filesize($path);
+
+    if ($size === false || $size < 2 || $size > 4096) {
+        return $default;
+    }
+
+    $decoded = json_decode(
+        (string) @file_get_contents($path),
+        true
+    );
+
+    if (!is_array($decoded)) {
+        return $default;
+    }
+
+    $allowedStates = [
+        'ready',
+        'monitoring',
+        'analyzing',
+        'recommendation',
+        'ai_applied',
+        'error',
+    ];
+
+    $state = (string)($decoded['state'] ?? 'ready');
+
+    if (!in_array($state, $allowedStates, true)) {
+        $state = 'ready';
+    }
+
+    $updatedAt = (int)($decoded['updated_at'] ?? 0);
+    $fresh = $updatedAt > 0 && (time() - $updatedAt) <= 1800;
+
+    return [
+        'available' => true,
+        'configured' => !empty($decoded['configured']),
+        'api_connected' => !empty($decoded['api_connected']) && $fresh,
+        'state' => $fresh ? $state : 'ready',
+        'message' => mb_substr(
+            trim((string)($decoded['message'] ?? 'Monitoramento local ativo')),
+            0,
+            120
+        ),
+        'updated_at' => $updatedAt,
+        'last_action' => (
+            is_array($decoded['last_action'] ?? null)
+            ? [
+                'type' => mb_substr(
+                    (string)($decoded['last_action']['type'] ?? ''),
+                    0,
+                    32
+                ),
+                'message' => mb_substr(
+                    (string)($decoded['last_action']['message'] ?? ''),
+                    0,
+                    120
+                ),
+                'at' => (int)($decoded['last_action']['at'] ?? 0),
+            ]
+            : null
+        ),
+    ];
+}
+
 $defaultHistoryLimit = (int)cfg()['history_limit'];
 $requestedHistoryLimit = isset($_GET['history'])
     ? (int)$_GET['history']
@@ -208,6 +292,7 @@ try {
         'modules' => $modules,
         'history' => $history,
         'connections' => $connections,
+        'ai_monitor' => xlx_ai_monitor_public_status(),
         'sources' => [
             'xml' => is_readable(cfg()['xml_path']),
             'log' => is_readable(cfg()['log_path']),

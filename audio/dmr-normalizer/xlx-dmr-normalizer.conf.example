@@ -1,0 +1,24 @@
+# Adaptive DMR gain normalizer — experimental V1
+# Safe default: no mutation until ENV/HW validation.
+target_rms_dbfs=-21.5
+target_low_share=0.34
+target_mid_share=0.46
+target_high_share=0.20
+tone_max_db=0.0
+agc_up_max_db=15.0
+agc_down_max_db=-12.0
+compressor_threshold_dbfs=-13.0
+compressor_ratio=2.5
+expander_threshold_dbfs=-45.0
+expander_ratio=1.35
+expander_floor_db=-9.0
+limiter_dbfs=-3.0
+active_gate_dbfs=-48.0
+
+global_natural_dmr=1
+adaptive_gain_dmr=0
+adaptive_target_rms_dbfs=-30.0
+adaptive_deadband_db=3.5
+adaptive_max_gain_db=1.0
+adaptive_coded_gain_per_pcm_db=0.125
+adaptive_speech_gate_dbfs=-50.0

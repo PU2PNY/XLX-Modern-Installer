@@ -1,0 +1,12 @@
+[Unit]
+Description=Refresh XLX Modern AI monitor state
+
+[Timer]
+OnBootSec=90s
+OnUnitActiveSec=15min
+RandomizedDelaySec=45s
+Persistent=true
+Unit=xlx-ai-monitor.service
+
+[Install]
+WantedBy=timers.target
