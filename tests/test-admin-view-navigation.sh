@@ -10,7 +10,7 @@ do
   grep -Fq "$marker" "$F" || fail "missing navigation marker: $marker"
 done
 grep -Fq "Ver saúde operacional</a>" "$F" || fail "health shortcut missing"
-grep -Fq "href="<?=h(\$adminPath)?>?view=health"" "$F" || fail "health shortcut must use private admin path"
+grep -Fq 'href="<?=h($adminPath)?>?view=health"' "$F" || fail "health shortcut must use private admin path"
 grep -Fq "str_starts_with(\$postedAction,'access-')" "$F" || fail "access POST fallback missing"
 grep -Fq "str_starts_with(\$postedAction,'radioid')" "$F" || fail "radioid POST fallback missing"
 if grep -Fq "/index.php/controle/" "$F"; then fail "invalid legacy path reintroduced"; fi
