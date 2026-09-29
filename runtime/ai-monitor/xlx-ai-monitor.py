@@ -61,7 +61,7 @@ def validate_key(key: str):
     try:
         with urllib.request.urlopen(req, timeout=8) as response:
             ok = 200 <= int(response.status) < 300
-            return ok, "IA conectada • monitoramento inteligente ativo" if ok else "Falha ao validar API"
+            return ok, "IA conectada • monitoramento local ativo" if ok else "Falha ao validar API"
     except urllib.error.HTTPError as exc:
         if exc.code in (401, 403):
             return False, "Chave OpenAI recusada"
