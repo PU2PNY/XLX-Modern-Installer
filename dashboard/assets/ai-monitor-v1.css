@@ -324,38 +324,53 @@ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor.i
 
 @container (max-width:700px){
  html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor{
-  gap:4px !important;
-  padding-left:6px !important;
-  padding-right:6px !important;
+  gap:3px !important;
+  padding-left:5px !important;
+  padding-right:5px !important;
+  font-size:7.2px !important;
+ }
+ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor > i{
+  width:6px !important;
+  height:6px !important;
+  min-width:6px !important;
+ }
+ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor > b{
+  max-width:62px !important;
+  font-size:7.2px !important;
+  letter-spacing:.035em !important;
  }
  html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor > span{
-  font-size:8px !important;
+  max-width:58px !important;
+  font-size:7.2px !important;
  }
  html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor > em.tx-ai-scan{
   display:block !important;
-  flex-basis:52px !important;
-  width:52px !important;
-  height:10px !important;
+  flex-basis:34px !important;
+  width:34px !important;
+  min-width:34px !important;
+  height:9px !important;
  }
 }
 
 @container (max-width:430px){
  html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor{
-  gap:3px !important;
+  gap:2px !important;
+  padding-left:4px !important;
+  padding-right:4px !important;
  }
  html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor > b{
-  max-width:78px !important;
-  font-size:7.2px !important;
+  max-width:48px !important;
+  font-size:6.8px !important;
  }
  html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor > span{
-  max-width:70px !important;
-  font-size:7.2px !important;
+  max-width:46px !important;
+  font-size:6.8px !important;
  }
  html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor > em.tx-ai-scan{
-  flex-basis:38px !important;
-  width:38px !important;
-  min-width:38px !important;
-  height:9px !important;
+  flex-basis:22px !important;
+  width:22px !important;
+  min-width:22px !important;
+  height:8px !important;
  }
 }
 
