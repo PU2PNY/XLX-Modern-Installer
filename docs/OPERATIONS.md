@@ -38,3 +38,9 @@ Registrar:
 - reiniciar serviços “para ver se resolve” sem diagnóstico;
 - atualizar dependência crítica sem comparação de compatibilidade;
 - publicar segredos/logs privados.
+
+## AI Monitor — chave OpenAI
+- No XLX026, cadastrar a chave somente com `sudo xlx-ai-key`.
+- O helper grava `/etc/xlx-ai-monitor.env` como `root:root 0600`; nunca colar a chave em JavaScript, PHP público, GitHub, chat de suporte ou logs.
+- O estado público vem de `/var/lib/xlx-ai-monitor/public.json` e contém apenas campos sanitizados.
+- V1 valida autenticação da API sem inferência; análise de IA futura deve ser por exceção e manter DSP/telemetria local como caminho contínuo.
