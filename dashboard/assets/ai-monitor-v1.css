@@ -7,6 +7,14 @@ body[data-page="ao-vivo"] #moduleGrid .tx-top-actions{
  min-width:0;
 }
 
+/* XLXMODERN_AI_BANNER_GRID_V2
+ * The AI banner adds one row before TX content.
+ * Preserve the integrated order: header, AI, content, VU, MTR.
+ */
+body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30{
+ grid-template-rows:auto auto auto 14px auto !important;
+}
+
 body[data-page="ao-vivo"] #moduleGrid .tx-ai-monitor-wrap{
  display:flex;
  width:100%;
