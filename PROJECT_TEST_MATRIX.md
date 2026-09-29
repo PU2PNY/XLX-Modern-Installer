@@ -23,6 +23,8 @@ Níveis de evidência: DOC / SW / ENV / HW / PROD / OPERATOR.
 | TEST-014 | ADMIN-003 / PERF-001 | Timeout privado não amplia orçamento público | PR #55 + evidência SW/ENV/PROD registrada em 2026-09-23; novo POST mutável autenticado ainda pendente | PARCIAL (SW/ENV/PROD) |
 | TEST-015 | GOV-001/002 | Documentos canônicos presentes e arquitetura web coerente | `tests/test-project-governance.sh` adicionado nesta correção; aguarda CI da PR | PENDENTE |
 
+| TEST-016 | UI-010 | Alerta visual TOT: normal até 159 s, amarelo 160–169 s, vermelho 170–179 s, expirado em 180 s, sem polling de rede adicional | produção XLX026 validou thresholds, classes/assets e HTTP; corte de core possui 51 registros `TX time limit reached ... after 180 seconds` entre 2026-09-23 e 2026-09-29; validação perceptiva final depende de observação do operador | PARCIAL (PROD/OPERATOR) |
+
 ## Como registrar PASS
 Atualize a linha com:
 - ambiente;

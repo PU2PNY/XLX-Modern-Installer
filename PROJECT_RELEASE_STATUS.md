@@ -49,6 +49,13 @@ Classificação: `SW/CI`. Isso **não** equivale a validação `ENV`, `HW` ou `P
 ## Drift de governança identificado em 2026-09-28
 O `main` não continha os quatro documentos canônicos e ainda havia documentação antiga descrevendo Apache/dry-run como arquitetura atual. A correção proposta nesta branch restaura os documentos e adiciona regressão documental.
 
+## TOT 180 s — evidência PROD 2026-09-29
+- Core em produção: XLXD 2.5.3, binário SHA-256 `c0283b7f6c7644b84284140ecaa20e7643bd60a99b961a8f099f9fea19976441`.
+- Entre 2026-09-23 e 2026-09-29 foram observados 51 registros do core indicando `TX time limit reached ... after 180 seconds`.
+- Dashboard de produção inicia alerta amarelo em 160 s e vermelho em 170 s, usando borda neon V4 de alta visibilidade; não houve reinício do XLXD para a alteração visual.
+- Após o V3: XLXD, Nginx e PHP-FPM ativos; `/ao-vivo`, CSS e Live Core health responderam HTTP 200 em aproximadamente 16–18 ms na amostra pós-mudança.
+- Validação visual perceptiva final permanece `OPERATOR`; a evidência técnica acima é `PROD`.
+
 ## Próxima sequência segura
 1. revisar/mesclar esta correção documental;
 2. confirmar CI da PR;

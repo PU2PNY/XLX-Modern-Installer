@@ -1,3 +1,11 @@
+## Unreleased — High-visibility TX TOT warning
+
+- Starts a strong yellow neon warning at 160 seconds, 20 seconds before the 180-second TX timeout.
+- Changes the warning to strong red neon at 170 seconds for the final 10 seconds.
+- Uses a 5 px border, 4 px outer outline and substantially wider pulsing halo on the live TX card.
+- Reuses the existing one-second elapsed-time update and adds no network polling or backend request.
+- Keeps a strong static border when the browser requests reduced motion.
+
 ## Unreleased — Canonical governance and documentation parity
 
 - Restores the mandatory project governance documents to the maintained branch.

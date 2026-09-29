@@ -3946,3 +3946,129 @@ body[data-page="conectados"] .connected-table td{
 }
 
 /* /XLXMODERN_CONECTADOS_LEGIBILIDADE_V2 */
+
+
+/* XLX026_TX_TOT_180_ALERT_V4 — yellow 160-169s, red 170-179s */
+body[data-page='ao-vivo'] .tx-card.live.tx-tot-warning-yellow,
+body[data-page='ao-vivo'] .tx-card.live.tx-tot-warning-red,
+body[data-page='ao-vivo'] .tx-card.live.tx-tot-warning,
+body[data-page='ao-vivo'] .tx-card.live.tx-tot-expired {
+  border-width: 5px;
+  border-style: solid;
+  outline-width: 4px;
+  outline-style: solid;
+  outline-offset: 2px;
+}
+
+body[data-page='ao-vivo'] .tx-card.live.tx-tot-warning-yellow {
+  border-color: #ffd400 !important;
+  outline-color: rgba(255,221,0,.98);
+  box-shadow:
+    0 0 0 5px rgba(255,214,0,.96),
+    0 0 28px 10px rgba(255,214,0,1),
+    0 0 68px 20px rgba(255,214,0,.96),
+    0 0 138px 34px rgba(255,214,0,.80),
+    inset 0 0 34px rgba(255,214,0,.26);
+  animation: xlx026TotYellowPulse .50s ease-in-out infinite alternate;
+}
+
+body[data-page='ao-vivo'] .tx-card.live.tx-tot-warning-red,
+body[data-page='ao-vivo'] .tx-card.live.tx-tot-warning,
+body[data-page='ao-vivo'] .tx-card.live.tx-tot-expired {
+  border-color: #ff174f !important;
+  outline-color: rgba(255,45,90,1);
+  box-shadow:
+    0 0 0 5px rgba(255,23,79,.98),
+    0 0 30px 11px rgba(255,23,79,1),
+    0 0 72px 21px rgba(255,23,79,.98),
+    0 0 145px 36px rgba(255,23,79,.82),
+    inset 0 0 36px rgba(255,23,79,.28);
+  animation: xlx026TotRedPulse .46s ease-in-out infinite alternate;
+}
+
+body[data-page='ao-vivo'] .tx-card.live.tx-tot-warning-yellow::after,
+body[data-page='ao-vivo'] .tx-card.live.tx-tot-warning-red::after,
+body[data-page='ao-vivo'] .tx-card.live.tx-tot-warning::after,
+body[data-page='ao-vivo'] .tx-card.live.tx-tot-expired::after {
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+  z-index: 7;
+  padding: 6px 12px;
+  border: 2px solid rgba(255,255,255,.90);
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: .08em;
+  pointer-events: none;
+}
+body[data-page='ao-vivo'] .tx-card.live.tx-tot-warning-yellow::after {
+  content: 'ATENÇÃO · LIMITE EM ' attr(data-tot-remaining) 's';
+  background: #ffd400;
+  color: #101010;
+  box-shadow: 0 0 18px 5px rgba(255,214,0,.98),0 0 38px 10px rgba(255,214,0,.72);
+}
+body[data-page='ao-vivo'] .tx-card.live.tx-tot-warning-red::after,
+body[data-page='ao-vivo'] .tx-card.live.tx-tot-warning::after {
+  content: 'LIMITE EM ' attr(data-tot-remaining) 's';
+  background: #d60039;
+  color: #fff;
+  box-shadow: 0 0 20px 6px rgba(255,23,79,1),0 0 42px 11px rgba(255,23,79,.76);
+}
+body[data-page='ao-vivo'] .tx-card.live.tx-tot-expired::after {
+  content: 'LIMITE 180s';
+  background: #d60039;
+  color: #fff;
+  box-shadow: 0 0 20px 6px rgba(255,23,79,1),0 0 42px 11px rgba(255,23,79,.76);
+}
+
+@keyframes xlx026TotYellowPulse {
+  from {
+    outline-color: rgba(255,214,0,.68);
+    box-shadow:
+      0 0 0 3px rgba(255,214,0,.70),
+      0 0 16px 6px rgba(255,214,0,.78),
+      0 0 42px 13px rgba(255,214,0,.62),
+      0 0 92px 24px rgba(255,214,0,.44),
+      inset 0 0 20px rgba(255,214,0,.16);
+  }
+  to {
+    outline-color: rgba(255,235,70,1);
+    box-shadow:
+      0 0 0 6px rgba(255,214,0,1),
+      0 0 32px 12px rgba(255,214,0,1),
+      0 0 78px 24px rgba(255,214,0,.98),
+      0 0 155px 40px rgba(255,214,0,.86),
+      inset 0 0 40px rgba(255,214,0,.30);
+  }
+}
+
+@keyframes xlx026TotRedPulse {
+  from {
+    outline-color: rgba(255,23,79,.72);
+    box-shadow:
+      0 0 0 3px rgba(255,23,79,.76),
+      0 0 18px 7px rgba(255,23,79,.82),
+      0 0 46px 14px rgba(255,23,79,.66),
+      0 0 98px 25px rgba(255,23,79,.46),
+      inset 0 0 22px rgba(255,23,79,.18);
+  }
+  to {
+    outline-color: rgba(255,75,115,1);
+    box-shadow:
+      0 0 0 6px rgba(255,23,79,1),
+      0 0 34px 13px rgba(255,23,79,1),
+      0 0 82px 25px rgba(255,23,79,1),
+      0 0 165px 42px rgba(255,23,79,.88),
+      inset 0 0 42px rgba(255,23,79,.32);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-page='ao-vivo'] .tx-card.live.tx-tot-warning-yellow,
+  body[data-page='ao-vivo'] .tx-card.live.tx-tot-warning-red,
+  body[data-page='ao-vivo'] .tx-card.live.tx-tot-warning,
+  body[data-page='ao-vivo'] .tx-card.live.tx-tot-expired {
+    animation: none;
+  }
+}
