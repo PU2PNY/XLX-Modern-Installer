@@ -25,3 +25,6 @@ Quando uma manutenção administrativa validada (ex.: reconstrução atômica do
 
 ## DEC-2026-09-28-008 — Documentos canônicos ficam na branch principal
 Os documentos de governança obrigatórios devem existir no `main` mantido, não apenas em branch lateral. Drift documental que descreva Apache/dry-run como estado atual deve falhar em teste automatizado enquanto o fluxo autoritativo permanecer Nginx + PHP-FPM.
+
+## DEC-2026-09-29-009 — Alerta visual forte nos 15 s finais do TOT
+O TOT operacional permanece em 180 segundos. O dashboard deve usar o contador já existente para iniciar o alerta em 165 s, engrossando e pulsando o contorno do card TX sem criar polling, fetch ou timer de rede adicional. Acessibilidade com redução de movimento deve manter um contorno estático forte.
