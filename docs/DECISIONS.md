@@ -25,3 +25,6 @@ Quando uma manutenção administrativa validada (ex.: reconstrução atômica do
 
 ## DEC-2026-09-28-008 — Documentos canônicos ficam na branch principal
 Os documentos de governança obrigatórios devem existir no `main` mantido, não apenas em branch lateral. Drift documental que descreva Apache/dry-run como estado atual deve falhar em teste automatizado enquanto o fluxo autoritativo permanecer Nginx + PHP-FPM.
+
+## DEC-2026-09-29-009 — Padronização de áudio sem LLM no caminho TX/RX
+A normalização em tempo real deve ser local e determinística. OpenAI poderá ser usada futuramente apenas para diagnóstico agregado e sob demanda. A V1 atua somente em DMR, aprende o nível por transmissão, falha aberta quando faltam amostras, limita qualquer correção a ±3 dB e modifica o ganho AMBE+2 sem nova geração PCM/AMBE. O recurso permanece desligado por padrão até validação ENV + rádio real/HW.

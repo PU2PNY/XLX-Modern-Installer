@@ -52,3 +52,11 @@ O arquivo legado `modules/70-apache.sh` ainda existe no repositório, mas não �
 - atualização de XLXD/dependências críticas exige validação de compatibilidade.
 
 Consulte `PROJECT_MASTER_SPEC.md` para requisitos e `docs/RECOVERY.md` para rollback.
+
+## Áudio adaptativo experimental
+
+A branch `feature/audio-normalizer-adaptive-v1-20260929` adiciona `audio/dmr-normalizer/` como componente experimental e não autoritativo. O fluxo proposto é:
+
+DMR ingress → medição local → janela curta de aprendizagem → deadband/hard cap → ajuste do ganho AMBE+2 codificado → XLXD.
+
+Não existe chamada OpenAI/API externa nesse fluxo. O modo adaptativo evita nova re-encodificação PCM/AMBE e permanece desligado por padrão. YSF/D-Star ficam fora da V1 para impedir mudança simultânea de protocolos.

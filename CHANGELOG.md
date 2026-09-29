@@ -1,3 +1,12 @@
+## Unreleased — Adaptive DMR gain normalization (experimental)
+
+- Versions the DMR normalizer source observed on the XLX026 runtime instead of leaving this audio experiment only on the server.
+- Adds deterministic per-transmission level learning with fail-open behavior, ±3 dB deadband/ceiling controls, and coded-domain AMBE+2 gain adjustment.
+- Keeps OpenAI and every external API out of TX/RX: zero LLM tokens per transmission.
+- Keeps the feature disabled by default; YSF and D-Star are unchanged in V1.
+- Adds an ENV contract test validated on WartyWallaby; real DMR/HW audio validation remains required before production.
+- Records the production XLXD `CYsfUtils::AdjustAmbeGain()` delta required by this experiment.
+
 ## Unreleased — Canonical governance and documentation parity
 
 - Restores the mandatory project governance documents to the maintained branch.

@@ -56,3 +56,12 @@ O `main` não continha os quatro documentos canônicos e ainda havia documentaç
 4. executar nova instalação limpa em VPS Debian 12 descartável;
 5. manter branches funcionais pendentes isoladas até validação específica;
 6. não alterar produção saudável sem necessidade comprovada.
+
+## Experimental — Adaptive DMR Gain Normalizer V1 (2026-09-29)
+- Branch: `feature/audio-normalizer-adaptive-v1-20260929`
+- Commit de implementação testado: `2ba20b02fe261441a49d72e40a5d49f5786e5de0`
+- ENV: WartyWallaby executou `tests/test-audio-adaptive-gain.sh` com PASS.
+- O teste confirmou hard cap ±3 dB, fail-open, deadband e ausência de OpenAI/API externa no caminho do áudio.
+- Consumo LLM no processamento TX/RX: **0 tokens**.
+- O serviço permanece **desativado por padrão** e não foi promovido ao XLX026.
+- Pendente: regressão completa da branch, compilação/integração com dependências AMBE do runtime, tráfego DMR real e comparação por rádio/HW.
