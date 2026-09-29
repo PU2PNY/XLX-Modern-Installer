@@ -15,6 +15,13 @@ body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30{
  grid-template-rows:auto auto auto 14px auto !important;
 }
 
+/* Production/current integrated TX wrapper has a stronger !important selector.
+ * Match its specificity so the fifth AI row is not collapsed into the 14px VU row.
+ */
+html body[data-page="ao-vivo"] #moduleGrid .xlx026-tx-stack-v4 > .tx-card.live.tx-v30{
+ grid-template-rows:auto auto auto 14px auto !important;
+}
+
 body[data-page="ao-vivo"] #moduleGrid .tx-ai-monitor-wrap{
  display:flex;
  width:100%;
