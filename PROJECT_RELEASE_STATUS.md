@@ -86,3 +86,11 @@ O `main` não continha os quatro documentos canônicos e ainda havia documentaç
 - V1 não envia áudio e não faz inferência: valida conectividade da API e mantém 0 tokens de inferência.
 - O box diferencia `IA conectada`, `IA analisando`, `IA recomendou`, `IA orientou ajuste` e `DSP ajustando`.
 - Nenhuma atribuição à IA é exibida quando a correção foi apenas local.
+
+### AI Monitor V1 — implantação controlada no XLX026 (2026-09-29)
+- Produção não foi sobrescrita pela árvore do GitHub: `app.js`, `status.php` e `index.php` ativos apresentavam drift em relação ao `main`; a integração foi feita por patch mínimo sobre o baseline vivo.
+- Backup/rollback criado antes da alteração: `/root/backups-xlx026/AI_MONITOR_PRE_V1_20260929_143703`.
+- Validações PROD: PHP/JS syntax PASS, `nginx -t` PASS, `ai_monitor` sanitizado presente em `status.php`, asset JS público contém o badge, timer `xlx-ai-monitor.timer` ativo.
+- Estado atual: **sem chave OpenAI configurada**; `/etc/xlx-ai-monitor.env` não existe e o box deve mostrar estado preparado/local.
+- A mensagem padrão após uma chave válida será **IA conectada**, não “IA monitorando”: a telemetria/DSP local é o monitor contínuo; a IA só recebe rótulos de análise/recomendação quando houver evento real.
+- Nenhum serviço de áudio/protocolo foi reiniciado ou alterado; XLXD, Nginx, Unified Voice e VU Tap permaneceram ativos.
