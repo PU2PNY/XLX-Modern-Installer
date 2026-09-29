@@ -61,7 +61,7 @@ struct StreamState {
           adaptive(xlx026::AdaptiveGainConfig{
               p.adaptive_target_rms_dbfs, p.adaptive_deadband_db,
               p.adaptive_max_gain_db, p.adaptive_coded_gain_per_pcm_db,
-              p.adaptive_speech_gate_dbfs, 12, 30}) {}
+              p.adaptive_speech_gate_dbfs, 40, 100}) {}
 
     static double pcm_dbfs(const std::array<int16_t,NSAMP>& pcm) {
         long double ss = 0.0;

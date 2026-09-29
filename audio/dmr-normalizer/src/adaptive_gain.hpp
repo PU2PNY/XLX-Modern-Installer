@@ -12,8 +12,8 @@ struct AdaptiveGainConfig {
     double hard_limit_db = 1.0;
     double coded_gain_per_pcm_db = 0.125;
     double speech_gate_dbfs = -50.0;
-    std::size_t min_samples = 12;
-    std::size_t max_frames = 30;
+    std::size_t min_samples = 40;
+    std::size_t max_frames = 100;
 };
 
 class AdaptiveGain {
@@ -37,7 +37,7 @@ public:
 
         const std::size_t needed = std::max<std::size_t>(1, std::min(cfg_.min_samples, samples_.size()));
         if (count_ >= needed) {
-            std::array<double, 12> tmp = samples_;
+            std::array<double, 64> tmp = samples_;
             std::sort(tmp.begin(), tmp.begin() + static_cast<long>(count_));
             median_dbfs_ = (count_ & 1U) ? tmp[count_ / 2U]
                 : 0.5 * (tmp[count_ / 2U - 1U] + tmp[count_ / 2U]);
@@ -64,7 +64,7 @@ public:
 
 private:
     AdaptiveGainConfig cfg_;
-    std::array<double, 12> samples_{};
+    std::array<double, 64> samples_{};
     std::size_t count_ = 0;
     std::size_t frames_ = 0;
     bool ready_ = false;

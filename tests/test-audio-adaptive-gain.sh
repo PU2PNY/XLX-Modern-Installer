@@ -23,8 +23,8 @@ required = {
     "hard_limit_db": "1.0",
     "coded_gain_per_pcm_db": "0.125",
     "speech_gate_dbfs": "-50.0",
-    "min_samples": "12",
-    "max_frames": "30",
+    "min_samples": "40",
+    "max_frames": "100",
 }
 for key, value in required.items():
     if not re.search(rf"\b{re.escape(key)}\s*=\s*{re.escape(value)}\s*;", src):
@@ -47,13 +47,13 @@ def correction(values, target=-30.0, deadband=3.0, hard_limit=1.0, scale=0.125, 
     return 0.0 if abs(err) <= max(0.0, deadband) else max(-hard, min(hard, requested))
 
 cases = [
-    ([-38.0] * 12, 1.0, "low"),
-    ([-17.0] * 12, -1.0, "high"),
-    ([-30.0] * 12, 0.0, "ideal"),
-    ([-40.0] * 12, 1.0, "hard-cap"),
-    ([-90.0] * 30, 0.0, "fail-open"),
-    ([-23.42] * 12, -0.8225, "miz-like"),
-    ([-30.53] * 12, 0.0, "ujy-like"),
+    ([-38.0] * 40, 1.0, "low"),
+    ([-17.0] * 40, -1.0, "high"),
+    ([-30.0] * 40, 0.0, "ideal"),
+    ([-40.0] * 40, 1.0, "hard-cap"),
+    ([-90.0] * 100, 0.0, "fail-open"),
+    ([-23.42] * 40, -0.8225, "miz-like"),
+    ([-30.53] * 40, 0.0, "ujy-like"),
 ]
 for values, expected, name in cases:
     got = correction(values, hard_limit=9.0 if name == "hard-cap" else 1.0)
