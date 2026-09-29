@@ -43,3 +43,5 @@ Nunca transformar `OPERATOR` em `PROD`, ou `SW` em `ENV`, sem novo teste.
 | TEST-020 | AI-001 | Segredo OpenAI fica fora do Git/browser e arquivo server-side usa 0600 | WartyWallaby: contrato 0600 PASS; PROD: API autenticada sem expor segredo e estado público sanitizado | PASS (ENV/PROD) |
 | TEST-021 | AI-002/003 | Badge TX diferencia IA/DSP sem novo polling | PROD: status público retornou configured=true/api_connected=true com TX ativa; assets/integração já implantados | PASS (SW/ENV/PROD) |
 | TEST-022 | AI-004 | V1 não envia áudio nem faz inferência; valida somente conectividade da API | WartyWallaby + PROD: autenticação da API confirmada; mensagem pública “IA conectada • monitoramento local ativo”; sem inferência contínua | PASS (SW/ENV/PROD) |
+
+| TEST-023 | AI-006 / UI-002 | Banner de IA maior dentro do box TX, responsivo, sem animação contínua e sem novo polling | requisito aprovado; implementação/teste pendentes | PENDENTE |

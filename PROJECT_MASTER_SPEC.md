@@ -62,6 +62,7 @@ Fornecer um instalador público, reproduzível e seguro para refletor XLXD em De
 - **AI-003** — Monitor de IA não pode criar polling adicional no navegador; deve reutilizar o estado já transportado pelo status do dashboard.
 - **AI-004** — Política de custo: DSP/telemetria local primeiro; inferência externa somente por exceção/agregação. V1 não envia áudio nem consome tokens de inferência.
 - **AI-005** — IA não pode aplicar ganho/EQ/filtros arbitrários. Qualquer ação futura exige controlador local com limites, auditoria e rollback.
+- **AI-006** — O estado da IA no Live deve ficar claramente visível dentro do box TX, sem ocultar dados operacionais, sem animação contínua e sem adicionar polling.
 
 ### OBSERVABILITY / PERFORMANCE
 - **OBS-001** — Serviços críticos devem ter estado verificável por health/status/logs.

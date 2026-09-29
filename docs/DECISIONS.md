@@ -31,3 +31,6 @@ A normalização em tempo real deve ser local e determinística. OpenAI poderá 
 
 ## DEC-2026-09-29-010 — Status de IA deve ser verificável e não promocional
 O dashboard só pode dizer que a IA analisou, recomendou ou orientou um ajuste quando existir evento server-side correspondente. Ajustes do DSP local aparecem como DSP, não como IA. A chave OpenAI fica fora do webroot/Git e V1 não envia áudio nem consome tokens de inferência.
+
+## DEC-2026-09-29-011 — Estado da IA deve ser visível dentro do box TX sem pesar o Live
+O indicador compacto no canto superior direito é insuficiente para comunicar o recurso. O estado deve virar um banner horizontal dentro do box TX, abaixo do cabeçalho e antes dos dados da transmissão. O banner reutiliza o mesmo estado sanitizado já existente, não cria fetch/polling, não usa animação contínua e não pode ocultar NO AR, MTR/VU, indicativo, gateway, protocolo ou tempo de TX.
