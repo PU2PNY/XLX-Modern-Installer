@@ -18,8 +18,8 @@ if [[ -z "${OPENAI_KEY}" || "${#OPENAI_KEY}" -lt 20 ]]; then
   exit 2
 fi
 
-if [[ "${OPENAI_KEY}" =~ [[:space:]\'"] ]]; then
-  echo "ERRO: formato de chave não aceito pelo gravador seguro." >&2
+if [[ "${OPENAI_KEY}" =~ [[:space:]] ]]; then
+  echo "ERRO: a chave não pode conter espaços ou quebras de linha." >&2
   exit 3
 fi
 
