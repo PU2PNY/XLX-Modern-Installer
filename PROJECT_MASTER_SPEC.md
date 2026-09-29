@@ -32,7 +32,7 @@ Fornecer um instalador público, reproduzível e seguro para refletor XLXD em De
 - **UI-007** — GPS/APRS/D-PRS só pode ser exibido como posição quando houver dado observado, nunca por inferência de cadastro.
 - **UI-008** — Rotas, IDs, nomes de arquivos, APIs e contratos técnicos não podem ser traduzidos.
 - **UI-009** — Publicação não deve reintroduzir páginas deliberadamente excluídas do pacote público sem decisão registrada.
-- **UI-010** — Quando o XLXD operar com TOT de 180 s, o Ao Vivo deve sinalizar visualmente os 15 segundos finais (165–179 s) sem adicionar polling/requisição de rede; o alerta deve permanecer acessível com `prefers-reduced-motion`.
+- **UI-010** — Quando o XLXD operar com TOT de 180 s, o Ao Vivo deve sinalizar os 20 segundos finais sem adicionar polling/requisição de rede: amarelo forte em 160–169 s e vermelho forte em 170–179 s; o alerta deve permanecer acessível com `prefers-reduced-motion`.
 
 ### DATA / APRS / CERTIFICATES
 - **DATA-001** — Correções locais de callsign devem sobreviver a refresh do diretório upstream.
