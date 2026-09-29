@@ -15,7 +15,7 @@ An initial experimental ±3 coded-gain ceiling was rejected before deployment: s
 
 V1 therefore uses:
 - target active speech: **-30 dBFS**;
-- deadband: **±3 dB**;
+- deadband: **±3.5 dB**;
 - coded-gain scale: **0.125 per 1 dB PCM error**;
 - hard coded-gain ceiling: **±1.0**;
 - insufficient speech evidence => **0 adjustment (fail-open)**.
@@ -29,3 +29,15 @@ V1 therefore uses:
 - Production activation still requires offline replay of this calibrated candidate, ENV regression, real-radio/HW comparison and rollback validation.
 
 The source was imported from the XLX026 runtime observed on 2026-09-29. The production normalizer service was inactive, so this is provenance, not PROD PASS.
+
+### Offline replay result — 2026-09-29
+
+Candidate `66d0dec5f92f22b11e34ad4e1e91bcd4d9f187f8`:
+- low: -38.87 → -30.30 dBFS;
+- mid: -27.06 → -27.06 dBFS (**bit-exact**);
+- loud: -18.72 → -25.10 dBFS;
+- PU2MIZ: -23.42 → -27.95 dBFS;
+- PU2UJY: -30.53 → -30.53 dBFS (**bit-exact**);
+- MMDVM and DMRPlus: `failed=0`.
+
+This is offline ENV evidence using existing XLX026 lab captures, not HW/PROD validation.

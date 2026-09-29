@@ -71,3 +71,11 @@ O `main` não continha os quatro documentos canônicos e ainda havia documentaç
 - Referência real: PU2UJY mediana ativa ~-30,53 dBFS; PU2MIZ bruto ~-23,42; PU2MIZ com ajuste V6 -0,8 ~-29,60.
 - O candidato foi recalibrado para alvo -30 dBFS, deadband ±3, escala 0,125 e hard cap ±1,0 codificado.
 - Nenhuma dessas experiências alterou o serviço de produção.
+
+### Candidato de áudio recalibrado — commit 66d0dec5f92f22b11e34ad4e1e91bcd4d9f187f8
+- Alvo de fala ativa: aproximadamente -30 dBFS.
+- Deadband: ±3,5 dB para preservar áudio nominal.
+- Aprendizagem: 40 quadros ativos; timeout fail-open em 100 quadros; sem buffering.
+- Escala: 0,125 de ganho AMBE codificado por 1 dB de erro PCM; hard cap ±1,0 codificado.
+- Replay ENV/offline: mid e PU2UJY permaneceram bit-exact; PU2MIZ foi de -23,42 para -27,95 dBFS; vetores low/loud moveram-se na direção correta; MMDVM/DMRPlus failed=0.
+- Estado: **não ativado em produção**. HW/rádio real permanece gate obrigatório.

@@ -35,7 +35,7 @@ Atualize a linha com:
 
 Nunca transformar `OPERATOR` em `PROD`, ou `SW` em `ENV`, sem novo teste.
 
-| TEST-016 | AUDIO-001/003 | Controlador adaptativo: referência, outliers, fail-open e hard cap ±1,0 codificado | candidato ±3 rejeitado por replay; candidato recalibrado aguarda nova execução | PENDENTE |
-| TEST-017 | AUDIO-002 | Modo adaptativo usa AdjustAmbeGain sem re-encode PCM/AMBE e preserva referência | replay inicial comprovou caminho sem falhas, mas calibração ±3 foi rejeitada; repetir com candidato ±1,0 | PENDENTE |
-| TEST-018 | AUDIO-001 | Sem OpenAI/API externa no caminho de áudio; 0 tokens por TX | contrato estático e ENV já passaram; deve permanecer após recalibração | PASS (ENV) |
-| TEST-019 | AUDIO-004/005 | Desativado por padrão; YSF/D-Star inalterados | configuração/escopo preservados; validação HW pendente | PARCIAL (DOC/SW) |
+| TEST-016 | AUDIO-001/003 | Controlador adaptativo: referência, outliers, fail-open, janela robusta e hard cap ±1,0 codificado | WartyWallaby + commit 66d0dec5f92f22b11e34ad4e1e91bcd4d9f187f8: teste C++/contrato PASS; candidato ±3 anterior rejeitado e não promovido | PASS (ENV) |
+| TEST-017 | AUDIO-002 | Modo adaptativo usa AdjustAmbeGain sem re-encode PCM/AMBE e preserva áudio nominal | replay offline no XLX026: mid e PU2UJY bit-exact; low/loud/MIZ corrigidos; MMDVM/DMRPlus failed=0 | PASS (ENV) |
+| TEST-018 | AUDIO-001 | Sem OpenAI/API externa no caminho de áudio; 0 tokens por TX | contrato estático + WartyWallaby PASS no candidato atual | PASS (ENV) |
+| TEST-019 | AUDIO-004/005 | Desativado por padrão; YSF/D-Star inalterados | adaptive_gain_dmr=0; escopo DMR somente; teste de rádio real/HW e PROD ainda pendentes | PARCIAL (DOC/SW/ENV) |
