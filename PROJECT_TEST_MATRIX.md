@@ -40,6 +40,6 @@ Nunca transformar `OPERATOR` em `PROD`, ou `SW` em `ENV`, sem novo teste.
 | TEST-018 | AUDIO-001 | Sem OpenAI/API externa no caminho de áudio; 0 tokens por TX | contrato estático + WartyWallaby PASS no candidato atual | PASS (ENV) |
 | TEST-019 | AUDIO-004/005 | Desativado por padrão; YSF/D-Star inalterados | adaptive_gain_dmr=0; escopo DMR somente; teste de rádio real/HW e PROD ainda pendentes | PARCIAL (DOC/SW/ENV) |
 
-| TEST-020 | AI-001 | Segredo OpenAI fica fora do Git/browser e arquivo server-side usa 0600 | teste contratual adicionado; validação ENV pendente | PENDENTE |
-| TEST-021 | AI-002/003 | Badge TX diferencia IA/DSP sem novo polling | teste estático adicionado; validação visual ENV pendente | PENDENTE |
-| TEST-022 | AI-004 | V1 não envia áudio nem faz inferência; valida somente conectividade da API | código/contrato adicionado; ENV pendente | PENDENTE |
+| TEST-020 | AI-001 | Segredo OpenAI fica fora do Git/browser e arquivo server-side usa 0600 | WartyWallaby: chave fictícia gravada root:root 0600, rejeitada pela API e ausente do JSON/logs; produção ainda sem chave real | PASS (ENV) |
+| TEST-021 | AI-002/003 | Badge TX diferencia IA/DSP sem novo polling | código implantado por patch mínimo no XLX026; endpoint e asset públicos validados; inspeção visual de TX em andamento | PARCIAL (SW/ENV/PROD) |
+| TEST-022 | AI-004 | V1 não envia áudio nem faz inferência; valida somente conectividade da API | suíte completa WartyWallaby failures=0; 4 workflows CI PASS; serviço PROD instalado sem chave/inferência | PASS (SW/ENV/PROD) |
