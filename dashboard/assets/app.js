@@ -166,7 +166,7 @@ function txCard(m){
    </div>
    <div class="tx-ai-monitor-wrap">
     <span class="tx-ai-monitor is-ready" data-ai-module="${esc(m.module)}" role="status" aria-live="polite" title="Monitoramento local ativo; API de IA ainda não configurada.">
-     <i></i><b>IA DO SERVIDOR</b><span>Preparada</span><em>MONITORAMENTO LOCAL</em>
+     <i></i><b>IA DO SERVIDOR</b><span>Preparada</span><em>MONITORAMENTO LOCAL ATIVO</em>
     </span>
    </div>
    <div class="tx-top-actions">

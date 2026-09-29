@@ -1,3 +1,8 @@
+## Unreleased — AI indicator fitted into TX header gap
+
+- Keeps the existing AI wording and moves only the indicator into the unused space between “Transmitindo agora” and “NO AR”.
+- Preserves the module badge and all TX/MTR/VU/details; no new polling or animation is introduced.
+
 ## Unreleased — AI status centered in TX header
 
 - Moves the AI indicator into the TX header itself, centered between “Transmitindo agora” and “NO AR”.

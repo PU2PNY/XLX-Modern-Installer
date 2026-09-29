@@ -126,3 +126,8 @@ O `main` não continha os quatro documentos canônicos e ainda havia documentaç
 - O indicador usa largura automática e reduz conteúdo secundário em containers estreitos.
 - A mudança remove a linha extra do grid do card, evitando empurrar MTR/VU/gateway/protocolo/tempo TX.
 - Mantém o mesmo estado sanitizado e não adiciona polling, fetch ou animação contínua.
+
+### AI Monitor V3 — ajuste final de posição
+- O texto permanece **IA DO SERVIDOR · estado · MONITORAMENTO LOCAL ATIVO**.
+- A alteração visual é limitada ao cabeçalho TX: módulo/“Transmitindo agora” à esquerda, IA ao centro e “NO AR” à direita.
+- Nenhum dado operacional é removido; em telas estreitas apenas o conteúdo secundário do próprio indicador de IA pode ser reduzido para caber.

@@ -174,11 +174,12 @@ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor.i
 }
 
 @container (max-width:430px){
- html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-top-main .module-badge{
-  display:none !important;
- }
  html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-top-main{
   gap:3px !important;
+ }
+ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-top-main .module-badge{
+  padding:3px 4px !important;
+  font-size:6px !important;
  }
  html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-top-main h3{
   font-size:8px !important;
