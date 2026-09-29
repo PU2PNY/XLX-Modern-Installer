@@ -37,3 +37,6 @@ O indicador de IA deve ficar centralizado no cabeçalho do próprio box TX, na m
 
 ## DEC-2026-09-29-012 — IA no Controle é observabilidade privada antes de automação
 A página privada Controle deve exibir conexão OpenAI, estado atual, última atualização e última ação real usando exclusivamente o objeto sanitizado `ai_monitor` já obtido por `status.php`. Nenhuma chave é lida pelo PHP público/privado e nenhum novo polling é criado. Enquanto não existir backend de inferência manual/automática validado, o Controle deve informar explicitamente que análise automática por IA ainda não está habilitada, em vez de oferecer um botão enganoso.
+
+## DEC-2026-09-29-013 — Controle dividido por visualizações internas
+A rota privada existente permanece única. A navegação usa `?view=home|health|access|radioid` sob o mesmo `adminPath`, evitando qualquer nova regra Nginx. Início contém resumo, IA do Servidor, integridade/testes, listeners, logs, backups e reinício. Saúde Operacional, Controle de Acesso e Interlink e Indicativos & RadioID ficam em visualizações próprias. Ações POST continuam protegidas pela mesma sessão, CSRF, helpers limitados e auditoria.
