@@ -2,16 +2,30 @@
 
 Status: **disabled by default; not approved for production yet**.
 
-The component measures a short DMR speech window and, only for a true level outlier, adjusts the AMBE+2 gain parameter already present in the coded voice frame. Adaptive mode returns before the legacy PCM DSP/re-encode path.
+The component measures active DMR speech for a short window and adjusts only the AMBE+2 coded gain parameter. Adaptive mode returns before the legacy PCM DSP/re-encode path.
 
-Safety:
-- 0 OpenAI/LLM tokens per transmission; no external API in TX/RX.
-- target -25 dBFS, deadband ±3 dB, hard software correction cap ±3 dB.
-- insufficient speech evidence => 0 dB (fail-open).
-- manual RadioID calibration keeps precedence.
+## Calibrated reference
+
+Offline analysis on the XLX026 lab captures found:
+- PU2UJY approved/reference capture: active-speech median about **-30.53 dBFS**.
+- PU2MIZ strong capture: about **-23.42 dBFS**.
+- The earlier V6 coded adjustment **-0.8** moved PU2MIZ to about **-29.60 dBFS**, while PU2UJY remained bit-exact.
+
+An initial experimental ±3 coded-gain ceiling was rejected before deployment: synthetic replay showed it could produce roughly +20 dB / -14.5 dB decoded PCM changes. AMBE coded "dB" is not 1:1 with decoded PCM dB.
+
+V1 therefore uses:
+- target active speech: **-30 dBFS**;
+- deadband: **±3 dB**;
+- coded-gain scale: **0.125 per 1 dB PCM error**;
+- hard coded-gain ceiling: **±1.0**;
+- insufficient speech evidence => **0 adjustment (fail-open)**.
+
+## Safety
+
+- **0 OpenAI/LLM tokens per transmission**; no external API in TX/RX.
+- Manual RadioID calibration keeps precedence.
+- `adaptive_gain_dmr=0` by default.
 - YSF and D-Star are unchanged in V1.
-- production activation requires backup + ENV + real-radio/HW regression + rollback.
+- Production activation still requires offline replay of this calibrated candidate, ENV regression, real-radio/HW comparison and rollback validation.
 
-The source is imported from the XLX026 runtime observed on 2026-09-29. The existing production normalizer service was inactive, so source provenance is not a PROD PASS.
-
-`xlxd-cysfutils-gain.patch` records the functional XLXD production delta that provides `CYsfUtils::AdjustAmbeGain()`. It must not be applied blindly to a different XLXD revision.
+The source was imported from the XLX026 runtime observed on 2026-09-29. The production normalizer service was inactive, so this is provenance, not PROD PASS.

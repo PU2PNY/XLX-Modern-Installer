@@ -31,9 +31,10 @@ struct VoiceProfile {
     double expander_floor_db = -9.0;
     double limiter_dbfs = -3.0;
     double active_gate_dbfs = -48.0;
-    double adaptive_target_rms_dbfs = -25.0;
+    double adaptive_target_rms_dbfs = -30.0;
     double adaptive_deadband_db = 3.0;
-    double adaptive_max_gain_db = 3.0;
+    double adaptive_max_gain_db = 1.0;
+    double adaptive_coded_gain_per_pcm_db = 0.125;
     double adaptive_speech_gate_dbfs = -50.0;
 
     bool save(const std::string& path) const {
@@ -56,6 +57,7 @@ struct VoiceProfile {
         f << "adaptive_target_rms_dbfs=" << adaptive_target_rms_dbfs << "\n";
         f << "adaptive_deadband_db=" << adaptive_deadband_db << "\n";
         f << "adaptive_max_gain_db=" << adaptive_max_gain_db << "\n";
+        f << "adaptive_coded_gain_per_pcm_db=" << adaptive_coded_gain_per_pcm_db << "\n";
         f << "adaptive_speech_gate_dbfs=" << adaptive_speech_gate_dbfs << "\n";
         return true;
     }
@@ -87,6 +89,7 @@ struct VoiceProfile {
             else if (k == "adaptive_target_rms_dbfs") adaptive_target_rms_dbfs = v;
             else if (k == "adaptive_deadband_db") adaptive_deadband_db = v;
             else if (k == "adaptive_max_gain_db") adaptive_max_gain_db = v;
+            else if (k == "adaptive_coded_gain_per_pcm_db") adaptive_coded_gain_per_pcm_db = v;
             else if (k == "adaptive_speech_gate_dbfs") adaptive_speech_gate_dbfs = v;
         }
         const double s = target_low_share + target_mid_share + target_high_share;

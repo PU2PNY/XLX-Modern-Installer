@@ -1,7 +1,7 @@
 ## Unreleased — Adaptive DMR gain normalization (experimental)
 
 - Versions the DMR normalizer source observed on the XLX026 runtime instead of leaving this audio experiment only on the server.
-- Adds deterministic per-transmission level learning with fail-open behavior, ±3 dB deadband/ceiling controls, and coded-domain AMBE+2 gain adjustment.
+- Adds deterministic per-transmission level learning with fail-open behavior and coded-domain AMBE+2 gain adjustment. Offline replay rejected the initial ±3 coded ceiling and recalibrated V1 to a -30 dBFS reference, ±3 dB deadband, 0.125 coded-gain/PCM-error scale and ±1.0 coded hard cap.
 - Keeps OpenAI and every external API out of TX/RX: zero LLM tokens per transmission.
 - Keeps the feature disabled by default; YSF and D-Star are unchanged in V1.
 - Adds an ENV contract test validated on WartyWallaby; real DMR/HW audio validation remains required before production.

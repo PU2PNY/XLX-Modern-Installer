@@ -65,3 +65,9 @@ O `main` não continha os quatro documentos canônicos e ainda havia documentaç
 - Consumo LLM no processamento TX/RX: **0 tokens**.
 - O serviço permanece **desativado por padrão** e não foi promovido ao XLX026.
 - Pendente: regressão completa da branch, compilação/integração com dependências AMBE do runtime, tráfego DMR real e comparação por rádio/HW.
+
+### Calibração de segurança posterior
+- O replay offline rejeitou o primeiro teto experimental ±3 de ganho codificado: a alteração decodificada foi muito maior que o número solicitado.
+- Referência real: PU2UJY mediana ativa ~-30,53 dBFS; PU2MIZ bruto ~-23,42; PU2MIZ com ajuste V6 -0,8 ~-29,60.
+- O candidato foi recalibrado para alvo -30 dBFS, deadband ±3, escala 0,125 e hard cap ±1,0 codificado.
+- Nenhuma dessas experiências alterou o serviço de produção.

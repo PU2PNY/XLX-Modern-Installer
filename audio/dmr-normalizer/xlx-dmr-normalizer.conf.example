@@ -17,7 +17,8 @@ active_gate_dbfs=-48.0
 
 global_natural_dmr=1
 adaptive_gain_dmr=0
-adaptive_target_rms_dbfs=-25.0
+adaptive_target_rms_dbfs=-30.0
 adaptive_deadband_db=3.0
-adaptive_max_gain_db=3.0
+adaptive_max_gain_db=1.0
+adaptive_coded_gain_per_pcm_db=0.125
 adaptive_speech_gate_dbfs=-50.0

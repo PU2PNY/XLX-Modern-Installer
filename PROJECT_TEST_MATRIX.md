@@ -35,7 +35,7 @@ Atualize a linha com:
 
 Nunca transformar `OPERATOR` em `PROD`, ou `SW` em `ENV`, sem novo teste.
 
-| TEST-016 | AUDIO-001/003 | Controlador baixo/alto/ideal, fail-open e hard cap ±3 dB | WartyWallaby, commit 2ba20b02fe261441a49d72e40a5d49f5786e5de0: test-audio-adaptive-gain.sh PASS | PASS (ENV) |
-| TEST-017 | AUDIO-002 | Modo adaptativo usa AdjustAmbeGain sem re-encode PCM/AMBE | contrato adicionado; tráfego/rádio real pendente | PENDENTE |
-| TEST-018 | AUDIO-001 | Sem OpenAI/API externa no caminho de áudio; 0 tokens por TX | WartyWallaby, commit 2ba20b02fe261441a49d72e40a5d49f5786e5de0: contrato estático PASS | PASS (ENV) |
-| TEST-019 | AUDIO-004/005 | Desativado por padrão; YSF/D-Star inalterados | branch contém adaptive_gain_dmr=0 e nenhuma alteração YSF/D-Star; runtime real ainda não testado | PARCIAL (DOC/SW) |
+| TEST-016 | AUDIO-001/003 | Controlador adaptativo: referência, outliers, fail-open e hard cap ±1,0 codificado | candidato ±3 rejeitado por replay; candidato recalibrado aguarda nova execução | PENDENTE |
+| TEST-017 | AUDIO-002 | Modo adaptativo usa AdjustAmbeGain sem re-encode PCM/AMBE e preserva referência | replay inicial comprovou caminho sem falhas, mas calibração ±3 foi rejeitada; repetir com candidato ±1,0 | PENDENTE |
+| TEST-018 | AUDIO-001 | Sem OpenAI/API externa no caminho de áudio; 0 tokens por TX | contrato estático e ENV já passaram; deve permanecer após recalibração | PASS (ENV) |
+| TEST-019 | AUDIO-004/005 | Desativado por padrão; YSF/D-Star inalterados | configuração/escopo preservados; validação HW pendente | PARCIAL (DOC/SW) |

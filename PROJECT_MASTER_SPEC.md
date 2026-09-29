@@ -51,7 +51,7 @@ Fornecer um instalador público, reproduzível e seguro para refletor XLXD em De
 
 ### AUDIO
 - **AUDIO-001** — Normalização em tempo real deve ser determinística e local; nenhuma chamada OpenAI/LLM/API externa no caminho TX/RX.
-- **AUDIO-002** — DMR V1 deve evitar nova geração AMBE; a correção adaptativa atua no ganho AMBE+2 codificado.
+- **AUDIO-002** — DMR V1 deve evitar nova geração AMBE; a correção adaptativa atua no ganho AMBE+2 codificado e deve ser calibrada contra capturas de referência aprovadas.
 - **AUDIO-003** — Correção por transmissão deve ser fail-open, usar deadband e ter limite rígido de ±3 dB.
 - **AUDIO-004** — Recurso permanece desativado por padrão até ENV + rádio real/HW + rollback.
 - **AUDIO-005** — YSF e D-Star não podem mudar como efeito colateral da V1 DMR.

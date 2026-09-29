@@ -7,9 +7,10 @@
 namespace xlx026 {
 
 struct AdaptiveGainConfig {
-    double target_dbfs = -25.0;
+    double target_dbfs = -30.0;
     double deadband_db = 3.0;
-    double hard_limit_db = 3.0;
+    double hard_limit_db = 1.0;
+    double coded_gain_per_pcm_db = 0.125;
     double speech_gate_dbfs = -50.0;
     std::size_t min_samples = 12;
     std::size_t max_frames = 30;
@@ -42,8 +43,14 @@ public:
                 : 0.5 * (tmp[count_ / 2U - 1U] + tmp[count_ / 2U]);
             const double err = cfg_.target_dbfs - median_dbfs_;
             const double deadband = std::max(0.0, cfg_.deadband_db);
-            const double hard = std::min(3.0, std::max(0.0, std::abs(cfg_.hard_limit_db)));
-            correction_db_ = (std::abs(err) <= deadband) ? 0.0 : std::max(-hard, std::min(hard, err));
+            // AMBE b2 "dB" is not 1:1 with decoded PCM level. Offline XLX026
+            // calibration showed ±3 was far too aggressive. Keep the coded
+            // adjustment within ±1.0 and scale PCM error conservatively.
+            const double hard = std::min(1.0, std::max(0.0, std::abs(cfg_.hard_limit_db)));
+            const double scale = std::max(0.0, cfg_.coded_gain_per_pcm_db);
+            const double requested = err * scale;
+            correction_db_ = (std::abs(err) <= deadband) ? 0.0
+                : std::max(-hard, std::min(hard, requested));
             ready_ = true;
         } else if (frames_ >= std::max<std::size_t>(needed, cfg_.max_frames)) {
             correction_db_ = 0.0; // fail open
