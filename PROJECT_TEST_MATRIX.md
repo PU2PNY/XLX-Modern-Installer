@@ -44,4 +44,4 @@ Nunca transformar `OPERATOR` em `PROD`, ou `SW` em `ENV`, sem novo teste.
 | TEST-021 | AI-002/003 | Badge TX diferencia IA/DSP sem novo polling | PROD: status público retornou configured=true/api_connected=true com TX ativa; assets/integração já implantados | PASS (SW/ENV/PROD) |
 | TEST-022 | AI-004 | V1 não envia áudio nem faz inferência; valida somente conectividade da API | WartyWallaby + PROD: autenticação da API confirmada; mensagem pública “IA conectada • monitoramento local ativo”; sem inferência contínua | PASS (SW/ENV/PROD) |
 
-| TEST-023 | AI-006 / UI-002 | Banner de IA maior dentro do box TX, responsivo, sem animação contínua e sem novo polling | requisito aprovado; implementação/teste pendentes | PENDENTE |
+| TEST-023 | AI-006 / UI-002 | Banner de IA maior dentro do box TX, responsivo, sem animação contínua e sem novo polling | WartyWallaby contrato PASS; 4 workflows CI PASS; PROD desktop 1440×900 confirmou banner interno, NO AR e dados sem sobreposição; validação visual mobile ainda em andamento | PARCIAL (SW/ENV/PROD) |

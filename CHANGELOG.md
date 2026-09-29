@@ -3,7 +3,7 @@
 - Moves the AI status from the small top-right pill to a full-width in-card banner below the TX header.
 - Makes the server AI state immediately visible while preserving NO AR and all operational TX data.
 - Reuses the existing sanitized state and update path: no new polling, fetch loop or continuous animation.
-- Cleans the AI-specific stylesheet to one authoritative V2 block.
+- Cleans the AI-specific stylesheet to one authoritative V2 block. Production desktop validation at 1440×900 confirmed the banner is prominent inside the TX card without hiding NO AR, MTR/VU or TX metadata.
 
 ## Unreleased — AI monitor API validated in production
 

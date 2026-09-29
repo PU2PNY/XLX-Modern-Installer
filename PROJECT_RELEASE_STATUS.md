@@ -113,3 +113,10 @@ O `main` não continha os quatro documentos canônicos e ainda havia documentaç
 - O banner reutiliza o mesmo estado já recebido pelo dashboard; não cria fetch, timer ou polling.
 - Não usa animação contínua. Estados continuam diferenciados por cor: conectado, analisando, recomendação/aplicação, DSP e erro.
 - NO AR, MTR/VU, indicativo, gateway, protocolo e tempo TX permanecem independentes.
+
+### AI Monitor V2 — validação em produção
+- Deploy por patch mínimo no dashboard ativo; nenhum serviço de rádio/áudio foi reiniciado.
+- Backup/rollback: `/root/backups-xlx026/AI_BANNER_PRE_V2_20260929_152229`.
+- Assets públicos confirmados com o novo banner; estado real permaneceu `configured=true`, `api_connected=true`, `state=monitoring`.
+- Validação visual externa em 1440×900: **IA DO SERVIDOR · IA conectada · MONITORAMENTO LOCAL ATIVO** aparece como faixa horizontal interna; **NO AR**, MTR, VU, indicativo, gateway/repetidora, protocolo e tempo TX permaneceram visíveis e sem sobreposição.
+- Nginx/PHP-FPM/XLXD/Unified Voice/VU Tap permaneceram ativos e não houve erro Nginx/PHP registrado após a alteração.
