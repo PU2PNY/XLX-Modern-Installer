@@ -14,7 +14,7 @@ Use `sudo xlx-ai-key` after installing this component. The prompt does not echo 
 
 ## Token policy
 
-V1 does **not** send TX audio or make inference requests. It validates API connectivity with the authenticated Models endpoint and publishes only sanitized state to `/var/lib/xlx-ai-monitor/public.json`.
+V1 does **not** send TX audio or make inference requests. It validates API connectivity with the authenticated Models endpoint and publishes only sanitized state to `/run/xlx-ai-monitor/public.json`.
 
 Future analysis must remain exception-driven: local DSP/telemetry first, API only for aggregated anomalies. The browser never receives the secret.
 
