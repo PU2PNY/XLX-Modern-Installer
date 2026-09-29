@@ -1049,7 +1049,21 @@ async function update(){
  }
 }
 async function loadReflectors(){ if(page!=='refletores') return; try{ const r=await fetch('api/reflectors.php?ts='+Date.now(), {cache:'no-store'}); const d=await r.json(); if(!d.ok) throw Error(); renderReflectors(d);} catch(e){ const tb=$('#reflectorRows'); if(tb) tb.innerHTML='<tr><td colspan="5">Não foi possível carregar a lista de refletores neste momento.</td></tr>'; }}
-setInterval(()=>document.querySelectorAll('[data-start]').forEach(e=>e.textContent=elapsed(Number(e.dataset.start))),1000);
+setInterval(()=>{
+ const nowSeconds=Date.now()/1000;
+ document.querySelectorAll('[data-start]').forEach(e=>{
+  const started=Number(e.dataset.start);
+  e.textContent=elapsed(started);
+  const card=e.closest('.tx-card.live');
+  if(!card||!Number.isFinite(started)||started<=0)return;
+  const seconds=Math.max(0,Math.floor(nowSeconds-started));
+  const warning=seconds>=165&&seconds<180;
+  const expired=seconds>=180;
+  card.classList.toggle('tx-tot-warning',warning);
+  card.classList.toggle('tx-tot-expired',expired);
+  card.dataset.totRemaining=warning?String(Math.max(0,180-seconds)):'';
+ });
+},1000);
 
 let liveUpdateRunning=false;
 let liveUpdateTimer=null;
