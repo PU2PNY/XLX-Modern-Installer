@@ -177,4 +177,7 @@ O `main` não continha os quatro documentos canônicos e ainda havia documentaç
 - PROD: patch mínimo aplicado somente em `assets/app.js` e `assets/ai-monitor-v1.css`; nenhum serviço de rádio/áudio foi reiniciado.
 - Backup/rollback: `/root/backups-xlx026/AI_SCANNER_PRE_V4_20260929_190923`, com hashes verificados antes da publicação.
 - PROD após publicação: página HTTP 200; assets públicos contêm `coletando dados` e `xlxmodernAiScanSweep`; estado sanitizado `configured=true`, `api_connected=true`, `state=monitoring`; Nginx, PHP-FPM, XLXD, Unified Voice e VU Tap ativos; sem erro FastCGI/PHP/upstream observado no recorte pós-deploy.
+- Ajuste responsivo subsequente: commit `10be6fe789981eb8af9b5d8828b2e7b28811d41e` reduziu somente o scanner/rótulos em containers ≤700 px/≤430 px para preservar cards estreitos e multi-TX. WartyWallaby confirmou CSS sanity, contrato IA e current-panel parity PASS; checks GitHub `regression`/`parity` também PASS.
+- O PR #62 foi integrado à branch de IA/áudio como `0126938d3f7e50459a9e06197c9b875aea6d43db`.
+- Segundo ponto de retorno PROD antes do ajuste responsivo: `/root/backups-xlx026/AI_SCANNER_V4_RESPONSIVE_PRE_20260929_191700`. Após o ajuste, asset público contém os guards 34 px/22 px, página HTTP 200, `api_connected=true`, `state=monitoring`, serviços críticos ativos e nenhum erro web relevante observado.
 - Limite da evidência: `active_count=0` nas verificações após o deploy, portanto a validação visual final do V4 durante uma TX real permanece pendente e não é convertida por inferência.
