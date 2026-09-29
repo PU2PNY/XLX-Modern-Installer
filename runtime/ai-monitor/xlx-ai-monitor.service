@@ -6,8 +6,8 @@ Wants=network-online.target
 [Service]
 Type=oneshot
 DynamicUser=yes
-StateDirectory=xlx-ai-monitor
-StateDirectoryMode=0755
+RuntimeDirectory=xlx-ai-monitor
+RuntimeDirectoryMode=0755
 EnvironmentFile=-/etc/xlx-ai-monitor.env
 ExecStart=/usr/local/lib/xlx-modern/xlx-ai-monitor.py
 NoNewPrivileges=yes
