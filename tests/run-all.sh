@@ -53,6 +53,8 @@ echo "[ai monitor]"
 bash "$ROOT/tests/test-ai-monitor-contract.sh" || failures=$((failures+1))
 echo "[admin ai monitor]"
 bash "$ROOT/tests/test-admin-ai-monitor.sh" || failures=$((failures+1))
+echo "[admin view navigation]"
+bash "$ROOT/tests/test-admin-view-navigation.sh" || failures=$((failures+1))
 echo "[release hardening]"
 bash "$ROOT/tests/test-release-hardening.sh" || failures=$((failures+1))
 echo "[forbidden permissions]"

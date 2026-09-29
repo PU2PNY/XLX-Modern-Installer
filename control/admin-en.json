@@ -248,5 +248,7 @@
   "O monitoramento contínuo é local. Quando a IA realmente analisar, recomendar ou orientar um ajuste, o resultado aparece aqui e no box TX.": "Continuous monitoring is local. When AI actually analyzes, recommends, or guides an adjustment, the result appears here and in the TX box.",
   "Análise automática por IA ainda não está habilitada nesta versão.": "Automatic AI analysis is not enabled in this version yet.",
   "Atualizar estado": "Refresh status",
-  "Ver saúde operacional": "View operational health"
+  "Ver saúde operacional": "View operational health",
+  "Início": "Home",
+  "Navegação do Controle": "Control navigation"
 }

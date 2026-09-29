@@ -248,5 +248,7 @@
   "O monitoramento contínuo é local. Quando a IA realmente analisar, recomendar ou orientar um ajuste, o resultado aparece aqui e no box TX.": "Die kontinuierliche Überwachung erfolgt lokal. Wenn die KI tatsächlich analysiert, empfiehlt oder eine Anpassung anleitet, erscheint das Ergebnis hier und im TX-Feld.",
   "Análise automática por IA ainda não está habilitada nesta versão.": "Die automatische KI-Analyse ist in dieser Version noch nicht aktiviert.",
   "Atualizar estado": "Status aktualisieren",
-  "Ver saúde operacional": "Betriebszustand anzeigen"
+  "Ver saúde operacional": "Betriebszustand anzeigen",
+  "Início": "Start",
+  "Navegação do Controle": "Steuerungsnavigation"
 }
