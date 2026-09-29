@@ -22,7 +22,7 @@ function xlx_ai_monitor_public_status(): array
         'last_action' => null,
     ];
 
-    $path = '/var/lib/xlx-ai-monitor/public.json';
+    $path = '/run/xlx-ai-monitor/public.json';
 
     if (!is_readable($path)) {
         return $default;
