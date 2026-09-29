@@ -7,7 +7,7 @@ import time
 import urllib.error
 import urllib.request
 
-STATE_DIR = pathlib.Path("/var/lib/xlx-ai-monitor")
+STATE_DIR = pathlib.Path("/run/xlx-ai-monitor")
 PUBLIC = STATE_DIR / "public.json"
 ACTION = STATE_DIR / "last-action.json"
 MODELS_URL = "https://api.openai.com/v1/models"
