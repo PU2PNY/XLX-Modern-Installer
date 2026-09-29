@@ -1,3 +1,12 @@
+## Unreleased — AI observability in private Control page
+
+- Adds a clear **Server AI** section to the private Control page.
+- Reuses the already-loaded sanitized `ai_monitor` object; no direct OpenAI call, API key access or new polling is introduced.
+- Shows connection, current state, last update and last recorded AI action.
+- Explicitly states that automatic model analysis is not enabled yet, avoiding a misleading “Analyze now” control.
+- Adds six-language Admin translations and a dedicated contract test.
+- Production XLX026 received the section as a minimal patch with backup/rollback; the private route and core services remained healthy.
+
 ## Unreleased — AI indicator fitted into TX header gap
 
 - Keeps the existing AI wording and moves only the indicator into the unused space between “Transmitindo agora” and “NO AR”.

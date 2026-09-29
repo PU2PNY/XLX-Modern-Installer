@@ -138,3 +138,15 @@ O `main` não continha os quatro documentos canônicos e ainda havia documentaç
 - Texto visível: **IA DO SERVIDOR · IA conectada · MONITORAMENTO LOCAL ATIVO**.
 - Sem faixa extra abaixo, sem sobreposição e sem perda de indicativo, MTR/VU, gateway, protocolo ou tempo TX.
 - XLXD, Nginx, PHP-FPM, Unified Voice e VU Tap permaneceram ativos; sem erros Nginx/PHP após a mudança.
+
+### IA do Servidor na página Controle (2026-09-29)
+- Implementação base: commit `06b988b727039074823a887130390d88911817b5`.
+- A seção privada **IA do Servidor** foi adicionada logo após os cartões de resumo e antes de Saúde Operacional.
+- Exibe somente `ai_monitor` sanitizado já carregado pelo próprio Controle: conexão OpenAI, estado atual, última atualização e última ação registrada.
+- A tela informa explicitamente que **análise automática por IA ainda não está habilitada nesta versão**; não existe botão de inferência fictício.
+- Atalhos: **Atualizar estado** e **Ver saúde operacional**.
+- Segurança: a página não lê `OPENAI_API_KEY`, não chama `api.openai.com` e não cria polling adicional.
+- WartyWallaby: `test-admin-ai-monitor.sh`, i18n em 6 idiomas e Controle funcional PASS.
+- GitHub: Control CI, Installer CI, Debian 12 runtime, Production parity e Stream identity PASS no commit de implementação.
+- PROD: publicação por patch mínimo em `/var/www/html/xlxd/controle/index.php`; backup/rollback `/root/backups-xlx026/CONTROL_AI_PRE_20260929_174348`.
+- PROD: rota `/controle/` respondeu HTTP 200; estado sanitizado confirmou `configured=true`, `api_connected=true`, `state=monitoring`; XLXD/Nginx/PHP-FPM/Unified Voice/VU Tap permaneceram ativos e sem erros web observados após a mudança.
