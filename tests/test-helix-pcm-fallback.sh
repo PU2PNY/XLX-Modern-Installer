@@ -21,6 +21,8 @@ grep -q 'MemoryMax=64M' "$ROOT/experimental/helix-bridge/systemd/helix-voice-sha
 grep -q 'CPUQuota=15%' "$ROOT/experimental/helix-bridge/systemd/helix-voice-shadow.service"
 grep -q 'XLX_HELIX_MODE=shadow' "$ROOT/experimental/helix-bridge/systemd/xlx-unified-voice-shadow.conf"
 grep -q 'SupplementaryGroups=helix-voice' "$ROOT/experimental/helix-bridge/systemd/xlx-unified-voice-shadow.conf"
+grep -q 'Wants=helix-voice-shadow.service' "$ROOT/experimental/helix-bridge/systemd/xlx-unified-voice-shadow.conf"
+grep -q 'After=helix-voice-shadow.service' "$ROOT/experimental/helix-bridge/systemd/xlx-unified-voice-shadow.conf"
 bash -n "$ROOT/experimental/helix-bridge/test-prod-equivalence.sh"
 echo "PASS | static off/shadow/process/fallback/nonblocking/timeout/stream-sticky contract"
 
