@@ -9,6 +9,7 @@ set -Eeuo pipefail
 #
 # Optional:
 #   HELIX_DAEMON=/path/to/helix-daemon   # also proves shadow is bit-identical
+#   BRIDGE_OUTPUT=/path/to/xuvd           # export the exact tested bridge binary
 #
 # The host must not already have UDP 127.0.0.1:10100 in use.
 
@@ -17,6 +18,7 @@ BRIDGE="$ROOT/experimental/helix-bridge"
 BASELINE="${XUVD_BASELINE:-}"
 OP25="${OP25_LIB:-}"
 HELIX="${HELIX_DAEMON:-}"
+BRIDGE_OUTPUT="${BRIDGE_OUTPUT:-}"
 
 fail() { printf 'FAIL | %s\n' "$*" >&2; exit 1; }
 
@@ -140,6 +142,17 @@ if [[ -n "$HELIX" ]]; then
   done
 fi
 
-printf 'baseline_sha=%s\n' "$(sha256sum "$BASELINE" | awk '{print $1}')"
-printf 'bridge_sha=%s\n' "$(sha256sum "$WORK/xuvd-bridge" | awk '{print $1}')"
+BASELINE_SHA="$(sha256sum "$BASELINE" | awk '{print $1}')"
+BRIDGE_SHA="$(sha256sum "$WORK/xuvd-bridge" | awk '{print $1}')"
+printf 'baseline_sha=%s\n' "$BASELINE_SHA"
+printf 'bridge_sha=%s\n' "$BRIDGE_SHA"
+
+if [[ -n "$BRIDGE_OUTPUT" ]]; then
+  mkdir -p "$(dirname "$BRIDGE_OUTPUT")"
+  install -m 0755 "$WORK/xuvd-bridge" "$BRIDGE_OUTPUT"
+  EXPORTED_SHA="$(sha256sum "$BRIDGE_OUTPUT" | awk '{print $1}')"
+  [[ "$EXPORTED_SHA" == "$BRIDGE_SHA" ]] || fail "exported bridge hash mismatch"
+  printf 'bridge_output=%s\n' "$BRIDGE_OUTPUT"
+fi
+
 printf 'PROD_EQUIVALENCE_CORPUS=PASS\n'
