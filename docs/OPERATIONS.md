@@ -55,7 +55,7 @@ Interpretação:
 ## Helix PCM Bridge
 A integração experimental Helix deve ser operada em três fases explícitas:
 1. `off` — comportamento legado; estado padrão;
-2. `shadow` — Helix recebe PCM, mas a resposta não altera o áudio transmitido;
+2. `shadow` — Helix recebe PCM por datagrama Unix não bloqueante; não existe espera de resposta nem alteração do áudio transmitido;
 3. `process` — PCM retornado pode ser usado somente após validação ENV e gate específico de áudio/rollback.
 
 O cliente tem timeout local limitado e comportamento fail-open. Erro, socket ausente, timeout ou resposta inválida devem manter o PCM original. Não introduza API/cloud no caminho de áudio. Antes de qualquer mudança do transcoder ativo, registre PID, binário/hash, unit/config, tráfego ativo e ponto de retorno.
