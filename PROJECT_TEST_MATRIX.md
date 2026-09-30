@@ -23,7 +23,7 @@ Níveis de evidência: DOC / SW / ENV / HW / PROD / OPERATOR.
 | TEST-014 | ADMIN-003 / PERF-001 | Timeout privado não amplia orçamento público | PR #55 + evidência SW/ENV/PROD registrada em 2026-09-23; novo POST mutável autenticado ainda pendente | PARCIAL (SW/ENV/PROD) |
 | TEST-015 | GOV-001/002 | Documentos canônicos presentes e arquitetura web coerente | `tests/test-project-governance.sh` adicionado nesta correção; aguarda CI da PR | PENDENTE |
 
-| TEST-016 | OBS-003 / PERF-001 | Analisador passivo YSF detecta continuidade/jitter/sessões sem tocar no caminho de áudio | 7/7 testes específicos + `tests/run-all.sh` com `failures=0` em WartyWallaby; serviço real com CAP_NET_RAW capturou tráfego YSF sintético enviado por segunda VPS e detectou 2 frames ausentes no caso 11→14/~300 ms | PASS (SW/ENV) |
+| TEST-016 | OBS-003 / PERF-001 | Analisador passivo YSF detecta continuidade/jitter/sessões sem tocar no caminho de áudio | 7/7 testes específicos + `tests/run-all.sh` com `failures=0`; ENV: CAP_NET_RAW capturou YSF externo e detectou 2 frames ausentes no caso 11→14/~300 ms; PROD 2026-09-30: serviço ativo ~10 MB, >1.500 YSFP reais, sem listener UDP adicional, PID XLXD inalterado e detecção real `PS7JAP concurrent_endpoints=2`; nenhum YSFD real ocorreu na janela PROD | PASS (SW/ENV) + PARCIAL (PROD) |
 
 | TEST-017 | HELIX-001/002/003/004/005 | Bridge PCM local preserva fallback legado, shadow sem alteração e processamento somente após resposta válida | SW: contrato C++ PASS. ENV/WartyWallaby: off=fallback=shadow bit-idênticos (SHA-256 `0927cfff...1074f`); shadow 40/40; process single-stream 40/40; Helix ausente fixa stream no legado e entrega 40/40; 2 streams entregam 60/60 com fallback seguro de um stream | PASS (SW/ENV) |
 
