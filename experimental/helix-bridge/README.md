@@ -31,14 +31,14 @@ external legacy encoder
 The C++ client is fail-open for compatibility:
 
 - `XLX_HELIX_MODE=off` — default; no Helix connection is attempted.
-- `XLX_HELIX_MODE=shadow` — decoded PCM is sent to Helix, but returned PCM is discarded. The radio audio path remains legacy.
+- `XLX_HELIX_MODE=shadow` — decoded PCM is sent one-way over a non-blocking Unix datagram; there is no reply wait and the radio audio path remains legacy.
 - `XLX_HELIX_MODE=process` — returned PCM may replace the decoded PCM only after a complete, valid response.
-- connect/read/write/validation timeout or failure leaves the original PCM untouched.
+- shadow send failure only drops the observation; process connect/read/write/validation timeout or failure leaves the original PCM untouched.
 - the local IPC timeout is bounded to 1..5 ms.
 - no remote/cloud dependency exists in the audio path.
 - Helix or its socket may disappear without making a non-Helix radio incompatible.
 
-Production must remain `off` until the documented ENV/HW/PROD gates are completed. `shadow` is the first permitted production observation mode after laboratory regression. `process` is a separate audio-path change and requires its own controlled validation and rollback.
+Production must remain `off` until the documented ENV gates are completed. `shadow` is the first permitted production observation mode after laboratory regression and must use `XLX_HELIX_OBSERVE_SOCKET` (default `/run/helix-voice/observe.sock`). `process` uses the request/reply socket `XLX_HELIX_SOCKET` (default `/run/helix-voice/pcm.sock`) and is a separate audio-path change requiring its own controlled validation and rollback.
 
 ## Wire contract
 
