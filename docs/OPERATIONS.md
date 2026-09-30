@@ -38,3 +38,15 @@ Registrar:
 - reiniciar serviços “para ver se resolve” sem diagnóstico;
 - atualizar dependência crítica sem comparação de compatibilidade;
 - publicar segredos/logs privados.
+
+## Analisador passivo de transmissão
+O serviço `xlx-modern-transmission-analyzer.service` observa cópias dos datagramas YSF recebidos. Ele não é proxy, não reencaminha tráfego e não altera áudio.
+
+Estado local: `/var/lib/xlx-modern-transmission-analyzer/state.json`.
+Eventos de anomalia: `/var/log/xlx-modern-transmission-analyzer/events.log`.
+
+Interpretação:
+- `likely_missing_frames`: somente quando salto de sequência e tempo decorrido são compatíveis;
+- `counter_jump`: contador mudou de forma incompatível com perda temporal; não converter automaticamente em “pacotes perdidos”;
+- `concurrent_endpoints`: mais de um endpoint recente para o mesmo indicativo;
+- o V1 não mede ruído acústico, clipping ou equalização porque não decodifica AMBE/AMBE+2.
