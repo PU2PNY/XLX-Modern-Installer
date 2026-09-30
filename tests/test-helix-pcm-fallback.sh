@@ -117,7 +117,8 @@ echo "PASS | missing Helix keeps PCM unchanged"
 run_server_case() {
     local server_mode="$1"
     local client_mode="$2"
-    local socket="$TMP/$server_mode.sock"
+    local socket="$TMP/${server_mode}-${client_mode}.sock"
+    rm -f "$socket"
     python3 "$TMP/server.py" "$socket" "$server_mode" &
     local pid=$!
     for _ in {1..200}; do
