@@ -12,8 +12,10 @@ grep -q 'HelixMode::Process' "$ROOT/experimental/helix-bridge/xuvd.cpp"
 grep -q 'helix_fallback' "$ROOT/experimental/helix-bridge/xuvd.cpp"
 grep -q 'HelixPcmObserver' "$ROOT/experimental/helix-bridge/xuvd.cpp"
 grep -q 'SOCK_NONBLOCK' "$ROOT/experimental/helix-bridge/helix_pcm_client.hpp"
-grep -q 'parsed > 5' "$ROOT/experimental/helix-bridge/xuvd.cpp"
-echo "PASS | static off/shadow/process/fallback/nonblocking/timeout contract"
+grep -q 'parsed > 10' "$ROOT/experimental/helix-bridge/xuvd.cpp"
+grep -q 'helix_disabled_for_stream' "$ROOT/experimental/helix-bridge/xuvd.cpp"
+grep -q 'prime()' "$ROOT/experimental/helix-bridge/helix_pcm_client.hpp"
+echo "PASS | static off/shadow/process/fallback/nonblocking/timeout/stream-sticky contract"
 
 if ! command -v g++ >/dev/null 2>&1; then
     echo "SKIP | compiled Unix-socket test requires g++"
