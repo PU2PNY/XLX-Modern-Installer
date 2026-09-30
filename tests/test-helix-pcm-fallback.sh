@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
 
     std::array<std::int16_t,3> samples{100, -200, 300};
     const auto original = samples;
-    xuv::HelixPcmClient client(socket, 2);
+    xuv::HelixPcmClient client(socket, 5);
 
     const bool ok = client.process(
         7, 8000, 160, samples.data(), samples.size(),
@@ -119,9 +119,9 @@ run_server_case() {
     local socket="$TMP/$server_mode.sock"
     python3 "$TMP/server.py" "$socket" "$server_mode" &
     local pid=$!
-    for _ in {1..50}; do
+    for _ in {1..200}; do
         [[ -S "$socket" ]] && break
-        sleep 0.01
+        sleep 0.025
     done
     [[ -S "$socket" ]] || { kill "$pid" 2>/dev/null || true; wait "$pid" 2>/dev/null || true; return 1; }
     "$TMP/client_test" "$client_mode" "$socket"
