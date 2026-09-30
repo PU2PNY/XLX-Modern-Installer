@@ -102,4 +102,6 @@ Real legacy-codec framing was exercised through the experimental transcoder usin
 - two interleaved streams delivered all 60 output frames; one stream experienced one bounded Helix timeout and safely stayed legacy, while the other completed 30/30 through Helix.
 - direct HXP1 request/reply latency over 2,000 frames: p50 0.085 ms, p95 0.319 ms, p99 0.817 ms, p99.9 1.750 ms, max 3.653 ms; zero samples above 5 ms.
 
-This is ENV evidence. It does not authorize production `process`. The exact provenance of the currently running production transcoder's historical OP25/mbelib build dependencies must be reconciled before replacing that binary, even in `shadow`.
+This is ENV evidence. It does not authorize production `process`.
+
+Production provenance was subsequently recovered from the 2026-09-08 backup: `boatbod/op25@28f2c40645deca3f8c2d529d27d0df2555ed287a`, the current production xuvd source SHA-256 `232754806725c85c3d6ad929bd7e7c6e20930c1c7829ddeeb0bb40c4f0bfea5c`, and an exact copy of the active binary SHA-256 `4b72dfc7a26697a3e315fba8c8d22435996d8e67c3112e2f343a65b4c6e58069`. The preserved deployment log shows that active binary was made by a one-byte FEC threshold patch (3→4) to predecessor SHA-256 `50ac33dfa7d14e972a120b77dd66ccbd6691bc7c32fd85edb63118ddf21cec15`. A clean historical rebuild in the same backup has SHA-256 `cc163930e5b0d859148c4324d21b6e3be6f4e8d8a25cbdc8853d77e6bfa475d0`, so build reproducibility is still not byte-identical. Production xuvd therefore remains untouched.
