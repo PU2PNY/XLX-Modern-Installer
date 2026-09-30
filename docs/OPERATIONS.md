@@ -50,3 +50,12 @@ Interpretação:
 - `counter_jump`: contador mudou de forma incompatível com perda temporal; não converter automaticamente em “pacotes perdidos”;
 - `concurrent_endpoints`: mais de um endpoint recente para o mesmo indicativo;
 - o V1 não mede ruído acústico, clipping ou equalização porque não decodifica AMBE/AMBE+2.
+
+
+## Helix PCM Bridge
+A integração experimental Helix deve ser operada em três fases explícitas:
+1. `off` — comportamento legado; estado padrão;
+2. `shadow` — Helix recebe PCM, mas a resposta não altera o áudio transmitido;
+3. `process` — PCM retornado pode ser usado somente após validação ENV e gate específico de áudio/rollback.
+
+O cliente tem timeout local limitado e comportamento fail-open. Erro, socket ausente, timeout ou resposta inválida devem manter o PCM original. Não introduza API/cloud no caminho de áudio. Antes de qualquer mudança do transcoder ativo, registre PID, binário/hash, unit/config, tráfego ativo e ponto de retorno.
