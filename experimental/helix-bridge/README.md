@@ -34,7 +34,8 @@ The C++ client is fail-open for compatibility:
 - `XLX_HELIX_MODE=shadow` — decoded PCM is sent one-way over a non-blocking Unix datagram; there is no reply wait and the radio audio path remains legacy.
 - `XLX_HELIX_MODE=process` — returned PCM may replace the decoded PCM only after a complete, valid response.
 - shadow send failure only drops the observation; process connect/read/write/validation timeout or failure leaves the original PCM untouched.
-- the local IPC timeout is bounded to 1..5 ms.
+- the local request/reply timeout is bounded to 1..10 ms (10 ms default after ENV measurement);
+- if `process` fails once during a stream, that stream remains on the legacy path until close; Helix is retried only on a later stream.
 - no remote/cloud dependency exists in the audio path.
 - Helix or its socket may disappear without making a non-Helix radio incompatible.
 
@@ -87,3 +88,18 @@ The active XLX026 transcoder source uses OP25/mbelib-compatible AMBE parameter h
 8. `process` requires an additional quality/rollback gate.
 
 The known-good production XLXD/transcoder must never be replaced merely because this experimental path builds successfully.
+
+
+## ENV evidence — WartyWallaby, 2026-09-30
+
+Real legacy-codec framing was exercised through the experimental transcoder using valid AMBE+2 generated from PCM and the public AMBED control/stream boundary.
+
+- `off`, missing-Helix fallback and `shadow` produced the same output SHA-256: `0927cfff2bb8dfd6076ba6912ba9a96eef57284afd4df77e2436e9657521074f`.
+- `process` with Helix active produced a different output SHA-256, proving that returned PCM was actually committed.
+- missing Helix caused one bounded failure and pinned the remainder of that stream to legacy PCM; all 40 transcoder frames were still delivered with zero codec failures.
+- `shadow` delivered 40/40 observations with zero fallbacks and remained bit-identical to `off`.
+- `process` delivered 40/40 Helix responses with zero fallbacks in the single-stream run.
+- two interleaved streams delivered all 60 output frames; one stream experienced one bounded Helix timeout and safely stayed legacy, while the other completed 30/30 through Helix.
+- direct HXP1 request/reply latency over 2,000 frames: p50 0.085 ms, p95 0.319 ms, p99 0.817 ms, p99.9 1.750 ms, max 3.653 ms; zero samples above 5 ms.
+
+This is ENV evidence. It does not authorize production `process`. The exact provenance of the currently running production transcoder's historical OP25/mbelib build dependencies must be reconciled before replacing that binary, even in `shadow`.
