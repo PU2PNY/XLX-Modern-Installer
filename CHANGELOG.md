@@ -8,7 +8,7 @@
 - Adds contract regression tests and provenance documentation; production processing remains gated.
 - ENV/WartyWallaby confirms bit-identical `off`/missing-Helix/`shadow`, successful PCM mutation in `process`, safe sticky fallback per stream, multi-stream continuity, and HXP1 latency below 3.653 ms maximum in a 2,000-frame direct run.
 - Raises the bounded V1 process timeout ceiling/default to 10 ms after measurement; any process failure pins that stream to the legacy path until close.
-- Production transcoder remains untouched because the exact historical OP25/mbelib revisions used by the active binary are not yet reproducibly identified.
+- Production transcoder remains untouched. Historical OP25 provenance and the exact active binary were recovered from backup, including the documented one-byte FEC 3→4 patch, but a clean source rebuild still does not reproduce the active ELF byte-for-byte.
 
 ## Unreleased — Passive Transmission Analyzer V1
 
