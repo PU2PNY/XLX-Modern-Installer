@@ -9,6 +9,7 @@
 - ENV/WartyWallaby confirms bit-identical `off`/missing-Helix/`shadow`, successful PCM mutation in `process`, safe sticky fallback per stream, multi-stream continuity, and HXP1 latency below 3.653 ms maximum in a 2,000-frame direct run.
 - Raises the bounded V1 process timeout ceiling/default to 10 ms after measurement; any process failure pins that stream to the legacy path until close.
 - Production transcoder remains untouched. Historical OP25 provenance and the exact active binary were recovered from backup, including the documented one-byte FEC 3→4 patch, but a clean source rebuild still does not reproduce the active ELF byte-for-byte.
+- Behavioral equivalence was then proven in ENV against the exact production xuvd binary: four deterministic codec/module paths were bit-identical in both `off` and `shadow`, and 828 real AMBE+2→D-Star frames captured passively from PROD replayed bit-identically with 0 transcoder failures while Helix observed all 828 frames.
 
 ## Unreleased — Passive Transmission Analyzer V1
 
