@@ -57,6 +57,13 @@ Fornecer um instalador público, reproduzível e seguro para refletor XLXD em De
 - **PERF-002** — Não sacrificar estabilidade do Live por efeitos visuais ou coleta excessiva.
 - **PERF-003** — Mudanças de performance exigem comparação contra baseline.
 
+### HELIX / LEGACY RADIO COMPATIBILITY
+- **HELIX-001** — Helix é opcional. A ausência, falha ou incompatibilidade do Helix não pode impedir um rádio legado compatível de usar o caminho DMR/YSF/D-Star já funcional.
+- **HELIX-002** — A primeira integração usa fronteira de processo e IPC local PCM; o decoder/encoder de codec legado permanece fora do núcleo Helix.
+- **HELIX-003** — O cliente PCM deve ser fail-open: erro, timeout ou resposta inválida preserva o PCM legado original. Nenhuma dependência remota/cloud pode entrar no hot path.
+- **HELIX-004** — O estado padrão em produção é `off`. `shadow` só observa/processa cópia sem comitar PCM. `process` exige validação ENV e gate separado de áudio/rollback antes de produção.
+- **HELIX-005** — Usuários sem Helix não podem exigir firmware, rádio ou hotspot especial para continuar conversando pelos protocolos legados suportados.
+
 ### BACKUP / RECOVERY
 - **BACKUP-001** — Backups preventivos devem existir antes de mudanças críticas.
 - **BACKUP-002** — Backup só é considerado confiável após teste de restauração correspondente.
