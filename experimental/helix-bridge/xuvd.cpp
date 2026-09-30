@@ -83,7 +83,7 @@ std::string helix_observe_socket_from_env() {
 int helix_timeout_from_env() {
     const char* value = std::getenv("XLX_HELIX_TIMEOUT_MS");
     if (!value || !*value)
-        return 5;
+        return 10;
     const int parsed = std::atoi(value);
     if (parsed < 1) return 1;
     if (parsed > 10) return 10;
