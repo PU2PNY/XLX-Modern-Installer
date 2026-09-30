@@ -73,6 +73,13 @@ std::string helix_socket_from_env() {
     return "/run/helix-voice/pcm.sock";
 }
 
+std::string helix_observe_socket_from_env() {
+    const char* value = std::getenv("XLX_HELIX_OBSERVE_SOCKET");
+    if (value && *value)
+        return value;
+    return "/run/helix-voice/observe.sock";
+}
+
 int helix_timeout_from_env() {
     const char* value = std::getenv("XLX_HELIX_TIMEOUT_MS");
     if (!value || !*value)
@@ -231,6 +238,7 @@ struct Stream {
 
     HelixMode helix_mode = helix_mode_from_env();
     std::unique_ptr<xuv::HelixPcmClient> helix;
+    std::unique_ptr<xuv::HelixPcmObserver> helix_observer;
     bool helix_reset = true;
     uint64_t helix_timestamp = 0;
     uint64_t helix_ok = 0;
@@ -243,7 +251,10 @@ struct Stream {
 
     Stream(uint16_t sid, uint16_t sport, uint8_t in, uint8_t out, int sock, char mod)
         : id(sid), port(sport), in_codec(in), out_codec(out), module(mod), fd(sock) {
-        if (helix_mode != HelixMode::Off) {
+        if (helix_mode == HelixMode::Shadow) {
+            helix_observer = std::make_unique<xuv::HelixPcmObserver>(
+                helix_observe_socket_from_env());
+        } else if (helix_mode == HelixMode::Process) {
             helix = std::make_unique<xuv::HelixPcmClient>(
                 helix_socket_from_env(), helix_timeout_from_env());
         }
@@ -283,12 +294,25 @@ struct Stream {
             pcm.fill(0);
         }
 
-        // Helix V1 integration. Fail-open by construction: PCM is committed
-        // only after a complete, valid local response. Missing/slow Helix
-        // leaves the legacy PCM path untouched.
-        if (helix) {
-            const bool commit = helix_mode == HelixMode::Process;
-            const bool success = helix->process(
+        // Helix V1 integration.
+        // Shadow is one-way/non-blocking and can never replace legacy PCM.
+        // Process is request/reply and commits only after a complete response.
+        bool helix_attempted = false;
+        bool helix_success = false;
+        if (helix_observer) {
+            helix_attempted = true;
+            helix_success = helix_observer->observe(
+                id,
+                8000,
+                helix_timestamp,
+                pcm.data(),
+                pcm.size(),
+                helix_reset,
+                true
+            );
+        } else if (helix) {
+            helix_attempted = true;
+            helix_success = helix->process(
                 id,
                 8000,
                 helix_timestamp,
@@ -296,10 +320,13 @@ struct Stream {
                 pcm.size(),
                 helix_reset,
                 true,
-                commit
+                true
             );
+        }
+
+        if (helix_attempted) {
             helix_timestamp += pcm.size();
-            if (success) {
+            if (helix_success) {
                 ++helix_ok;
                 helix_reset = false;
             } else {
