@@ -25,7 +25,7 @@ Níveis de evidência: DOC / SW / ENV / HW / PROD / OPERATOR.
 
 | TEST-016 | OBS-003 / PERF-001 | Analisador passivo YSF detecta continuidade/jitter/sessões sem tocar no caminho de áudio | 7/7 testes específicos + `tests/run-all.sh` com `failures=0` em WartyWallaby; serviço real com CAP_NET_RAW capturou tráfego YSF sintético enviado por segunda VPS e detectou 2 frames ausentes no caso 11→14/~300 ms | PASS (SW/ENV) |
 
-| TEST-017 | HELIX-001/002/003/004/005 | Bridge PCM local preserva fallback legado, shadow sem alteração e processamento somente após resposta válida | teste contratual C++/Unix socket adicionado; validação ENV ainda pendente nesta branch | PARCIAL (SW) |
+| TEST-017 | HELIX-001/002/003/004/005 | Bridge PCM local preserva fallback legado, shadow sem alteração e processamento somente após resposta válida | SW: contrato C++ PASS. ENV/WartyWallaby: off=fallback=shadow bit-idênticos (SHA-256 `0927cfff...1074f`); shadow 40/40; process single-stream 40/40; Helix ausente fixa stream no legado e entrega 40/40; 2 streams entregam 60/60 com fallback seguro de um stream | PASS (SW/ENV) |
 
 ## Como registrar PASS
 Atualize a linha com:
@@ -38,3 +38,6 @@ Atualize a linha com:
 - nível de evidência.
 
 Nunca transformar `OPERATOR` em `PROD`, ou `SW` em `ENV`, sem novo teste.
+
+| TEST-018 | HELIX-004 / PERF-003 | Latência HXP1 request/reply | WartyWallaby, 2.000 frames: p50 0,085 ms; p95 0,319 ms; p99 0,817 ms; p99,9 1,750 ms; máximo 3,653 ms; nenhum >5 ms | PASS (ENV) |
+| TEST-019 | HELIX-004 / REC-001 | Habilitar `process` em produção com áudio real, soak e rollback | bloqueado; transcoder PROD não foi substituído e a proveniência histórica OP25/mbelib do build ativo precisa ser reconciliada | PENDENTE (PROD) |
