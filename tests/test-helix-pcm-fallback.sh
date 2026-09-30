@@ -10,7 +10,7 @@ grep -q 'HelixMode::Off' "$ROOT/experimental/helix-bridge/xuvd.cpp"
 grep -q 'HelixMode::Shadow' "$ROOT/experimental/helix-bridge/xuvd.cpp"
 grep -q 'HelixMode::Process' "$ROOT/experimental/helix-bridge/xuvd.cpp"
 grep -q 'helix_fallback' "$ROOT/experimental/helix-bridge/xuvd.cpp"
-grep -q 'timeout_ms_ > 5' "$ROOT/experimental/helix-bridge/helix_pcm_client.hpp"
+grep -q 'timeout_ms > 5' "$ROOT/experimental/helix-bridge/helix_pcm_client.hpp"
 echo "PASS | static off/shadow/process/fallback/timeout contract"
 
 if ! command -v g++ >/dev/null 2>&1 || ! command -v python3 >/dev/null 2>&1; then
