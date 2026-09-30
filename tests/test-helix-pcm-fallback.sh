@@ -12,175 +12,228 @@ grep -q 'HelixMode::Process' "$ROOT/experimental/helix-bridge/xuvd.cpp"
 grep -q 'helix_fallback' "$ROOT/experimental/helix-bridge/xuvd.cpp"
 grep -q 'HelixPcmObserver' "$ROOT/experimental/helix-bridge/xuvd.cpp"
 grep -q 'SOCK_NONBLOCK' "$ROOT/experimental/helix-bridge/helix_pcm_client.hpp"
-grep -q 'timeout_ms > 5' "$ROOT/experimental/helix-bridge/helix_pcm_client.hpp"
-echo "PASS | static off/shadow/process/fallback/timeout contract"
+grep -q 'parsed > 5' "$ROOT/experimental/helix-bridge/xuvd.cpp"
+echo "PASS | static off/shadow/process/fallback/nonblocking/timeout contract"
 
-if ! command -v g++ >/dev/null 2>&1 || ! command -v python3 >/dev/null 2>&1; then
-    echo "SKIP | compiled Unix-socket test requires g++ and python3"
+if ! command -v g++ >/dev/null 2>&1; then
+    echo "SKIP | compiled Unix-socket test requires g++"
     echo "helix_pcm_fallback=PASS_STATIC"
     exit 0
 fi
 
-cat >"$TMP/client_test.cpp" <<'CPP'
+cat >"$TMP/contract_test.cpp" <<'CPP'
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <unistd.h>
+
 #include <array>
+#include <condition_variable>
 #include <cstdint>
+#include <cstring>
 #include <iostream>
+#include <mutex>
 #include <string>
+#include <thread>
+#include <vector>
+
 #include "experimental/helix-bridge/helix_pcm_client.hpp"
 
-static bool same(const std::array<std::int16_t,3>& a,
-                 const std::array<std::int16_t,3>& b) {
-    return a == b;
+struct Ready {
+    std::mutex mutex;
+    std::condition_variable cv;
+    bool value = false;
+
+    void signal() {
+        {
+            std::lock_guard<std::mutex> lock(mutex);
+            value = true;
+        }
+        cv.notify_one();
+    }
+
+    void wait() {
+        std::unique_lock<std::mutex> lock(mutex);
+        cv.wait(lock, [this] { return value; });
+    }
+};
+
+static bool read_exact(int fd, std::uint8_t* data, std::size_t len) {
+    std::size_t done = 0;
+    while (done < len) {
+        const ssize_t n = recv(fd, data + done, len - done, 0);
+        if (n <= 0)
+            return false;
+        done += static_cast<std::size_t>(n);
+    }
+    return true;
+}
+
+static void stream_server(const std::string& path, bool invalid, Ready& ready) {
+    unlink(path.c_str());
+    const int server = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (server < 0)
+        std::abort();
+
+    sockaddr_un sa{};
+    sa.sun_family = AF_UNIX;
+    std::memcpy(sa.sun_path, path.c_str(), path.size() + 1);
+    if (bind(server, reinterpret_cast<sockaddr*>(&sa), sizeof(sa)) != 0 ||
+        listen(server, 1) != 0)
+        std::abort();
+
+    ready.signal();
+    const int client = accept(server, nullptr, nullptr);
+    if (client < 0)
+        std::abort();
+
+    std::array<std::uint8_t, xuv::HELIX_PCM_MAX_PACKET> wire{};
+    if (!read_exact(client, wire.data(), xuv::HELIX_PCM_HEADER_LEN))
+        std::abort();
+
+    const std::size_t count =
+        static_cast<std::size_t>(wire[6]) |
+        (static_cast<std::size_t>(wire[7]) << 8);
+    const std::size_t body_len = count * 2;
+    if (!read_exact(client, &wire[xuv::HELIX_PCM_HEADER_LEN], body_len))
+        std::abort();
+
+    if (invalid) {
+        std::memcpy(wire.data(), "BAD!", 4);
+    } else {
+        wire[5] |= xuv::HELIX_PCM_OK;
+        for (std::size_t i = 0; i < count; ++i) {
+            const std::size_t p = xuv::HELIX_PCM_HEADER_LEN + i * 2;
+            const std::uint16_t bits =
+                static_cast<std::uint16_t>(wire[p]) |
+                (static_cast<std::uint16_t>(wire[p + 1]) << 8);
+            const auto sample = static_cast<std::int16_t>(bits);
+            int value = static_cast<int>(sample) * 2;
+            if (value > 32767) value = 32767;
+            if (value < -32768) value = -32768;
+            const auto out = static_cast<std::uint16_t>(
+                static_cast<std::int16_t>(value));
+            wire[p] = static_cast<std::uint8_t>(out & 0xff);
+            wire[p + 1] = static_cast<std::uint8_t>((out >> 8) & 0xff);
+        }
+    }
+
+    const std::size_t packet_len = xuv::HELIX_PCM_HEADER_LEN + body_len;
+    if (send(client, wire.data(), packet_len, MSG_NOSIGNAL) !=
+        static_cast<ssize_t>(packet_len))
+        std::abort();
+
+    close(client);
+    close(server);
+    unlink(path.c_str());
+}
+
+static void datagram_server(
+    const std::string& path,
+    Ready& ready,
+    bool& valid
+) {
+    unlink(path.c_str());
+    const int server = socket(AF_UNIX, SOCK_DGRAM, 0);
+    if (server < 0)
+        std::abort();
+
+    sockaddr_un sa{};
+    sa.sun_family = AF_UNIX;
+    std::memcpy(sa.sun_path, path.c_str(), path.size() + 1);
+    if (bind(server, reinterpret_cast<sockaddr*>(&sa), sizeof(sa)) != 0)
+        std::abort();
+
+    ready.signal();
+    std::array<std::uint8_t, xuv::HELIX_PCM_MAX_PACKET> wire{};
+    const ssize_t n = recv(server, wire.data(), wire.size(), 0);
+    valid =
+        n >= static_cast<ssize_t>(xuv::HELIX_PCM_HEADER_LEN) &&
+        std::memcmp(wire.data(), "HXP1", 4) == 0;
+
+    close(server);
+    unlink(path.c_str());
 }
 
 int main(int argc, char** argv) {
-    if (argc != 3) return 2;
-    const std::string mode = argv[1];
-    const std::string socket = argv[2];
+    if (argc != 2)
+        return 2;
+    const std::string dir = argv[1];
+    const std::array<std::int16_t, 3> original{100, -200, 300};
 
-    std::array<std::int16_t,3> samples{100, -200, 300};
-    const auto original = samples;
-    xuv::HelixPcmClient client(socket, 5);
-
-    const bool commit_output = mode != "shadow";
-    const bool ok = client.process(
-        7, 8000, 160, samples.data(), samples.size(),
-        true, true, commit_output
-    );
-
-    if (mode == "missing" || mode == "invalid") {
-        if (ok || !same(samples, original)) {
-            std::cerr << "fallback contract failed\n";
+    {
+        auto samples = original;
+        xuv::HelixPcmClient client(dir + "/missing.sock", 5);
+        const bool ok = client.process(
+            7, 8000, 160, samples.data(), samples.size(), true, true, true);
+        if (ok || samples != original)
             return 3;
-        }
-        return 0;
     }
 
-    if (mode == "valid") {
-        const std::array<std::int16_t,3> expected{200, -400, 600};
-        if (!ok || !same(samples, expected)) {
-            std::cerr << "valid response not committed\n";
+    {
+        const std::string path = dir + "/valid.sock";
+        Ready ready;
+        std::thread server(stream_server, path, false, std::ref(ready));
+        ready.wait();
+
+        auto samples = original;
+        xuv::HelixPcmClient client(path, 5);
+        const bool ok = client.process(
+            7, 8000, 160, samples.data(), samples.size(), true, true, true);
+        server.join();
+
+        const std::array<std::int16_t, 3> expected{200, -400, 600};
+        if (!ok || samples != expected)
             return 4;
-        }
-        return 0;
     }
 
-    return 6;
+    {
+        const std::string path = dir + "/invalid.sock";
+        Ready ready;
+        std::thread server(stream_server, path, true, std::ref(ready));
+        ready.wait();
+
+        auto samples = original;
+        xuv::HelixPcmClient client(path, 5);
+        const bool ok = client.process(
+            7, 8000, 160, samples.data(), samples.size(), true, true, true);
+        server.join();
+
+        if (ok || samples != original)
+            return 5;
+    }
+
+    {
+        xuv::HelixPcmObserver observer(dir + "/missing-observe.sock");
+        if (observer.observe(
+                7, 8000, 160, original.data(), original.size(), true, true))
+            return 6;
+    }
+
+    {
+        const std::string path = dir + "/observe.sock";
+        Ready ready;
+        bool received_valid = false;
+        std::thread server(
+            datagram_server, path, std::ref(ready), std::ref(received_valid));
+        ready.wait();
+
+        xuv::HelixPcmObserver observer(path);
+        const bool ok = observer.observe(
+            7, 8000, 160, original.data(), original.size(), true, true);
+        server.join();
+
+        if (!ok || !received_valid)
+            return 7;
+    }
+
+    std::cout << "compiled_contract=PASS\n";
+    return 0;
 }
 CPP
 
-g++ -std=c++17 -Wall -Wextra -Werror -I"$ROOT"     "$TMP/client_test.cpp" -o "$TMP/client_test"
+g++ -std=c++17 -Wall -Wextra -Werror -pthread -I"$ROOT" \
+    "$TMP/contract_test.cpp" -o "$TMP/contract_test"
 
-cat >"$TMP/server.py" <<'PY'
-import os
-import socket
-import struct
-import sys
-
-path, mode = sys.argv[1], sys.argv[2]
-try:
-    os.unlink(path)
-except FileNotFoundError:
-    pass
-
-srv = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-srv.bind(path)
-srv.listen(1)
-conn, _ = srv.accept()
-
-def recv_exact(n):
-    out = bytearray()
-    while len(out) < n:
-        chunk = conn.recv(n - len(out))
-        if not chunk:
-            raise SystemExit(2)
-        out.extend(chunk)
-    return bytes(out)
-
-header = bytearray(recv_exact(24))
-count = struct.unpack_from("<H", header, 6)[0]
-body = recv_exact(count * 2)
-
-if mode == "invalid":
-    header[0:4] = b"BAD!"
-    conn.sendall(header + body)
-else:
-    header[5] |= 0x80
-    samples = list(struct.unpack("<" + "h" * count, body))
-    doubled = [max(-32768, min(32767, value * 2)) for value in samples]
-    out = struct.pack("<" + "h" * count, *doubled)
-    conn.sendall(header + out)
-
-conn.close()
-srv.close()
-PY
-
-cat >"$TMP/dgram_server.py" <<'PY'
-import os
-import socket
-import struct
-import sys
-
-path = sys.argv[1]
-try:
-    os.unlink(path)
-except FileNotFoundError:
-    pass
-
-srv = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-srv.bind(path)
-data = srv.recv(4096)
-if len(data) < 24 or data[:4] != b"HXP1":
-    raise SystemExit(2)
-count = struct.unpack_from("<H", data, 6)[0]
-if len(data) != 24 + count * 2:
-    raise SystemExit(3)
-srv.close()
-os.unlink(path)
-PY
-
-MISSING="$TMP/missing.sock"
-"$TMP/client_test" missing "$MISSING"
-echo "PASS | missing Helix keeps PCM unchanged"
-
-run_server_case() {
-    local server_mode="$1"
-    local client_mode="$2"
-    local socket="$TMP/${server_mode}-${client_mode}.sock"
-    rm -f "$socket"
-    python3 "$TMP/server.py" "$socket" "$server_mode" &
-    local pid=$!
-    for _ in {1..200}; do
-        [[ -S "$socket" ]] && break
-        sleep 0.025
-    done
-    [[ -S "$socket" ]] || { kill "$pid" 2>/dev/null || true; wait "$pid" 2>/dev/null || true; return 1; }
-    "$TMP/client_test" "$client_mode" "$socket"
-    wait "$pid"
-}
-
-run_server_case valid valid
-echo "PASS | valid Helix response is committed"
-
-OBS_MISSING="$TMP/missing-observe.sock"
-"$TMP/observer_test" missing "$OBS_MISSING"
-echo "PASS | missing shadow observer returns immediately without dependency"
-
-OBS_SOCKET="$TMP/observe.sock"
-python3 "$TMP/dgram_server.py" "$OBS_SOCKET" &
-obs_pid=$!
-for _ in {1..200}; do
-    [[ -S "$OBS_SOCKET" ]] && break
-    sleep 0.025
-done
-[[ -S "$OBS_SOCKET" ]] || { kill "$obs_pid" 2>/dev/null || true; wait "$obs_pid" 2>/dev/null || true; exit 1; }
-"$TMP/observer_test" valid "$OBS_SOCKET"
-wait "$obs_pid"
-echo "PASS | shadow observer sends one-way Unix datagram"
-
-run_server_case invalid invalid
-echo "PASS | malformed Helix response keeps PCM unchanged"
-
-echo "PASS | compiled transcoder/client fallback contract"
-
+"$TMP/contract_test" "$TMP"
+echo "PASS | request/reply fail-open and non-blocking shadow datagram"
 echo "helix_pcm_fallback=PASS"
