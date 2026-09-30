@@ -25,6 +25,8 @@ Níveis de evidência: DOC / SW / ENV / HW / PROD / OPERATOR.
 
 | TEST-016 | OBS-003 / PERF-001 | Analisador passivo YSF detecta continuidade/jitter/sessões sem tocar no caminho de áudio | 7/7 testes específicos + `tests/run-all.sh` com `failures=0` em WartyWallaby; serviço real com CAP_NET_RAW capturou tráfego YSF sintético enviado por segunda VPS e detectou 2 frames ausentes no caso 11→14/~300 ms | PASS (SW/ENV) |
 
+| TEST-017 | HELIX-001/002/003/004/005 | Bridge PCM local preserva fallback legado, shadow sem alteração e processamento somente após resposta válida | teste contratual C++/Unix socket adicionado; validação ENV ainda pendente nesta branch | PARCIAL (SW) |
+
 ## Como registrar PASS
 Atualize a linha com:
 - ambiente;
