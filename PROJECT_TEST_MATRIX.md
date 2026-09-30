@@ -23,6 +23,8 @@ Níveis de evidência: DOC / SW / ENV / HW / PROD / OPERATOR.
 | TEST-014 | ADMIN-003 / PERF-001 | Timeout privado não amplia orçamento público | PR #55 + evidência SW/ENV/PROD registrada em 2026-09-23; novo POST mutável autenticado ainda pendente | PARCIAL (SW/ENV/PROD) |
 | TEST-015 | GOV-001/002 | Documentos canônicos presentes e arquitetura web coerente | `tests/test-project-governance.sh` adicionado nesta correção; aguarda CI da PR | PENDENTE |
 
+| TEST-016 | OBS-003 / PERF-001 | Analisador passivo YSF detecta continuidade/jitter/sessões sem tocar no caminho de áudio | `tests/test-transmission-analyzer.sh`; validação ENV deve confirmar serviço com CAP_NET_RAW e estado limitado | PENDENTE (SW/ENV) |
+
 ## Como registrar PASS
 Atualize a linha com:
 - ambiente;
