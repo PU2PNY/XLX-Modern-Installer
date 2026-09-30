@@ -216,4 +216,96 @@ private:
     int fd_ = -1;
 };
 
+
+class HelixPcmObserver {
+public:
+    explicit HelixPcmObserver(const std::string& socket_path)
+        : socket_path_(socket_path) {}
+
+    ~HelixPcmObserver() {
+        if (fd_ >= 0)
+            close(fd_);
+    }
+
+    HelixPcmObserver(const HelixPcmObserver&) = delete;
+    HelixPcmObserver& operator=(const HelixPcmObserver&) = delete;
+
+    bool observe(
+        std::uint32_t stream_id,
+        std::uint32_t sample_rate_hz,
+        std::uint64_t timestamp_samples,
+        const std::int16_t* samples,
+        std::size_t sample_count,
+        bool reset_stream,
+        bool apply_dsp
+    ) {
+        if (!samples || sample_count == 0 || sample_count > HELIX_PCM_MAX_SAMPLES)
+            return false;
+        if (sample_rate_hz < 8000 || sample_rate_hz > 48000)
+            return false;
+        if (!ensure_socket())
+            return false;
+        if (socket_path_.empty() || socket_path_.size() >= sizeof(sockaddr_un::sun_path))
+            return false;
+
+        std::array<std::uint8_t, HELIX_PCM_MAX_PACKET> wire{};
+        std::memcpy(wire.data(), "HXP1", 4);
+        wire[4] = HELIX_PCM_VERSION;
+        wire[5] = static_cast<std::uint8_t>(
+            (apply_dsp ? HELIX_PCM_APPLY_DSP : 0) |
+            (reset_stream ? HELIX_PCM_RESET_STREAM : 0)
+        );
+        write_le16(&wire[6], static_cast<std::uint16_t>(sample_count));
+        write_le32(&wire[8], stream_id);
+        write_le32(&wire[12], sample_rate_hz);
+        write_le64(&wire[16], timestamp_samples);
+        for (std::size_t i = 0; i < sample_count; ++i) {
+            write_le16(
+                &wire[HELIX_PCM_HEADER_LEN + i * 2],
+                static_cast<std::uint16_t>(samples[i])
+            );
+        }
+
+        sockaddr_un peer{};
+        peer.sun_family = AF_UNIX;
+        std::memcpy(peer.sun_path, socket_path_.c_str(), socket_path_.size() + 1);
+        const std::size_t packet_len = HELIX_PCM_HEADER_LEN + sample_count * 2;
+        const ssize_t sent = sendto(
+            fd_,
+            wire.data(),
+            packet_len,
+            MSG_DONTWAIT | MSG_NOSIGNAL,
+            reinterpret_cast<const sockaddr*>(&peer),
+            sizeof(peer)
+        );
+        return sent == static_cast<ssize_t>(packet_len);
+    }
+
+private:
+    bool ensure_socket() {
+        if (fd_ >= 0)
+            return true;
+        fd_ = socket(AF_UNIX, SOCK_DGRAM | SOCK_NONBLOCK, 0);
+        return fd_ >= 0;
+    }
+
+    static void write_le16(std::uint8_t* p, std::uint16_t value) {
+        p[0] = static_cast<std::uint8_t>(value & 0xff);
+        p[1] = static_cast<std::uint8_t>((value >> 8) & 0xff);
+    }
+
+    static void write_le32(std::uint8_t* p, std::uint32_t value) {
+        for (int i = 0; i < 4; ++i)
+            p[i] = static_cast<std::uint8_t>((value >> (8 * i)) & 0xff);
+    }
+
+    static void write_le64(std::uint8_t* p, std::uint64_t value) {
+        for (int i = 0; i < 8; ++i)
+            p[i] = static_cast<std::uint8_t>((value >> (8 * i)) & 0xff);
+    }
+
+    std::string socket_path_;
+    int fd_ = -1;
+};
+
 } // namespace xuv
