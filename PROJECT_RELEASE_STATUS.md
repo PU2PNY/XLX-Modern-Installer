@@ -68,4 +68,4 @@ Escopo:
 - estado local limitado e log apenas de anomalias;
 - sem alteração do caminho de áudio, XLXD ou transcoding.
 
-Estado: SW + ENV validados na WartyWallaby. `tests/test-transmission-analyzer.sh`: 7/7 PASS; `tests/run-all.sh`: failures=0. O serviço real com CAP_NET_RAW capturou YSF sintético enviado por segunda VPS e gerou estado correto sem alterar o caminho de áudio. Produção ainda não validada.
+Estado: SW + ENV validados e deploy PROD do serviço passivo validado no XLX026 em 2026-09-30. `tests/test-transmission-analyzer.sh`: 7/7 PASS; `tests/run-all.sh`: failures=0. Em ENV, o serviço real com CAP_NET_RAW capturou YSF sintético enviado por segunda VPS e detectou corretamente uma lacuna 11→14/~300 ms. Em PROD, o serviço permaneceu ativo com ~10 MB, recebeu mais de 1.000 YSFP reais, não abriu listener UDP adicional e o PID do XLXD permaneceu 1093634 antes/depois do deploy. Não houve YSFD/voz real durante a janela curta de validação PROD; a análise de frames de voz permanece comprovada em ENV, não promovida por inferência.
