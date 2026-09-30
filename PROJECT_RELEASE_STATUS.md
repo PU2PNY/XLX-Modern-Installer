@@ -68,4 +68,4 @@ Escopo:
 - estado local limitado e log apenas de anomalias;
 - sem alteração do caminho de áudio, XLXD ou transcoding.
 
-Estado: SW + ENV validados na WartyWallaby. `tests/test-transmission-analyzer.sh`: 6/6 PASS; `tests/run-all.sh`: failures=0. O serviço real com CAP_NET_RAW capturou YSF sintético enviado por segunda VPS e gerou estado correto sem alterar o caminho de áudio. Produção ainda não validada.
+Estado: SW + ENV validados na WartyWallaby. `tests/test-transmission-analyzer.sh`: 7/7 PASS; `tests/run-all.sh`: failures=0. O serviço real com CAP_NET_RAW capturou YSF sintético enviado por segunda VPS e gerou estado correto sem alterar o caminho de áudio. Produção ainda não validada.
