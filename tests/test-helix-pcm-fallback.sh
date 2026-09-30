@@ -29,9 +29,10 @@ int main(int argc, char** argv) {
     const auto original = samples;
     xuv::HelixPcmClient client(socket, 5);
 
+    const bool commit_output = mode != "shadow";
     const bool ok = client.process(
         7, 8000, 160, samples.data(), samples.size(),
-        true, true, true
+        true, true, commit_output
     );
 
     if (mode == "missing" || mode == "invalid") {
