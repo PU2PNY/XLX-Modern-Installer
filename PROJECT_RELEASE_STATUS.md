@@ -68,4 +68,4 @@ Escopo:
 - estado local limitado e log apenas de anomalias;
 - sem alteração do caminho de áudio, XLXD ou transcoding.
 
-Estado: implementação em branch; requer SW + ENV antes de qualquer promoção a produção.
+Estado: SW + ENV validados na WartyWallaby. `tests/test-transmission-analyzer.sh`: 6/6 PASS; `tests/run-all.sh`: failures=0. O serviço real com CAP_NET_RAW capturou YSF sintético enviado por segunda VPS e gerou estado correto sem alterar o caminho de áudio. Produção ainda não validada.
