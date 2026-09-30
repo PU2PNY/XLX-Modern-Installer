@@ -28,7 +28,7 @@ class HelixPcmClient {
 public:
     explicit HelixPcmClient(const std::string& socket_path, int timeout_ms = 1)
         : socket_path_(socket_path),
-          timeout_ms_(timeout_ms < 1 ? 1 : (timeout_ms > 5 ? 5 : timeout_ms)) {}
+          timeout_ms_(timeout_ms < 1 ? 1 : (timeout_ms > 10 ? 10 : timeout_ms)) {}
 
     ~HelixPcmClient() { disconnect(); }
 
@@ -113,7 +113,7 @@ public:
         return true;
     }
 
-    void disconnect() {
+    bool prime() { return ensure_connected(); }\n\n    void disconnect() {
         if (fd_ >= 0) {
             close(fd_);
             fd_ = -1;
