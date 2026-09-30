@@ -113,7 +113,9 @@ public:
         return true;
     }
 
-    bool prime() { return ensure_connected(); }\n\n    void disconnect() {
+    bool prime() { return ensure_connected(); }
+
+    void disconnect() {
         if (fd_ >= 0) {
             close(fd_);
             fd_ = -1;
