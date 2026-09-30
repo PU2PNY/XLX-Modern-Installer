@@ -37,3 +37,6 @@ Antes de trocar ou reiniciar o transcoder de produção:
 - não reiniciar XLXD como parte do rollback do Helix.
 
 Rollback mínimo da integração Helix: retirar as variáveis Helix/repor `off`, restaurar o binário legado do transcoder e revalidar o fluxo já conhecido. O serviço Helix deve poder parar sem tornar rádios legados incompatíveis.
+
+
+Evidência ENV 2026-09-30: Helix ausente em `process` manteve a saída bit-idêntica ao modo `off`; apenas a primeira tentativa do stream falhou e o restante do stream permaneceu legado. Isso valida o mecanismo de fallback em ENV, não autoriza troca do transcoder de produção.
