@@ -52,6 +52,7 @@ Fornecer um instalador público, reproduzível e seguro para refletor XLXD em De
 ### OBSERVABILITY / PERFORMANCE
 - **OBS-001** — Serviços críticos devem ter estado verificável por health/status/logs.
 - **OBS-002** — Erros operacionais devem ser diagnosticáveis sem expor segredos.
+- **OBS-003** — O analisador de transmissão deve ser passivo: pode observar metadados e temporização de frames para diagnosticar integridade, mas não pode alterar, atrasar, retransmitir ou substituir o caminho de áudio/protocolo. O V1 cobre transporte YSF e não deve declarar análise acústica sem decodificação comprovada do áudio.
 - **PERF-001** — Evitar polling, loops, gravações, consultas e chamadas externas desnecessárias.
 - **PERF-002** — Não sacrificar estabilidade do Live por efeitos visuais ou coleta excessiva.
 - **PERF-003** — Mudanças de performance exigem comparação contra baseline.
