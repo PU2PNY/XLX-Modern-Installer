@@ -43,6 +43,7 @@ Os arquivos provenientes ou derivados diretamente desse projeto preservam os avi
 A integração experimental `experimental/helix-bridge/` não inclui código OP25/mbelib neste repositório. Para reproduzir o backend legado em laboratório foram inspecionados:
 - **OP25** — `boatbod/op25`, commit `71abcd0ead32f86f51615ea6cc8a6a4dba4c949a`; os arquivos usados no laboratório exibem avisos GPLv3-or-later.
 - **mbelib** — `szechyjs/mbelib`, commit `9a04ed5c78176a9965f3d43f7aa1b1f5330e771f`; os arquivos inspecionados possuem seu próprio aviso/licença.
+- **Histórico PROD recuperado** — o backup do transcoder de 2026-09-08 preserva `boatbod/op25@28f2c40645deca3f8c2d529d27d0df2555ed287a`, usado na investigação que produziu o binário atualmente ativo. O commit de laboratório acima é mais recente e serve apenas à reprodução ENV do bridge Helix; não deve ser confundido com a proveniência do binário PROD.
 
 Esses componentes pertencem ao backend de codec legado externo ao núcleo Helix. Uma eventual distribuição de binário que os incorpore deve cumprir as licenças upstream aplicáveis. Licença de copyright não resolve, por si só, questões de patente/marca de codecs legados.
 
