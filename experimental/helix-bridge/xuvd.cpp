@@ -269,7 +269,8 @@ struct Stream {
     bool helix_reset = true;
     uint64_t helix_timestamp = 0;
     uint64_t helix_ok = 0;
-    uint64_t helix_fallback = 0;\n    bool helix_disabled_for_stream = false;
+    uint64_t helix_fallback = 0;
+    bool helix_disabled_for_stream = false;
 
     // Estado do filtro DMR -> D-STAR (8 kHz)
     double hp_x1 = 0.0;
