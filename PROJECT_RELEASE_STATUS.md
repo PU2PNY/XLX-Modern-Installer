@@ -56,3 +56,16 @@ O `main` não continha os quatro documentos canônicos e ainda havia documentaç
 4. executar nova instalação limpa em VPS Debian 12 descartável;
 5. manter branches funcionais pendentes isoladas até validação específica;
 6. não alterar produção saudável sem necessidade comprovada.
+
+## Trabalho isolado — Passive Transmission Analyzer V1
+Branch: `feature/passive-transmission-analyzer-v1-20260930`.
+
+Escopo:
+- observação passiva do transporte YSF/UDP;
+- continuidade conservadora do contador de rede;
+- jitter/inter-arrival;
+- sessões concorrentes e reconexões;
+- estado local limitado e log apenas de anomalias;
+- sem alteração do caminho de áudio, XLXD ou transcoding.
+
+Estado: implementação em branch; requer SW + ENV antes de qualquer promoção a produção.
