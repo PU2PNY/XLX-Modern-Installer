@@ -83,10 +83,10 @@ std::string helix_observe_socket_from_env() {
 int helix_timeout_from_env() {
     const char* value = std::getenv("XLX_HELIX_TIMEOUT_MS");
     if (!value || !*value)
-        return 1;
+        return 5;
     const int parsed = std::atoi(value);
     if (parsed < 1) return 1;
-    if (parsed > 5) return 5;
+    if (parsed > 10) return 10;
     return parsed;
 }
 
@@ -98,6 +98,7 @@ xuv::HelixPcmClient* shared_helix_client() {
         if (helix_mode_from_env() == HelixMode::Process) {
             client = std::make_unique<xuv::HelixPcmClient>(
                 helix_socket_from_env(), helix_timeout_from_env());
+            (void)client->prime();
         }
     }
     return client.get();
@@ -268,7 +269,7 @@ struct Stream {
     bool helix_reset = true;
     uint64_t helix_timestamp = 0;
     uint64_t helix_ok = 0;
-    uint64_t helix_fallback = 0;
+    uint64_t helix_fallback = 0;\n    bool helix_disabled_for_stream = false;
 
     // Estado do filtro DMR -> D-STAR (8 kHz)
     double hp_x1 = 0.0;
@@ -334,7 +335,7 @@ struct Stream {
                 helix_reset,
                 true
             );
-        } else if (helix) {
+        } else if (helix && !helix_disabled_for_stream) {
             helix_attempted = true;
             helix_success = helix->process(
                 id,
@@ -356,6 +357,8 @@ struct Stream {
             } else {
                 ++helix_fallback;
                 helix_reset = true;
+                if (helix_mode == HelixMode::Process)
+                    helix_disabled_for_stream = true;
             }
         }
 
@@ -653,6 +656,7 @@ int main() {
                                   << " helix=" << helix_mode_name(it->second->helix_mode)
                                   << " helix_ok=" << it->second->helix_ok
                                   << " helix_fallback=" << it->second->helix_fallback
+                                  << " helix_stream_disabled=" << (it->second->helix_disabled_for_stream ? 1 : 0)
                                   << "\n";
                         streams.erase(it);
                     }
