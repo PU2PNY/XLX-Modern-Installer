@@ -90,6 +90,32 @@ int helix_timeout_from_env() {
     return parsed;
 }
 
+xuv::HelixPcmClient* shared_helix_client() {
+    static std::unique_ptr<xuv::HelixPcmClient> client;
+    static bool initialized = false;
+    if (!initialized) {
+        initialized = true;
+        if (helix_mode_from_env() == HelixMode::Process) {
+            client = std::make_unique<xuv::HelixPcmClient>(
+                helix_socket_from_env(), helix_timeout_from_env());
+        }
+    }
+    return client.get();
+}
+
+xuv::HelixPcmObserver* shared_helix_observer() {
+    static std::unique_ptr<xuv::HelixPcmObserver> observer;
+    static bool initialized = false;
+    if (!initialized) {
+        initialized = true;
+        if (helix_mode_from_env() == HelixMode::Shadow) {
+            observer = std::make_unique<xuv::HelixPcmObserver>(
+                helix_observe_socket_from_env());
+        }
+    }
+    return observer.get();
+}
+
 uint16_t read_le16(const uint8_t* p) {
     return static_cast<uint16_t>(p[0]) |
            (static_cast<uint16_t>(p[1]) << 8);
@@ -237,8 +263,8 @@ struct Stream {
     uint64_t failures = 0;
 
     HelixMode helix_mode = helix_mode_from_env();
-    std::unique_ptr<xuv::HelixPcmClient> helix;
-    std::unique_ptr<xuv::HelixPcmObserver> helix_observer;
+    xuv::HelixPcmClient* helix = nullptr;
+    xuv::HelixPcmObserver* helix_observer = nullptr;
     bool helix_reset = true;
     uint64_t helix_timestamp = 0;
     uint64_t helix_ok = 0;
@@ -252,11 +278,9 @@ struct Stream {
     Stream(uint16_t sid, uint16_t sport, uint8_t in, uint8_t out, int sock, char mod)
         : id(sid), port(sport), in_codec(in), out_codec(out), module(mod), fd(sock) {
         if (helix_mode == HelixMode::Shadow) {
-            helix_observer = std::make_unique<xuv::HelixPcmObserver>(
-                helix_observe_socket_from_env());
+            helix_observer = shared_helix_observer();
         } else if (helix_mode == HelixMode::Process) {
-            helix = std::make_unique<xuv::HelixPcmClient>(
-                helix_socket_from_env(), helix_timeout_from_env());
+            helix = shared_helix_client();
         }
         if (out_codec == CODEC_DSTAR) {
             enc.set_dstar_mode();
