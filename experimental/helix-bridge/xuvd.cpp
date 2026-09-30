@@ -579,7 +579,7 @@ int main() {
                               << "->" << unsigned(out)
                               << " module=" << module
                               << " cleanC=" << ((module == 'C') ? "ON" : "OFF")
-                              << " helix=" << helix_mode_name(s->helix_mode)
+                              << " helix=" << helix_mode_name(streams[id]->helix_mode)
                               << "\n";
                     continue;
                 }
