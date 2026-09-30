@@ -1,3 +1,12 @@
+## Unreleased — Helix PCM Bridge V1
+
+- Adds an experimental local PCM contract between the existing legacy codec backend and Helix Voice.
+- Keeps Helix optional and legacy radio compatibility mandatory.
+- Adds explicit `off`, `shadow` and `process` modes; default is `off`.
+- Makes the client fail-open: connection, timeout or invalid-response failures leave the original legacy PCM untouched.
+- Keeps the legacy AMBE/AMBE+2 decoder/encoder outside the Helix core.
+- Adds contract regression tests and provenance documentation; production processing remains gated.
+
 ## Unreleased — Passive Transmission Analyzer V1
 
 - Adds a passive YSF transport analyzer for frame-counter continuity, inter-arrival/jitter, concurrent endpoint detection and reconnect/session churn.
