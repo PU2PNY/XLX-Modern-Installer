@@ -67,7 +67,7 @@ rádio legado -> XLXD -> backend codec legado -> PCM -> Helix (IPC local)
 Regras:
 - backend AMBE/AMBE+2 permanece externo ao núcleo Helix;
 - `off` é o padrão;
-- `shadow` envia PCM ao Helix e descarta a resposta;
+- `shadow` envia PCM por datagrama Unix não bloqueante, sem esperar resposta;
 - `process` só comita PCM após resposta completa e válida;
 - falha/timeout do Helix preserva o PCM original;
 - ausência de Helix não pode impedir operação de rádio legado;
