@@ -102,3 +102,23 @@ WartyWallaby:
 Classificação: `SW/ENV PASS` para contrato, shadow, fail-open e continuidade multi-stream. `process` continua **não autorizado em PROD** até áudio real/soak/rollback e reconciliação da proveniência do transcoder ativo.
 
 Proveniência histórica recuperada em backup: o trabalho do transcoder de 2026-09-08 preserva `boatbod/op25@28f2c40645deca3f8c2d529d27d0df2555ed287a`, o source `xuvd.cpp` atual (SHA-256 `2327548067...bfea5c`) e uma cópia byte-idêntica do binário PROD atual (SHA-256 `4b72dfc7...e58069`). O log de instalação prova que esse binário foi obtido por um patch binário único de 1 byte no predecessor `50ac33df...cec15`, alterando o limite FEC 3→4. Porém o rebuild limpo preservado daquela mesma investigação gera SHA-256 `cc163930...a475d0`, não o ELF ativo. Portanto a cadeia histórica foi identificada, mas a reprodução byte a byte por compilação ainda não foi comprovada; o binário de produção não foi substituído nem reiniciado.
+
+
+### Equivalência contra xuvd PROD — ENV com corpus PROD (2026-09-30)
+
+Sem alterar produção, o binário PROD exato foi copiado para WartyWallaby e comparado ao bridge compilado com a árvore histórica `boatbod/op25@28f2c40645deca3f8c2d529d27d0df2555ed287a`.
+
+Corpus sintético determinístico:
+- AMBE+2→D-Star módulo A: bit-idêntico;
+- AMBE+2→D-Star módulo C: bit-idêntico;
+- D-Star→AMBE+2 módulo A: bit-idêntico;
+- D-Star→AMBE+2 módulo C: bit-idêntico;
+- `shadow` também foi bit-idêntico nos quatro caminhos e entregou 560/560 observações ao Helix.
+
+Corpus derivado de produção:
+- captura passiva de 90 s no loopback XLXD↔xuvd: 1.947 pacotes, 0 drops;
+- três sessões reais AMBE+2→D-Star: 828 frames;
+- xuvd PROD, candidate `off` e candidate `shadow` produziram o mesmo SHA-256 de saída `f64ebcfebfe59aeba9404a174f2c95eef000303f41e43a8c3b7562b8cf62a470`;
+- Helix recebeu 828/828 frames em `shadow`, com 0 falhas do transcoder.
+
+Classificação: PASS em ENV para equivalência comportamental do caminho legado no corpus testado. Os pacotes de origem vieram de PROD, mas o replay/comparação ocorreu em ENV; não promover para PROD por inferência.
