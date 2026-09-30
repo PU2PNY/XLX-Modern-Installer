@@ -10,6 +10,8 @@ grep -q 'HelixMode::Off' "$ROOT/experimental/helix-bridge/xuvd.cpp"
 grep -q 'HelixMode::Shadow' "$ROOT/experimental/helix-bridge/xuvd.cpp"
 grep -q 'HelixMode::Process' "$ROOT/experimental/helix-bridge/xuvd.cpp"
 grep -q 'helix_fallback' "$ROOT/experimental/helix-bridge/xuvd.cpp"
+grep -q 'HelixPcmObserver' "$ROOT/experimental/helix-bridge/xuvd.cpp"
+grep -q 'SOCK_NONBLOCK' "$ROOT/experimental/helix-bridge/helix_pcm_client.hpp"
 grep -q 'timeout_ms > 5' "$ROOT/experimental/helix-bridge/helix_pcm_client.hpp"
 echo "PASS | static off/shadow/process/fallback/timeout contract"
 
@@ -59,14 +61,6 @@ int main(int argc, char** argv) {
         if (!ok || !same(samples, expected)) {
             std::cerr << "valid response not committed\n";
             return 4;
-        }
-        return 0;
-    }
-
-    if (mode == "shadow") {
-        if (!ok || !same(samples, original)) {
-            std::cerr << "shadow mode changed PCM\n";
-            return 5;
         }
         return 0;
     }
@@ -121,6 +115,30 @@ conn.close()
 srv.close()
 PY
 
+cat >"$TMP/dgram_server.py" <<'PY'
+import os
+import socket
+import struct
+import sys
+
+path = sys.argv[1]
+try:
+    os.unlink(path)
+except FileNotFoundError:
+    pass
+
+srv = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+srv.bind(path)
+data = srv.recv(4096)
+if len(data) < 24 or data[:4] != b"HXP1":
+    raise SystemExit(2)
+count = struct.unpack_from("<H", data, 6)[0]
+if len(data) != 24 + count * 2:
+    raise SystemExit(3)
+srv.close()
+os.unlink(path)
+PY
+
 MISSING="$TMP/missing.sock"
 "$TMP/client_test" missing "$MISSING"
 echo "PASS | missing Helix keeps PCM unchanged"
@@ -144,8 +162,21 @@ run_server_case() {
 run_server_case valid valid
 echo "PASS | valid Helix response is committed"
 
-run_server_case valid shadow
-echo "PASS | shadow response is discarded"
+OBS_MISSING="$TMP/missing-observe.sock"
+"$TMP/observer_test" missing "$OBS_MISSING"
+echo "PASS | missing shadow observer returns immediately without dependency"
+
+OBS_SOCKET="$TMP/observe.sock"
+python3 "$TMP/dgram_server.py" "$OBS_SOCKET" &
+obs_pid=$!
+for _ in {1..200}; do
+    [[ -S "$OBS_SOCKET" ]] && break
+    sleep 0.025
+done
+[[ -S "$OBS_SOCKET" ]] || { kill "$obs_pid" 2>/dev/null || true; wait "$obs_pid" 2>/dev/null || true; exit 1; }
+"$TMP/observer_test" valid "$OBS_SOCKET"
+wait "$obs_pid"
+echo "PASS | shadow observer sends one-way Unix datagram"
 
 run_server_case invalid invalid
 echo "PASS | malformed Helix response keeps PCM unchanged"
