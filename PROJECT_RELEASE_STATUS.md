@@ -84,3 +84,21 @@ Objetivo:
 - timeout/falha do Helix mantém PCM original e caminho legado.
 
 Evidência atual: DOC/SW em construção. Não promove áudio de produção. O transcoder `xuvd` ativo do XLX026 foi identificado como backend local em `127.0.0.1:10100`; nenhuma substituição/restart de produção foi executada durante esta etapa.
+
+
+### Evidência ENV — Helix PCM Bridge V1 (2026-09-30)
+
+WartyWallaby:
+- contrato C++/Unix socket: PASS;
+- Helix daemon self-test: PASS;
+- transcoder experimental compilado com OP25 `71abcd0ead32f86f51615ea6cc8a6a4dba4c949a`;
+- `off`, Helix ausente e `shadow`: saída bit-idêntica, SHA-256 `0927cfff2bb8dfd6076ba6912ba9a96eef57284afd4df77e2436e9657521074f`;
+- `shadow`: 40/40 observações, zero fallback, zero falha de codec;
+- `process`: 40/40 respostas Helix em execução single-stream, zero fallback, saída diferente do baseline como esperado;
+- Helix ausente em `process`: 1 tentativa falhou de forma limitada, o stream foi fixado em legado e 40/40 frames continuaram entregues;
+- dois streams intercalados: 60/60 frames entregues; um stream permaneceu Helix 30/30, o outro teve um timeout e passou de forma segura ao legado;
+- HXP1 direto, 2.000 frames: p50 0,085 ms; p95 0,319 ms; p99 0,817 ms; p99,9 1,750 ms; máximo 3,653 ms; 0 acima de 5 ms.
+
+Classificação: `SW/ENV PASS` para contrato, shadow, fail-open e continuidade multi-stream. `process` continua **não autorizado em PROD** até áudio real/soak/rollback e reconciliação da proveniência do transcoder ativo.
+
+Bloqueio de produção identificado: o `xuvd` ativo do XLX026 usa um build histórico OP25/mbelib cuja revisão exata não está preservada no host. Recompilar com upstream atual pode mudar o áudio mesmo com Helix em shadow; portanto o binário de produção não foi substituído nem reiniciado.
