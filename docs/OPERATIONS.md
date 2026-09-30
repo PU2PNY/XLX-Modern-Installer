@@ -59,3 +59,13 @@ A integração experimental Helix deve ser operada em três fases explícitas:
 3. `process` — PCM retornado pode ser usado somente após validação ENV e gate específico de áudio/rollback.
 
 O cliente tem timeout local limitado a 10 ms na V1 e comportamento fail-open. Erro, socket ausente, timeout ou resposta inválida devem manter o PCM original; em `process`, a primeira falha fixa o restante daquele stream no legado. Não introduza API/cloud no caminho de áudio. Antes de qualquer mudança do transcoder ativo, registre PID, binário/hash, unit/config, tráfego ativo, proveniência das dependências usadas no build e ponto de retorno.
+
+
+### Gate adicional antes de shadow
+
+Antes de substituir o xuvd conhecido-bom por um build com suporte Helix, execute `experimental/helix-bridge/test-prod-equivalence.sh` em ENV usando:
+- uma cópia exata do binário xuvd de produção;
+- a árvore OP25 historicamente correspondente;
+- opcionalmente o `helix-daemon` para validar `shadow`.
+
+O teste deve ser bit-idêntico nos quatro caminhos do corpus. Não execute este teste em um host onde `127.0.0.1:10100` já esteja em uso. PCAP/corpus bruto de produção não deve ser versionado.
