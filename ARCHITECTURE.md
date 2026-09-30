@@ -37,7 +37,7 @@ O arquivo legado `modules/70-apache.sh` ainda existe no repositório, mas não �
 - `dashboard/` — painel público, APIs e componentes nativos.
 - `control/` — Administração privada, builders e helpers.
 - `modules/` — estágios controlados de instalação.
-- `observability/` — Health, DMR data/meta, YSF data, histórico e self-test.
+- `observability/` — Health, DMR data/meta, YSF data, analisador passivo de integridade de transmissão, histórico e self-test.
 - `tests/` — regressões e contratos.
 - `.github/workflows/` — CI e gates.
 - `scripts/` — auditoria/manutenção/backup quando aplicável.

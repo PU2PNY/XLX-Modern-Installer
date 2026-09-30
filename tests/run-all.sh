@@ -45,6 +45,8 @@ echo "[control functional sandbox]"
 bash "$ROOT/tests/test-control-functional.sh" || failures=$((failures+1))
 echo "[current panel runtime parity]"
 bash "$ROOT/tests/test-current-panel-runtime-parity.sh" || failures=$((failures+1))
+echo "[transmission analyzer]"
+bash "$ROOT/tests/test-transmission-analyzer.sh" || failures=$((failures+1))
 echo "[project governance]"
 bash "$ROOT/tests/test-project-governance.sh" || failures=$((failures+1))
 echo "[release hardening]"

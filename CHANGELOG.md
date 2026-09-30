@@ -1,3 +1,10 @@
+## Unreleased — Passive Transmission Analyzer V1
+
+- Adds a passive YSF transport analyzer for frame-counter continuity, inter-arrival/jitter, concurrent endpoint detection and reconnect/session churn.
+- Uses conservative loss estimation: sequence jumps are not labeled as packet loss unless elapsed time is compatible with missing 100 ms YSF network frames.
+- Keeps the analyzer outside the audio/transcoding path; it does not modify, delay, retransmit or normalize traffic.
+- Writes bounded local state and anomaly-only logs with log rotation and no OpenAI dependency.
+
 ## Unreleased — Canonical governance and documentation parity
 
 - Restores the mandatory project governance documents to the maintained branch.
