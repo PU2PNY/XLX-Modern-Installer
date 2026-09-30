@@ -4,6 +4,7 @@
 - Uses conservative loss estimation: sequence jumps are not labeled as packet loss unless elapsed time is compatible with missing 100 ms YSF network frames.
 - Keeps the analyzer outside the audio/transcoding path; it does not modify, delay, retransmit or normalize traffic.
 - Writes bounded local state and anomaly-only logs with log rotation and no OpenAI dependency.
+- Production deployment on XLX026 was validated without restarting XLXD; the service stayed near 10 MB, observed real YSF keepalives and automatically flagged PS7JAP with two concurrent YSF endpoints. Real YSFD voice-frame validation remains ENV-only until observed in production.
 
 ## Unreleased — Canonical governance and documentation parity
 
