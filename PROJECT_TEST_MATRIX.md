@@ -23,7 +23,7 @@ Níveis de evidência: DOC / SW / ENV / HW / PROD / OPERATOR.
 | TEST-014 | ADMIN-003 / PERF-001 | Timeout privado não amplia orçamento público | PR #55 + evidência SW/ENV/PROD registrada em 2026-09-23; novo POST mutável autenticado ainda pendente | PARCIAL (SW/ENV/PROD) |
 | TEST-015 | GOV-001/002 | Documentos canônicos presentes e arquitetura web coerente | `tests/test-project-governance.sh` adicionado nesta correção; aguarda CI da PR | PENDENTE |
 
-| TEST-016 | OBS-003 / PERF-001 | Analisador passivo YSF detecta continuidade/jitter/sessões sem tocar no caminho de áudio | 6/6 testes específicos + `tests/run-all.sh` com `failures=0` em WartyWallaby; serviço real com CAP_NET_RAW capturou tráfego YSF sintético enviado por segunda VPS e detectou 2 frames ausentes no caso 11→14/~300 ms | PASS (SW/ENV) |
+| TEST-016 | OBS-003 / PERF-001 | Analisador passivo YSF detecta continuidade/jitter/sessões sem tocar no caminho de áudio | 7/7 testes específicos + `tests/run-all.sh` com `failures=0` em WartyWallaby; serviço real com CAP_NET_RAW capturou tráfego YSF sintético enviado por segunda VPS e detectou 2 frames ausentes no caso 11→14/~300 ms | PASS (SW/ENV) |
 
 ## Como registrar PASS
 Atualize a linha com:
