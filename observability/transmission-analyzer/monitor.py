@@ -224,7 +224,11 @@ class Analyzer:
         flow = self.flows.setdefault(key, Flow())
         flow.frames += 1
 
-        if flow.last_seq is None or flow.last_eot or now - flow.last_at > BURST_RESET_S:
+        if eot:
+            # The YSF terminator uses the low EOT bit and resets the network
+            # frame counter. Never evaluate it as a continuity jump.
+            pass
+        elif flow.last_seq is None or flow.last_eot or now - flow.last_at > BURST_RESET_S:
             flow.burst_id += 1
         else:
             dt_ms = (now - flow.last_at) * 1000.0
