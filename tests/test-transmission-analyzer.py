@@ -60,6 +60,14 @@ class AnalyzerTests(unittest.TestCase):
         self.assertEqual(row["likely_missing_frames"], 0)
         self.assertEqual(row["counter_jumps"], 1)
 
+    def test_eot_packet_is_not_reported_as_counter_jump(self):
+        self.analyzer.process_ysf(ysf(seq=40), "10.0.0.1", 50000, 1.0)
+        self.analyzer.process_ysf(ysf(seq=0, eot=1), "10.0.0.1", 50000, 1.1)
+        row = self.station()
+        self.assertEqual(row["counter_jumps"], 0)
+        self.assertEqual(row["out_of_order_or_reset"], 0)
+        self.assertEqual(row["likely_missing_frames"], 0)
+
     def test_eot_breaks_continuity(self):
         self.analyzer.process_ysf(ysf(seq=40, eot=1), "10.0.0.1", 50000, 1.0)
         self.analyzer.process_ysf(ysf(seq=2), "10.0.0.1", 50000, 1.1)
