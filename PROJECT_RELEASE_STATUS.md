@@ -69,3 +69,18 @@ Escopo:
 - sem alteração do caminho de áudio, XLXD ou transcoding.
 
 Estado: SW + ENV validados na WartyWallaby. `tests/test-transmission-analyzer.sh`: 7/7 PASS; `tests/run-all.sh`: failures=0. O serviço real com CAP_NET_RAW capturou YSF sintético enviado por segunda VPS e gerou estado correto sem alterar o caminho de áudio. Produção ainda não validada.
+
+
+## Trabalho isolado — Helix PCM Bridge V1
+Branch: `feature/helix-pcm-fallback-v1-20260930`.
+
+Objetivo:
+- preservar compatibilidade de rádio legado DMR/YSF/D-Star;
+- manter AMBE/AMBE+2 no backend legado externo ao núcleo Helix;
+- fornecer PCM ao Helix por socket Unix local;
+- modo `off` como padrão;
+- modo `shadow` sem comitar áudio retornado;
+- modo `process` somente após gate adicional;
+- timeout/falha do Helix mantém PCM original e caminho legado.
+
+Evidência atual: DOC/SW em construção. Não promove áudio de produção. O transcoder `xuvd` ativo do XLX026 foi identificado como backend local em `127.0.0.1:10100`; nenhuma substituição/restart de produção foi executada durante esta etapa.
