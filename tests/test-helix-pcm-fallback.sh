@@ -15,6 +15,13 @@ grep -q 'SOCK_NONBLOCK' "$ROOT/experimental/helix-bridge/helix_pcm_client.hpp"
 grep -q 'parsed > 10' "$ROOT/experimental/helix-bridge/xuvd.cpp"
 grep -q 'helix_disabled_for_stream' "$ROOT/experimental/helix-bridge/xuvd.cpp"
 grep -q 'prime()' "$ROOT/experimental/helix-bridge/helix_pcm_client.hpp"
+grep -q 'User=helix-voice' "$ROOT/experimental/helix-bridge/systemd/helix-voice-shadow.service"
+grep -q 'RestrictAddressFamilies=AF_UNIX' "$ROOT/experimental/helix-bridge/systemd/helix-voice-shadow.service"
+grep -q 'MemoryMax=64M' "$ROOT/experimental/helix-bridge/systemd/helix-voice-shadow.service"
+grep -q 'CPUQuota=15%' "$ROOT/experimental/helix-bridge/systemd/helix-voice-shadow.service"
+grep -q 'XLX_HELIX_MODE=shadow' "$ROOT/experimental/helix-bridge/systemd/xlx-unified-voice-shadow.conf"
+grep -q 'SupplementaryGroups=helix-voice' "$ROOT/experimental/helix-bridge/systemd/xlx-unified-voice-shadow.conf"
+bash -n "$ROOT/experimental/helix-bridge/test-prod-equivalence.sh"
 echo "PASS | static off/shadow/process/fallback/nonblocking/timeout/stream-sticky contract"
 
 if ! command -v g++ >/dev/null 2>&1; then
