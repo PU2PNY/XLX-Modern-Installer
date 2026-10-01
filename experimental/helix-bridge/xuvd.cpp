@@ -270,6 +270,7 @@ struct Stream {
     uint64_t helix_timestamp = 0;
     uint64_t helix_ok = 0;
     uint64_t helix_fallback = 0;
+    xuv::HelixFailurePolicy helix_failure_policy;
     bool helix_disabled_for_stream = false;
 
     // Estado do filtro DMR -> D-STAR (8 kHz)
@@ -354,12 +355,15 @@ struct Stream {
             helix_timestamp += pcm.size();
             if (helix_success) {
                 ++helix_ok;
+                helix_failure_policy.on_success();
                 helix_reset = false;
             } else {
                 ++helix_fallback;
                 helix_reset = true;
-                if (helix_mode == HelixMode::Process)
+                if (helix_mode == HelixMode::Process &&
+                    helix_failure_policy.on_failure()) {
                     helix_disabled_for_stream = true;
+                }
             }
         }
 
@@ -657,6 +661,7 @@ int main() {
                                   << " helix=" << helix_mode_name(it->second->helix_mode)
                                   << " helix_ok=" << it->second->helix_ok
                                   << " helix_fallback=" << it->second->helix_fallback
+                                  << " helix_consecutive_max=" << it->second->helix_failure_policy.max_consecutive_failures()
                                   << " helix_stream_disabled=" << (it->second->helix_disabled_for_stream ? 1 : 0)
                                   << "\n";
                         streams.erase(it);
