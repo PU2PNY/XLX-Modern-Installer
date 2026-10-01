@@ -16,7 +16,7 @@
 - Keeps the legacy AMBE/AMBE+2 decoder/encoder outside the Helix core.
 - Adds contract regression tests and provenance documentation; production processing remains gated.
 - ENV/WartyWallaby confirms bit-identical `off`/missing-Helix/`shadow`, successful PCM mutation in `process`, safe sticky fallback per stream, multi-stream continuity, and HXP1 latency below 3.653 ms maximum in a 2,000-frame direct run.
-- Raises the bounded V1 process timeout ceiling/default to 10 ms after measurement; any process failure pins that stream to the legacy path until close.
+- Keeps the bounded V1 process budget at one total 1..5 ms monotonic deadline after adversarial measurement; any process failure pins that stream to the legacy path until close.
 - Production transcoder remains untouched. Historical OP25 provenance and the exact active binary were recovered from backup, including the documented one-byte FEC 3→4 patch, but a clean source rebuild still does not reproduce the active ELF byte-for-byte.
 - Behavioral equivalence was then proven in ENV against the exact production xuvd binary: four deterministic codec/module paths were bit-identical in both `off` and `shadow`, and 828 real AMBE+2→D-Star frames captured passively from PROD replayed bit-identically with 0 transcoder failures while Helix observed all 828 frames.
 
@@ -272,3 +272,5 @@
 
 ### Helix ENV follow-up: processing reliability remains partial
 The full lab wrapper retained all 80 multi-TX output frames, but both streams entered sticky legacy fallback after 4 and 5 Helix responses. Earlier runs completed 40/40 Helix replies per stream. Both results are retained; do not promote processing reliability or widen the 5 ms budget based on the best run alone. Shadow/process production gates remain pending.
+
+Three additional controlled multi-TX repeats retained 40/40 frames per stream with zero codec failures, while Helix replies before sticky fallback varied to 35/34, 2/28 and 18/14. This strengthens the classification: fail-open continuity PASS, `process` repeatability under contention PARCIAL. PR #65 was merged only as default-off experimental code; production activation remains blocked.
