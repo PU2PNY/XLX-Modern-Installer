@@ -152,7 +152,7 @@ def main():
     }
     anomaly=not all([helix_active,socket_ready,xuvd_active,xlxd_active,candidate_ok]) or helix_fallback>0
     state=load_state()
-    signature=json.dumps({k:telemetry[k] for k in ('helix_active','socket_ready','xuvd_active','xlxd_active','candidate_ok','recent_fallback')},sort_keys=True)
+    signature=json.dumps({k:telemetry[k] for k in ('mode','helix_active','socket_ready','xuvd_active','xlxd_active','candidate_ok','recent_fallback')},sort_keys=True)
     last_ai=int(state.get('last_ai_at',0) or 0)
     old_sig=str(state.get('last_signature',''))
     ai_due=ai_connected and (last_ai<=0 or now-last_ai>=900 or signature!=old_sig)
