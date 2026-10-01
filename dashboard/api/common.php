@@ -117,7 +117,12 @@ function canonical_connections(array $connections): array {
     $best = [];
 
     foreach ($connections as $connection) {
-        $call = norm_call((string)($connection['callsign'] ?? ''));
+        $directoryCall = trim((string)($connection['directory_callsign'] ?? ''));
+        $call = norm_call(
+            $directoryCall !== ''
+                ? $directoryCall
+                : (string)($connection['callsign'] ?? '')
+        );
 
         if ($call === '') {
             continue;
