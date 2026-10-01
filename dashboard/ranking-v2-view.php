@@ -89,7 +89,7 @@ body[data-page=ranking] .rv2-old{display:none!important}
 <script>
 (()=>{
  if(document.body.dataset.page!=='ranking')return;
- const S={p:'today',r:null,status:null,long:null,autoFallback:false,initialPeriodPending:true},$=s=>document.querySelector(s);
+ const S={p:'today',r:null,status:null,long:null,autoFallback:false,initialPeriodPending:true,todayStart:null,manualPeriod:false},$=s=>document.querySelector(s);
  const dur=n=>{n=Math.max(0,+n||0);let h=Math.floor(n/3600),m=Math.floor(n%3600/60),s=Math.floor(n%60);return [h,m,s].map(x=>String(x).padStart(2,'0')).join(':')};
 
  /* XLXMODERN_RANKING_CONNECTED_DHM_V22
@@ -123,11 +123,17 @@ body[data-page=ranking] .rv2-old{display:none!important}
   S.autoFallback=autoFallback;
   document.querySelectorAll('.rv2-tab').forEach(x=>x.classList.toggle('active',x.dataset.p===p));
  }
- function chooseInitialPeriod(){
-  if(!S.initialPeriodPending||!S.r)return;
-  S.initialPeriodPending=false;
+ function choosePeriodAfterLoad(){
+  if(!S.r)return;
   let today=S.r.periods?.today,week=S.r.periods?.week;
-  if((+today?.tx_count||0)===0 && (+week?.tx_count||0)>0)setPeriod('week',true);
+  let nextStart=+today?.start_ts||0;
+  let rolled=Boolean(S.todayStart&&nextStart&&S.todayStart!==nextStart);
+  if(nextStart)S.todayStart=nextStart;
+  if((S.initialPeriodPending||(rolled&&!S.manualPeriod&&S.p==='today'))
+      && (+today?.tx_count||0)===0 && (+week?.tx_count||0)>0){
+    setPeriod('week',true);
+  }
+  S.initialPeriodPending=false;
  }
  function render(){
   if(!S.r)return;
@@ -154,11 +160,11 @@ body[data-page=ranking] .rv2-old{display:none!important}
     fetch('/api/ranking-v2.php?t='+Date.now(),{cache:'no-store'}).then(x=>x.json()),
     fetch('/api/status.php?t='+Date.now(),{cache:'no-store'}).then(x=>x.json())
    ]);
-   if(r.ok){S.r=r;chooseInitialPeriod();}S.status=s;render();
+   if(r.ok){S.r=r;choosePeriodAfterLoad();}S.status=s;render();
   }catch(e){console.error('Ranking V2',e);$('#rv2Note').textContent='Falha temporária ao atualizar estatísticas.'}
  }
  document.querySelectorAll('.rv2-tab').forEach(b=>b.onclick=()=>{
-  S.initialPeriodPending=false;setPeriod(b.dataset.p,false);render();
+  S.initialPeriodPending=false;S.manualPeriod=true;setPeriod(b.dataset.p,false);render();
  });
  load();setInterval(clock,1000);setInterval(load,60000);
 })();
