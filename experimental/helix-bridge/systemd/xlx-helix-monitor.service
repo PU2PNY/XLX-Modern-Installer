@@ -1,0 +1,32 @@
+[Unit]
+Description=XLX Helix shadow telemetry and AI monitor
+After=network-online.target helix-voice-shadow.service xlx-unified-voice.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=helix-voice
+Group=helix-voice
+SupplementaryGroups=systemd-journal
+RuntimeDirectory=xlx-helix-monitor
+RuntimeDirectoryMode=0755
+RuntimeDirectoryPreserve=yes
+StateDirectory=xlx-helix-monitor
+StateDirectoryMode=0750
+EnvironmentFile=-/etc/xlx-ai-monitor.env
+ExecStart=/usr/local/lib/xlx-modern/xlx-helix-monitor.py
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+MemoryMax=48M
+CPUQuota=20%
+TasksMax=8
+UMask=0022
