@@ -1,9 +1,32 @@
+## Unreleased — Helix PCM Bridge V1
+
+## 2026-09-30 — Helix PCM bridge: total deadline and reproducible ENV gate
+- Reconcile the explicit operator ceiling to 1..5 ms; replace per-read timeouts with one monotonic connect/write/read deadline.
+- Use non-blocking Unix connection and I/O; full backlog, trickle replies and invalid headers preserve original PCM.
+- Reject unknown HXP1 response flags and retain per-stream sticky legacy fallback.
+- Add adversarial deadline regression to run-all and a synthetic AMBED E2E lab runner with mid-stream Helix failure, multi-TX, DSP isolation, RSS/CPU and latency evidence.
+- ENV: Rust gates PASS; installer suite failures=0; exact legacy ELF equivalence and binary restore PASS; two streams 40/40 Helix responses each.
+- No production transcoder/XLXD restart, no process activation, no PU2PNY-OS integration. Production shadow still requires its remaining gates.
+
+
+- Adds an experimental local PCM contract between the existing legacy codec backend and Helix Voice.
+- Keeps Helix optional and legacy radio compatibility mandatory.
+- Adds explicit `off`, `shadow` and `process` modes; default is `off`.
+- Makes the client fail-open: connection, timeout or invalid-response failures leave the original legacy PCM untouched.
+- Keeps the legacy AMBE/AMBE+2 decoder/encoder outside the Helix core.
+- Adds contract regression tests and provenance documentation; production processing remains gated.
+- ENV/WartyWallaby confirms bit-identical `off`/missing-Helix/`shadow`, successful PCM mutation in `process`, safe sticky fallback per stream, multi-stream continuity, and HXP1 latency below 3.653 ms maximum in a 2,000-frame direct run.
+- Raises the bounded V1 process timeout ceiling/default to 10 ms after measurement; any process failure pins that stream to the legacy path until close.
+- Production transcoder remains untouched. Historical OP25 provenance and the exact active binary were recovered from backup, including the documented one-byte FEC 3→4 patch, but a clean source rebuild still does not reproduce the active ELF byte-for-byte.
+- Behavioral equivalence was then proven in ENV against the exact production xuvd binary: four deterministic codec/module paths were bit-identical in both `off` and `shadow`, and 828 real AMBE+2→D-Star frames captured passively from PROD replayed bit-identically with 0 transcoder failures while Helix observed all 828 frames.
+
 ## Unreleased — Passive Transmission Analyzer V1
 
 - Adds a passive YSF transport analyzer for frame-counter continuity, inter-arrival/jitter, concurrent endpoint detection and reconnect/session churn.
 - Uses conservative loss estimation: sequence jumps are not labeled as packet loss unless elapsed time is compatible with missing 100 ms YSF network frames.
 - Keeps the analyzer outside the audio/transcoding path; it does not modify, delay, retransmit or normalize traffic.
 - Writes bounded local state and anomaly-only logs with log rotation and no OpenAI dependency.
+- Production deployment on XLX026 was validated without restarting XLXD; the service stayed near 10 MB, observed real YSF keepalives and automatically flagged PS7JAP with two concurrent YSF endpoints. Real YSFD voice-frame validation remains ENV-only until observed in production.
 
 ## Unreleased — Canonical governance and documentation parity
 
@@ -246,3 +269,6 @@
 ### Public-release policy
 - No production passwords, tokens, private IP data or private Admin route are published.
 - Support, ANATEL simulator and News are excluded from the standard public dashboard.
+
+### Helix ENV follow-up: processing reliability remains partial
+The full lab wrapper retained all 80 multi-TX output frames, but both streams entered sticky legacy fallback after 4 and 5 Helix responses. Earlier runs completed 40/40 Helix replies per stream. Both results are retained; do not promote processing reliability or widen the 5 ms budget based on the best run alone. Shadow/process production gates remain pending.

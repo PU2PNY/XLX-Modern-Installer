@@ -52,3 +52,25 @@ O arquivo legado `modules/70-apache.sh` ainda existe no repositório, mas não �
 - atualização de XLXD/dependências críticas exige validação de compatibilidade.
 
 Consulte `PROJECT_MASTER_SPEC.md` para requisitos e `docs/RECOVERY.md` para rollback.
+
+
+## Helix Voice — fronteira experimental
+
+A integração Helix inicial é uma fronteira de processo, não uma substituição direta do XLXD nem do codec dos rádios.
+
+```text
+rádio legado -> XLXD -> backend codec legado -> PCM -> Helix (IPC local)
+                                             <- PCM <-
+                    -> backend codec legado -> rádio legado
+```
+
+Regras:
+- backend AMBE/AMBE+2 permanece externo ao núcleo Helix;
+- `off` é o padrão;
+- `shadow` envia PCM por datagrama Unix não bloqueante, sem esperar resposta;
+- `process` só comita PCM após resposta completa e válida;
+- falha/timeout do Helix preserva o PCM original;
+- ausência de Helix não pode impedir operação de rádio legado;
+- nenhum serviço remoto faz parte do hot path de áudio.
+
+A implementação inicial está em `experimental/helix-bridge/` e não é instalada/ativada automaticamente.

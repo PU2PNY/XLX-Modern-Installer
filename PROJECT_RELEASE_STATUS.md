@@ -68,4 +68,79 @@ Escopo:
 - estado local limitado e log apenas de anomalias;
 - sem alteração do caminho de áudio, XLXD ou transcoding.
 
-Estado: SW + ENV validados na WartyWallaby. `tests/test-transmission-analyzer.sh`: 7/7 PASS; `tests/run-all.sh`: failures=0. O serviço real com CAP_NET_RAW capturou YSF sintético enviado por segunda VPS e gerou estado correto sem alterar o caminho de áudio. Produção ainda não validada.
+Estado: SW + ENV validados e deploy PROD do serviço passivo validado no XLX026 em 2026-09-30. `tests/test-transmission-analyzer.sh`: 7/7 PASS; `tests/run-all.sh`: failures=0. Em ENV, o serviço real com CAP_NET_RAW capturou YSF sintético enviado por segunda VPS e detectou corretamente uma lacuna 11→14/~300 ms. Em PROD, o serviço permaneceu ativo com ~10 MB, recebeu mais de 1.500 YSFP reais, não abriu listener UDP adicional e o PID do XLXD permaneceu 1093634 antes/depois do deploy. O analisador detectou automaticamente PS7JAP com `concurrent_endpoints` e `endpoint_count=2`, confirmando a detecção de sessões concorrentes em tráfego real. Não houve YSFD/voz real durante a janela curta de validação PROD; a análise de continuidade dos frames de voz permanece comprovada em ENV, não promovida por inferência.
+
+
+## Trabalho isolado — Helix PCM Bridge V1
+Branch: `feature/helix-pcm-fallback-v1-20260930`.
+
+Objetivo:
+- preservar compatibilidade de rádio legado DMR/YSF/D-Star;
+- manter AMBE/AMBE+2 no backend legado externo ao núcleo Helix;
+- fornecer PCM ao Helix por socket Unix local;
+- modo `off` como padrão;
+- modo `shadow` sem comitar áudio retornado;
+- modo `process` somente após gate adicional;
+- timeout/falha do Helix mantém PCM original e caminho legado.
+
+Evidência atual: DOC/SW/ENV registrada abaixo. Não promove áudio de produção. O transcoder `xuvd` ativo do XLX026 foi identificado como backend local em `127.0.0.1:10100`; nenhuma substituição/restart de produção foi executada durante esta etapa.
+
+
+### Evidência ENV — Helix PCM Bridge V1 (2026-09-30)
+
+WartyWallaby:
+- contrato C++/Unix socket: PASS;
+- Helix daemon self-test: PASS;
+- transcoder experimental compilado com OP25 `71abcd0ead32f86f51615ea6cc8a6a4dba4c949a`;
+- `off`, Helix ausente e `shadow`: saída bit-idêntica, SHA-256 `0927cfff2bb8dfd6076ba6912ba9a96eef57284afd4df77e2436e9657521074f`;
+- `shadow`: 40/40 observações, zero fallback, zero falha de codec;
+- `process`: 40/40 respostas Helix em execução single-stream, zero fallback, saída diferente do baseline como esperado;
+- Helix ausente em `process`: 1 tentativa falhou de forma limitada, o stream foi fixado em legado e 40/40 frames continuaram entregues;
+- dois streams intercalados: 60/60 frames entregues; um stream permaneceu Helix 30/30, o outro teve um timeout e passou de forma segura ao legado;
+- HXP1 direto, 2.000 frames: p50 0,085 ms; p95 0,319 ms; p99 0,817 ms; p99,9 1,750 ms; máximo 3,653 ms; 0 acima de 5 ms.
+
+Classificação: `SW/ENV PASS` para contrato, shadow, fail-open e continuidade multi-stream. `process` continua **não autorizado em PROD** até áudio real/soak/rollback e reconciliação da proveniência do transcoder ativo.
+
+Proveniência histórica recuperada em backup: o trabalho do transcoder de 2026-09-08 preserva `boatbod/op25@28f2c40645deca3f8c2d529d27d0df2555ed287a`, o source `xuvd.cpp` atual (SHA-256 `2327548067...bfea5c`) e uma cópia byte-idêntica do binário PROD atual (SHA-256 `4b72dfc7...e58069`). O log de instalação prova que esse binário foi obtido por um patch binário único de 1 byte no predecessor `50ac33df...cec15`, alterando o limite FEC 3→4. Porém o rebuild limpo preservado daquela mesma investigação gera SHA-256 `cc163930...a475d0`, não o ELF ativo. Portanto a cadeia histórica foi identificada, mas a reprodução byte a byte por compilação ainda não foi comprovada; o binário de produção não foi substituído nem reiniciado.
+
+
+### Equivalência contra xuvd PROD — ENV com corpus PROD (2026-09-30)
+
+Sem alterar produção, o binário PROD exato foi copiado para WartyWallaby e comparado ao bridge compilado com a árvore histórica `boatbod/op25@28f2c40645deca3f8c2d529d27d0df2555ed287a`.
+
+Corpus sintético determinístico:
+- AMBE+2→D-Star módulo A: bit-idêntico;
+- AMBE+2→D-Star módulo C: bit-idêntico;
+- D-Star→AMBE+2 módulo A: bit-idêntico;
+- D-Star→AMBE+2 módulo C: bit-idêntico;
+- `shadow` também foi bit-idêntico nos quatro caminhos e entregou 560/560 observações ao Helix.
+
+Corpus derivado de produção:
+- captura passiva de 90 s no loopback XLXD↔xuvd: 1.947 pacotes, 0 drops;
+- três sessões reais AMBE+2→D-Star: 828 frames;
+- xuvd PROD, candidate `off` e candidate `shadow` produziram o mesmo SHA-256 de saída `f64ebcfebfe59aeba9404a174f2c95eef000303f41e43a8c3b7562b8cf62a470`;
+- Helix recebeu 828/828 frames em `shadow`, com 0 falhas do transcoder.
+
+Classificação: PASS em ENV para equivalência comportamental do caminho legado no corpus testado. Os pacotes de origem vieram de PROD, mas o replay/comparação ocorreu em ENV; não promover para PROD por inferência.
+
+### Continuação validada — deadline total e fail-open (2026-09-30)
+- Helix main confirmado em e80969d58d0ecf0f4bd55bbc7fae85311c0176d2 (PR #1 já mesclada).
+- XLX base desta continuação: 1c137e200fb7ea64d5e6e83a6d279b6f49c55cca, PR #65 aberta.
+- Instrução do operador reconciliada: teto 5 ms; deadline única inclui connect/write/read. Não renovar prazo em fragmentos; socket não bloqueante.
+- 11 cenários adversariais + backlog cheio preservam PCM; header incompleto/inválido ou flags desconhecidos não comitam saída.
+- Helix: governança/patent gate, fmt, clippy -D warnings, workspace tests, release build e daemon self-test PASS em ENV.
+- XLX: tests/run-all.sh terminou failures=0; contrato/deadline específicos PASS.
+- Equivalência contra ELF PROD exato: quatro caminhos em off/shadow bit-idênticos.
+- E2E de sete sessões: off/absent/shadow/shadow-kill bit-idênticos; process 40/40; queda no frame 20 preserva entrega 40/40; dois streams 40/40 Helix cada, sem falhas de codec.
+- PCM baixo/alto isolado versus intercalado: idêntico por stream; 600 IDs novos aceitos sem crescimento RSS no teste curto (1252 KiB).
+- Restore do binário em ENV PASS, incluindo quatro caminhos após restore; unit/config/serviço de produção não restaurados/testados.
+- Produção somente inspecionada: XLXD 1093634 e xuvd 1107847, ELF xuvd 4b72dfc7...e58069 preservado.
+- Falhas de execução desta continuação: timeout operacional de um comando curto durante compilação concorrente; uma resposta de despacho background expirou, mas o build iniciou e foi verificado; primeiro harness E2E rejeitou o banner de copyright OP25 em stderr. Harness corrigido para preservar o log e verificar erro/exit code/frames. Nenhuma dessas falhas foi tratada como falha DSP.
+- Retorno 127 anterior: cargo ausente no PATH do agente/root e Rust instalado em /root/.cargo/bin, hipótese compatível confirmada no contexto atual. O comando exato da execução antiga não pode ser reconstruído pela saída resumida; não alegar causa definitiva sem trace.
+- Shadow PROD não habilitado: ainda faltam soak 24h, gates de IP aplicáveis, restore completo e janela/procedimento de troca sem regressão. Process e PU2PNY-OS permanecem bloqueados.
+
+Evidência sanitizada reproduzível: [Helix PCM bridge ENV](docs/evidence/helix-pcm-bridge-20260930.json). Apenas métricas/hashes de corpus sintético; nenhum áudio, PCAP ou segredo de produção.
+
+### Execução adicional do wrapper — limitação de process registrada
+O script completo test-e2e-lab.sh passou seus critérios de continuidade/fail-open. Porém, no multi-TX dessa execução adicional, stream 1 teve helix_ok=4 e helix_fallback=1, stream 2 helix_ok=5 e helix_fallback=1; cada um entregou 40/40 frames, sem falhas de codec. Isso difere das duas execuções anteriores com Helix 40/40 em ambos. Não escolher apenas o melhor run: a confiabilidade de processamento sob contenção permanece PARCIAL, e disputa de CPU/scheduling é hipótese a investigar. A latência do wrapper é round-trip incluindo codec/IPC/scheduling, não latência isolada Helix. Soak/áudio/PROD continuam bloqueados. O prazo 5 ms não será aumentado para mascarar a falha.
+Evidência adicional: [wrapper ENV](docs/evidence/helix-pcm-bridge-wrapper-20260930.json).

@@ -50,3 +50,24 @@ Interpretação:
 - `counter_jump`: contador mudou de forma incompatível com perda temporal; não converter automaticamente em “pacotes perdidos”;
 - `concurrent_endpoints`: mais de um endpoint recente para o mesmo indicativo;
 - o V1 não mede ruído acústico, clipping ou equalização porque não decodifica AMBE/AMBE+2.
+
+
+## Helix PCM Bridge
+A integração experimental Helix deve ser operada em três fases explícitas:
+1. `off` — comportamento legado; estado padrão;
+2. `shadow` — Helix recebe PCM por datagrama Unix não bloqueante; não existe espera de resposta nem alteração do áudio transmitido;
+3. `process` — PCM retornado pode ser usado somente após validação ENV e gate específico de áudio/rollback.
+
+O cliente tem timeout local limitado a 5 ms na V1, com orçamento total por requisição e comportamento fail-open. Erro, socket ausente, timeout ou resposta inválida devem manter o PCM original; em `process`, a primeira falha fixa o restante daquele stream no legado. Não introduza API/cloud no caminho de áudio. Antes de qualquer mudança do transcoder ativo, registre PID, binário/hash, unit/config, tráfego ativo, proveniência das dependências usadas no build e ponto de retorno.
+
+
+### Gate adicional antes de shadow
+
+Antes de substituir o xuvd conhecido-bom por um build com suporte Helix, execute `experimental/helix-bridge/test-prod-equivalence.sh` em ENV usando:
+- uma cópia exata do binário xuvd de produção;
+- a árvore OP25 historicamente correspondente;
+- opcionalmente o `helix-daemon` para validar `shadow`.
+
+O teste deve ser bit-idêntico nos quatro caminhos do corpus. Não execute este teste em um host onde `127.0.0.1:10100` já esteja em uso. PCAP/corpus bruto de produção não deve ser versionado.
+
+Não aumentar a deadline para esconder falhas sob contenção. A execução adicional do wrapper entregou todos os frames mas acionou fallback em ambos os streams: continuidade foi validada, confiabilidade process permanece PARCIAL. Avaliar scheduling/CPU/latência em soak dedicado antes de qualquer promoção.

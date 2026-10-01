@@ -1,0 +1,345 @@
+#pragma once
+
+#include <poll.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <unistd.h>
+
+#include <algorithm>
+#include <array>
+#include <cerrno>
+#include <chrono>
+#include <cstddef>
+#include <cstdint>
+#include <cstring>
+#include <string>
+
+namespace xuv {
+
+constexpr std::size_t HELIX_PCM_MAX_SAMPLES = 960;
+constexpr std::size_t HELIX_PCM_HEADER_LEN = 24;
+constexpr std::size_t HELIX_PCM_MAX_PACKET =
+    HELIX_PCM_HEADER_LEN + HELIX_PCM_MAX_SAMPLES * sizeof(std::int16_t);
+constexpr std::uint8_t HELIX_PCM_VERSION = 1;
+constexpr std::uint8_t HELIX_PCM_APPLY_DSP = 0x01;
+constexpr std::uint8_t HELIX_PCM_RESET_STREAM = 0x02;
+constexpr std::uint8_t HELIX_PCM_OK = 0x80;
+
+class HelixPcmClient {
+public:
+    explicit HelixPcmClient(const std::string& socket_path, int timeout_ms = 1)
+        : socket_path_(socket_path),
+          timeout_ms_(timeout_ms < 1 ? 1 : (timeout_ms > 5 ? 5 : timeout_ms)) {}
+
+    ~HelixPcmClient() { disconnect(); }
+
+    HelixPcmClient(const HelixPcmClient&) = delete;
+    HelixPcmClient& operator=(const HelixPcmClient&) = delete;
+
+    bool process(
+        std::uint32_t stream_id,
+        std::uint32_t sample_rate_hz,
+        std::uint64_t timestamp_samples,
+        std::int16_t* samples,
+        std::size_t sample_count,
+        bool reset_stream,
+        bool apply_dsp,
+        bool commit_output
+    ) {
+        if (!samples || sample_count == 0 || sample_count > HELIX_PCM_MAX_SAMPLES)
+            return false;
+        if (sample_rate_hz < 8000 || sample_rate_hz > 48000)
+            return false;
+
+        std::array<std::int16_t, HELIX_PCM_MAX_SAMPLES> original{};
+        std::copy(samples, samples + sample_count, original.begin());
+
+        const auto deadline = Clock::now() + std::chrono::milliseconds(timeout_ms_);
+        if (!ensure_connected(deadline))
+            return false;
+
+        std::array<std::uint8_t, HELIX_PCM_MAX_PACKET> wire{};
+        std::memcpy(wire.data(), "HXP1", 4);
+        wire[4] = HELIX_PCM_VERSION;
+        wire[5] = static_cast<std::uint8_t>(
+            (apply_dsp ? HELIX_PCM_APPLY_DSP : 0) |
+            (reset_stream ? HELIX_PCM_RESET_STREAM : 0)
+        );
+        write_le16(&wire[6], static_cast<std::uint16_t>(sample_count));
+        write_le32(&wire[8], stream_id);
+        write_le32(&wire[12], sample_rate_hz);
+        write_le64(&wire[16], timestamp_samples);
+
+        for (std::size_t i = 0; i < sample_count; ++i) {
+            write_le16(
+                &wire[HELIX_PCM_HEADER_LEN + i * 2],
+                static_cast<std::uint16_t>(original[i])
+            );
+        }
+
+        const std::size_t packet_len = HELIX_PCM_HEADER_LEN + sample_count * 2;
+        if (!write_all(wire.data(), packet_len, deadline)) {
+            disconnect();
+            return false;
+        }
+
+        std::array<std::uint8_t, HELIX_PCM_MAX_PACKET> response{};
+        if (!read_all(response.data(), HELIX_PCM_HEADER_LEN, deadline)) {
+            disconnect();
+            return false;
+        }
+
+        if (std::memcmp(response.data(), "HXP1", 4) != 0 ||
+            response[4] != HELIX_PCM_VERSION ||
+            (response[5] & HELIX_PCM_OK) == 0 ||
+            (response[5] & ~(HELIX_PCM_APPLY_DSP | HELIX_PCM_RESET_STREAM | HELIX_PCM_OK)) != 0 ||
+            static_cast<std::size_t>(read_le16(&response[6])) != sample_count ||
+            read_le32(&response[8]) != stream_id ||
+            read_le32(&response[12]) != sample_rate_hz ||
+            read_le64(&response[16]) != timestamp_samples) {
+            disconnect();
+            return false;
+        }
+
+        if (!read_all(&response[HELIX_PCM_HEADER_LEN], sample_count * 2, deadline)) {
+            disconnect();
+            return false;
+        }
+
+        if (Clock::now() >= deadline) {
+            disconnect();
+            return false;
+        }
+
+        if (commit_output) {
+            for (std::size_t i = 0; i < sample_count; ++i) {
+                const std::uint16_t bits =
+                    read_le16(&response[HELIX_PCM_HEADER_LEN + i * 2]);
+                samples[i] = static_cast<std::int16_t>(bits);
+            }
+        }
+        return true;
+    }
+
+    bool prime() {
+        return ensure_connected(Clock::now() + std::chrono::milliseconds(timeout_ms_));
+    }
+
+    void disconnect() {
+        if (fd_ >= 0) {
+            close(fd_);
+            fd_ = -1;
+        }
+    }
+
+private:
+    using Clock = std::chrono::steady_clock;
+    using Deadline = Clock::time_point;
+
+    bool ensure_connected(Deadline deadline) {
+        if (fd_ >= 0)
+            return true;
+        if (socket_path_.empty() || socket_path_.size() >= sizeof(sockaddr_un::sun_path))
+            return false;
+
+        const int fd = socket(AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);
+        if (fd < 0)
+            return false;
+
+        sockaddr_un sa{};
+        sa.sun_family = AF_UNIX;
+        std::memcpy(sa.sun_path, socket_path_.c_str(), socket_path_.size() + 1);
+        fd_ = fd;
+        if (connect(fd, reinterpret_cast<sockaddr*>(&sa), sizeof(sa)) != 0) {
+            // AF_UNIX EAGAIN (full backlog) is immediate fail-open.
+            if (errno != EINPROGRESS || !wait_ready(POLLOUT, deadline)) {
+                disconnect();
+                return false;
+            }
+            int error = 0;
+            socklen_t len = sizeof(error);
+            if (getsockopt(fd_, SOL_SOCKET, SO_ERROR, &error, &len) != 0 || error != 0) {
+                disconnect();
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool wait_ready(short events, Deadline deadline) const {
+        for (;;) {
+            const auto remaining = deadline - Clock::now();
+            if (remaining <= Clock::duration::zero())
+                return false;
+            const auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(remaining).count();
+            const int remaining_ms = static_cast<int>((ns + 999999) / 1000000);
+            pollfd pfd{fd_, events, 0};
+            const int rc = poll(&pfd, 1, remaining_ms);
+            if (rc < 0 && errno == EINTR)
+                continue;
+            return rc > 0 && (pfd.revents & events) != 0 && Clock::now() < deadline;
+        }
+    }
+
+    bool write_all(const std::uint8_t* data, std::size_t len, Deadline deadline) {
+        std::size_t done = 0;
+        while (done < len) {
+            if (!wait_ready(POLLOUT, deadline))
+                return false;
+            const ssize_t n = send(fd_, data + done, len - done, MSG_NOSIGNAL | MSG_DONTWAIT);
+            if (n < 0 && (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK))
+                continue;
+            if (n <= 0)
+                return false;
+            done += static_cast<std::size_t>(n);
+        }
+        return true;
+    }
+
+    bool read_all(std::uint8_t* data, std::size_t len, Deadline deadline) {
+        std::size_t done = 0;
+        while (done < len) {
+            if (!wait_ready(POLLIN, deadline))
+                return false;
+            const ssize_t n = recv(fd_, data + done, len - done, MSG_DONTWAIT);
+            if (n < 0 && (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK))
+                continue;
+            if (n <= 0)
+                return false;
+            done += static_cast<std::size_t>(n);
+        }
+        return true;
+    }
+
+    static void write_le16(std::uint8_t* p, std::uint16_t value) {
+        p[0] = static_cast<std::uint8_t>(value & 0xff);
+        p[1] = static_cast<std::uint8_t>((value >> 8) & 0xff);
+    }
+
+    static std::uint16_t read_le16(const std::uint8_t* p) {
+        return static_cast<std::uint16_t>(p[0]) |
+               (static_cast<std::uint16_t>(p[1]) << 8);
+    }
+
+    static void write_le32(std::uint8_t* p, std::uint32_t value) {
+        for (int i = 0; i < 4; ++i)
+            p[i] = static_cast<std::uint8_t>((value >> (8 * i)) & 0xff);
+    }
+
+    static std::uint32_t read_le32(const std::uint8_t* p) {
+        std::uint32_t value = 0;
+        for (int i = 0; i < 4; ++i)
+            value |= static_cast<std::uint32_t>(p[i]) << (8 * i);
+        return value;
+    }
+
+    static void write_le64(std::uint8_t* p, std::uint64_t value) {
+        for (int i = 0; i < 8; ++i)
+            p[i] = static_cast<std::uint8_t>((value >> (8 * i)) & 0xff);
+    }
+
+    static std::uint64_t read_le64(const std::uint8_t* p) {
+        std::uint64_t value = 0;
+        for (int i = 0; i < 8; ++i)
+            value |= static_cast<std::uint64_t>(p[i]) << (8 * i);
+        return value;
+    }
+
+    std::string socket_path_;
+    int timeout_ms_ = 1;
+    int fd_ = -1;
+};
+
+
+class HelixPcmObserver {
+public:
+    explicit HelixPcmObserver(const std::string& socket_path)
+        : socket_path_(socket_path) {}
+
+    ~HelixPcmObserver() {
+        if (fd_ >= 0)
+            close(fd_);
+    }
+
+    HelixPcmObserver(const HelixPcmObserver&) = delete;
+    HelixPcmObserver& operator=(const HelixPcmObserver&) = delete;
+
+    bool observe(
+        std::uint32_t stream_id,
+        std::uint32_t sample_rate_hz,
+        std::uint64_t timestamp_samples,
+        const std::int16_t* samples,
+        std::size_t sample_count,
+        bool reset_stream,
+        bool apply_dsp
+    ) {
+        if (!samples || sample_count == 0 || sample_count > HELIX_PCM_MAX_SAMPLES)
+            return false;
+        if (sample_rate_hz < 8000 || sample_rate_hz > 48000)
+            return false;
+        if (!ensure_socket())
+            return false;
+        if (socket_path_.empty() || socket_path_.size() >= sizeof(sockaddr_un::sun_path))
+            return false;
+
+        std::array<std::uint8_t, HELIX_PCM_MAX_PACKET> wire{};
+        std::memcpy(wire.data(), "HXP1", 4);
+        wire[4] = HELIX_PCM_VERSION;
+        wire[5] = static_cast<std::uint8_t>(
+            (apply_dsp ? HELIX_PCM_APPLY_DSP : 0) |
+            (reset_stream ? HELIX_PCM_RESET_STREAM : 0)
+        );
+        write_le16(&wire[6], static_cast<std::uint16_t>(sample_count));
+        write_le32(&wire[8], stream_id);
+        write_le32(&wire[12], sample_rate_hz);
+        write_le64(&wire[16], timestamp_samples);
+        for (std::size_t i = 0; i < sample_count; ++i) {
+            write_le16(
+                &wire[HELIX_PCM_HEADER_LEN + i * 2],
+                static_cast<std::uint16_t>(samples[i])
+            );
+        }
+
+        sockaddr_un peer{};
+        peer.sun_family = AF_UNIX;
+        std::memcpy(peer.sun_path, socket_path_.c_str(), socket_path_.size() + 1);
+        const std::size_t packet_len = HELIX_PCM_HEADER_LEN + sample_count * 2;
+        const ssize_t sent = sendto(
+            fd_,
+            wire.data(),
+            packet_len,
+            MSG_DONTWAIT | MSG_NOSIGNAL,
+            reinterpret_cast<const sockaddr*>(&peer),
+            sizeof(peer)
+        );
+        return sent == static_cast<ssize_t>(packet_len);
+    }
+
+private:
+    bool ensure_socket() {
+        if (fd_ >= 0)
+            return true;
+        fd_ = socket(AF_UNIX, SOCK_DGRAM | SOCK_NONBLOCK, 0);
+        return fd_ >= 0;
+    }
+
+    static void write_le16(std::uint8_t* p, std::uint16_t value) {
+        p[0] = static_cast<std::uint8_t>(value & 0xff);
+        p[1] = static_cast<std::uint8_t>((value >> 8) & 0xff);
+    }
+
+    static void write_le32(std::uint8_t* p, std::uint32_t value) {
+        for (int i = 0; i < 4; ++i)
+            p[i] = static_cast<std::uint8_t>((value >> (8 * i)) & 0xff);
+    }
+
+    static void write_le64(std::uint8_t* p, std::uint64_t value) {
+        for (int i = 0; i < 8; ++i)
+            p[i] = static_cast<std::uint8_t>((value >> (8 * i)) & 0xff);
+    }
+
+    std::string socket_path_;
+    int fd_ = -1;
+};
+
+} // namespace xuv
