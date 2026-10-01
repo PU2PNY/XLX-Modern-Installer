@@ -40,3 +40,16 @@ Não mudar DSP, codec, XLXD ou transcoder de produção para testar esse requisi
 O XML do XLXD pode expor múltiplos `NODE` para a mesma identidade durante reconexões. Para a página e os contadores públicos, duplicatas com o mesmo indicativo, sufixo, protocolo e módulo são consolidadas em uma única sessão: vence a linha com `last_activity` mais recente e, em empate, `connected_at` mais recente.
 
 A lista bruta permanece separada para `active_and_history()` e correlação de TX/endpoint. A correção não altera XLXD, protocolos, áudio, transcoder ou sockets; é uma normalização de apresentação/contagem do dashboard.
+
+
+## DEC-2026-10-01-011 — Alias de indicativo entra antes da contagem pública
+A validação PROD da correção de Conectados encontrou um caso adicional: um `NODE`
+com indicativo histórico e outro com o indicativo atual eram convertidos para a
+mesma identidade pública somente depois da primeira canonicalização. Resultado:
+a primeira implantação reduziu fortemente os duplicados, mas ainda deixou 1 grupo.
+
+Regra: quando houver identidade já resolvida pelo diretório/alias, a chave canônica
+deve usar essa identidade resolvida antes da contagem pública. Em produção XLX026,
+onde existe normalizador RadioID local anterior ao JSON final, o alias é aplicado à
+cópia pública antes de `canonical_connections()`. A lista bruta permanece intacta
+para correlação TX/endpoint.
