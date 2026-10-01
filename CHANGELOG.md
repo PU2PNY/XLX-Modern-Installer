@@ -4,6 +4,8 @@
 - Keeps the most recently active duplicate as the public canonical row.
 - Preserves the raw connection list internally for TX/endpoint correlation, avoiding changes to stream identity logic.
 - Adds a dedicated regression test. No XLXD, protocol, transcoder or audio change is required.
+- Production validation found and corrected one second-order duplicate caused by an old callsign resolving to the current RadioID callsign after the initial de-duplication; resolved identities are now part of canonical station matching.
+- XLX026 production validation finished with 0 duplicate canonical groups while preserving distinct protocol/module connections and without restarting XLXD/xuvd.
 
 ## Unreleased — Ranking midnight rollover and annual period
 

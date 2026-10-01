@@ -20,12 +20,14 @@ $rows = [
     ['callsign'=>'PU2AAA','suffix'=>'B','protocol'=>'C4FM/YSF','module'=>'C','connected_at'=>130,'last_activity'=>130,'ip'=>'10.0.0.3'],
     ['callsign'=>'PU2AAA','suffix'=>'B','protocol'=>'DMR','module'=>'D','connected_at'=>140,'last_activity'=>140,'ip'=>'10.0.0.4'],
     ['callsign'=>'PU2AAA','suffix'=>'G','protocol'=>'DMR','module'=>'C','connected_at'=>150,'last_activity'=>150,'ip'=>'10.0.0.5'],
+    ['callsign'=>'PU2OLD','directory_callsign'=>'PU2NEW','suffix'=>'B','protocol'=>'DMR','module'=>'C','connected_at'=>160,'last_activity'=>160,'ip'=>'10.0.0.6'],
+    ['callsign'=>'PU2NEW','directory_callsign'=>'PU2NEW','suffix'=>'B','protocol'=>'DMR','module'=>'C','connected_at'=>170,'last_activity'=>170,'ip'=>'10.0.0.7'],
 ];
 
 $out = canonical_connections($rows);
 
-if (count($out) !== 4) {
-    fwrite(STDERR, "expected 4 canonical rows, got ".count($out)."\n");
+if (count($out) !== 5) {
+    fwrite(STDERR, "expected 5 canonical rows, got ".count($out)."\n");
     exit(1);
 }
 
@@ -51,8 +53,20 @@ if ((int)$selected['last_activity'] !== 200 || (int)$selected['connected_at'] !=
     fwrite(STDERR, "canonical row did not keep most recently active session\n");
     exit(1);
 }
+
+$aliasRows = array_values(array_filter(
+    $out,
+    static fn(array $row): bool =>
+        ($row['directory_callsign'] ?? '') === 'PU2NEW'
+        && ($row['protocol'] ?? '') === 'DMR'
+        && ($row['module'] ?? '') === 'C'
+));
+if (count($aliasRows) !== 1 || ($aliasRows[0]['callsign'] ?? '') !== 'PU2NEW') {
+    fwrite(STDERR, "resolved callsign alias did not collapse to one canonical station\n");
+    exit(1);
+}
 PHP
-ok 'duplicate same-identity/protocol/module sessions collapse to the most recently active row'
+ok 'duplicate same-identity/protocol/module sessions and resolved callsign aliases collapse safely'
 
 grep -Fq '$rawConnections = array_map(' "$STATUS" || fail 'raw connection list missing'
 grep -Fq '$connections = canonical_connections($rawConnections);' "$STATUS" || fail 'public canonicalization missing'
