@@ -49,3 +49,8 @@ Restore de arquivo/binário em laboratório não valida automaticamente restore
 de unit/config/serviço nem autoriza troca do processo ativo.
 Shadow em produção permanece pendente enquanto seus gates não estiverem
 comprovados; process continua bloqueado e PU2PNY-OS não é integrado nesta fase.
+
+### Rollback PROD shadow 2026-10-01
+O deploy de produção cria backup local em `/opt/xlx026-backups/HELIX_SHADOW_<timestamp>` e um `ROLLBACK.sh` root-only. O rollback deve parar apenas `xlx-unified-voice.service`, remover o drop-in Helix, restaurar o xuvd legado e unit conhecidos, fazer `daemon-reload`, iniciar novamente o transcoder e então parar o observer. **Não reiniciar XLXD.**
+
+A sequência completa de restore (binário + unit + configuração/drop-in + serviço) foi comprovada em ENV antes da promoção. Em PROD inicial o XLXD manteve PID 1093634; isso não transforma o soak de 24 h em concluído.
