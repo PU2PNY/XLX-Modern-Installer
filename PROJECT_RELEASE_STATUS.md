@@ -62,7 +62,7 @@ Classificação: `SW/CI`. Isso **não** equivale a validação `ENV`, `HW` ou `P
 - Nenhuma alteração de XLXD, DMR/YSF/D-Star, xuvd/Helix ou áudio faz parte desta correção.
 
 ## Conectados — validação PROD 2026-10-01
-- PR #72 foi mesclada no `main` em `a7ab1ab45ee62639e9f1e80e363d126703fbdd27`; quatro workflows GitHub Actions passaram.
+- PR #72 foi mesclada no `main` em `a7ab1ab45ee62639e9f1e80e363d126703fbdd27`; quatro workflows GitHub Actions passaram. O follow-up de alias PR #73 também passou os quatro workflows e foi mesclado em `c1045a22efbb9c6f6a476504efb0680b308f0436`. WartyWallaby executou `tests/run-all.sh` no head funcional do follow-up com `failures=0`.
 - Antes do deploy, o XLX026 mostrou drift controlado entre os PHPs de produção e o dashboard genérico versionado. Por isso **não** houve substituição integral dos arquivos: a correção foi aplicada cirurgicamente sobre os PHPs ativos, preservando IA/RadioID locais.
 - Backup local root-only criado em `/opt/xlx026-backups/CONNECTED_DEDUPE_20261001_184450`; cópia de restore testada antes da mudança.
 - Primeira validação PROD encontrou 107 linhas e ainda 1 grupo duplicado: `PY1ARF` era normalizado pelo alias RadioID para `PY1SGA` somente após a primeira canonicalização. A falha foi registrada e corrigida, sem esconder o resultado.
