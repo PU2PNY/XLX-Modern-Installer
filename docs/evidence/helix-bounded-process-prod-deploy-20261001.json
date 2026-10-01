@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-01",
+  "level": "PROD",
+  "change": "deploy bounded-retry Helix process candidate",
+  "branch_head_at_build": "2ff4552a43eb0ae213d033f8cdd3c9f7bcf93435",
+  "transition_active_tx": 0,
+  "xuvd_sha256": "99942076bb162bb3627e99e71bf7dec35d00d791949d7c356c8105fbef1c95e4",
+  "mode": "process",
+  "timeout_ms": 5,
+  "process_service_active": true,
+  "pcm_socket_ready": true,
+  "api_process_active": true,
+  "candidate_ok": true,
+  "xlxd_pid_preserved": 1093634,
+  "xlxd_restarted": false,
+  "backup": "/opt/xlx026-backups/HELIX_BOUNDED_PROCESS_20261001_020956",
+  "real_post_fix_stream_observed": false,
+  "soak_24h_complete": false,
+  "classification": {
+    "deploy": "PASS",
+    "real_audio": "PENDING",
+    "release_default": "NOT_PROMOTED"
+  }
+}
