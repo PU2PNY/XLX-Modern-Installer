@@ -25,3 +25,12 @@ Quando uma manutenção administrativa validada (ex.: reconstrução atômica do
 
 ## DEC-2026-09-28-008 — Documentos canônicos ficam na branch principal
 Os documentos de governança obrigatórios devem existir no `main` mantido, não apenas em branch lateral. Drift documental que descreva Apache/dry-run como estado atual deve falhar em teste automatizado enquanto o fluxo autoritativo permanecer Nginx + PHP-FPM.
+
+## DEC-2026-09-30-009 — Orçamento total Helix IPC V1
+A instrução explícita desta continuação limita XLX_HELIX_TIMEOUT_MS a 1..5 ms.
+Ela substitui o aumento anterior para 10 ms descrito na branch.
+O cliente usa uma única deadline monotônica desde a conexão até a resposta completa,
+com socket não bloqueante e fallback sem alterar PCM. Não renovar o timeout a
+cada leitura parcial. Linux pode produzir overshoot de wall-clock por scheduling;
+nenhuma resposta recebida após a deadline pode substituir o PCM legado.
+Não mudar DSP, codec, XLXD ou transcoder de produção para testar esse requisito.
