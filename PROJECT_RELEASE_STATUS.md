@@ -140,3 +140,7 @@ Classificação: PASS em ENV para equivalência comportamental do caminho legado
 - Shadow PROD não habilitado: ainda faltam soak 24h, gates de IP aplicáveis, restore completo e janela/procedimento de troca sem regressão. Process e PU2PNY-OS permanecem bloqueados.
 
 Evidência sanitizada reproduzível: [Helix PCM bridge ENV](docs/evidence/helix-pcm-bridge-20260930.json). Apenas métricas/hashes de corpus sintético; nenhum áudio, PCAP ou segredo de produção.
+
+### Execução adicional do wrapper — limitação de process registrada
+O script completo test-e2e-lab.sh passou seus critérios de continuidade/fail-open. Porém, no multi-TX dessa execução adicional, stream 1 teve helix_ok=4 e helix_fallback=1, stream 2 helix_ok=5 e helix_fallback=1; cada um entregou 40/40 frames, sem falhas de codec. Isso difere das duas execuções anteriores com Helix 40/40 em ambos. Não escolher apenas o melhor run: a confiabilidade de processamento sob contenção permanece PARCIAL, e disputa de CPU/scheduling é hipótese a investigar. A latência do wrapper é round-trip incluindo codec/IPC/scheduling, não latência isolada Helix. Soak/áudio/PROD continuam bloqueados. O prazo 5 ms não será aumentado para mascarar a falha.
+Evidência adicional: [wrapper ENV](docs/evidence/helix-pcm-bridge-wrapper-20260930.json).

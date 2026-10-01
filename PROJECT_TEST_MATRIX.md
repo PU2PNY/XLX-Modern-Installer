@@ -49,3 +49,5 @@ Nunca transformar `OPERATOR` em `PROD`, ou `SW` em `ENV`, sem novo teste.
 | TEST-023 | BACKUP-002 / REC-001 | Restore binário xuvd em laboratório | Backup→candidato→restore do ELF exato; SHA 4b72dfc7...e58069 e quatro caminhos de codec idênticos após restore. Não valida restore de unit/config/serviço PROD | PASS (ENV, binário) / PENDENTE (PROD, completo) |
 
 Evidência sanitizada reproduzível: [Helix PCM bridge ENV](docs/evidence/helix-pcm-bridge-20260930.json). Apenas métricas/hashes de corpus sintético; nenhum áudio, PCAP ou segredo de produção.
+
+| TEST-024 | HELIX-003/006 / PERF-003 | Repetibilidade multi-TX no script E2E completo | ENV adicional: ambos entregam 40/40, mas só 4 e 5 respostas Helix antes de fallback sticky. Duas execuções anteriores tiveram 40/40 Helix por stream. Continuidade PASS; confiabilidade process sob contenção ainda não aceita | PASS (ENV, continuidade) / PARCIAL (process/performance) |

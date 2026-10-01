@@ -1,0 +1,221 @@
+{
+  "classification": "ENV",
+  "result": "PASS",
+  "cases": [
+    {
+      "case": "off",
+      "frames": 40,
+      "sha256": "0927cfff2bb8dfd6076ba6912ba9a96eef57284afd4df77e2436e9657521074f",
+      "latency_ms": {
+        "p50": 2.53455,
+        "p95": 6.93149,
+        "p99": 11.3095,
+        "max": 11.3095
+      },
+      "rss_max_kib": {
+        "xuvd": 1852,
+        "helix": 0
+      },
+      "cpu_percent": {
+        "xuvd": 6.853859264316337,
+        "helix": 0
+      },
+      "streams": [
+        {
+          "packets": 40,
+          "failures": 0,
+          "helix_ok": 0,
+          "helix_fallback": 0
+        }
+      ]
+    },
+    {
+      "case": "absent",
+      "frames": 40,
+      "sha256": "0927cfff2bb8dfd6076ba6912ba9a96eef57284afd4df77e2436e9657521074f",
+      "latency_ms": {
+        "p50": 1.93114,
+        "p95": 7.19875,
+        "p99": 8.84551,
+        "max": 8.84551
+      },
+      "rss_max_kib": {
+        "xuvd": 1884,
+        "helix": 0
+      },
+      "cpu_percent": {
+        "xuvd": 5.251055730959608,
+        "helix": 0
+      },
+      "streams": [
+        {
+          "packets": 40,
+          "failures": 0,
+          "helix_ok": 0,
+          "helix_fallback": 1
+        }
+      ]
+    },
+    {
+      "case": "shadow",
+      "frames": 40,
+      "sha256": "0927cfff2bb8dfd6076ba6912ba9a96eef57284afd4df77e2436e9657521074f",
+      "latency_ms": {
+        "p50": 2.54958,
+        "p95": 8.2904,
+        "p99": 12.0572,
+        "max": 12.0572
+      },
+      "rss_max_kib": {
+        "xuvd": 1856,
+        "helix": 1196
+      },
+      "cpu_percent": {
+        "xuvd": 7.163215878780971,
+        "helix": 1.0233165541115674
+      },
+      "streams": [
+        {
+          "packets": 40,
+          "failures": 0,
+          "helix_ok": 40,
+          "helix_fallback": 0
+        }
+      ]
+    },
+    {
+      "case": "shadow-kill",
+      "frames": 40,
+      "sha256": "0927cfff2bb8dfd6076ba6912ba9a96eef57284afd4df77e2436e9657521074f",
+      "latency_ms": {
+        "p50": 1.9344,
+        "p95": 5.4902,
+        "p99": 7.5261,
+        "max": 7.5261
+      },
+      "rss_max_kib": {
+        "xuvd": 1852,
+        "helix": 1196
+      },
+      "cpu_percent": {
+        "xuvd": 5.3950597449885445,
+        "helix": null
+      },
+      "streams": [
+        {
+          "packets": 40,
+          "failures": 0,
+          "helix_ok": 20,
+          "helix_fallback": 20
+        }
+      ]
+    },
+    {
+      "case": "process",
+      "frames": 40,
+      "sha256": "cf2af1b910959c89dc1db8fc0e8146fc247c2a98be9b1303cac61afc4a843d3d",
+      "latency_ms": {
+        "p50": 2.13798,
+        "p95": 5.18858,
+        "p99": 8.19925,
+        "max": 8.19925
+      },
+      "rss_max_kib": {
+        "xuvd": 1848,
+        "helix": 1196
+      },
+      "cpu_percent": {
+        "xuvd": 5.3323875581483815,
+        "helix": 1.0664775116296763
+      },
+      "streams": [
+        {
+          "packets": 40,
+          "failures": 0,
+          "helix_ok": 40,
+          "helix_fallback": 0
+        }
+      ]
+    },
+    {
+      "case": "process-kill",
+      "frames": 40,
+      "sha256": "1b323459e54e70114f94af48f5d729a288f07ab0a8329fcd005b9697930434e5",
+      "latency_ms": {
+        "p50": 2.57032,
+        "p95": 11.2568,
+        "p99": 13.5723,
+        "max": 13.5723
+      },
+      "rss_max_kib": {
+        "xuvd": 1852,
+        "helix": 1256
+      },
+      "cpu_percent": {
+        "xuvd": 6.13099962842362,
+        "helix": null
+      },
+      "streams": [
+        {
+          "packets": 40,
+          "failures": 0,
+          "helix_ok": 20,
+          "helix_fallback": 1
+        }
+      ]
+    },
+    {
+      "case": "multi",
+      "frames": 80,
+      "sha256": "dbf146227bde53803cadd240ceb249dff5aaad4fdbb86868879805bfb228f301",
+      "latency_ms": {
+        "p50": 2.27185,
+        "p95": 7.84467,
+        "p99": 13.0923,
+        "max": 13.0923
+      },
+      "rss_max_kib": {
+        "xuvd": 1852,
+        "helix": 1192
+      },
+      "cpu_percent": {
+        "xuvd": 9.209674024701732,
+        "helix": 0
+      },
+      "streams": [
+        {
+          "packets": 40,
+          "failures": 0,
+          "helix_ok": 4,
+          "helix_fallback": 1
+        },
+        {
+          "packets": 40,
+          "failures": 0,
+          "helix_ok": 5,
+          "helix_fallback": 1
+        }
+      ]
+    }
+  ],
+  "dsp_stream_isolation": {
+    "isolation": "PASS (40 low/high frames, isolated versus interleaved, bit-identical PCM)",
+    "churn_unique_streams": 600,
+    "rss_warm_kib": 1200,
+    "rss_final_kib": 1200,
+    "bounded_churn": "PASS (short test, not 24h soak)"
+  },
+  "limits": "Short synthetic corpus, no RF/audio-quality/24h-soak/PROD validation. CPU tick granularity 10ms; killed Helix CPU unavailable.",
+  "provenance": {
+    "helix_commit": "e80969d58d0ecf0f4bd55bbc7fae85311c0176d2",
+    "xlx_commit": "0b2fe130e08fb907ab79033fd85afdb9a66832b2",
+    "host": "WartyWallaby",
+    "date_local": "2026-09-30"
+  },
+  "acceptance": {
+    "functional_continuity": "PASS",
+    "processing_reliability_under_contention": "PARCIAL",
+    "production": "BLOCKED",
+    "cause": "Scheduling/contention is a hypothesis, not independently established for this run."
+  }
+}

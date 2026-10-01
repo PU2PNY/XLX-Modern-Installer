@@ -69,3 +69,5 @@ Antes de substituir o xuvd conhecido-bom por um build com suporte Helix, execute
 - opcionalmente o `helix-daemon` para validar `shadow`.
 
 O teste deve ser bit-idêntico nos quatro caminhos do corpus. Não execute este teste em um host onde `127.0.0.1:10100` já esteja em uso. PCAP/corpus bruto de produção não deve ser versionado.
+
+Não aumentar a deadline para esconder falhas sob contenção. A execução adicional do wrapper entregou todos os frames mas acionou fallback em ambos os streams: continuidade foi validada, confiabilidade process permanece PARCIAL. Avaliar scheduling/CPU/latência em soak dedicado antes de qualquer promoção.

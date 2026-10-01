@@ -269,3 +269,6 @@
 ### Public-release policy
 - No production passwords, tokens, private IP data or private Admin route are published.
 - Support, ANATEL simulator and News are excluded from the standard public dashboard.
+
+### Helix ENV follow-up: processing reliability remains partial
+The full lab wrapper retained all 80 multi-TX output frames, but both streams entered sticky legacy fallback after 4 and 5 Helix responses. Earlier runs completed 40/40 Helix replies per stream. Both results are retained; do not promote processing reliability or widen the 5 ms budget based on the best run alone. Shadow/process production gates remain pending.
