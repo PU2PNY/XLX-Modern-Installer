@@ -1,0 +1,51 @@
+{
+  "date": "2026-10-01",
+  "evidence_levels": [
+    "ENV",
+    "PROD"
+  ],
+  "mode": "shadow",
+  "process_authorized": false,
+  "env_complete_service_rollback": {
+    "host": "WartyWallaby",
+    "baseline_service": true,
+    "shadow_service": true,
+    "restored_binary_sha256": "4b72dfc7a26697a3e315fba8c8d22435996d8e67c3112e2f343a65b4c6e58069",
+    "unit_config_service_restored": true
+  },
+  "prod_initial": {
+    "xlxd_pid_preserved": 1093634,
+    "candidate_xuvd_sha256": "559f580b5edf58883eb81293d8fbdc044e13eff9ca4dc6437e6b16014f75a243",
+    "helix_daemon_sha256": "7c4292bfe5610bc22870308b6c5b934b492caf4d579626586ac30da4c2ff6745",
+    "socket_mode": "0660",
+    "observed_stream_frames": [
+      18,
+      108,
+      72
+    ],
+    "fallbacks": [
+      0,
+      0,
+      0
+    ],
+    "codec_failures": [
+      0,
+      0,
+      0
+    ],
+    "xlxd_restarted": false
+  },
+  "monitoring": {
+    "local_interval_seconds": 30,
+    "ai_normal_interval_seconds": 900,
+    "ai_on_anomaly_transition": true,
+    "sends_audio": false,
+    "sends_callsigns": false,
+    "initial_ai_result": "OK: Helix Voice em shadow, serviços ativos, socket pronto, hash esperado e fallback recente zero."
+  },
+  "pending": [
+    "24h soak",
+    "external rendered-browser visual validation",
+    "process-mode production gates"
+  ]
+}

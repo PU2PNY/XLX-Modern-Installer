@@ -284,3 +284,10 @@
 The full lab wrapper retained all 80 multi-TX output frames, but both streams entered sticky legacy fallback after 4 and 5 Helix responses. Earlier runs completed 40/40 Helix replies per stream. Both results are retained; do not promote processing reliability or widen the 5 ms budget based on the best run alone. Shadow/process production gates remain pending.
 
 Three additional controlled multi-TX repeats retained 40/40 frames per stream with zero codec failures, while Helix replies before sticky fallback varied to 35/34, 2/28 and 18/14. This strengthens the classification: fail-open continuity PASS, `process` repeatability under contention PARCIAL. PR #65 was merged only as default-off experimental code; production activation remains blocked.
+
+## 2026-10-01 — Helix shadow production observation
+- Enables the previously validated Helix bridge on XLX026 in `shadow` only after exact legacy hash verification and a complete ENV service/config rollback test.
+- Keeps XLXD untouched and the transmitted audio on the legacy path; `process` remains blocked.
+- Adds a dedicated low-frequency local telemetry monitor plus sparse OpenAI analysis of technical metrics only; no radio audio, voice content or callsigns are sent.
+- Adds `/api/helix-status.php` and a compact `HELIX • MONITORANDO` Live-box indicator.
+- Initial PROD streams observed 18/18, 108/108 and 72/72 Helix shadow frames with zero fallback and zero codec failures; 24 h soak remains pending.

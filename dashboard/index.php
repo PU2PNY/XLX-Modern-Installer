@@ -270,6 +270,7 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}' . page_url($page);
 <?php if ($page === 'ao-vivo'): ?>
 <script src="assets/ao-vivo-authorized-sync-v1.js?v=1"></script>
 <script src="assets/ao-vivo-tx-embed-v5.js?v=1" defer></script>
+<script src="assets/helix-shadow-monitor-v1.js?v=1" defer></script>
 <?php endif; ?>
 
 
