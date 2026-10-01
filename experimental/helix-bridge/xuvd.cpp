@@ -469,17 +469,15 @@ struct Stream {
             divisor_pcm = 32;
         }
 
-        double lp_dstar = 0.0;
         for (auto& sample : pcm) {
             int32_t scaled = static_cast<int32_t>(sample) / divisor_pcm;
             if (module == 'C' &&
                 in_codec == CODEC_DSTAR &&
                 out_codec == CODEC_AMBE2) {
-                // Filtro Passa-Baixa: corta agudos e chiados
-                // Ganho reduzido para 1.2 (evita clipping)
-                double x = static_cast<double>(scaled) * 1.0;
-                lp_dstar = lp_dstar + 0.45 * (x - lp_dstar);
-                scaled = static_cast<int32_t>(lp_dstar);
+                // Restore the previously approved D-Star -> AMBE+2 path.
+                // Do not reset a low-pass filter at every 20 ms frame: that
+                // attenuates speech presence and creates frame-boundary color.
+                scaled = (scaled * 3) / 2;
             }
             if (scaled > 32767) scaled = 32767;
             if (scaled < -32768) scaled = -32768;
