@@ -20,6 +20,10 @@ grep -F "recent_fallback" "$MON" >/dev/null
 grep -F "HELIX</b><span>MONITORANDO" "$JS" >/dev/null
 grep -F "O áudio transmitido continua no caminho legado." "$JS" >/dev/null
 grep -F "dataset.helixSignature" "$JS" >/dev/null
+grep -F "PROCESSANDO TESTE" "$JS" >/dev/null
+grep -F "process_active" "$API" >/dev/null
+grep -F "helix-voice-process-test.service" "$MON" >/dev/null
+grep -F "helix=(shadow|process)" "$MON" >/dev/null
 
 if grep -R -n -F "XLX_HELIX_MODE=process" "$MON" "$SVC" "$TIMER" "$API" "$JS"; then
   echo "helix_shadow_monitor=FAIL process mode leaked into monitor"
