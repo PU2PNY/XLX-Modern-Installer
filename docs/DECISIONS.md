@@ -34,3 +34,6 @@ com socket não bloqueante e fallback sem alterar PCM. Não renovar o timeout a
 cada leitura parcial. Linux pode produzir overshoot de wall-clock por scheduling;
 nenhuma resposta recebida após a deadline pode substituir o PCM legado.
 Não mudar DSP, codec, XLXD ou transcoder de produção para testar esse requisito.
+
+## DEC-2026-10-01-010 — Helix process tolera jitter isolado sem aumentar a deadline
+Os testes PROD/ENV mostraram que um único pico de scheduling >5 ms podia desativar Helix por todo o restante de uma transmissão, embora os picos naturais fossem esparsos. A política “primeira falha = sticky fallback” é substituída explicitamente por retry bounded: o frame que falha usa legado, o estado Helix é resetado e o próximo frame tenta novamente; uma resposta válida zera a sequência; **3 falhas consecutivas** fixam o stream no legado. A deadline continua 1..5 ms e respostas tardias continuam proibidas de comitar PCM. Afinidade/RT scheduling não são adotados como correção principal porque não eliminaram os outliers no laboratório VMware.
