@@ -73,7 +73,7 @@ def ai_connectivity():
 def recent_helix_counters():
     rc,out=run(['journalctl','-u','xlx-unified-voice.service','--since','3 minutes ago','-o','cat','--no-pager'],5)
     latest=None
-    if rc not in (0,1): return 0,0,0
+    if rc not in (0,1): return 'off',0,0,0
     rx=re.compile(r'helix=shadow.*?helix_ok=(\d+).*?helix_fallback=(\d+)')
     for line in out.splitlines():
         m=rx.search(line)
