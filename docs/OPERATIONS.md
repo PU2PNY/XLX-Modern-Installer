@@ -71,3 +71,11 @@ Antes de substituir o xuvd conhecido-bom por um build com suporte Helix, execute
 O teste deve ser bit-idêntico nos quatro caminhos do corpus. Não execute este teste em um host onde `127.0.0.1:10100` já esteja em uso. PCAP/corpus bruto de produção não deve ser versionado.
 
 Não aumentar a deadline para esconder falhas sob contenção. A execução adicional do wrapper entregou todos os frames mas acionou fallback em ambos os streams: continuidade foi validada, confiabilidade process permanece PARCIAL. Avaliar scheduling/CPU/latência em soak dedicado antes de qualquer promoção.
+
+### Operação Helix shadow em produção
+- `helix-voice-shadow.service` observa PCM via Unix datagram local; ele não participa da entrega do áudio legado.
+- `xlx-helix-monitor.timer` atualiza telemetria local a cada 30 s. A análise remota é limitada a cada 15 min ou mudança de anomalia.
+- Nunca enviar áudio, conteúdo de voz, indicativo ou payload de rádio à API externa.
+- O indicador do Live deve dizer `HELIX • MONITORANDO`/`SHADOW`, nunca `PROCESSANDO`, enquanto `XLX_HELIX_MODE=shadow`.
+- Se Helix/monitor/OpenAI falhar, verificar o caminho legado antes de qualquer ação; não reiniciar XLXD por causa do observador.
+- `process` continua proibido até seus gates próprios serem concluídos.
