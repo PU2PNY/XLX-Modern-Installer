@@ -27,6 +27,8 @@ Níveis de evidência: DOC / SW / ENV / HW / PROD / OPERATOR.
 
 | TEST-017 | HELIX-001/002/003/004/005 | Bridge PCM local preserva fallback legado, shadow sem alteração e processamento somente após resposta válida | SW: contrato C++ PASS. ENV/WartyWallaby: off=fallback=shadow bit-idênticos (SHA-256 `0927cfff...1074f`); shadow 40/40; process single-stream 40/40; Helix ausente fixa stream no legado e entrega 40/40; 2 streams entregam 60/60 com fallback seguro de um stream | PASS (SW/ENV) |
 
+| TEST-021 | UI-010 | Ranking preserva histórico na virada de dia/mês, inclui período anual e mantém persistência no instalador | `tests/test-ranking-rollover.sh` adicionado; validação SW/ENV ainda deve ser registrada após execução no branch | PENDENTE (SW/ENV) |
+
 ## Como registrar PASS
 Atualize a linha com:
 - ambiente;

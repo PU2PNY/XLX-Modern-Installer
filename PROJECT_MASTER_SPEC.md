@@ -32,6 +32,7 @@ Fornecer um instalador público, reproduzível e seguro para refletor XLXD em De
 - **UI-007** — GPS/APRS/D-PRS só pode ser exibido como posição quando houver dado observado, nunca por inferência de cadastro.
 - **UI-008** — Rotas, IDs, nomes de arquivos, APIs e contratos técnicos não podem ser traduzidos.
 - **UI-009** — Publicação não deve reintroduzir páginas deliberadamente excluídas do pacote público sem decisão registrada.
+- **UI-010** — Ranking deve preservar estatísticas persistentes entre viradas de dia/mês, oferecer períodos Hoje, 7 dias, mês corrente e ano corrente, e evitar aparência de painel vazio na virada da meia-noite quando houver histórico recente.
 
 ### DATA / APRS / CERTIFICATES
 - **DATA-001** — Correções locais de callsign devem sobreviver a refresh do diretório upstream.

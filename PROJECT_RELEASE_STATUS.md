@@ -44,6 +44,12 @@ A PR foi então mesclada por squash em `main` como `15a1612a720bbab4882bf1b56f45
 
 Classificação: `SW/CI`. Isso **não** equivale a validação `ENV`, `HW` ou `PROD`.
 
+## Correção Ranking em validação — 2026-10-01
+- Diagnóstico PROD somente leitura: o banco persistente permaneceu íntegro após 00:00; foram observadas 56.182 transmissões armazenadas e 7.822 TX na janela de 7 dias, enquanto Hoje/Mês reiniciaram por serem períodos civis.
+- Branch de correção: `fix/ranking-midnight-rollover-20261001`.
+- Escopo: opção ANUAL (ano corrente), fallback visual para 7 dias quando Hoje está vazio após a virada, detecção de rollover com a página aberta e versionamento/provisionamento do coletor persistente.
+- Produção ainda não alterada por esta branch neste registro; validar em ENV e depois aplicar mudança mínima com backup/rollback.
+
 ## Correções recentes confirmadas no main
 - PR #55: timeout FastCGI de 30 s limitado à rota privada do Admin; público permanece em 15 s.
 - PR #57: botão de informações nas 24h somente para gateway diferente do indicativo e confirmado como repetidor.

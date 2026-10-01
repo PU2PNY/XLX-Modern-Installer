@@ -1,3 +1,12 @@
+## Unreleased — Ranking midnight rollover and annual period
+
+- Preserves persistent ranking data across day/month boundaries instead of making the page appear empty at midnight.
+- Adds an ANUAL view for the current calendar year.
+- Automatically shows the rolling 7-day period when a new day has no transmissions yet, while keeping HOJE selectable.
+- Detects midnight rollover while the Ranking page remains open.
+- Versions and provisions the persistent ranking collector used by the dashboard, with 400-day retention and year coverage metadata.
+- Adds `tests/test-ranking-rollover.sh` to prevent regression.
+
 ## Unreleased — Helix PCM Bridge V1
 
 ## 2026-09-30 — Helix PCM bridge: total deadline and reproducible ENV gate

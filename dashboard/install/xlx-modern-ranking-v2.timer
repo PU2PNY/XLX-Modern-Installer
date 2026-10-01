@@ -1,0 +1,11 @@
+[Unit]
+Description=Update XLX Modern Ranking every 2 minutes
+
+[Timer]
+OnBootSec=45s
+OnUnitActiveSec=2min
+Persistent=true
+Unit=xlx-modern-ranking-v2.service
+
+[Install]
+WantedBy=timers.target

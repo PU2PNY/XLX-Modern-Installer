@@ -56,6 +56,7 @@ function rank_period(array $history,int $from): array {
     }
 
     return [
+        'start_ts'=>$from,
         'tx_count'=>$count,
         'airtime_seconds'=>$airtime,
         'unique_callsigns'=>count($calls),
@@ -73,6 +74,7 @@ $now=time();
 $today=strtotime('today',$now)?:($now-86400);
 $week=$now-(7*86400);
 $month=strtotime(date('Y-m-01 00:00:00',$now))?:($now-(31*86400));
+$year=strtotime(date('Y-01-01 00:00:00',$now))?:($now-(366*86400));
 $oldest=null;
 foreach($history as $row){
     $ts=(int)($row['started_at']??0);
@@ -88,11 +90,13 @@ $out=[
         'today_complete'=>$oldest!==null && $oldest<=$today,
         'week_complete'=>$oldest!==null && $oldest<=$week,
         'month_complete'=>$oldest!==null && $oldest<=$month,
+        'year_complete'=>$oldest!==null && $oldest<=$year,
     ],
     'periods'=>[
         'today'=>rank_period($history,$today),
         'week'=>rank_period($history,$week),
         'month'=>rank_period($history,$month),
+        'year'=>rank_period($history,$year),
     ],
 ];
 
