@@ -1,12 +1,12 @@
 # PROJECT_RELEASE_STATUS — fotografia atual
 
-Atualizado em: 2026-09-28
+Atualizado em: 2026-09-30
 
 ## Repositório
 - Repositório: `PU2PNY/XLX-Modern-Installer`
 - Branch padrão: `main`
-- Commit confirmado em `main`: `4cb8dc37c35e29f107a77090dc9bec287e863bea`
-- Commit: “Fix 24h gateway repeater info visibility (#57)”
+- Commit confirmado em `main`: `15a1612a720bbab4882bf1b56f4584301a2ec16b`
+- Commit: “Add optional Helix PCM bridge with bounded legacy fallback (#65)”
 - `VERSION`: **1.4.6**
 - README: **Current release v1.4.6**
 - Última GitHub Release observada: **v1.2.14** (2026-09-10)
@@ -33,29 +33,30 @@ Evidência `OPERATOR` em 2026-09-21:
 
 Limite: este documento não converte o relato em evidência técnica `PROD`.
 
-## CI do commit atual
-Para `4cb8dc37c35e29f107a77090dc9bec287e863bea`, o GitHub Actions registrou sucesso em:
+## CI do estado Helix mesclado
+No head final da PR #65, `9fb4d6906bfe2f699b7c09d6ada47cdcf72d53fc`, concluíram com sucesso:
 - XLX Modern Installer CI;
 - Debian 12 runtime gate;
-- Production parity regression;
 - Stream identity regression.
+
+A PR foi então mesclada por squash em `main` como `15a1612a720bbab4882bf1b56f4584301a2ec16b`. No instante desta atualização ainda não havia execução separada de Actions registrada para o SHA do squash; portanto a evidência de CI pertence ao head final da PR, não deve ser reclassificada como CI do commit de merge.
 
 Classificação: `SW/CI`. Isso **não** equivale a validação `ENV`, `HW` ou `PROD`.
 
 ## Correções recentes confirmadas no main
 - PR #55: timeout FastCGI de 30 s limitado à rota privada do Admin; público permanece em 15 s.
 - PR #57: botão de informações nas 24h somente para gateway diferente do indicativo e confirmado como repetidor.
+- PR #65: Helix PCM Bridge V1 experimental mesclado com `off` padrão, deadline total 1..5 ms, fail-open e bloqueios de produção explícitos.
 
-## Drift de governança identificado em 2026-09-28
-O `main` não continha os quatro documentos canônicos e ainda havia documentação antiga descrevendo Apache/dry-run como arquitetura atual. A correção proposta nesta branch restaura os documentos e adiciona regressão documental.
+## Drift de governança corrigido em 2026-09-28
+O `main` passou a conter os documentos canônicos e a regressão documental que protege Nginx + PHP-FPM como stack autoritativa. Não usar documentação histórica de Apache/dry-run como estado atual.
 
 ## Próxima sequência segura
-1. revisar/mesclar esta correção documental;
-2. confirmar CI da PR;
-3. reconciliar `VERSION`/README 1.4.6 com GitHub Releases;
-4. executar nova instalação limpa em VPS Debian 12 descartável;
-5. manter branches funcionais pendentes isoladas até validação específica;
-6. não alterar produção saudável sem necessidade comprovada.
+1. manter `process` bloqueado até resolver a repetibilidade sob contenção e completar áudio real/soak/rollback;
+2. não habilitar `shadow` em produção antes do soak de 24 h, gates de IP aplicáveis, restore completo e procedimento de mudança;
+3. reconciliar `VERSION`/README 1.4.6 com GitHub Releases em fluxo separado;
+4. executar nova instalação limpa em VPS Debian 12 descartável quando for validar release geral;
+5. não alterar produção saudável sem necessidade comprovada.
 
 ## Trabalho isolado — Passive Transmission Analyzer V1
 Branch: `feature/passive-transmission-analyzer-v1-20260930`.
@@ -71,8 +72,9 @@ Escopo:
 Estado: SW + ENV validados e deploy PROD do serviço passivo validado no XLX026 em 2026-09-30. `tests/test-transmission-analyzer.sh`: 7/7 PASS; `tests/run-all.sh`: failures=0. Em ENV, o serviço real com CAP_NET_RAW capturou YSF sintético enviado por segunda VPS e detectou corretamente uma lacuna 11→14/~300 ms. Em PROD, o serviço permaneceu ativo com ~10 MB, recebeu mais de 1.500 YSFP reais, não abriu listener UDP adicional e o PID do XLXD permaneceu 1093634 antes/depois do deploy. O analisador detectou automaticamente PS7JAP com `concurrent_endpoints` e `endpoint_count=2`, confirmando a detecção de sessões concorrentes em tráfego real. Não houve YSFD/voz real durante a janela curta de validação PROD; a análise de continuidade dos frames de voz permanece comprovada em ENV, não promovida por inferência.
 
 
-## Trabalho isolado — Helix PCM Bridge V1
-Branch: `feature/helix-pcm-fallback-v1-20260930`.
+## Helix PCM Bridge V1 — integrado como experimental
+Branch de origem: `feature/helix-pcm-fallback-v1-20260930`.
+PR #65 mesclada em `main` por squash em `15a1612a720bbab4882bf1b56f4584301a2ec16b`. O merge apenas versiona o código experimental; não habilita Helix no áudio de produção.
 
 Objetivo:
 - preservar compatibilidade de rádio legado DMR/YSF/D-Star;
@@ -125,7 +127,7 @@ Classificação: PASS em ENV para equivalência comportamental do caminho legado
 
 ### Continuação validada — deadline total e fail-open (2026-09-30)
 - Helix main confirmado em e80969d58d0ecf0f4bd55bbc7fae85311c0176d2 (PR #1 já mesclada).
-- XLX base desta continuação: 1c137e200fb7ea64d5e6e83a6d279b6f49c55cca, PR #65 aberta.
+- XLX base desta continuação: `1c137e200fb7ea64d5e6e83a6d279b6f49c55cca`; PR #65 posteriormente mesclada em `main` como `15a1612a720bbab4882bf1b56f4584301a2ec16b`.
 - Instrução do operador reconciliada: teto 5 ms; deadline única inclui connect/write/read. Não renovar prazo em fragmentos; socket não bloqueante.
 - 11 cenários adversariais + backlog cheio preservam PCM; header incompleto/inválido ou flags desconhecidos não comitam saída.
 - Helix: governança/patent gate, fmt, clippy -D warnings, workspace tests, release build e daemon self-test PASS em ENV.
@@ -144,3 +146,9 @@ Evidência sanitizada reproduzível: [Helix PCM bridge ENV](docs/evidence/helix-
 ### Execução adicional do wrapper — limitação de process registrada
 O script completo test-e2e-lab.sh passou seus critérios de continuidade/fail-open. Porém, no multi-TX dessa execução adicional, stream 1 teve helix_ok=4 e helix_fallback=1, stream 2 helix_ok=5 e helix_fallback=1; cada um entregou 40/40 frames, sem falhas de codec. Isso difere das duas execuções anteriores com Helix 40/40 em ambos. Não escolher apenas o melhor run: a confiabilidade de processamento sob contenção permanece PARCIAL, e disputa de CPU/scheduling é hipótese a investigar. A latência do wrapper é round-trip incluindo codec/IPC/scheduling, não latência isolada Helix. Soak/áudio/PROD continuam bloqueados. O prazo 5 ms não será aumentado para mascarar a falha.
 Evidência adicional: [wrapper ENV](docs/evidence/helix-pcm-bridge-wrapper-20260930.json).
+
+
+### Repetibilidade multi-TX após o gate final da PR #65
+Três repetições controladas adicionais na WartyWallaby mantiveram 40/40 frames por stream e zero falha de codec, mas cada stream acionou uma vez o fallback sticky em momentos variáveis: 35/34, 2/28 e 18/14 respostas Helix antes do fallback. Isso confirma que a continuidade/fail-open está PASS, porém a confiabilidade de `process` sob contenção permanece PARCIAL. O teto de 5 ms não foi aumentado. Scheduling/contenção continua hipótese, não causa raiz provada. Nenhuma alteração foi feita em produção.
+
+Evidência sanitizada: [repetibilidade multi-TX](docs/evidence/helix-pcm-bridge-repeatability-20260930.json).
