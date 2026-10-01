@@ -1,0 +1,59 @@
+{
+  "date": "2026-10-01",
+  "scope": "D-Star to YSF module C voice path",
+  "levels": [
+    "PROD-derived",
+    "SW",
+    "ENV",
+    "CI",
+    "PROD deploy"
+  ],
+  "diagnosis": {
+    "transcoder_first_in_to_first_out_ms": 6.526856683194637,
+    "initial_erasure_frames": 12,
+    "initial_erasure_ms": 240,
+    "first_valid_capture_ms": 254.899,
+    "captured_frames": 666,
+    "captured_erasures": 93,
+    "fec_errors_total": 0,
+    "current_path_avg_rms": 56.7896,
+    "historical_path_avg_rms": 156.668,
+    "current_vs_historical_rms_ratio": 0.362482,
+    "current_presence_to_low": 0.991622,
+    "historical_presence_to_low": 2.85899
+  },
+  "change": {
+    "removed": "per-frame low-pass alpha=0.45 with state reset every 20ms",
+    "restored": "module C D-Star->AMBE2: divide PCM by 8 then multiply by 1.5",
+    "reverse_direction_changed": false,
+    "xlxd_changed": false,
+    "helix_mode": "shadow"
+  },
+  "validation": {
+    "candidate_sha256": "fc132e18fdf94037cb09f33fe1f4d02f8060b246ea48f0fe9daa9cf108fdf032",
+    "specific_tests": "PASS",
+    "warty_run_all_failures": 0,
+    "github_workflows": {
+      "installer_ci": "PASS",
+      "debian12_runtime": "PASS",
+      "production_parity": "PASS",
+      "stream_identity": "PASS"
+    },
+    "corpus": {
+      "2_to_1_A": "IDENTICAL",
+      "2_to_1_C": "IDENTICAL",
+      "1_to_2_A": "IDENTICAL",
+      "1_to_2_C": "CHANGED_EXPECTED"
+    }
+  },
+  "production": {
+    "backup": "/opt/xlx026-backups/DSTAR_TO_YSF_AUDIO_20261001_032648",
+    "xlxd_pid_preserved": 1093634,
+    "xlxd_restarted": false,
+    "post_fix_real_dstar_tx_observed": false
+  },
+  "pending": [
+    "operator RF validation after fix",
+    "trace initial D-Star erasures to DCS input vs XLXD path"
+  ]
+}
