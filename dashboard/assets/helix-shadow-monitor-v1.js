@@ -15,13 +15,17 @@
    if(!el){el=document.createElement('span');el.className='tx-helix-status';el.setAttribute('role','status');el.setAttribute('aria-live','polite');actions.insertBefore(el,actions.firstChild);}
    const active=state.mode==='shadow'&&state.shadow_active;
    const anomaly=Boolean(state.anomaly);
-   el.className='tx-helix-status '+(active?(anomaly?'is-warning':'is-active'):'is-off');
-   if(active){
-    el.innerHTML='<i aria-hidden="true"></i><b>HELIX</b><span>MONITORANDO</span>';
-    el.title='Helix ativo em SHADOW: recebe uma cópia PCM desta transmissão para observação. O áudio transmitido continua no caminho legado. '+(state.ai_connected?'IA acompanha a telemetria técnica; nenhum áudio é enviado à IA.':'Monitoramento local ativo.');
-   }else{
-    el.innerHTML='<i aria-hidden="true"></i><b>HELIX</b><span>INDISPONÍVEL</span>';
-    el.title='Helix shadow não está pronto. O áudio legado continua independente.';
+   const css=active?(anomaly?'is-warning':'is-active'):'is-off';
+   const label=active?'MONITORANDO':'INDISPONÍVEL';
+   const title=active
+    ?'Helix ativo em SHADOW: recebe uma cópia PCM desta transmissão para observação. O áudio transmitido continua no caminho legado. '+(state.ai_connected?'IA acompanha a telemetria técnica; nenhum áudio é enviado à IA.':'Monitoramento local ativo.')
+    :'Helix shadow não está pronto. O áudio legado continua independente.';
+   const signature=[css,label,title].join('|');
+   el.className='tx-helix-status '+css;
+   if(el.dataset.helixSignature!==signature){
+    el.innerHTML='<i aria-hidden="true"></i><b>HELIX</b><span>'+label+'</span>';
+    el.title=title;
+    el.dataset.helixSignature=signature;
    }
   });
  }
