@@ -177,3 +177,10 @@ O rollback automático retornou imediatamente a `shadow`; o socket `pcm.sock` de
 
 ### Segundo teste real controlado de `process`
 Um segundo teste PROD foi executado com `xlx-helix-monitor.timer` e `xlx026-radioid-reconcile.timer` temporariamente suspensos para reduzir contenção auxiliar. O primeiro stream útil teve **5.546 frames**, `failures=0`, `helix_ok=14` e `helix_fallback=1`; o sticky fallback preservou o restante no legado. O rollback automático restaurou `shadow`, reativou ambos os timers e preservou XLXD PID 1093634. Esse resultado enfraquece a hipótese de que aqueles dois timers sejam a causa principal. `process` continua bloqueado; a causa raiz ainda precisa de instrumentação temporal do IPC/daemon em ENV.
+
+## Correção de confiabilidade Helix process — bounded transient retry
+Diagnóstico ENV reproduziu o defeito em tráfego ritmado a 20 ms: a política anterior convertia qualquer pico isolado acima da deadline em fallback para todo o restante do stream. Em 3.000 frames, os picos eram esparsos (`max_consecutive_fail=1`). Afinidade de CPU e SCHED_FIFO não eliminaram a cauda; portanto não serão usados como correção principal.
+
+A correção mantém **5 ms**, fail-open e processo separado, mas reduz polling desnecessário no cliente IPC e substitui o “primeiro timeout mata o stream” por uma política bounded: 1–2 falhas consecutivas preservam somente os frames afetados no legado, resetam o estado Helix e tentam novamente no frame seguinte; 3 consecutivas fixam o restante do stream no legado. Teste injetado comprovou 99/100 Helix após uma falha isolada e desativação segura após três consecutivas. Stream longo ENV: 2.986/3.000 frames Helix, 14 fallbacks isolados, zero falha codec, stream não desabilitado. Multi-TX ENV: 2×1.500 frames completos, zero falha codec, `consecutive_max=1` nos dois streams. Corpus `off/shadow` permaneceu bit-idêntico ao xuvd PROD conhecido-bom; candidato final SHA-256 `99942076bb162bb3627e99e71bf7dec35d00d791949d7c356c8105fbef1c95e4`.
+
+Isso é evidência **SW/ENV**. Ainda requer novo teste PROD com áudio real antes de qualquer classificação de `process` como estável/operacionalmente pronto.
