@@ -1,0 +1,94 @@
+{
+  "date": "2026-10-01",
+  "level": [
+    "SW",
+    "ENV"
+  ],
+  "change": "bounded transient retry for Helix process",
+  "deadline_ms": 5,
+  "deadline_widened": false,
+  "baseline_paced_20ms": {
+    "frames": 3000,
+    "helix_ok": 2990,
+    "helix_fail": 10,
+    "max_consecutive_fail": 1,
+    "note": "original client/policy benchmark; isolated scheduler tail reproduces issue"
+  },
+  "scheduling_experiments": {
+    "cpu_affinity": {
+      "frames": 3000,
+      "fail": 7,
+      "max_ms": 8.87351,
+      "result": "not sufficient"
+    },
+    "sched_fifo": {
+      "frames": 3000,
+      "fail": 18,
+      "max_ms": 12.4471,
+      "result": "not sufficient"
+    },
+    "conclusion": "do not use RT scheduling as primary fix"
+  },
+  "ipc_optimization": "nonblocking send/recv are attempted directly; poll is used only after EAGAIN/EWOULDBLOCK",
+  "injected_faults": {
+    "isolated_timeout": {
+      "frames": 100,
+      "helix_ok": 99,
+      "helix_fallback": 1,
+      "consecutive_max": 1,
+      "stream_disabled": 0,
+      "codec_failures": 0
+    },
+    "three_consecutive": {
+      "frames": 100,
+      "helix_ok": 9,
+      "helix_fallback": 3,
+      "consecutive_max": 3,
+      "stream_disabled": 1,
+      "codec_failures": 0
+    }
+  },
+  "natural_single_stream": {
+    "frames": 3000,
+    "helix_ok": 2986,
+    "helix_fallback": 14,
+    "consecutive_max": 1,
+    "stream_disabled": 0,
+    "codec_failures": 0
+  },
+  "natural_multi_stream": [
+    {
+      "frames": 1500,
+      "helix_ok": 1491,
+      "helix_fallback": 9,
+      "consecutive_max": 1,
+      "stream_disabled": 0,
+      "codec_failures": 0
+    },
+    {
+      "frames": 1500,
+      "helix_ok": 1486,
+      "helix_fallback": 14,
+      "consecutive_max": 1,
+      "stream_disabled": 0,
+      "codec_failures": 0
+    }
+  ],
+  "equivalence": {
+    "baseline_sha256": "4b72dfc7a26697a3e315fba8c8d22435996d8e67c3112e2f343a65b4c6e58069",
+    "candidate_sha256": "99942076bb162bb3627e99e71bf7dec35d00d791949d7c356c8105fbef1c95e4",
+    "off_four_paths_bit_identical": true,
+    "shadow_four_paths_bit_identical": true
+  },
+  "tests": {
+    "compiled_contract": "PASS",
+    "transient_retry_policy": "PASS",
+    "total_deadline": "PASS",
+    "prod_equivalence": "PASS"
+  },
+  "limits": [
+    "ENV only for corrected candidate so far",
+    "real RF/audio PROD retest pending",
+    "24h soak pending"
+  ]
+}
