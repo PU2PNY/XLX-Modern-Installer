@@ -54,6 +54,7 @@ Fornecer um instalador público, reproduzível e seguro para refletor XLXD em De
 - **AUDIO-001** — No módulo C, D-Star→AMBE+2/YSF deve preservar presença e nível de voz sem filtros reinicializados a cada frame. O caminho aprovado para recuperação é o comportamento histórico `/8` seguido de ganho `1,5×`, sem o passa-baixa por-frame `alpha=0,45` que reduz presença e cria descontinuidade.
 - **AUDIO-002** — Abertura D-Star→AMBE+2 deve distinguir latência do transcoder de erasures da origem. O xuvd não deve mascarar erasures como “delay”: medir primeiro frame válido, sequência inicial ruim e tempo de resposta do transcoder separadamente.
 - **AUDIO-003** — Mudanças D-Star→YSF não podem alterar YSF/DMR→D-Star, XLXD, Helix ou módulos fora do escopo sem requisito/teste separado.
+- **AUDIO-004** — Erasures D-Star transitórios após pelo menos um frame de voz válido podem usar PLC bounded com o último estado MBE bom por no máximo 3 frames consecutivos (60 ms). Erasures iniciais, sem estado de voz válido anterior, permanecem silêncio; não é permitido inventar voz ou mascarar a origem. Após 3 erasures consecutivos, o restante do burst deve permanecer silêncio até chegar novo frame válido. Telemetria deve separar erasure, concealed e muted.
 
 ### OBSERVABILITY / PERFORMANCE
 - **OBS-001** — Serviços críticos devem ter estado verificável por health/status/logs.
