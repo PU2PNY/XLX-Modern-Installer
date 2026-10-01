@@ -105,6 +105,63 @@ function parse_any_time(string $line): int { if(preg_match('/^(\d{4}-\d{2}-\d{2}
 function node_blocks(string $raw): array { preg_match_all('/<NODE>(.*?)<\/NODE>/si',$raw,$m); return $m[1]??[]; }
 function tag_value(string $block,string $tag): string { return preg_match('/<'.preg_quote($tag,'/').'>\s*(.*?)\s*<\/'.preg_quote($tag,'/').'>/si',$block,$m)?html_entity_decode(trim(strip_tags($m[1])),ENT_QUOTES|ENT_XML1,'UTF-8'):''; }
 function parse_xml_connections(): array { $p=cfg()['xml_path'];if(!is_readable($p))return []; $raw=@file_get_contents($p);if($raw===false)return []; $out=[];foreach(node_blocks($raw) as $b){$callRaw=tag_value($b,'Callsign');[$call,$suffix]=split_call_suffix($callRaw);if(!$call)continue;$protocol=protocol_label(tag_value($b,'Protocol'));$rawModule=trim(tag_value($b,'LinkedModule'));$module=$rawModule!==''?strtoupper(substr($rawModule,0,1)):'?';if($module==='?'&&$protocol==='DMR')$module='C';$ct=strtotime(tag_value($b,'ConnectTime'))?:0;$lt=strtotime(tag_value($b,'LastHeardTime'))?:0;$u=user_lookup($call);$country=country_for_call($call);$out[]=['callsign'=>$call,'suffix'=>$suffix,'name'=>$u['name'],'location'=>$u['location'],'country'=>$country,'module'=>$module,'protocol'=>$protocol,'connected_at'=>$ct,'last_activity'=>$lt,'qrz'=>qrz_url($call),'via'=>tag_value($b,'Via'),'peer'=>tag_value($b,'Peer'),'ip'=>tag_value($b,'IP')];}usort($out,fn($a,$b)=>$b['connected_at']<=>$a['connected_at']);return $out; }
+function canonical_connections(array $connections): array {
+    /*
+     * A lista XML do XLXD pode conter mais de um NODE para a mesma
+     * identidade/protocolo/módulo durante reconexões. Para a lista pública
+     * de conectados, mantém apenas a sessão canônica mais recentemente ativa.
+     *
+     * O chamador que precisa correlacionar TX com endpoints deve conservar
+     * a lista bruta separadamente.
+     */
+    $best = [];
+
+    foreach ($connections as $connection) {
+        $call = norm_call((string)($connection['callsign'] ?? ''));
+
+        if ($call === '') {
+            continue;
+        }
+
+        $suffix = strtoupper(trim((string)($connection['suffix'] ?? '')));
+        $protocol = strtoupper(trim((string)($connection['protocol'] ?? '')));
+        $module = strtoupper(trim((string)($connection['module'] ?? '')));
+        $key = implode('|', [$call, $suffix, $protocol, $module]);
+
+        if (!isset($best[$key])) {
+            $best[$key] = $connection;
+            continue;
+        }
+
+        $current = $best[$key];
+        $activity = (int)($connection['last_activity'] ?? 0);
+        $currentActivity = (int)($current['last_activity'] ?? 0);
+        $connected = (int)($connection['connected_at'] ?? 0);
+        $currentConnected = (int)($current['connected_at'] ?? 0);
+
+        if (
+            $activity > $currentActivity
+            || (
+                $activity === $currentActivity
+                && $connected > $currentConnected
+            )
+        ) {
+            $best[$key] = $connection;
+        }
+    }
+
+    $out = array_values($best);
+
+    usort(
+        $out,
+        static fn(array $a, array $b): int =>
+            ((int)($b['connected_at'] ?? 0))
+            <=>
+            ((int)($a['connected_at'] ?? 0))
+    );
+
+    return $out;
+}
 function candidate_protocol(
     array $connections,
     string $call,
