@@ -10,9 +10,9 @@ ok(){ printf '[OK] %s\n' "$*"; }
 php -l "$COMMON" >/dev/null
 php -l "$STATUS" >/dev/null
 
-php - "$COMMON" <<'PHP'
+XLX_TEST_COMMON="$COMMON" php <<'PHP'
 <?php
-require $argv[1];
+require getenv('XLX_TEST_COMMON');
 
 $rows = [
     ['callsign'=>'PU2AAA','suffix'=>'B','protocol'=>'DMR','module'=>'C','connected_at'=>100,'last_activity'=>110,'ip'=>'10.0.0.1'],
