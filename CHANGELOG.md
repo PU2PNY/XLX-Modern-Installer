@@ -299,3 +299,4 @@ Three additional controlled multi-TX repeats retained 40/40 frames per stream wi
 - Real stream: 956 frames, 0 codec failures, 436 Helix responses, 1 Helix fallback; sticky fail-open preserved the remainder on legacy audio and XLXD reported 0/956 AMBED timeouts.
 - Automatic rollback restored `shadow`, removed the process socket and preserved XLXD PID 1093634.
 - `process` remains blocked; the 5 ms deadline is not widened. Further ENV timing/scheduling instrumentation is required before another real test.
+- A second real controlled `process` run paused the Helix monitor and RadioID reconcile timers; the stream carried 5,546 frames with 0 codec failures but only 14 Helix replies before 1 sticky fallback. The timers were restored automatically, so their contention is no longer a sufficient explanation for the process instability.
