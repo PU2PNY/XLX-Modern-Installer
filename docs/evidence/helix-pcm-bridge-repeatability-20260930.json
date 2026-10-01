@@ -1,0 +1,95 @@
+{
+  "classification": "ENV",
+  "date_local": "2026-09-30",
+  "host": "WartyWallaby",
+  "purpose": "Controlled repeatability check of Helix process multi-stream after PR #65 final CI",
+  "runtime_provenance": {
+    "helix_commit": "e80969d58d0ecf0f4bd55bbc7fae85311c0176d2",
+    "installer_pr_head": "9fb4d6906bfe2f699b7c09d6ada47cdcf72d53fc",
+    "installer_merge_commit": "15a1612a720bbab4882bf1b56f4584301a2ec16b",
+    "candidate_binary_sha256": "559f580b5edf58883eb81293d8fbdc044e13eff9ca4dc6437e6b16014f75a243",
+    "mode": "process",
+    "deadline_ms": 5,
+    "streams": 2,
+    "frames_per_stream": 40
+  },
+  "runs": [
+    {
+      "run": 1,
+      "streams": [
+        {
+          "frames": 40,
+          "failures": 0,
+          "helix_ok": 35,
+          "helix_fallback": 1
+        },
+        {
+          "frames": 40,
+          "failures": 0,
+          "helix_ok": 34,
+          "helix_fallback": 1
+        }
+      ],
+      "multi_latency_ms": {
+        "p50": 2.65658,
+        "p95": 6.2836,
+        "p99": 9.51114,
+        "max": 9.51114
+      }
+    },
+    {
+      "run": 2,
+      "streams": [
+        {
+          "frames": 40,
+          "failures": 0,
+          "helix_ok": 2,
+          "helix_fallback": 1
+        },
+        {
+          "frames": 40,
+          "failures": 0,
+          "helix_ok": 28,
+          "helix_fallback": 1
+        }
+      ],
+      "multi_latency_ms": {
+        "p50": 2.48092,
+        "p95": 8.39569,
+        "p99": 16.1476,
+        "max": 16.1476
+      }
+    },
+    {
+      "run": 3,
+      "streams": [
+        {
+          "frames": 40,
+          "failures": 0,
+          "helix_ok": 18,
+          "helix_fallback": 1
+        },
+        {
+          "frames": 40,
+          "failures": 0,
+          "helix_ok": 14,
+          "helix_fallback": 1
+        }
+      ],
+      "multi_latency_ms": {
+        "p50": 2.83424,
+        "p95": 7.72468,
+        "p99": 10.704,
+        "max": 10.704
+      }
+    }
+  ],
+  "conclusion": {
+    "functional_continuity": "PASS",
+    "codec_failures": 0,
+    "fail_open": "PASS",
+    "process_reliability_under_contention": "PARCIAL",
+    "production": "BLOCKED",
+    "note": "The 5 ms deadline was not widened. Scheduling/contention remains a hypothesis, not a proven root cause."
+  }
+}
