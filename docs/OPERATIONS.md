@@ -58,7 +58,7 @@ A integração experimental Helix deve ser operada em três fases explícitas:
 2. `shadow` — Helix recebe PCM por datagrama Unix não bloqueante; não existe espera de resposta nem alteração do áudio transmitido;
 3. `process` — PCM retornado pode ser usado somente após validação ENV e gate específico de áudio/rollback.
 
-O cliente tem timeout local limitado a 10 ms na V1 e comportamento fail-open. Erro, socket ausente, timeout ou resposta inválida devem manter o PCM original; em `process`, a primeira falha fixa o restante daquele stream no legado. Não introduza API/cloud no caminho de áudio. Antes de qualquer mudança do transcoder ativo, registre PID, binário/hash, unit/config, tráfego ativo, proveniência das dependências usadas no build e ponto de retorno.
+O cliente tem timeout local limitado a 5 ms na V1, com orçamento total por requisição e comportamento fail-open. Erro, socket ausente, timeout ou resposta inválida devem manter o PCM original; em `process`, a primeira falha fixa o restante daquele stream no legado. Não introduza API/cloud no caminho de áudio. Antes de qualquer mudança do transcoder ativo, registre PID, binário/hash, unit/config, tráfego ativo, proveniência das dependências usadas no build e ponto de retorno.
 
 
 ### Gate adicional antes de shadow
