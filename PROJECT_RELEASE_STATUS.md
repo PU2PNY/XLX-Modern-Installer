@@ -61,6 +61,15 @@ Classificação: `SW/CI`. Isso **não** equivale a validação `ENV`, `HW` ou `P
 - WartyWallaby: teste específico PASS; `tests/run-all.sh` concluiu `failures=0` no mesmo código funcional; no head documental seguinte, teste específico + governança + PHP lint também PASS. CI do head final e deploy PROD ainda estão pendentes neste registro.
 - Nenhuma alteração de XLXD, DMR/YSF/D-Star, xuvd/Helix ou áudio faz parte desta correção.
 
+## Conectados — validação PROD 2026-10-01
+- PR #72 foi mesclada no `main` em `a7ab1ab45ee62639e9f1e80e363d126703fbdd27`; quatro workflows GitHub Actions passaram.
+- Antes do deploy, o XLX026 mostrou drift controlado entre os PHPs de produção e o dashboard genérico versionado. Por isso **não** houve substituição integral dos arquivos: a correção foi aplicada cirurgicamente sobre os PHPs ativos, preservando IA/RadioID locais.
+- Backup local root-only criado em `/opt/xlx026-backups/CONNECTED_DEDUPE_20261001_184450`; cópia de restore testada antes da mudança.
+- Primeira validação PROD encontrou 107 linhas e ainda 1 grupo duplicado: `PY1ARF` era normalizado pelo alias RadioID para `PY1SGA` somente após a primeira canonicalização. A falha foi registrada e corrigida, sem esconder o resultado.
+- Segunda correção aplica o alias à cópia pública **antes** da canonicalização; a lista bruta continua em `active_and_history()`.
+- PROD final: `connected_count=106`, 106 linhas, **0 grupos duplicados / 0 linhas extras** pela chave indicativo+sufixo+protocolo+módulo. Conexões distintas por protocolo/módulo permaneceram visíveis.
+- `/conectados`, `/api/live.php` e `/api/helix-status.php`: HTTP 200. XLXD permaneceu PID 1093634 e xuvd PID 3729899; Helix permaneceu `shadow`. Nenhum restart de XLXD/xuvd, nenhuma alteração de protocolo/áudio.
+
 ## Correções recentes confirmadas no main
 - PR #55: timeout FastCGI de 30 s limitado à rota privada do Admin; público permanece em 15 s.
 - PR #57: botão de informações nas 24h somente para gateway diferente do indicativo e confirmado como repetidor.
