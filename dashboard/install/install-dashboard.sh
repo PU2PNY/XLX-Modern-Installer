@@ -628,11 +628,22 @@ chown root:www-data "$CALLINGHOME_CONFIG"
 chmod 0640 "$CALLINGHOME_CONFIG"
 
 install -d -m 0755 -o root -g root /usr/local/lib/xlx-modern
+install -d -m 0755 -o root -g root /var/lib/xlx-ranking
+install -m 0755 "$ROOT/install/ranking-v2-collector.py" /usr/local/lib/xlx-modern/ranking-v2-collector.py
+install -m 0644 "$ROOT/install/xlx-modern-ranking-v2.service" /etc/systemd/system/xlx-modern-ranking-v2.service
+install -m 0644 "$ROOT/install/xlx-modern-ranking-v2.timer" /etc/systemd/system/xlx-modern-ranking-v2.timer
 install -m 0755 "$ROOT/install/xlx-callinghome.php" /usr/local/lib/xlx-modern/xlx-callinghome.php
 install -m 0644 "$ROOT/install/xlx-callinghome.service" /etc/systemd/system/xlx-callinghome.service
 install -m 0644 "$ROOT/install/xlx-callinghome.timer" /etc/systemd/system/xlx-callinghome.timer
 systemctl daemon-reload
+systemctl enable --now xlx-modern-ranking-v2.timer
 systemctl enable --now xlx-callinghome.timer
+
+if systemctl start xlx-modern-ranking-v2.service; then
+    printf 'Ranking: persistent statistics initialized successfully.\n'
+else
+    printf 'WARNING / ATENÇÃO: Ranking statistics could not be refreshed now; the timer will retry every two minutes. Check: journalctl -u xlx-modern-ranking-v2.service -n 30 --no-pager\n' >&2
+fi
 
 if systemctl start xlx-callinghome.service; then
     printf 'CallingHome: registration submitted successfully.\n'
