@@ -25,6 +25,34 @@ constexpr std::uint8_t HELIX_PCM_APPLY_DSP = 0x01;
 constexpr std::uint8_t HELIX_PCM_RESET_STREAM = 0x02;
 constexpr std::uint8_t HELIX_PCM_OK = 0x80;
 
+class HelixFailurePolicy {
+public:
+    static constexpr std::uint32_t CONSECUTIVE_FAILURE_LIMIT = 3;
+
+    void on_success() {
+        consecutive_failures_ = 0;
+    }
+
+    bool on_failure() {
+        ++consecutive_failures_;
+        max_consecutive_failures_ =
+            std::max(max_consecutive_failures_, consecutive_failures_);
+        return consecutive_failures_ >= CONSECUTIVE_FAILURE_LIMIT;
+    }
+
+    [[nodiscard]] std::uint32_t consecutive_failures() const {
+        return consecutive_failures_;
+    }
+
+    [[nodiscard]] std::uint32_t max_consecutive_failures() const {
+        return max_consecutive_failures_;
+    }
+
+private:
+    std::uint32_t consecutive_failures_ = 0;
+    std::uint32_t max_consecutive_failures_ = 0;
+};
+
 class HelixPcmClient {
 public:
     explicit HelixPcmClient(const std::string& socket_path, int timeout_ms = 1)
@@ -184,31 +212,45 @@ private:
     bool write_all(const std::uint8_t* data, std::size_t len, Deadline deadline) {
         std::size_t done = 0;
         while (done < len) {
-            if (!wait_ready(POLLOUT, deadline))
+            if (Clock::now() >= deadline)
                 return false;
             const ssize_t n = send(fd_, data + done, len - done, MSG_NOSIGNAL | MSG_DONTWAIT);
-            if (n < 0 && (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK))
+            if (n > 0) {
+                done += static_cast<std::size_t>(n);
                 continue;
-            if (n <= 0)
-                return false;
-            done += static_cast<std::size_t>(n);
+            }
+            if (n < 0 && errno == EINTR)
+                continue;
+            if (n < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+                if (!wait_ready(POLLOUT, deadline))
+                    return false;
+                continue;
+            }
+            return false;
         }
-        return true;
+        return Clock::now() < deadline;
     }
 
     bool read_all(std::uint8_t* data, std::size_t len, Deadline deadline) {
         std::size_t done = 0;
         while (done < len) {
-            if (!wait_ready(POLLIN, deadline))
+            if (Clock::now() >= deadline)
                 return false;
             const ssize_t n = recv(fd_, data + done, len - done, MSG_DONTWAIT);
-            if (n < 0 && (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK))
+            if (n > 0) {
+                done += static_cast<std::size_t>(n);
                 continue;
-            if (n <= 0)
-                return false;
-            done += static_cast<std::size_t>(n);
+            }
+            if (n < 0 && errno == EINTR)
+                continue;
+            if (n < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+                if (!wait_ready(POLLIN, deadline))
+                    return false;
+                continue;
+            }
+            return false;
         }
-        return true;
+        return Clock::now() < deadline;
     }
 
     static void write_le16(std::uint8_t* p, std::uint16_t value) {
