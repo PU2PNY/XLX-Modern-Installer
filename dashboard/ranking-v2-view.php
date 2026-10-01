@@ -88,7 +88,7 @@ body[data-page=ranking] .rv2-old{display:none!important}
 <script>
 (()=>{
  if(document.body.dataset.page!=='ranking')return;
- const S={p:'today',r:null,status:null,long:null},$=s=>document.querySelector(s);
+ const S={p:'today',r:null,status:null,long:null,autoFallback:false,initialPeriodPending:true},$=s=>document.querySelector(s);
  const dur=n=>{n=Math.max(0,+n||0);let h=Math.floor(n/3600),m=Math.floor(n%3600/60),s=Math.floor(n%60);return [h,m,s].map(x=>String(x).padStart(2,'0')).join(':')};
 
  /* XLXMODERN_RANKING_CONNECTED_DHM_V22
@@ -117,6 +117,17 @@ body[data-page=ranking] .rv2-old{display:none!important}
   $('#rv2Name').textContent=[S.long?.name,S.long?.location].filter(Boolean).join(' • ')||'Nenhuma estação conectada';
   clock();
  }
+ function setPeriod(p,autoFallback=false){
+  S.p=p;
+  S.autoFallback=autoFallback;
+  document.querySelectorAll('.rv2-tab').forEach(x=>x.classList.toggle('active',x.dataset.p===p));
+ }
+ function chooseInitialPeriod(){
+  if(!S.initialPeriodPending||!S.r)return;
+  S.initialPeriodPending=false;
+  let today=S.r.periods?.today,week=S.r.periods?.week;
+  if((+today?.tx_count||0)===0 && (+week?.tx_count||0)>0)setPeriod('week',true);
+ }
  function render(){
   if(!S.r)return;
   let p=S.r.periods[S.p];
@@ -132,7 +143,8 @@ body[data-page=ranking] .rv2-old{display:none!important}
   let mp=new Map;for(let x of S.status?.connections||[]){if(x.protocol)mp.set(x.protocol,(mp.get(x.protocol)||0)+1)}
   $('#rv2Proto').innerHTML=small([...mp].sort((a,b)=>b[1]-a[1]).map(x=>({label:x[0],value:x[1]})),num);
   let c=S.r.coverage,ok=S.p==='today'?c.today_complete:S.p==='week'?c.week_complete:c.month_complete;
-  $('#rv2Note').textContent=(ok?'Cobertura integral disponível para este período.':'Cobertura parcial para este período.')+' Estatísticas atualizadas há '+num(S.r.age_seconds)+' s.';
+  let prefix=S.autoFallback?'Ainda não houve transmissões hoje; exibindo automaticamente os últimos 7 dias. ':'';
+  $('#rv2Note').textContent=prefix+(ok?'Cobertura integral disponível para este período.':'Cobertura parcial para este período.')+' Estatísticas atualizadas há '+num(S.r.age_seconds)+' s.';
   longest();
  }
  async function load(){
@@ -141,11 +153,11 @@ body[data-page=ranking] .rv2-old{display:none!important}
     fetch('/api/ranking-v2.php?t='+Date.now(),{cache:'no-store'}).then(x=>x.json()),
     fetch('/api/status.php?t='+Date.now(),{cache:'no-store'}).then(x=>x.json())
    ]);
-   if(r.ok)S.r=r;S.status=s;render();
+   if(r.ok){S.r=r;chooseInitialPeriod();}S.status=s;render();
   }catch(e){console.error('Ranking V2',e);$('#rv2Note').textContent='Falha temporária ao atualizar estatísticas.'}
  }
  document.querySelectorAll('.rv2-tab').forEach(b=>b.onclick=()=>{
-  S.p=b.dataset.p;document.querySelectorAll('.rv2-tab').forEach(x=>x.classList.toggle('active',x===b));render();
+  S.initialPeriodPending=false;setPeriod(b.dataset.p,false);render();
  });
  load();setInterval(clock,1000);setInterval(load,60000);
 })();
