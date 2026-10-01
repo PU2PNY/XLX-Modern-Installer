@@ -1,7 +1,7 @@
 (()=>{
  'use strict';
  if(document.body?.dataset?.page!=='ao-vivo') return;
- let state={mode:'off',shadow_active:false,ai_connected:false,anomaly:false};
+ let state={mode:'off',shadow_active:false,process_active:false,ai_connected:false,anomaly:false};
  function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
  function ensureStyle(){
   if(document.querySelector('link[data-helix-shadow-css]'))return;
@@ -13,13 +13,16 @@
    if(!actions)return;
    let el=card.querySelector('.tx-helix-status');
    if(!el){el=document.createElement('span');el.className='tx-helix-status';el.setAttribute('role','status');el.setAttribute('aria-live','polite');actions.insertBefore(el,actions.firstChild);}
+   const processing=state.mode==='process'&&state.process_active;
    const active=state.mode==='shadow'&&state.shadow_active;
    const anomaly=Boolean(state.anomaly);
-   const css=active?(anomaly?'is-warning':'is-active'):'is-off';
-   const label=active?'MONITORANDO':'INDISPONÍVEL';
-   const title=active
-    ?'Helix ativo em SHADOW: recebe uma cópia PCM desta transmissão para observação. O áudio transmitido continua no caminho legado. '+(state.ai_connected?'IA acompanha a telemetria técnica; nenhum áudio é enviado à IA.':'Monitoramento local ativo.')
-    :'Helix shadow não está pronto. O áudio legado continua independente.';
+   const css=processing?'is-processing':(active?(anomaly?'is-warning':'is-active'):'is-off');
+   const label=processing?'PROCESSANDO TESTE':(active?'MONITORANDO':'INDISPONÍVEL');
+   const title=processing
+    ?'Helix PROCESS ativo em teste controlado: o PCM retornado pelo Helix pode ser usado nesta transmissão. Fail-open e rollback automático permanecem ativos.'
+    :(active
+      ?'Helix ativo em SHADOW: recebe uma cópia PCM desta transmissão para observação. O áudio transmitido continua no caminho legado. '+(state.ai_connected?'IA acompanha a telemetria técnica; nenhum áudio é enviado à IA.':'Monitoramento local ativo.')
+      :'Helix não está pronto; o caminho legado permanece independente.');
    const signature=[css,label,title].join('|');
    el.className='tx-helix-status '+css;
    if(el.dataset.helixSignature!==signature){
