@@ -1,0 +1,226 @@
+{
+  "classification": "ENV",
+  "result": "PASS",
+  "cases": [
+    {
+      "case": "off",
+      "frames": 40,
+      "sha256": "0927cfff2bb8dfd6076ba6912ba9a96eef57284afd4df77e2436e9657521074f",
+      "latency_ms": {
+        "p50": 1.67181,
+        "p95": 4.11459,
+        "p99": 4.31505,
+        "max": 4.31505
+      },
+      "rss_max_kib": {
+        "xuvd": 1884.0,
+        "helix": 0
+      },
+      "cpu_percent": {
+        "xuvd": 6.508805002156116,
+        "helix": 0.0
+      },
+      "streams": [
+        {
+          "packets": 40,
+          "failures": 0,
+          "helix_ok": 0,
+          "helix_fallback": 0
+        }
+      ]
+    },
+    {
+      "case": "absent",
+      "frames": 40,
+      "sha256": "0927cfff2bb8dfd6076ba6912ba9a96eef57284afd4df77e2436e9657521074f",
+      "latency_ms": {
+        "p50": 1.72564,
+        "p95": 2.98008,
+        "p99": 4.71518,
+        "max": 4.71518
+      },
+      "rss_max_kib": {
+        "xuvd": 1868.0,
+        "helix": 0
+      },
+      "cpu_percent": {
+        "xuvd": 4.439135914529477,
+        "helix": 0.0
+      },
+      "streams": [
+        {
+          "packets": 40,
+          "failures": 0,
+          "helix_ok": 0,
+          "helix_fallback": 1
+        }
+      ]
+    },
+    {
+      "case": "shadow",
+      "frames": 40,
+      "sha256": "0927cfff2bb8dfd6076ba6912ba9a96eef57284afd4df77e2436e9657521074f",
+      "latency_ms": {
+        "p50": 1.81614,
+        "p95": 3.09637,
+        "p99": 4.19595,
+        "max": 4.19595
+      },
+      "rss_max_kib": {
+        "xuvd": 1872.0,
+        "helix": 1220.0
+      },
+      "cpu_percent": {
+        "xuvd": 5.464077888286372,
+        "helix": 0.0
+      },
+      "streams": [
+        {
+          "packets": 40,
+          "failures": 0,
+          "helix_ok": 40,
+          "helix_fallback": 0
+        }
+      ]
+    },
+    {
+      "case": "shadow-kill",
+      "frames": 40,
+      "sha256": "0927cfff2bb8dfd6076ba6912ba9a96eef57284afd4df77e2436e9657521074f",
+      "latency_ms": {
+        "p50": 1.80006,
+        "p95": 2.91654,
+        "p99": 3.27381,
+        "max": 3.27381
+      },
+      "rss_max_kib": {
+        "xuvd": 1876.0,
+        "helix": 1260.0
+      },
+      "cpu_percent": {
+        "xuvd": 4.4467390901826755,
+        "helix": null
+      },
+      "streams": [
+        {
+          "packets": 40,
+          "failures": 0,
+          "helix_ok": 20,
+          "helix_fallback": 20
+        }
+      ]
+    },
+    {
+      "case": "process",
+      "frames": 40,
+      "sha256": "cf2af1b910959c89dc1db8fc0e8146fc247c2a98be9b1303cac61afc4a843d3d",
+      "latency_ms": {
+        "p50": 1.80629,
+        "p95": 4.18692,
+        "p99": 4.68531,
+        "max": 4.68531
+      },
+      "rss_max_kib": {
+        "xuvd": 1884.0,
+        "helix": 1264.0
+      },
+      "cpu_percent": {
+        "xuvd": 5.461010917646392,
+        "helix": 0.0
+      },
+      "streams": [
+        {
+          "packets": 40,
+          "failures": 0,
+          "helix_ok": 40,
+          "helix_fallback": 0
+        }
+      ]
+    },
+    {
+      "case": "process-kill",
+      "frames": 40,
+      "sha256": "1b323459e54e70114f94af48f5d729a288f07ab0a8329fcd005b9697930434e5",
+      "latency_ms": {
+        "p50": 1.79241,
+        "p95": 4.42166,
+        "p99": 6.20585,
+        "max": 6.20585
+      },
+      "rss_max_kib": {
+        "xuvd": 1876.0,
+        "helix": 1204.0
+      },
+      "cpu_percent": {
+        "xuvd": 5.4447182842656865,
+        "helix": null
+      },
+      "streams": [
+        {
+          "packets": 40,
+          "failures": 0,
+          "helix_ok": 20,
+          "helix_fallback": 1
+        }
+      ]
+    },
+    {
+      "case": "multi",
+      "frames": 80,
+      "sha256": "5285f68fc1f24159a436d55ec98a99ebf000365f85c6d9b18c51e81669bcee61",
+      "latency_ms": {
+        "p50": 2.05635,
+        "p95": 3.73635,
+        "p99": 4.96617,
+        "max": 4.96617
+      },
+      "rss_max_kib": {
+        "xuvd": 1876.0,
+        "helix": 1216.0
+      },
+      "cpu_percent": {
+        "xuvd": 9.676574996544428,
+        "helix": 0.9676574996544428
+      },
+      "streams": [
+        {
+          "packets": 40,
+          "failures": 0,
+          "helix_ok": 40,
+          "helix_fallback": 0
+        },
+        {
+          "packets": 40,
+          "failures": 0,
+          "helix_ok": 40,
+          "helix_fallback": 0
+        }
+      ]
+    }
+  ],
+  "dsp_stream_isolation": {
+    "isolation": "PASS (40 low/high frames, isolated versus interleaved, bit-identical PCM)",
+    "churn_unique_streams": 600,
+    "rss_warm_kib": 1252.0,
+    "rss_final_kib": 1252.0,
+    "bounded_churn": "PASS (short test, not 24h soak)"
+  },
+  "limits": "Short synthetic corpus, no RF/audio-quality/24h-soak/PROD validation. CPU tick granularity 10ms; killed Helix CPU unavailable.",
+  "provenance": {
+    "date_local": "2026-09-30",
+    "host": "WartyWallaby",
+    "evidence": "ENV",
+    "helix_commit": "e80969d58d0ecf0f4bd55bbc7fae85311c0176d2",
+    "xlx_base_commit": "1c137e200fb7ea64d5e6e83a6d279b6f49c55cca",
+    "op25_commit": "28f2c40645deca3f8c2d529d27d0df2555ed287a",
+    "helix_binary_sha256": "7c4292bfe5610bc22870308b6c5b934b492caf4d579626586ac30da4c2ff6745",
+    "candidate_binary_sha256": "559f580b5edf58883eb81293d8fbdc044e13eff9ca4dc6437e6b16014f75a243",
+    "legacy_binary_sha256": "4b72dfc7a26697a3e315fba8c8d22435996d8e67c3112e2f343a65b4c6e58069",
+    "source_sha256": {
+      "experimental/helix-bridge/helix_pcm_client.hpp": "9b1f6c497bcf67f9e0b4ff0af81e4c0bab7bdf9218c6efe9959794d423cca84e",
+      "experimental/helix-bridge/xuvd.cpp": "3125758b94f7f7f6e91c9764e4d6340e3b498dfd0b5080ee77794691ec3d0ae6",
+      "experimental/helix-bridge/e2e_lab.py": "722983b46f845c81b170298c9ed604875065874c9c09e48e38d07e521d1439bf",
+      "experimental/helix-bridge/e2e_client.cpp": "c9897ef2c696f4dfa277b053b7fb431ccf63f19e925c10addd45866324adb5f0"
+    }
+  }
+}

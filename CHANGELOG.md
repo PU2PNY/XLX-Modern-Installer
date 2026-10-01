@@ -1,5 +1,14 @@
 ## Unreleased — Helix PCM Bridge V1
 
+## 2026-09-30 — Helix PCM bridge: total deadline and reproducible ENV gate
+- Reconcile the explicit operator ceiling to 1..5 ms; replace per-read timeouts with one monotonic connect/write/read deadline.
+- Use non-blocking Unix connection and I/O; full backlog, trickle replies and invalid headers preserve original PCM.
+- Reject unknown HXP1 response flags and retain per-stream sticky legacy fallback.
+- Add adversarial deadline regression to run-all and a synthetic AMBED E2E lab runner with mid-stream Helix failure, multi-TX, DSP isolation, RSS/CPU and latency evidence.
+- ENV: Rust gates PASS; installer suite failures=0; exact legacy ELF equivalence and binary restore PASS; two streams 40/40 Helix responses each.
+- No production transcoder/XLXD restart, no process activation, no PU2PNY-OS integration. Production shadow still requires its remaining gates.
+
+
 - Adds an experimental local PCM contract between the existing legacy codec backend and Helix Voice.
 - Keeps Helix optional and legacy radio compatibility mandatory.
 - Adds explicit `off`, `shadow` and `process` modes; default is `off`.

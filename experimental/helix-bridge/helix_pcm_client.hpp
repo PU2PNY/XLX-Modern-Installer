@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <array>
 #include <cerrno>
+#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -28,7 +29,7 @@ class HelixPcmClient {
 public:
     explicit HelixPcmClient(const std::string& socket_path, int timeout_ms = 1)
         : socket_path_(socket_path),
-          timeout_ms_(timeout_ms < 1 ? 1 : (timeout_ms > 10 ? 10 : timeout_ms)) {}
+          timeout_ms_(timeout_ms < 1 ? 1 : (timeout_ms > 5 ? 5 : timeout_ms)) {}
 
     ~HelixPcmClient() { disconnect(); }
 
@@ -53,7 +54,8 @@ public:
         std::array<std::int16_t, HELIX_PCM_MAX_SAMPLES> original{};
         std::copy(samples, samples + sample_count, original.begin());
 
-        if (!ensure_connected())
+        const auto deadline = Clock::now() + std::chrono::milliseconds(timeout_ms_);
+        if (!ensure_connected(deadline))
             return false;
 
         std::array<std::uint8_t, HELIX_PCM_MAX_PACKET> wire{};
@@ -76,13 +78,13 @@ public:
         }
 
         const std::size_t packet_len = HELIX_PCM_HEADER_LEN + sample_count * 2;
-        if (!write_all(wire.data(), packet_len)) {
+        if (!write_all(wire.data(), packet_len, deadline)) {
             disconnect();
             return false;
         }
 
         std::array<std::uint8_t, HELIX_PCM_MAX_PACKET> response{};
-        if (!read_all(response.data(), HELIX_PCM_HEADER_LEN)) {
+        if (!read_all(response.data(), HELIX_PCM_HEADER_LEN, deadline)) {
             disconnect();
             return false;
         }
@@ -90,6 +92,7 @@ public:
         if (std::memcmp(response.data(), "HXP1", 4) != 0 ||
             response[4] != HELIX_PCM_VERSION ||
             (response[5] & HELIX_PCM_OK) == 0 ||
+            (response[5] & ~(HELIX_PCM_APPLY_DSP | HELIX_PCM_RESET_STREAM | HELIX_PCM_OK)) != 0 ||
             static_cast<std::size_t>(read_le16(&response[6])) != sample_count ||
             read_le32(&response[8]) != stream_id ||
             read_le32(&response[12]) != sample_rate_hz ||
@@ -98,7 +101,12 @@ public:
             return false;
         }
 
-        if (!read_all(&response[HELIX_PCM_HEADER_LEN], sample_count * 2)) {
+        if (!read_all(&response[HELIX_PCM_HEADER_LEN], sample_count * 2, deadline)) {
+            disconnect();
+            return false;
+        }
+
+        if (Clock::now() >= deadline) {
             disconnect();
             return false;
         }
@@ -113,7 +121,9 @@ public:
         return true;
     }
 
-    bool prime() { return ensure_connected(); }
+    bool prime() {
+        return ensure_connected(Clock::now() + std::chrono::milliseconds(timeout_ms_));
+    }
 
     void disconnect() {
         if (fd_ >= 0) {
@@ -123,42 +133,62 @@ public:
     }
 
 private:
-    bool ensure_connected() {
+    using Clock = std::chrono::steady_clock;
+    using Deadline = Clock::time_point;
+
+    bool ensure_connected(Deadline deadline) {
         if (fd_ >= 0)
             return true;
         if (socket_path_.empty() || socket_path_.size() >= sizeof(sockaddr_un::sun_path))
             return false;
 
-        const int fd = socket(AF_UNIX, SOCK_STREAM, 0);
+        const int fd = socket(AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);
         if (fd < 0)
             return false;
 
         sockaddr_un sa{};
         sa.sun_family = AF_UNIX;
         std::memcpy(sa.sun_path, socket_path_.c_str(), socket_path_.size() + 1);
-        if (connect(fd, reinterpret_cast<sockaddr*>(&sa), sizeof(sa)) != 0) {
-            close(fd);
-            return false;
-        }
         fd_ = fd;
+        if (connect(fd, reinterpret_cast<sockaddr*>(&sa), sizeof(sa)) != 0) {
+            // AF_UNIX EAGAIN (full backlog) is immediate fail-open.
+            if (errno != EINPROGRESS || !wait_ready(POLLOUT, deadline)) {
+                disconnect();
+                return false;
+            }
+            int error = 0;
+            socklen_t len = sizeof(error);
+            if (getsockopt(fd_, SOL_SOCKET, SO_ERROR, &error, &len) != 0 || error != 0) {
+                disconnect();
+                return false;
+            }
+        }
         return true;
     }
 
-    bool wait_ready(short events) const {
-        pollfd pfd{fd_, events, 0};
-        int rc;
-        do {
-            rc = poll(&pfd, 1, timeout_ms_);
-        } while (rc < 0 && errno == EINTR);
-        return rc > 0 && (pfd.revents & events) != 0;
+    bool wait_ready(short events, Deadline deadline) const {
+        for (;;) {
+            const auto remaining = deadline - Clock::now();
+            if (remaining <= Clock::duration::zero())
+                return false;
+            const auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(remaining).count();
+            const int remaining_ms = static_cast<int>((ns + 999999) / 1000000);
+            pollfd pfd{fd_, events, 0};
+            const int rc = poll(&pfd, 1, remaining_ms);
+            if (rc < 0 && errno == EINTR)
+                continue;
+            return rc > 0 && (pfd.revents & events) != 0 && Clock::now() < deadline;
+        }
     }
 
-    bool write_all(const std::uint8_t* data, std::size_t len) {
+    bool write_all(const std::uint8_t* data, std::size_t len, Deadline deadline) {
         std::size_t done = 0;
         while (done < len) {
-            if (!wait_ready(POLLOUT))
+            if (!wait_ready(POLLOUT, deadline))
                 return false;
-            const ssize_t n = send(fd_, data + done, len - done, MSG_NOSIGNAL);
+            const ssize_t n = send(fd_, data + done, len - done, MSG_NOSIGNAL | MSG_DONTWAIT);
+            if (n < 0 && (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK))
+                continue;
             if (n <= 0)
                 return false;
             done += static_cast<std::size_t>(n);
@@ -166,12 +196,14 @@ private:
         return true;
     }
 
-    bool read_all(std::uint8_t* data, std::size_t len) {
+    bool read_all(std::uint8_t* data, std::size_t len, Deadline deadline) {
         std::size_t done = 0;
         while (done < len) {
-            if (!wait_ready(POLLIN))
+            if (!wait_ready(POLLIN, deadline))
                 return false;
-            const ssize_t n = recv(fd_, data + done, len - done, 0);
+            const ssize_t n = recv(fd_, data + done, len - done, MSG_DONTWAIT);
+            if (n < 0 && (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK))
+                continue;
             if (n <= 0)
                 return false;
             done += static_cast<std::size_t>(n);

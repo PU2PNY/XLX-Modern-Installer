@@ -40,3 +40,12 @@ Rollback mínimo da integração Helix: retirar as variáveis Helix/repor `off`,
 
 
 Evidência ENV 2026-09-30: Helix ausente em `process` manteve a saída bit-idêntica ao modo `off`; apenas a primeira tentativa do stream falhou e o restante do stream permaneceu legado. Isso valida o mecanismo de fallback em ENV, não autoriza troca do transcoder de produção.
+
+### Escopo de validação desta continuação
+A correção da deadline é limitada ao adapter experimental; produção conserva
+XLXD PID 1093634 e xuvd PID 1107847 na inspeção somente leitura de 2026-09-30.
+Hash do ELF ativo xuvd: 4b72dfc7a26697a3e315fba8c8d22435996d8e67c3112e2f343a65b4c6e58069.
+Restore de arquivo/binário em laboratório não valida automaticamente restore
+de unit/config/serviço nem autoriza troca do processo ativo.
+Shadow em produção permanece pendente enquanto seus gates não estiverem
+comprovados; process continua bloqueado e PU2PNY-OS não é integrado nesta fase.

@@ -49,6 +49,8 @@ echo "[transmission analyzer]"
 bash "$ROOT/tests/test-transmission-analyzer.sh" || failures=$((failures+1))
 echo "[helix pcm fallback]"
 bash "$ROOT/tests/test-helix-pcm-fallback.sh" || failures=$((failures+1))
+echo "[helix total deadline]"
+bash "$ROOT/tests/test-helix-pcm-deadline.sh" || failures=$((failures+1))
 echo "[project governance]"
 bash "$ROOT/tests/test-project-governance.sh" || failures=$((failures+1))
 echo "[release hardening]"

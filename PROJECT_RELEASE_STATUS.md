@@ -83,7 +83,7 @@ Objetivo:
 - modo `process` somente após gate adicional;
 - timeout/falha do Helix mantém PCM original e caminho legado.
 
-Evidência atual: DOC/SW em construção. Não promove áudio de produção. O transcoder `xuvd` ativo do XLX026 foi identificado como backend local em `127.0.0.1:10100`; nenhuma substituição/restart de produção foi executada durante esta etapa.
+Evidência atual: DOC/SW/ENV registrada abaixo. Não promove áudio de produção. O transcoder `xuvd` ativo do XLX026 foi identificado como backend local em `127.0.0.1:10100`; nenhuma substituição/restart de produção foi executada durante esta etapa.
 
 
 ### Evidência ENV — Helix PCM Bridge V1 (2026-09-30)
@@ -122,3 +122,21 @@ Corpus derivado de produção:
 - Helix recebeu 828/828 frames em `shadow`, com 0 falhas do transcoder.
 
 Classificação: PASS em ENV para equivalência comportamental do caminho legado no corpus testado. Os pacotes de origem vieram de PROD, mas o replay/comparação ocorreu em ENV; não promover para PROD por inferência.
+
+### Continuação validada — deadline total e fail-open (2026-09-30)
+- Helix main confirmado em e80969d58d0ecf0f4bd55bbc7fae85311c0176d2 (PR #1 já mesclada).
+- XLX base desta continuação: 1c137e200fb7ea64d5e6e83a6d279b6f49c55cca, PR #65 aberta.
+- Instrução do operador reconciliada: teto 5 ms; deadline única inclui connect/write/read. Não renovar prazo em fragmentos; socket não bloqueante.
+- 11 cenários adversariais + backlog cheio preservam PCM; header incompleto/inválido ou flags desconhecidos não comitam saída.
+- Helix: governança/patent gate, fmt, clippy -D warnings, workspace tests, release build e daemon self-test PASS em ENV.
+- XLX: tests/run-all.sh terminou failures=0; contrato/deadline específicos PASS.
+- Equivalência contra ELF PROD exato: quatro caminhos em off/shadow bit-idênticos.
+- E2E de sete sessões: off/absent/shadow/shadow-kill bit-idênticos; process 40/40; queda no frame 20 preserva entrega 40/40; dois streams 40/40 Helix cada, sem falhas de codec.
+- PCM baixo/alto isolado versus intercalado: idêntico por stream; 600 IDs novos aceitos sem crescimento RSS no teste curto (1252 KiB).
+- Restore do binário em ENV PASS, incluindo quatro caminhos após restore; unit/config/serviço de produção não restaurados/testados.
+- Produção somente inspecionada: XLXD 1093634 e xuvd 1107847, ELF xuvd 4b72dfc7...e58069 preservado.
+- Falhas de execução desta continuação: timeout operacional de um comando curto durante compilação concorrente; uma resposta de despacho background expirou, mas o build iniciou e foi verificado; primeiro harness E2E rejeitou o banner de copyright OP25 em stderr. Harness corrigido para preservar o log e verificar erro/exit code/frames. Nenhuma dessas falhas foi tratada como falha DSP.
+- Retorno 127 anterior: cargo ausente no PATH do agente/root e Rust instalado em /root/.cargo/bin, hipótese compatível confirmada no contexto atual. O comando exato da execução antiga não pode ser reconstruído pela saída resumida; não alegar causa definitiva sem trace.
+- Shadow PROD não habilitado: ainda faltam soak 24h, gates de IP aplicáveis, restore completo e janela/procedimento de troca sem regressão. Process e PU2PNY-OS permanecem bloqueados.
+
+Evidência sanitizada reproduzível: [Helix PCM bridge ENV](docs/evidence/helix-pcm-bridge-20260930.json). Apenas métricas/hashes de corpus sintético; nenhum áudio, PCAP ou segredo de produção.
