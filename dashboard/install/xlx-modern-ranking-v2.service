@@ -1,0 +1,15 @@
+[Unit]
+Description=XLX Modern Ranking V2 collector
+After=xlxd.service systemd-journald.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/local/lib/xlx-modern/ranking-v2-collector.py
+Environment=XLX_RANK_DIR=/var/lib/xlx-ranking
+Environment=XLX_RANK_JOURNAL_UNIT=xlxd
+Nice=10
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/xlx-ranking
