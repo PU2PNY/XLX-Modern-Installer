@@ -35,7 +35,7 @@ body[data-page=ranking] .rv2-old{display:none!important}
  body[data-page=ranking] .rv2-summary,body[data-page=ranking] .rv2-grid,body[data-page=ranking] .rv2-aux{grid-template-columns:1fr}
  body[data-page=ranking] .rv2-call{font-size:25px}
  body[data-page=ranking] .rv2-clock{font-size:22px;letter-spacing:.02em}
- body[data-page=ranking] .rv2-tabs{display:grid;grid-template-columns:repeat(3,1fr)}
+ body[data-page=ranking] .rv2-tabs{display:grid;grid-template-columns:repeat(4,1fr)}
  body[data-page=ranking] .rv2-tab{padding:9px 4px}
  body[data-page=ranking] .rv2-barrow{grid-template-columns:65px 1fr 70px}
 }
@@ -52,6 +52,7 @@ body[data-page=ranking] .rv2-old{display:none!important}
    <button class="rv2-tab active" data-p="today">HOJE</button>
    <button class="rv2-tab" data-p="week">7 DIAS</button>
    <button class="rv2-tab" data-p="month">ESTE MÊS</button>
+   <button class="rv2-tab" data-p="year">ANUAL</button>
   </div>
  </section>
 
@@ -142,7 +143,7 @@ body[data-page=ranking] .rv2-old{display:none!important}
   $('#rv2Mods').innerHTML=small(p.modules,v=>num(v)+' TX');
   let mp=new Map;for(let x of S.status?.connections||[]){if(x.protocol)mp.set(x.protocol,(mp.get(x.protocol)||0)+1)}
   $('#rv2Proto').innerHTML=small([...mp].sort((a,b)=>b[1]-a[1]).map(x=>({label:x[0],value:x[1]})),num);
-  let c=S.r.coverage,ok=S.p==='today'?c.today_complete:S.p==='week'?c.week_complete:c.month_complete;
+  let c=S.r.coverage,ok=S.p==='today'?c.today_complete:S.p==='week'?c.week_complete:S.p==='month'?c.month_complete:c.year_complete;
   let prefix=S.autoFallback?'Ainda não houve transmissões hoje; exibindo automaticamente os últimos 7 dias. ':'';
   $('#rv2Note').textContent=prefix+(ok?'Cobertura integral disponível para este período.':'Cobertura parcial para este período.')+' Estatísticas atualizadas há '+num(S.r.age_seconds)+' s.';
   longest();
