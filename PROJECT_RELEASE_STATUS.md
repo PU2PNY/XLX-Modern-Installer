@@ -53,6 +53,14 @@ Classificação: `SW/CI`. Isso **não** equivale a validação `ENV`, `HW` ou `P
 - O histórico anual disponível em PROD é parcial: `source_start=2026-07-29 11:05:41 -03`, portanto janeiro–julho não são inventados nem marcados como cobertura completa.
 - O comportamento exato da próxima virada de 23:59→00:00 está coberto por SW/CI, mas ainda não foi reobservado em PROD após este deploy.
 
+## Correção Conectados — em validação 2026-10-01
+- Diagnóstico PROD somente leitura: o endpoint/status refletia diretamente os `NODE` do XML do XLXD. Em uma amostra dinâmica foram vistos 125 rows públicos, mas apenas 105 chaves canônicas distintas por indicativo+sufixo+protocolo+módulo; 20 linhas eram duplicações distribuídas em 10 grupos, concentradas no módulo C.
+- Exemplo observado: um único indicativo C4FM/YSF acumulou 12 `NODE` simultâneos com mesma identidade/sufixo/protocolo/módulo durante reconexões.
+- Branch: `feature/connected-real-dedupe-v1-20261001`, baseada em `c10b21870829d0da2d072b86b805ecdeb6ee4f9f`.
+- Estratégia: contagem/lista pública usa sessão canônica mais recentemente ativa; a lista bruta continua sendo usada internamente para correlação de TX/endpoint.
+- WartyWallaby: teste específico PASS; `tests/run-all.sh` concluiu `failures=0` no mesmo código funcional; no head documental seguinte, teste específico + governança + PHP lint também PASS. CI do head final e deploy PROD ainda estão pendentes neste registro.
+- Nenhuma alteração de XLXD, DMR/YSF/D-Star, xuvd/Helix ou áudio faz parte desta correção.
+
 ## Correções recentes confirmadas no main
 - PR #55: timeout FastCGI de 30 s limitado à rota privada do Admin; público permanece em 15 s.
 - PR #57: botão de informações nas 24h somente para gateway diferente do indicativo e confirmado como repetidor.

@@ -1,3 +1,10 @@
+## Unreleased — Connected station de-duplication
+
+- Prevents repeated XLXD XML `NODE` sessions from inflating the public Connected count when callsign, suffix, protocol and module identify the same station session.
+- Keeps the most recently active duplicate as the public canonical row.
+- Preserves the raw connection list internally for TX/endpoint correlation, avoiding changes to stream identity logic.
+- Adds a dedicated regression test. No XLXD, protocol, transcoder or audio change is required.
+
 ## Unreleased — Ranking midnight rollover and annual period
 
 - Preserves persistent ranking data across day/month boundaries instead of making the page appear empty at midnight.

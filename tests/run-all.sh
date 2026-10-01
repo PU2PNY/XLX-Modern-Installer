@@ -45,6 +45,8 @@ echo "[control functional sandbox]"
 bash "$ROOT/tests/test-control-functional.sh" || failures=$((failures+1))
 echo "[current panel runtime parity]"
 bash "$ROOT/tests/test-current-panel-runtime-parity.sh" || failures=$((failures+1))
+echo "[connected station dedupe]"
+bash "$ROOT/tests/test-connected-dedupe.sh" || failures=$((failures+1))
 echo "[ranking rollover]"
 bash "$ROOT/tests/test-ranking-rollover.sh" || failures=$((failures+1))
 echo "[transmission analyzer]"
