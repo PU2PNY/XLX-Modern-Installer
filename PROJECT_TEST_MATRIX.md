@@ -29,7 +29,7 @@ Níveis de evidência: DOC / SW / ENV / HW / PROD / OPERATOR.
 
 | TEST-021 | UI-010 | Ranking preserva histórico na virada de dia/mês, inclui período anual e mantém persistência no instalador | PR #67: cinco workflows PASS no head `468638a8...`; PROD 2026-10-01: API v3 com `year`, `/ranking` HTTP 200 e botão ANUAL, XLXD PID 1093634 preservado; próxima virada 23:59→00:00 ainda não foi reobservada em PROD | PASS (SW/CI) + PARCIAL (PROD) |
 
-| TEST-028 | UI-011 | Conectados elimina sessões XML duplicadas sem perder protocolo/módulo/sufixo distintos e preserva endpoints brutos para correlação de TX | `tests/test-connected-dedupe.sh`: fixture sintética confirma colapso pela atividade mais recente e verifica que `status.php` mantém `$rawConnections` para `active_and_history()` | PASS (SW específico); suíte geral/CI ainda a registrar |
+| TEST-028 | UI-011 | Conectados elimina sessões XML duplicadas sem perder protocolo/módulo/sufixo distintos e preserva endpoints brutos para correlação de TX | WartyWallaby 2026-10-01: `tests/test-connected-dedupe.sh` PASS; `tests/run-all.sh` no mesmo código funcional concluiu `failures=0`; no head documental seguinte, `test-connected-dedupe.sh` + `test-project-governance.sh` + PHP lint PASS. CI do head final ainda deve concluir. | PASS (SW/ENV-lab); CI PENDENTE |
 
 ## Como registrar PASS
 Atualize a linha com:
