@@ -50,6 +50,11 @@ Fornecer um instalador público, reproduzível e seguro para refletor XLXD em De
 - **SEC-003** — Admin deve preservar CSRF, sessão, rate limiting e auditoria.
 - **SEC-004** — Portas e serviços devem seguir princípio de menor exposição.
 
+### CROSSMODE AUDIO
+- **AUDIO-001** — No módulo C, D-Star→AMBE+2/YSF deve preservar presença e nível de voz sem filtros reinicializados a cada frame. O caminho aprovado para recuperação é o comportamento histórico `/8` seguido de ganho `1,5×`, sem o passa-baixa por-frame `alpha=0,45` que reduz presença e cria descontinuidade.
+- **AUDIO-002** — Abertura D-Star→AMBE+2 deve distinguir latência do transcoder de erasures da origem. O xuvd não deve mascarar erasures como “delay”: medir primeiro frame válido, sequência inicial ruim e tempo de resposta do transcoder separadamente.
+- **AUDIO-003** — Mudanças D-Star→YSF não podem alterar YSF/DMR→D-Star, XLXD, Helix ou módulos fora do escopo sem requisito/teste separado.
+
 ### OBSERVABILITY / PERFORMANCE
 - **OBS-001** — Serviços críticos devem ter estado verificável por health/status/logs.
 - **OBS-002** — Erros operacionais devem ser diagnosticáveis sem expor segredos.
