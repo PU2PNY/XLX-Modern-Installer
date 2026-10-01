@@ -138,11 +138,16 @@ try {
         exit;
     }
 
-    $connections = array_map(
+    $rawConnections = array_map(
         'xlx_user_directory_apply',
         parse_xml_connections()
     );
-    $tx = active_and_history($connections, $historyLimit, $historySince);
+    $connections = canonical_connections($rawConnections);
+    $tx = active_and_history(
+        $rawConnections,
+        $historyLimit,
+        $historySince
+    );
     $tx['active'] = array_map(
         'xlx_user_directory_apply',
         $tx['active']
