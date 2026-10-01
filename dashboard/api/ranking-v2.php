@@ -56,6 +56,7 @@ function rank_period(array $history,int $from): array {
     }
 
     return [
+        'start_ts'=>$from,
         'tx_count'=>$count,
         'airtime_seconds'=>$airtime,
         'unique_callsigns'=>count($calls),
