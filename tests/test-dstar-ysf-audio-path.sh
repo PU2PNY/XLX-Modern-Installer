@@ -7,6 +7,11 @@ grep -F "in_codec == CODEC_DSTAR &&" "$SRC" >/dev/null
 grep -F "out_codec == CODEC_AMBE2" "$SRC" >/dev/null
 grep -F "divisor_pcm = 8;" "$SRC" >/dev/null
 grep -F "scaled = (scaled * 3) / 2;" "$SRC" >/dev/null
+grep -F "dstar_initial_erasures" "$SRC" >/dev/null
+grep -F "dstar_concealed" "$SRC" >/dev/null
+grep -F "dstar_muted" "$SRC" >/dev/null
+grep -F "dstar_repeat_count <= 3" "$SRC" >/dev/null
+grep -F "if (!dstar_have_good)" "$SRC" >/dev/null
 
 if grep -F "lp_dstar" "$SRC" >/dev/null; then
   echo "dstar_ysf_audio_path=FAIL per-frame low-pass returned"
