@@ -291,3 +291,11 @@ Three additional controlled multi-TX repeats retained 40/40 frames per stream wi
 - Adds a dedicated low-frequency local telemetry monitor plus sparse OpenAI analysis of technical metrics only; no radio audio, voice content or callsigns are sent.
 - Adds `/api/helix-status.php` and a compact `HELIX • MONITORANDO` Live-box indicator.
 - Initial PROD streams observed 18/18, 108/108 and 72/72 Helix shadow frames with zero fallback and zero codec failures; 24 h soak remains pending.
+
+## 2026-10-01 — Controlled Helix process test — real PROD gate
+- Fixes the Live Helix badge MutationObserver self-trigger loop so the Ao Vivo UI continues rendering/updating normally.
+- Adds truthful `shadow` versus `PROCESSANDO TESTE` UI/monitor states without placing AI in the audio hot path.
+- Runs one explicitly authorized, auto-rollback production `process` test after a no-active-TX transition.
+- Real stream: 956 frames, 0 codec failures, 436 Helix responses, 1 Helix fallback; sticky fail-open preserved the remainder on legacy audio and XLXD reported 0/956 AMBED timeouts.
+- Automatic rollback restored `shadow`, removed the process socket and preserved XLXD PID 1093634.
+- `process` remains blocked; the 5 ms deadline is not widened. Further ENV timing/scheduling instrumentation is required before another real test.
