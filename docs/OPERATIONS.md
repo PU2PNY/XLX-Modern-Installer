@@ -79,3 +79,15 @@ Não aumentar a deadline para esconder falhas sob contenção. A execução adic
 - O indicador do Live deve dizer `HELIX • MONITORANDO`/`SHADOW`, nunca `PROCESSANDO`, enquanto `XLX_HELIX_MODE=shadow`.
 - Se Helix/monitor/OpenAI falhar, verificar o caminho legado antes de qualquer ação; não reiniciar XLXD por causa do observador.
 - `process` continua proibido até seus gates próprios serem concluídos.
+
+### Teste real controlado de process
+Somente com autorização explícita do operador e sem promover `process` como estado permanente:
+1. confirmar que não existe TX ativa;
+2. registrar PID/hash/estado de XLXD e xuvd e criar backup do drop-in atual;
+3. preparar e validar rollback antes da troca;
+4. iniciar o daemon request/reply local e somente então colocar xuvd em `XLX_HELIX_MODE=process`;
+5. manter deadline total em no máximo 5 ms e fail-open/sticky fallback;
+6. o Live deve mostrar `HELIX • PROCESSANDO TESTE` enquanto o modo estiver realmente ativo;
+7. após o primeiro stream real com frames > 0, registrar `frames`, `failures`, `helix_ok` e `helix_fallback` e retornar automaticamente a `shadow`;
+8. se nenhum stream útil ocorrer dentro da janela máxima de segurança, retornar automaticamente a `shadow` sem declarar teste de áudio concluído;
+9. qualquer falha do daemon/socket/xuvd ou fallback inesperado deve antecipar o rollback. Não reiniciar XLXD.
