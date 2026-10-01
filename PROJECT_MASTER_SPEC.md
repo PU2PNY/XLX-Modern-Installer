@@ -96,3 +96,8 @@ Uma mudança só é aceita se:
 3. possui evidência proporcional ao risco;
 4. possui rollback quando necessário;
 5. atualiza documentação/testes/histórico se altera permanentemente o projeto.
+
+### HELIX SHADOW PROD / IA
+- **HELIX-007** — Quando `shadow` for explicitamente habilitado pelo operador em produção, a interface deve identificá-lo como observação/monitoramento, nunca como processamento do áudio. O caminho transmitido continua legado; indisponibilidade do observador não pode derrubar o áudio.
+- **HELIX-008** — Monitoramento por IA do Helix fica fora do hot path. Somente telemetria técnica agregada pode sair do servidor; áudio, conteúdo de voz, indicativos e payloads de rádio não são enviados à IA. Falha da API externa não pode afetar XLXD, xuvd ou o áudio.
+- **HELIX-009** — O monitor local deve validar serviço Helix, socket, xuvd, XLXD, hash do candidato e fallbacks; chamadas externas devem ser limitadas e orientadas a resumo/anomalia, preservando baixo consumo.
