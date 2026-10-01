@@ -34,3 +34,9 @@ com socket não bloqueante e fallback sem alterar PCM. Não renovar o timeout a
 cada leitura parcial. Linux pode produzir overshoot de wall-clock por scheduling;
 nenhuma resposta recebida após a deadline pode substituir o PCM legado.
 Não mudar DSP, codec, XLXD ou transcoder de produção para testar esse requisito.
+
+
+## DEC-2026-10-01-010 — Conectados usa sessão pública canônica sem perder endpoints brutos
+O XML do XLXD pode expor múltiplos `NODE` para a mesma identidade durante reconexões. Para a página e os contadores públicos, duplicatas com o mesmo indicativo, sufixo, protocolo e módulo são consolidadas em uma única sessão: vence a linha com `last_activity` mais recente e, em empate, `connected_at` mais recente.
+
+A lista bruta permanece separada para `active_and_history()` e correlação de TX/endpoint. A correção não altera XLXD, protocolos, áudio, transcoder ou sockets; é uma normalização de apresentação/contagem do dashboard.
