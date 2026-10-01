@@ -17,7 +17,7 @@ grep -F "now-last_ai>=900" "$MON" >/dev/null
 grep -F "https://api.openai.com/v1/responses" "$MON" >/dev/null
 grep -F "'mode':mode" "$MON" >/dev/null
 grep -F "recent_fallback" "$MON" >/dev/null
-grep -F "HELIX</b><span>MONITORANDO" "$JS" >/dev/null
+grep -F "const label=processing?'PROCESSANDO TESTE':(active?'MONITORANDO':'INDISPONÍVEL');" "$JS" >/dev/null
 grep -F "O áudio transmitido continua no caminho legado." "$JS" >/dev/null
 grep -F "dataset.helixSignature" "$JS" >/dev/null
 grep -F "PROCESSANDO TESTE" "$JS" >/dev/null
