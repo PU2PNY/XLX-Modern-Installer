@@ -58,7 +58,7 @@ Classificação: `SW/CI`. Isso **não** equivale a validação `ENV`, `HW` ou `P
 - Exemplo observado: um único indicativo C4FM/YSF acumulou 12 `NODE` simultâneos com mesma identidade/sufixo/protocolo/módulo durante reconexões.
 - Branch: `feature/connected-real-dedupe-v1-20261001`, baseada em `c10b21870829d0da2d072b86b805ecdeb6ee4f9f`.
 - Estratégia: contagem/lista pública usa sessão canônica mais recentemente ativa; a lista bruta continua sendo usada internamente para correlação de TX/endpoint.
-- Teste específico SW: PASS. Suíte geral/CI e deploy PROD ainda pendentes neste registro.
+- WartyWallaby: teste específico PASS; `tests/run-all.sh` concluiu `failures=0` no mesmo código funcional; no head documental seguinte, teste específico + governança + PHP lint também PASS. CI do head final e deploy PROD ainda estão pendentes neste registro.
 - Nenhuma alteração de XLXD, DMR/YSF/D-Star, xuvd/Helix ou áudio faz parte desta correção.
 
 ## Correções recentes confirmadas no main
