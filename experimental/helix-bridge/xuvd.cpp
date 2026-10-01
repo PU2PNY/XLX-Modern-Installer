@@ -159,6 +159,15 @@ struct DecodeState {
     double ambe2_er_max = 0.0;
     int ambe2_repeat_count = 0;
 
+    // D-Star erasure telemetry / bounded PLC.
+    uint64_t dstar_frames = 0;
+    uint64_t dstar_erasures = 0;
+    uint64_t dstar_concealed = 0;
+    uint64_t dstar_muted = 0;
+    uint64_t dstar_initial_erasures = 0;
+    int dstar_repeat_count = 0;
+    bool dstar_have_good = false;
+
     DecodeState() {
         mbe_initMbeParms(&cur, &prev, &enh);
         mbe_initErrParms(&errs);
@@ -191,12 +200,58 @@ struct DecodeState {
         std::array<uint8_t,72> cw{};
         std::copy(bits.begin(), bits.end(), cw.begin());
 
+        ++dstar_frames;
+
         int b[9]{};
         interleaver.decode_dstar(cw.data(), b, true);
-        if (b[0] >= 120) return false;
-        if (mbe_dequantizeAmbe2400Parms(&cur, &prev, &errs, b) != 0)
-            return false;
 
+        const bool erasure = (b[0] >= 120 && b[0] <= 123);
+        if (erasure) {
+            ++dstar_erasures;
+            ++dstar_repeat_count;
+
+            if (!dstar_have_good) {
+                ++dstar_initial_erasures;
+                ++dstar_muted;
+                pcm.fill(0);
+                return true;
+            }
+
+            if (dstar_repeat_count <= 3) {
+                mbe_useLastMbeParms(&cur, &prev);
+                ++dstar_concealed;
+                pcm = synth();
+                return true;
+            }
+
+            ++dstar_muted;
+            pcm.fill(0);
+            return true;
+        }
+
+        // D-Star special non-speech codewords (silence/tone) are not
+        // reconstructed as speech.
+        if (b[0] >= 124) {
+            dstar_repeat_count = 0;
+            pcm.fill(0);
+            return true;
+        }
+
+        if (mbe_dequantizeAmbe2400Parms(&cur, &prev, &errs, b) != 0) {
+            ++dstar_repeat_count;
+            if (dstar_have_good && dstar_repeat_count <= 3) {
+                mbe_useLastMbeParms(&cur, &prev);
+                ++dstar_concealed;
+                pcm = synth();
+                return true;
+            }
+            ++dstar_muted;
+            pcm.fill(0);
+            return true;
+        }
+
+        dstar_repeat_count = 0;
+        dstar_have_good = true;
         pcm = synth();
         return true;
     }
@@ -656,6 +711,11 @@ int main() {
                                   << " fec_sum=" << it->second->dec.ambe2_fec_error_sum
                                   << " fec_max=" << it->second->dec.ambe2_fec_error_max
                                   << " er_max=" << it->second->dec.ambe2_er_max
+                                  << " dstar_frames=" << it->second->dec.dstar_frames
+                                  << " dstar_erasures=" << it->second->dec.dstar_erasures
+                                  << " dstar_concealed=" << it->second->dec.dstar_concealed
+                                  << " dstar_muted=" << it->second->dec.dstar_muted
+                                  << " dstar_initial=" << it->second->dec.dstar_initial_erasures
                                   << " helix=" << helix_mode_name(it->second->helix_mode)
                                   << " helix_ok=" << it->second->helix_ok
                                   << " helix_fallback=" << it->second->helix_fallback
