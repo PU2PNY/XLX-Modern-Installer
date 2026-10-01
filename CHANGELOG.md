@@ -6,6 +6,7 @@
 - Detects midnight rollover while the Ranking page remains open.
 - Versions and provisions the persistent ranking collector used by the dashboard, with 400-day retention and year coverage metadata.
 - Adds `tests/test-ranking-rollover.sh` to prevent regression.
+- Production XLX026 validation on 2026-10-01 confirmed API v3/year data and the ANUAL control without restarting XLXD; annual coverage correctly remains partial because retained journal history begins on 2026-07-29.
 
 ## Unreleased — Helix PCM Bridge V1
 
