@@ -44,11 +44,14 @@ A PR foi então mesclada por squash em `main` como `15a1612a720bbab4882bf1b56f45
 
 Classificação: `SW/CI`. Isso **não** equivale a validação `ENV`, `HW` ou `PROD`.
 
-## Correção Ranking em validação — 2026-10-01
-- Diagnóstico PROD somente leitura: o banco persistente permaneceu íntegro após 00:00; foram observadas 56.182 transmissões armazenadas e 7.822 TX na janela de 7 dias, enquanto Hoje/Mês reiniciaram por serem períodos civis.
-- Branch de correção: `fix/ranking-midnight-rollover-20261001`.
-- Escopo: opção ANUAL (ano corrente), fallback visual para 7 dias quando Hoje está vazio após a virada, detecção de rollover com a página aberta e versionamento/provisionamento do coletor persistente.
-- Produção ainda não alterada por esta branch neste registro; validar em ENV e depois aplicar mudança mínima com backup/rollback.
+## Correção Ranking — 2026-10-01
+- Diagnóstico PROD somente leitura antes da mudança: o banco persistente permaneceu íntegro após 00:00; foram observadas 56.182 transmissões armazenadas e 7.822 TX na janela de 7 dias, enquanto Hoje/Mês reiniciaram por serem períodos civis.
+- PR #67 mesclado em `main` como `5ce83b70d085bc1f3d0ecbac2f1e52c214fdafc1`.
+- Gates do head final da PR: XLX Modern Installer CI, Debian 12 runtime gate, Production parity regression, Stream identity regression e Classic installer regression = PASS.
+- PROD XLX026: backup criado em `/opt/xlx026-backups/RANKING_ROLLOVER_20261001_001741`; somente `ranking-v2-view.php` e `xlx026-ranking-v2.py` foram substituídos; nenhum restart do XLXD.
+- API PROD passou a emitir `version: 3`, período `year` e metadado `year_complete`; a página pública `/ranking` respondeu HTTP 200 e expôs o botão ANUAL.
+- O histórico anual disponível em PROD é parcial: `source_start=2026-07-29 11:05:41 -03`, portanto janeiro–julho não são inventados nem marcados como cobertura completa.
+- O comportamento exato da próxima virada de 23:59→00:00 está coberto por SW/CI, mas ainda não foi reobservado em PROD após este deploy.
 
 ## Correções recentes confirmadas no main
 - PR #55: timeout FastCGI de 30 s limitado à rota privada do Admin; público permanece em 15 s.
