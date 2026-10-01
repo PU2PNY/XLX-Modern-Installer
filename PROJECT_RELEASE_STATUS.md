@@ -5,8 +5,9 @@ Atualizado em: 2026-09-30
 ## Repositório
 - Repositório: `PU2PNY/XLX-Modern-Installer`
 - Branch padrão: `main`
-- Commit confirmado em `main`: `15a1612a720bbab4882bf1b56f4584301a2ec16b`
-- Commit: “Add optional Helix PCM bridge with bounded legacy fallback (#65)”
+- Baseline funcional/runtime confirmado em `main` antes deste follow-up documental: `15a1612a720bbab4882bf1b56f4584301a2ec16b`
+- Commit funcional: “Add optional Helix PCM bridge with bounded legacy fallback (#65)”
+- O tip corrente de `main` deve ser confirmado diretamente no GitHub; este documento não tenta auto-referenciar o SHA do commit que o atualiza.
 - `VERSION`: **1.4.6**
 - README: **Current release v1.4.6**
 - Última GitHub Release observada: **v1.2.14** (2026-09-10)
