@@ -43,3 +43,9 @@ Nunca transformar `OPERATOR` em `PROD`, ou `SW` em `ENV`, sem novo teste.
 | TEST-019 | HELIX-004 / REC-001 | Habilitar `process` em produção com áudio real, soak e rollback | bloqueado; transcoder PROD não foi substituído e a proveniência histórica OP25/mbelib do build ativo precisa ser reconciliada | PENDENTE (PROD) |
 
 | TEST-020 | HELIX-001/004 / CORE-004 | Candidato bridge preserva saída do xuvd PROD conhecido-bom | ENV/Warty: corpus sintético nos 4 caminhos (2→1 A/C e 1→2 A/C) bit-idêntico; `shadow` 560/560 observações; corpus PROD de 828 frames reais 2→1 reproduzido com saída bit-idêntica em PROD-binary/off/shadow, 0 falhas | PASS (ENV; entrada adicional derivada de PROD) |
+
+| TEST-021 | HELIX-003/004/006 | Deadline total com peer lento/travado, conexão saturada e header inválido | ENV/Warty: 11 cenários preservam PCM; dribble 5,246 ms e stall 5,229 ms observados; backlog 0,030 ms. Orçamento lógico 5 ms, scheduling pode acrescentar overshoot | PASS (ENV) |
+| TEST-022 | HELIX-001/003/004/006 | E2E real AMBED com falha no meio e multi-TX | ENV: off/absent/shadow/shadow-kill bit-idênticos; process 40/40; process-kill 20 Helix + fallback e 40 entregues; multi 80/80, Helix 40/40 por stream; PCM baixo/alto isolado vs intercalado idêntico; 600 IDs, RSS 1252→1252 KiB | PASS (ENV) |
+| TEST-023 | BACKUP-002 / REC-001 | Restore binário xuvd em laboratório | Backup→candidato→restore do ELF exato; SHA 4b72dfc7...e58069 e quatro caminhos de codec idênticos após restore. Não valida restore de unit/config/serviço PROD | PASS (ENV, binário) / PENDENTE (PROD, completo) |
+
+Evidência sanitizada reproduzível: [Helix PCM bridge ENV](docs/evidence/helix-pcm-bridge-20260930.json). Apenas métricas/hashes de corpus sintético; nenhum áudio, PCAP ou segredo de produção.
