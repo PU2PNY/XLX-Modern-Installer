@@ -162,3 +162,10 @@ Evidência adicional: [wrapper ENV](docs/evidence/helix-pcm-bridge-wrapper-20260
 Três repetições controladas adicionais na WartyWallaby mantiveram 40/40 frames por stream e zero falha de codec, mas cada stream acionou uma vez o fallback sticky em momentos variáveis: 35/34, 2/28 e 18/14 respostas Helix antes do fallback. Isso confirma que a continuidade/fail-open está PASS, porém a confiabilidade de `process` sob contenção permanece PARCIAL. O teto de 5 ms não foi aumentado. Scheduling/contenção continua hipótese, não causa raiz provada. Nenhuma alteração foi feita em produção.
 
 Evidência sanitizada: [repetibilidade multi-TX](docs/evidence/helix-pcm-bridge-repeatability-20260930.json).
+
+## Helix shadow PROD — 2026-10-01
+Por autorização explícita do operador, o XLX026 recebeu a integração Helix em **`shadow` somente**; `process` continua bloqueado. Antes da troca, o xuvd ativo foi revalidado no hash conhecido-bom `4b72dfc7a26697a3e315fba8c8d22435996d8e67c3112e2f343a65b4c6e58069`. O rollback completo de binário + unit + configuração + serviço foi executado com sucesso em ENV/WartyWallaby.
+
+PROD inicial: o XLXD permaneceu no PID 1093634 e não foi reiniciado. O xuvd candidate tem SHA-256 `559f580b5edf58883eb81293d8fbdc044e13eff9ca4dc6437e6b16014f75a243`; `helix-voice-shadow.service` usa socket Unix datagram local `0660` com identidade dedicada. Foram observados streams reais de 18, 108 e 72 frames com `helix_ok` igual ao total de frames, `helix_fallback=0` e `failures=0`. Isso é evidência PROD inicial de `shadow`, não valida `process` e não substitui o soak de 24 h ainda pendente.
+
+Foi instalado monitor técnico separado do hot path. Ele coleta somente estado de serviços/socket/hash/RSS/counters; a OpenAI recebe somente telemetria agregada em intervalo limitado (15 min ou transição de anomalia), nunca áudio/voz/indicativo. O dashboard expõe estado sanitizado por endpoint dedicado e mostra `HELIX • MONITORANDO` no box Ao Vivo quando `shadow` está pronto. A primeira análise remota retornou estado OK. `process` permanece bloqueado.
