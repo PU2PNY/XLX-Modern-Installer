@@ -17,7 +17,7 @@ ok 'ranking view exposes annual period and midnight fallback'
 
 grep -Fq "'year_complete'=>" "$API" || fail 'ranking API year coverage missing'
 grep -Fq "'year'=>rank_period" "$API" || fail 'ranking API annual period missing'
-grep -Fq "'start_ts'=>$from" "$API" || fail 'ranking API period boundary missing'
+grep -Fq "'start_ts'=>" "$API" || fail 'ranking API period boundary missing'
 php -l "$API" >/dev/null
 ok 'ranking API exposes annual period and period boundaries'
 
