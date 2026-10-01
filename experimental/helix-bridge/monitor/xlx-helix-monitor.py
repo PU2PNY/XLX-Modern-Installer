@@ -7,7 +7,8 @@ PUBLIC = RUNTIME / 'public.json'
 STATE = STATE_DIR / 'state.json'
 XUVD = pathlib.Path('/opt/xlx-unified-voice/bin/xuvd')
 EXPECTED_XUVD = '559f580b5edf58883eb81293d8fbdc044e13eff9ca4dc6437e6b16014f75a243'
-SOCKET = pathlib.Path('/run/helix-voice/observe.sock')
+SHADOW_SOCKET = pathlib.Path('/run/helix-voice/observe.sock')
+PROCESS_SOCKET = pathlib.Path('/run/helix-voice/pcm.sock')
 AI_PUBLIC = pathlib.Path('/run/xlx-ai-monitor/public.json')
 RESPONSES_URL = 'https://api.openai.com/v1/responses'
 MODEL = os.environ.get('OPENAI_MONITOR_MODEL', 'gpt-5.6-luna').strip() or 'gpt-5.6-luna'
@@ -77,9 +78,9 @@ def recent_helix_counters():
     for line in out.splitlines():
         m=rx.search(line)
         if m:
-            latest=(int(m.group(1)),int(m.group(2)))
-    if not latest: return 0,0,0
-    return latest[0],latest[1],int(time.time())
+            latest=(m.group(1),int(m.group(2)),int(m.group(3)))
+    if not latest: return 'off',0,0,0
+    return latest[0],latest[1],latest[2],int(time.time())
 
 def load_state():
     try:
@@ -99,10 +100,10 @@ def extract_output_text(data):
 
 def ask_ai(telemetry, key):
     prompt=(
-      'Você monitora o Helix Voice em modo shadow de um refletor XLX. '
+      'Você monitora o Helix Voice de um refletor XLX em modo shadow ou process de teste controlado. '
       'Receba somente telemetria técnica; nenhum áudio é enviado. '
       'Responda em português em uma linha, começando exatamente por OK: ou ATENCAO:. '
-      'Não recomende mudar para process. Não recomende aumentar timeout acima de 5 ms. '
+      'Não recomende tornar process permanente. Não recomende aumentar timeout acima de 5 ms. '
       'Se todos os serviços estão ativos, socket pronto, hash esperado e fallback recente zero, responda OK. '
       'Telemetria: '+json.dumps(telemetry,separators=(',',':'))
     )
@@ -121,19 +122,28 @@ def ask_ai(telemetry, key):
 
 def main():
     now=int(time.time())
-    helix_active,helix_pid=unit('helix-voice-shadow.service')
+    shadow_active,shadow_pid=unit('helix-voice-shadow.service')
+    process_active,process_pid=unit('helix-voice-process-test.service')
     xuvd_active,xuvd_pid=unit('xlx-unified-voice.service')
     xlxd_active,xlxd_pid=unit('xlxd.service')
     try:
-        socket_ready=SOCKET.exists() and stat.S_ISSOCK(SOCKET.stat().st_mode)
+        shadow_socket_ready=SHADOW_SOCKET.exists() and stat.S_ISSOCK(SHADOW_SOCKET.stat().st_mode)
     except Exception:
-        socket_ready=False
+        shadow_socket_ready=False
+    try:
+        process_socket_ready=PROCESS_SOCKET.exists() and stat.S_ISSOCK(PROCESS_SOCKET.stat().st_mode)
+    except Exception:
+        process_socket_ready=False
+    mode='process' if process_active and process_socket_ready else ('shadow' if shadow_active and shadow_socket_ready else 'off')
+    helix_active=process_active if mode=='process' else shadow_active
+    helix_pid=process_pid if mode=='process' else shadow_pid
+    socket_ready=process_socket_ready if mode=='process' else shadow_socket_ready
     xhash=sha256(XUVD)
     candidate_ok=(xhash==EXPECTED_XUVD)
-    helix_ok,helix_fallback,last_observed=recent_helix_counters()
+    counter_mode,helix_ok,helix_fallback,last_observed=recent_helix_counters()
     ai_connected=ai_connectivity()
     telemetry={
-      'mode':'shadow',
+      'mode':mode,
       'helix_active':helix_active,'socket_ready':socket_ready,
       'xuvd_active':xuvd_active,'xlxd_active':xlxd_active,
       'candidate_ok':candidate_ok,
@@ -156,7 +166,9 @@ def main():
     state.update({'last_ai_at':last_ai,'last_signature':signature,'ai_last_ok':ai_ok,'ai_summary':ai_summary})
     atomic_json(STATE,state,0o600)
     payload={
-      'ok':True,'mode':'shadow','shadow_active':helix_active and socket_ready and xuvd_active and candidate_ok,
+      'ok':True,'mode':mode,
+      'shadow_active':mode=='shadow' and helix_active and socket_ready and xuvd_active and candidate_ok,
+      'process_active':mode=='process' and helix_active and socket_ready and xuvd_active and candidate_ok,
       'helix_active':helix_active,'socket_ready':socket_ready,'xuvd_active':xuvd_active,'xlxd_active':xlxd_active,
       'candidate_ok':candidate_ok,'helix_rss_kb':telemetry['helix_rss_kb'],'xuvd_rss_kb':telemetry['xuvd_rss_kb'],
       'recent_helix_ok':helix_ok,'recent_fallback':helix_fallback,'last_observed_at':last_observed,
