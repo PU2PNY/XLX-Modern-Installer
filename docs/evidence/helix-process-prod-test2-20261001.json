@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-01",
+  "level": "PROD",
+  "test": "controlled process repeat with auxiliary timers paused",
+  "operator_authorized": true,
+  "transition_active_tx": 0,
+  "mode": "process",
+  "paused_during_window": [
+    "xlx-helix-monitor.timer",
+    "xlx026-radioid-reconcile.timer"
+  ],
+  "real_stream": {
+    "frames": 5546,
+    "codec_failures": 0,
+    "helix_ok": 14,
+    "helix_fallback": 1,
+    "sticky_fallback": true
+  },
+  "interpretation": {
+    "process_reliability": "FAIL",
+    "fail_open_continuity": "PASS",
+    "rollback": "PASS",
+    "auxiliary_timer_hypothesis": "not sufficient; failure persisted with both timers paused",
+    "root_cause": "not proven; instrument local IPC/daemon timing in ENV before another PROD process test"
+  },
+  "rollback": {
+    "mode_after": "shadow",
+    "process_socket_absent": true,
+    "observe_socket_restored": true,
+    "xlxd_pid_preserved": 1093634,
+    "helix_monitor_timer_restored": true,
+    "radioid_reconcile_timer_restored": true
+  },
+  "guardrails": {
+    "deadline_ms_max": 5,
+    "deadline_widened": false,
+    "process_permanent": false
+  }
+}
