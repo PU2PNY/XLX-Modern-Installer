@@ -50,6 +50,12 @@ Fornecer um instalador público, reproduzível e seguro para refletor XLXD em De
 - **SEC-003** — Admin deve preservar CSRF, sessão, rate limiting e auditoria.
 - **SEC-004** — Portas e serviços devem seguir princípio de menor exposição.
 
+### CROSSMODE AUDIO
+- **AUDIO-001** — No módulo C, D-Star→AMBE+2/YSF deve preservar presença e nível de voz sem filtros reinicializados a cada frame. O caminho aprovado para recuperação é o comportamento histórico `/8` seguido de ganho `1,5×`, sem o passa-baixa por-frame `alpha=0,45` que reduz presença e cria descontinuidade.
+- **AUDIO-002** — Abertura D-Star→AMBE+2 deve distinguir latência do transcoder de erasures da origem. O xuvd não deve mascarar erasures como “delay”: medir primeiro frame válido, sequência inicial ruim e tempo de resposta do transcoder separadamente.
+- **AUDIO-003** — Mudanças D-Star→YSF não podem alterar YSF/DMR→D-Star, XLXD, Helix ou módulos fora do escopo sem requisito/teste separado.
+- **AUDIO-004** — Erasures D-Star transitórios após pelo menos um frame de voz válido podem usar PLC bounded com o último estado MBE bom por no máximo 3 frames consecutivos (60 ms). Erasures iniciais, sem estado de voz válido anterior, permanecem silêncio; não é permitido inventar voz ou mascarar a origem. Após 3 erasures consecutivos, o restante do burst deve permanecer silêncio até chegar novo frame válido. Telemetria deve separar erasure, concealed e muted.
+
 ### OBSERVABILITY / PERFORMANCE
 - **OBS-001** — Serviços críticos devem ter estado verificável por health/status/logs.
 - **OBS-002** — Erros operacionais devem ser diagnosticáveis sem expor segredos.
@@ -61,11 +67,11 @@ Fornecer um instalador público, reproduzível e seguro para refletor XLXD em De
 ### HELIX / LEGACY RADIO COMPATIBILITY
 - **HELIX-001** — Helix é opcional. A ausência, falha ou incompatibilidade do Helix não pode impedir um rádio legado compatível de usar o caminho DMR/YSF/D-Star já funcional.
 - **HELIX-002** — A primeira integração usa fronteira de processo e IPC local PCM; o decoder/encoder de codec legado permanece fora do núcleo Helix.
-- **HELIX-003** — O cliente PCM deve ser fail-open: erro, timeout ou resposta inválida preserva o PCM legado original. Em `process`, após a primeira falha de um stream, o restante daquele stream permanece no caminho legado para evitar alternância repetida de processamento. Nenhuma dependência remota/cloud pode entrar no hot path.
+- **HELIX-003** — O cliente PCM deve ser fail-open: erro, timeout ou resposta inválida preserva o PCM legado original daquele frame. Em `process`, uma falha isolada deve marcar reset do estado Helix e permitir nova tentativa no frame seguinte; uma resposta válida zera a contagem consecutiva. Após **3 falhas consecutivas** no mesmo stream, o restante daquele stream permanece no caminho legado. Nenhuma dependência remota/cloud pode entrar no hot path.
 - **HELIX-004** — O estado padrão em produção é `off`. `shadow` usa IPC Unix datagram não bloqueante, sem esperar resposta e sem comitar PCM. `process` usa request/reply local com timeout estritamente limitado (máximo 5 ms na V1, com orçamento total por requisição) e exige validação ENV e gate separado de áudio/rollback antes de produção.
 - **HELIX-005** — Usuários sem Helix não podem exigir firmware, rádio ou hotspot especial para continuar conversando pelos protocolos legados suportados.
 
-- **HELIX-006** — O orçamento IPC é uma única deadline monotônica de 1..5 ms para conectar, escrever e ler a resposta completa. Conexão e I/O não podem bloquear sem limite; respostas atrasadas não podem comitar PCM. A primeira falha mantém o stream em legado conforme HELIX-003. O sistema operacional não oferece garantia hard real-time.
+- **HELIX-006** — O orçamento IPC é uma única deadline monotônica de 1..5 ms para conectar, escrever e ler a resposta completa. Conexão e I/O não podem bloquear sem limite; respostas atrasadas não podem comitar PCM. Fallback isolado preserva apenas o frame corrente e força reset antes da próxima tentativa; o stream só é fixado no legado após o limite consecutivo definido em HELIX-003. O sistema operacional não oferece garantia hard real-time.
 
 ### BACKUP / RECOVERY
 - **BACKUP-001** — Backups preventivos devem existir antes de mudanças críticas.
@@ -101,3 +107,5 @@ Uma mudança só é aceita se:
 - **HELIX-007** — Quando `shadow` for explicitamente habilitado pelo operador em produção, a interface deve identificá-lo como observação/monitoramento, nunca como processamento do áudio. O caminho transmitido continua legado; indisponibilidade do observador não pode derrubar o áudio.
 - **HELIX-008** — Monitoramento por IA do Helix fica fora do hot path. Somente telemetria técnica agregada pode sair do servidor; áudio, conteúdo de voz, indicativos e payloads de rádio não são enviados à IA. Falha da API externa não pode afetar XLXD, xuvd ou o áudio.
 - **HELIX-009** — O monitor local deve validar serviço Helix, socket, xuvd, XLXD, hash do candidato e fallbacks; chamadas externas devem ser limitadas e orientadas a resumo/anomalia, preservando baixo consumo.
+- **HELIX-010** — Um teste real controlado de `process` em produção só pode ocorrer por autorização explícita do operador, com backup e rollback preparados antes da troca, transição feita sem TX ativo, indicação visual inequívoca `HELIX • PROCESSANDO TESTE`, fail-open preservado e retorno automático a `shadow` após a primeira transmissão útil observada ou ao atingir a janela máxima de segurança. Esse teste não autoriza `process` permanente.
+- **HELIX-011** — A política de retry de `process` deve tolerar jitter transitório sem ampliar a deadline: 1–2 falhas consecutivas usam PCM legado apenas nesses frames e tentam novamente com reset; 3 falhas consecutivas desabilitam Helix para o restante do stream. A política deve ser testável isoladamente e expor telemetria de fallback e máximo consecutivo.

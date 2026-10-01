@@ -1,0 +1,63 @@
+{
+  "date": "2026-10-01",
+  "scope": "D-Star to YSF bounded erasure PLC",
+  "levels": [
+    "PROD-derived",
+    "SW",
+    "ENV",
+    "CI",
+    "PROD deploy"
+  ],
+  "source_capture": {
+    "frames": 666,
+    "erasures": 93,
+    "b0_range": "120..123",
+    "fec_golay_total": 0,
+    "initial_bad_run_frames": 12,
+    "initial_bad_run_ms": 240,
+    "max_bad_run_frames": 16,
+    "first_valid_capture_ms": 254.899
+  },
+  "plc_policy": {
+    "max_consecutive_concealed": 3,
+    "max_concealment_ms": 60,
+    "initial_erasures_concealed": false,
+    "long_burst_excess_muted": true
+  },
+  "replay_result": {
+    "dstar_frames": 666,
+    "dstar_erasures": 93,
+    "dstar_concealed": 45,
+    "dstar_muted": 48,
+    "dstar_initial": 12,
+    "codec_failures": 0
+  },
+  "clean_corpus": {
+    "2_to_1_A": "IDENTICAL",
+    "2_to_1_C": "IDENTICAL",
+    "1_to_2_A": "IDENTICAL",
+    "1_to_2_C": "IDENTICAL"
+  },
+  "candidate_sha256": "d3ea28efb76ff61f615a5613bc5475b08b9a94a3085f638d470e70a8d21e1884",
+  "validation": {
+    "specific_tests": "PASS",
+    "warty_run_all_failures": 0,
+    "github_workflows": {
+      "installer_ci": "PASS",
+      "debian12_runtime": "PASS",
+      "production_parity": "PASS",
+      "stream_identity": "PASS"
+    }
+  },
+  "production": {
+    "helix_mode": "shadow",
+    "xlxd_pid_preserved": 1093634,
+    "xlxd_restarted": false,
+    "backup": "/opt/xlx026-backups/DSTAR_ERASURE_PLC_20261001_102515",
+    "api_candidate_ok": true
+  },
+  "remaining": {
+    "dcs_vs_xlxd_origin": "PENDING - no new PU2PNY D-Star TX occurred in bounded passive capture windows",
+    "operator_rf_quality_post_plc": "PENDING"
+  }
+}

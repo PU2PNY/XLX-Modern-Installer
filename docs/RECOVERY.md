@@ -54,3 +54,6 @@ comprovados; process continua bloqueado e PU2PNY-OS não é integrado nesta fase
 O deploy de produção cria backup local em `/opt/xlx026-backups/HELIX_SHADOW_<timestamp>` e um `ROLLBACK.sh` root-only. O rollback deve parar apenas `xlx-unified-voice.service`, remover o drop-in Helix, restaurar o xuvd legado e unit conhecidos, fazer `daemon-reload`, iniciar novamente o transcoder e então parar o observer. **Não reiniciar XLXD.**
 
 A sequência completa de restore (binário + unit + configuração/drop-in + serviço) foi comprovada em ENV antes da promoção. Em PROD inicial o XLXD manteve PID 1093634; isso não transforma o soak de 24 h em concluído.
+
+### Política de fallback após correção de jitter
+A partir do candidato bounded-retry, um timeout isolado em `process` não altera a deadline nem comita resposta atrasada. O frame afetado usa PCM legado e o próximo frame tenta novamente com reset do estado Helix. Três falhas consecutivas no mesmo stream fixam o restante daquele stream no legado. O rollback operacional para `shadow/off` continua idêntico e deve permanecer disponível antes de qualquer promoção PROD.

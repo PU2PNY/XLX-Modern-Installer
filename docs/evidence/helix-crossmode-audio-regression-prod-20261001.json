@@ -1,0 +1,71 @@
+{
+  "date": "2026-10-01",
+  "level": [
+    "PROD",
+    "OPERATOR"
+  ],
+  "event": "Helix process crossmode audio regression",
+  "operator_report": "D-Star to YSF and YSF to D-Star sounded strange",
+  "process_state_before_rollback": {
+    "xuvd_sha256": "99942076bb162bb3627e99e71bf7dec35d00d791949d7c356c8105fbef1c95e4",
+    "xlxd_pid": 1093634,
+    "mode": "process"
+  },
+  "observations": {
+    "codec_2_to_1_examples": [
+      {
+        "frames": 2544,
+        "failures": 0,
+        "helix_ok": 2513,
+        "helix_fallback": 31,
+        "consecutive_max": 2
+      },
+      {
+        "frames": 1461,
+        "failures": 0,
+        "helix_ok": 1457,
+        "helix_fallback": 4,
+        "consecutive_max": 2
+      }
+    ],
+    "codec_1_to_2_examples": [
+      {
+        "frames": 2219,
+        "failures": 314,
+        "helix_ok": 2199,
+        "helix_fallback": 20,
+        "consecutive_max": 1
+      },
+      {
+        "frames": 824,
+        "failures": 195,
+        "helix_ok": 502,
+        "helix_fallback": 10,
+        "consecutive_max": 3,
+        "stream_disabled": 1
+      },
+      {
+        "frames": 3143,
+        "failures": 586,
+        "helix_ok": 3098,
+        "helix_fallback": 45,
+        "consecutive_max": 2
+      }
+    ],
+    "baseline_shadow_note": "high codec 1->2 decode failure counts were also observed before process, so they are not attributed to Helix DSP"
+  },
+  "mitigation": {
+    "waited_for_idle_tx": true,
+    "mode_after": "shadow",
+    "process_active": false,
+    "observe_socket_restored": true,
+    "xlxd_pid_preserved": 1093634,
+    "xuvd_sha256_preserved": "99942076bb162bb3627e99e71bf7dec35d00d791949d7c356c8105fbef1c95e4"
+  },
+  "classification": {
+    "transport_continuity": "PASS",
+    "rollback": "PASS",
+    "audio_quality": "FAIL by operator report",
+    "generic_dsp_reactivation": "BLOCKED pending separate audio gate"
+  }
+}

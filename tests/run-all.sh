@@ -49,6 +49,8 @@ echo "[ranking rollover]"
 bash "$ROOT/tests/test-ranking-rollover.sh" || failures=$((failures+1))
 echo "[transmission analyzer]"
 bash "$ROOT/tests/test-transmission-analyzer.sh" || failures=$((failures+1))
+echo "[dstar to ysf audio path]"
+bash "$ROOT/tests/test-dstar-ysf-audio-path.sh" || failures=$((failures+1))
 echo "[helix pcm fallback]"
 bash "$ROOT/tests/test-helix-pcm-fallback.sh" || failures=$((failures+1))
 echo "[helix total deadline]"

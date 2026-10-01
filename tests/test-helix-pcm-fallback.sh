@@ -14,6 +14,7 @@ grep -q 'HelixPcmObserver' "$ROOT/experimental/helix-bridge/xuvd.cpp"
 grep -q 'SOCK_NONBLOCK' "$ROOT/experimental/helix-bridge/helix_pcm_client.hpp"
 grep -q 'parsed > 5' "$ROOT/experimental/helix-bridge/xuvd.cpp"
 grep -q 'helix_disabled_for_stream' "$ROOT/experimental/helix-bridge/xuvd.cpp"
+grep -q 'CONSECUTIVE_FAILURE_LIMIT = 3' "$ROOT/experimental/helix-bridge/helix_pcm_client.hpp"
 grep -q 'prime()' "$ROOT/experimental/helix-bridge/helix_pcm_client.hpp"
 grep -q 'User=helix-voice' "$ROOT/experimental/helix-bridge/systemd/helix-voice-shadow.service"
 grep -q 'RestrictAddressFamilies=AF_UNIX' "$ROOT/experimental/helix-bridge/systemd/helix-voice-shadow.service"
@@ -24,7 +25,7 @@ grep -q 'SupplementaryGroups=helix-voice' "$ROOT/experimental/helix-bridge/syste
 grep -q 'Wants=helix-voice-shadow.service' "$ROOT/experimental/helix-bridge/systemd/xlx-unified-voice-shadow.conf"
 grep -q 'After=helix-voice-shadow.service' "$ROOT/experimental/helix-bridge/systemd/xlx-unified-voice-shadow.conf"
 bash -n "$ROOT/experimental/helix-bridge/test-prod-equivalence.sh"
-echo "PASS | static off/shadow/process/fallback/nonblocking/timeout/stream-sticky contract"
+echo "PASS | static off/shadow/process/fallback/nonblocking/timeout/bounded transient-retry contract"
 
 if ! command -v g++ >/dev/null 2>&1; then
     echo "SKIP | compiled Unix-socket test requires g++"
@@ -237,7 +238,27 @@ int main(int argc, char** argv) {
             return 7;
     }
 
+    {
+        xuv::HelixFailurePolicy policy;
+        if (policy.on_failure())
+            return 8;
+        if (policy.on_failure())
+            return 9;
+        policy.on_success();
+        if (policy.consecutive_failures() != 0 || policy.max_consecutive_failures() != 2)
+            return 10;
+        if (policy.on_failure())
+            return 11;
+        if (policy.on_failure())
+            return 12;
+        if (!policy.on_failure())
+            return 13;
+        if (policy.consecutive_failures() != 3 || policy.max_consecutive_failures() != 3)
+            return 14;
+    }
+
     std::cout << "compiled_contract=PASS\n";
+    std::cout << "transient_retry_policy=PASS\n";
     return 0;
 }
 CPP

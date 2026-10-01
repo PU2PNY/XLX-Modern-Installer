@@ -6,8 +6,9 @@ STATE_DIR = pathlib.Path('/var/lib/xlx-helix-monitor')
 PUBLIC = RUNTIME / 'public.json'
 STATE = STATE_DIR / 'state.json'
 XUVD = pathlib.Path('/opt/xlx-unified-voice/bin/xuvd')
-EXPECTED_XUVD = '559f580b5edf58883eb81293d8fbdc044e13eff9ca4dc6437e6b16014f75a243'
-SOCKET = pathlib.Path('/run/helix-voice/observe.sock')
+EXPECTED_XUVD = 'd3ea28efb76ff61f615a5613bc5475b08b9a94a3085f638d470e70a8d21e1884'
+SHADOW_SOCKET = pathlib.Path('/run/helix-voice/observe.sock')
+PROCESS_SOCKET = pathlib.Path('/run/helix-voice/pcm.sock')
 AI_PUBLIC = pathlib.Path('/run/xlx-ai-monitor/public.json')
 RESPONSES_URL = 'https://api.openai.com/v1/responses'
 MODEL = os.environ.get('OPENAI_MONITOR_MODEL', 'gpt-5.6-luna').strip() or 'gpt-5.6-luna'
@@ -72,14 +73,17 @@ def ai_connectivity():
 def recent_helix_counters():
     rc,out=run(['journalctl','-u','xlx-unified-voice.service','--since','3 minutes ago','-o','cat','--no-pager'],5)
     latest=None
-    if rc not in (0,1): return 0,0,0
-    rx=re.compile(r'helix=shadow.*?helix_ok=(\d+).*?helix_fallback=(\d+)')
+    if rc not in (0,1): return 'off',0,0,0,0,0
+    rx=re.compile(r'helix=(shadow|process).*?helix_ok=(\d+).*?helix_fallback=(\d+)')
     for line in out.splitlines():
         m=rx.search(line)
         if m:
-            latest=(int(m.group(1)),int(m.group(2)))
-    if not latest: return 0,0,0
-    return latest[0],latest[1],int(time.time())
+            c=re.search(r'helix_consecutive_max=(\d+)',line)
+            d=re.search(r'helix_stream_disabled=(\d+)',line)
+            latest=(m.group(1),int(m.group(2)),int(m.group(3)),
+                    int(c.group(1)) if c else 0,int(d.group(1)) if d else 0)
+    if not latest: return 'off',0,0,0,0,0
+    return latest[0],latest[1],latest[2],latest[3],latest[4],int(time.time())
 
 def load_state():
     try:
@@ -99,11 +103,11 @@ def extract_output_text(data):
 
 def ask_ai(telemetry, key):
     prompt=(
-      'Você monitora o Helix Voice em modo shadow de um refletor XLX. '
+      'Você monitora o Helix Voice de um refletor XLX em modo shadow ou process de teste controlado. '
       'Receba somente telemetria técnica; nenhum áudio é enviado. '
       'Responda em português em uma linha, começando exatamente por OK: ou ATENCAO:. '
-      'Não recomende mudar para process. Não recomende aumentar timeout acima de 5 ms. '
-      'Se todos os serviços estão ativos, socket pronto, hash esperado e fallback recente zero, responda OK. '
+      'Não recomende tornar process permanente. Não recomende aumentar timeout acima de 5 ms. '
+      'Fallback isolado com consecutive_max abaixo de 3 é fail-open esperado no teste e não significa queda do serviço. Se stream_disabled=1 ou consecutive_max>=3, responda ATENCAO. Se serviços/socket/hash estiverem corretos e não houver desativação do stream, responda OK. '
       'Telemetria: '+json.dumps(telemetry,separators=(',',':'))
     )
     body=json.dumps({'model':MODEL,'input':prompt,'max_output_tokens':100}).encode()
@@ -121,28 +125,40 @@ def ask_ai(telemetry, key):
 
 def main():
     now=int(time.time())
-    helix_active,helix_pid=unit('helix-voice-shadow.service')
+    shadow_active,shadow_pid=unit('helix-voice-shadow.service')
+    process_active,process_pid=unit('helix-voice-process-test.service')
     xuvd_active,xuvd_pid=unit('xlx-unified-voice.service')
     xlxd_active,xlxd_pid=unit('xlxd.service')
     try:
-        socket_ready=SOCKET.exists() and stat.S_ISSOCK(SOCKET.stat().st_mode)
+        shadow_socket_ready=SHADOW_SOCKET.exists() and stat.S_ISSOCK(SHADOW_SOCKET.stat().st_mode)
     except Exception:
-        socket_ready=False
+        shadow_socket_ready=False
+    try:
+        process_socket_ready=PROCESS_SOCKET.exists() and stat.S_ISSOCK(PROCESS_SOCKET.stat().st_mode)
+    except Exception:
+        process_socket_ready=False
+    mode='process' if process_active and process_socket_ready else ('shadow' if shadow_active and shadow_socket_ready else 'off')
+    helix_active=process_active if mode=='process' else shadow_active
+    helix_pid=process_pid if mode=='process' else shadow_pid
+    socket_ready=process_socket_ready if mode=='process' else shadow_socket_ready
     xhash=sha256(XUVD)
     candidate_ok=(xhash==EXPECTED_XUVD)
-    helix_ok,helix_fallback,last_observed=recent_helix_counters()
+    counter_mode,helix_ok,helix_fallback,helix_consecutive_max,helix_stream_disabled,last_observed=recent_helix_counters()
     ai_connected=ai_connectivity()
     telemetry={
-      'mode':'shadow',
+      'mode':mode,
       'helix_active':helix_active,'socket_ready':socket_ready,
       'xuvd_active':xuvd_active,'xlxd_active':xlxd_active,
       'candidate_ok':candidate_ok,
       'helix_rss_kb':rss_kb(helix_pid),'xuvd_rss_kb':rss_kb(xuvd_pid),
-      'recent_helix_ok':helix_ok,'recent_fallback':helix_fallback
+      'recent_helix_ok':helix_ok,'recent_fallback':helix_fallback,
+      'recent_consecutive_max':helix_consecutive_max,
+      'recent_stream_disabled':bool(helix_stream_disabled)
     }
-    anomaly=not all([helix_active,socket_ready,xuvd_active,xlxd_active,candidate_ok]) or helix_fallback>0
+    anomaly=(not all([helix_active,socket_ready,xuvd_active,xlxd_active,candidate_ok])
+             or bool(helix_stream_disabled) or helix_consecutive_max>=3)
     state=load_state()
-    signature=json.dumps({k:telemetry[k] for k in ('helix_active','socket_ready','xuvd_active','xlxd_active','candidate_ok','recent_fallback')},sort_keys=True)
+    signature=json.dumps({k:telemetry[k] for k in ('mode','helix_active','socket_ready','xuvd_active','xlxd_active','candidate_ok','recent_fallback','recent_consecutive_max','recent_stream_disabled')},sort_keys=True)
     last_ai=int(state.get('last_ai_at',0) or 0)
     old_sig=str(state.get('last_signature',''))
     ai_due=ai_connected and (last_ai<=0 or now-last_ai>=900 or signature!=old_sig)
@@ -156,10 +172,13 @@ def main():
     state.update({'last_ai_at':last_ai,'last_signature':signature,'ai_last_ok':ai_ok,'ai_summary':ai_summary})
     atomic_json(STATE,state,0o600)
     payload={
-      'ok':True,'mode':'shadow','shadow_active':helix_active and socket_ready and xuvd_active and candidate_ok,
+      'ok':True,'mode':mode,
+      'shadow_active':mode=='shadow' and helix_active and socket_ready and xuvd_active and candidate_ok,
+      'process_active':mode=='process' and helix_active and socket_ready and xuvd_active and candidate_ok,
       'helix_active':helix_active,'socket_ready':socket_ready,'xuvd_active':xuvd_active,'xlxd_active':xlxd_active,
       'candidate_ok':candidate_ok,'helix_rss_kb':telemetry['helix_rss_kb'],'xuvd_rss_kb':telemetry['xuvd_rss_kb'],
-      'recent_helix_ok':helix_ok,'recent_fallback':helix_fallback,'last_observed_at':last_observed,
+      'recent_helix_ok':helix_ok,'recent_fallback':helix_fallback,
+      'recent_consecutive_max':helix_consecutive_max,'recent_stream_disabled':bool(helix_stream_disabled),'last_observed_at':last_observed,
       'ai_connected':ai_connected,'ai_last_analysis_at':last_ai,'ai_last_ok':ai_ok,
       'ai_summary':ai_summary,'anomaly':anomaly,'updated_at':now
     }

@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-01",
+  "level": "PROD",
+  "operator_authorized": true,
+  "transition_active_tx": 0,
+  "mode": "process",
+  "window_type": "controlled auto-rollback",
+  "xuvd_candidate_sha256": "559f580b5edf58883eb81293d8fbdc044e13eff9ca4dc6437e6b16014f75a243",
+  "xlxd_pid_preserved": 1093634,
+  "real_stream": {
+    "frames": 956,
+    "codec_failures": 0,
+    "helix_ok": 436,
+    "helix_fallback": 1,
+    "sticky_fallback": true,
+    "xlxd_ambed_timeouts": 0
+  },
+  "helix_daemon_observation": "Broken pipe after client abandoned response",
+  "interpretation": {
+    "process_reliability": "FAIL",
+    "fail_open_continuity": "PASS",
+    "rollback": "PASS",
+    "root_cause": "not proven; local IPC/daemon timing is the current investigation target"
+  },
+  "rollback": {
+    "mode_after": "shadow",
+    "process_socket_absent": true,
+    "observe_socket_restored": true,
+    "xlxd_restarted": false
+  },
+  "guardrails": {
+    "deadline_ms_max": 5,
+    "deadline_widened": false,
+    "process_permanent": false
+  }
+}

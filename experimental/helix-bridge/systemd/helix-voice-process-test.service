@@ -1,0 +1,27 @@
+[Unit]
+Description=Helix Voice PCM PROCESS controlled test
+After=local-fs.target
+Before=xlx-unified-voice.service
+Conflicts=helix-voice-shadow.service
+
+[Service]
+Type=simple
+User=helix-voice
+Group=helix-voice
+RuntimeDirectory=helix-voice
+RuntimeDirectoryMode=0750
+ExecStart=/opt/helix-voice/bin/helix-daemon --pcm-bridge /run/helix-voice/pcm.sock
+Restart=on-failure
+RestartSec=2
+TimeoutStopSec=3
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_UNIX
+MemoryMax=64M
+CPUQuota=20%
+TasksMax=4

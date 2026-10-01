@@ -58,7 +58,7 @@ A integração experimental Helix deve ser operada em três fases explícitas:
 2. `shadow` — Helix recebe PCM por datagrama Unix não bloqueante; não existe espera de resposta nem alteração do áudio transmitido;
 3. `process` — PCM retornado pode ser usado somente após validação ENV e gate específico de áudio/rollback.
 
-O cliente tem timeout local limitado a 5 ms na V1, com orçamento total por requisição e comportamento fail-open. Erro, socket ausente, timeout ou resposta inválida devem manter o PCM original; em `process`, a primeira falha fixa o restante daquele stream no legado. Não introduza API/cloud no caminho de áudio. Antes de qualquer mudança do transcoder ativo, registre PID, binário/hash, unit/config, tráfego ativo, proveniência das dependências usadas no build e ponto de retorno.
+O cliente tem timeout local limitado a 5 ms na V1, com orçamento total por requisição e comportamento fail-open. Erro, socket ausente, timeout ou resposta inválida mantêm o PCM original do frame afetado. Em `process`, 1–2 falhas consecutivas forçam reset e nova tentativa no frame seguinte; 3 falhas consecutivas fixam o restante daquele stream no legado. Não introduza API/cloud no caminho de áudio. Antes de qualquer mudança do transcoder ativo, registre PID, binário/hash, unit/config, tráfego ativo, proveniência das dependências usadas no build e ponto de retorno.
 
 
 ### Gate adicional antes de shadow
@@ -79,3 +79,15 @@ Não aumentar a deadline para esconder falhas sob contenção. A execução adic
 - O indicador do Live deve dizer `HELIX • MONITORANDO`/`SHADOW`, nunca `PROCESSANDO`, enquanto `XLX_HELIX_MODE=shadow`.
 - Se Helix/monitor/OpenAI falhar, verificar o caminho legado antes de qualquer ação; não reiniciar XLXD por causa do observador.
 - `process` continua proibido até seus gates próprios serem concluídos.
+
+### Teste real controlado de process
+Somente com autorização explícita do operador e sem promover `process` como estado permanente:
+1. confirmar que não existe TX ativa;
+2. registrar PID/hash/estado de XLXD e xuvd e criar backup do drop-in atual;
+3. preparar e validar rollback antes da troca;
+4. iniciar o daemon request/reply local e somente então colocar xuvd em `XLX_HELIX_MODE=process`;
+5. manter deadline total em no máximo 5 ms e fail-open bounded: fallback por frame nas falhas isoladas, reset antes do retry e fixação no legado após 3 falhas consecutivas;
+6. o Live deve mostrar `HELIX • PROCESSANDO TESTE` enquanto o modo estiver realmente ativo;
+7. após o primeiro stream real com frames > 0, registrar `frames`, `failures`, `helix_ok` e `helix_fallback` e retornar automaticamente a `shadow`;
+8. se nenhum stream útil ocorrer dentro da janela máxima de segurança, retornar automaticamente a `shadow` sem declarar teste de áudio concluído;
+9. qualquer falha do daemon/socket/xuvd ou fallback inesperado deve antecipar o rollback. Não reiniciar XLXD.
