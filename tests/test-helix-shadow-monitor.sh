@@ -15,7 +15,7 @@ grep -F "OnUnitActiveSec=30s" "$TIMER" >/dev/null
 grep -F "EnvironmentFile=-/etc/xlx-ai-monitor.env" "$SVC" >/dev/null
 grep -F "now-last_ai>=900" "$MON" >/dev/null
 grep -F "https://api.openai.com/v1/responses" "$MON" >/dev/null
-grep -F "'mode':'shadow'" "$MON" >/dev/null
+grep -F "'mode':mode" "$MON" >/dev/null
 grep -F "recent_fallback" "$MON" >/dev/null
 grep -F "HELIX</b><span>MONITORANDO" "$JS" >/dev/null
 grep -F "O áudio transmitido continua no caminho legado." "$JS" >/dev/null
