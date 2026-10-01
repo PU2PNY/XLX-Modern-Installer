@@ -61,8 +61,10 @@ Fornecer um instalador público, reproduzível e seguro para refletor XLXD em De
 - **HELIX-001** — Helix é opcional. A ausência, falha ou incompatibilidade do Helix não pode impedir um rádio legado compatível de usar o caminho DMR/YSF/D-Star já funcional.
 - **HELIX-002** — A primeira integração usa fronteira de processo e IPC local PCM; o decoder/encoder de codec legado permanece fora do núcleo Helix.
 - **HELIX-003** — O cliente PCM deve ser fail-open: erro, timeout ou resposta inválida preserva o PCM legado original. Em `process`, após a primeira falha de um stream, o restante daquele stream permanece no caminho legado para evitar alternância repetida de processamento. Nenhuma dependência remota/cloud pode entrar no hot path.
-- **HELIX-004** — O estado padrão em produção é `off`. `shadow` usa IPC Unix datagram não bloqueante, sem esperar resposta e sem comitar PCM. `process` usa request/reply local com timeout estritamente limitado (máximo 10 ms na V1) e exige validação ENV e gate separado de áudio/rollback antes de produção.
+- **HELIX-004** — O estado padrão em produção é `off`. `shadow` usa IPC Unix datagram não bloqueante, sem esperar resposta e sem comitar PCM. `process` usa request/reply local com timeout estritamente limitado (máximo 5 ms na V1, com orçamento total por requisição) e exige validação ENV e gate separado de áudio/rollback antes de produção.
 - **HELIX-005** — Usuários sem Helix não podem exigir firmware, rádio ou hotspot especial para continuar conversando pelos protocolos legados suportados.
+
+- **HELIX-006** — O orçamento IPC é uma única deadline monotônica de 1..5 ms para conectar, escrever e ler a resposta completa. Conexão e I/O não podem bloquear sem limite; respostas atrasadas não podem comitar PCM. A primeira falha mantém o stream em legado conforme HELIX-003. O sistema operacional não oferece garantia hard real-time.
 
 ### BACKUP / RECOVERY
 - **BACKUP-001** — Backups preventivos devem existir antes de mudanças críticas.
