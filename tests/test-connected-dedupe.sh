@@ -97,6 +97,7 @@ PHP
 ok 'duplicate sessions, aliases and synthetic XLXD self DExtra nodes are filtered safely'
 
 grep -Fq '$rawConnections = array_map(' "$STATUS" || fail 'raw connection list missing'
-grep -Fq '$connections = public_connections($rawConnections);' "$STATUS" || fail 'public connection filtering missing'
+grep -Fq 'xlxd_self_addresses()' "$STATUS" || fail 'XLXD self-address source is not wired into status.php'
+grep -Fq '$connections = public_connections(' "$STATUS" || fail 'public connection filtering missing'
 grep -Fq '$rawConnections,' "$STATUS" || fail 'TX/history no longer receives raw connections'
 ok 'status keeps raw endpoints for TX correlation while exposing canonical connected rows'
