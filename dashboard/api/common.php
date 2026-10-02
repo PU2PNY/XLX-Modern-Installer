@@ -153,7 +153,10 @@ function public_connections(
     array $connections,
     ?array $selfAddresses = null
 ): array {
-    $selfAddresses ??= xlxd_self_addresses();
+    if ($selfAddresses === null) {
+        $selfAddresses = xlxd_self_addresses();
+    }
+
     $selfIndex = [];
 
     foreach ($selfAddresses as $address) {
