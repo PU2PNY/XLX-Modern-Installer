@@ -151,12 +151,8 @@ function xlxd_self_addresses(): array {
 
 function public_connections(
     array $connections,
-    ?array $selfAddresses = null
+    array $selfAddresses
 ): array {
-    if ($selfAddresses === null) {
-        $selfAddresses = xlxd_self_addresses();
-    }
-
     $selfIndex = [];
 
     foreach ($selfAddresses as $address) {
