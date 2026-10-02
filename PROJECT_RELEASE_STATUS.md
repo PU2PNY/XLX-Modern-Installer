@@ -70,13 +70,14 @@ Classificação: `SW/CI`. Isso **não** equivale a validação `ENV`, `HW` ou `P
 - PROD final: `connected_count=106`, 106 linhas, **0 grupos duplicados / 0 linhas extras** pela chave indicativo+sufixo+protocolo+módulo. Conexões distintas por protocolo/módulo permaneceram visíveis.
 - `/conectados`, `/api/live.php` e `/api/helix-status.php`: HTTP 200. XLXD permaneceu PID 1093634 e xuvd PID 3729899; Helix permaneceu `shadow`. Nenhum restart de XLXD/xuvd, nenhuma alteração de protocolo/áudio.
 
-## Conectados — nós DExtra internos identificados 2026-10-01
-- Evidência PROD somente leitura após a correção anterior: o XML contém cinco `NODE` DExtra para o mesmo indicativo do operador, nos módulos A, B, C, D e E.
-- Os cinco usam exatamente o endereço configurado no `ExecStart` do próprio XLXD, têm `Via`/`Peer` vazios e `LastHeardTime` igual ao instante de conexão de 2026-09-23. Não representam cinco usuários conectados.
-- A conexão YSF real do mesmo indicativo usa outro endpoint e atividade recente, portanto deve permanecer.
-- Branch de correção: `fix/connected-hide-xlxd-self-dextra-20261001`.
-- Escopo: somente apresentação/contagem do dashboard; XLXD, DMR/YSF/D-Star, xuvd/Helix e áudio não são alterados.
-- Testes, CI e promoção PROD ainda pendentes neste registro.
+## Conectados — nós DExtra internos corrigidos 2026-10-01
+- Evidência PROD antes da mudança: o XML continha cinco `NODE` DExtra para o mesmo indicativo do operador, nos módulos A, B, C, D e E. Todos usavam o mesmo endereço configurado no `ExecStart` do próprio XLXD, tinham `Via`/`Peer` vazios e `LastHeardTime` igual ao instante de criação de 2026-09-23.
+- Dry-run sobre o JSON real de produção: 89 linhas públicas → 84 após o filtro; para o indicativo afetado, 7 linhas → 2. As cinco removidas eram exatamente os nós DExtra internos; D-STAR/DCS e C4FM/YSF reais permaneceram.
+- PR #75 passou `XLX Modern Installer CI`, `Debian 12 runtime gate`, `Production parity regression` e `Stream identity regression` no head `a272f12f85eb6f2ccb13c618cedc14bc0c93a993`, e foi mesclada em `main` como `1495c190bb4ed1647f86b4be8acca3576f690870`.
+- WartyWallaby: teste específico de Conectados, PHP lint e governança PASS. A suíte completa local encontrou a falha preexistente/ambiental `mock CallingHome server did not start`; o teste CallingHome executado isoladamente PASS. Não classificar a suíte local completa como PASS.
+- Backup PROD root-only: `/opt/xlx026-backups/CONNECTED_SELF_DEXTRA_20261001_225743`; cópia de restore validada antes do deploy.
+- PROD após deploy: `connected_count=84`, 84 linhas, 0 grupos duplicados e 0 nós DExtra do endereço do próprio XLXD na lista pública. O indicativo afetado ficou com 2 conexões legítimas distintas: D-STAR/DCS módulo D e C4FM/YSF módulo C.
+- `/conectados`, `/api/live.php` e `/api/helix-status.php`: HTTP 200. XLXD permaneceu PID 1093634 e xuvd PID 3729899; Helix permaneceu `shadow`. Nenhum restart de XLXD/xuvd e nenhuma alteração de áudio/protocolo.
 
 ## Correções recentes confirmadas no main
 - PR #55: timeout FastCGI de 30 s limitado à rota privada do Admin; público permanece em 15 s.
