@@ -34,6 +34,7 @@ Fornecer um instalador público, reproduzível e seguro para refletor XLXD em De
 - **UI-009** — Publicação não deve reintroduzir páginas deliberadamente excluídas do pacote público sem decisão registrada.
 - **UI-010** — Ranking deve preservar estatísticas persistentes entre viradas de dia/mês, oferecer períodos Hoje, 7 dias, mês corrente e ano corrente, e evitar aparência de painel vazio na virada da meia-noite quando houver histórico recente.
 - **UI-011** — A página e os contadores de Conectados não podem contar múltiplos `NODE` do XLXD como estações diferentes quando representam a mesma identidade, sufixo, protocolo e módulo. A sessão pública canônica é a de atividade mais recente; a lista bruta deve permanecer disponível internamente para correlação de TX/endpoint.
+- **UI-012** — Nós DExtra internos do próprio XLXD não são estações de usuário e não podem aparecer nem inflar os contadores públicos de Conectados. A exclusão exige evidência local: protocolo DExtra, endpoint igual ao endereço do próprio XLXD e ausência de `Via`/`Peer`; conexões remotas ou de outros protocolos permanecem visíveis.
 
 ### DATA / APRS / CERTIFICATES
 - **DATA-001** — Correções locais de callsign devem sobreviver a refresh do diretório upstream.

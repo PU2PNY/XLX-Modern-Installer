@@ -105,6 +105,90 @@ function parse_any_time(string $line): int { if(preg_match('/^(\d{4}-\d{2}-\d{2}
 function node_blocks(string $raw): array { preg_match_all('/<NODE>(.*?)<\/NODE>/si',$raw,$m); return $m[1]??[]; }
 function tag_value(string $block,string $tag): string { return preg_match('/<'.preg_quote($tag,'/').'>\s*(.*?)\s*<\/'.preg_quote($tag,'/').'>/si',$block,$m)?html_entity_decode(trim(strip_tags($m[1])),ENT_QUOTES|ENT_XML1,'UTF-8'):''; }
 function parse_xml_connections(): array { $p=cfg()['xml_path'];if(!is_readable($p))return []; $raw=@file_get_contents($p);if($raw===false)return []; $out=[];foreach(node_blocks($raw) as $b){$callRaw=tag_value($b,'Callsign');[$call,$suffix]=split_call_suffix($callRaw);if(!$call)continue;$protocol=protocol_label(tag_value($b,'Protocol'));$rawModule=trim(tag_value($b,'LinkedModule'));$module=$rawModule!==''?strtoupper(substr($rawModule,0,1)):'?';if($module==='?'&&$protocol==='DMR')$module='C';$ct=strtotime(tag_value($b,'ConnectTime'))?:0;$lt=strtotime(tag_value($b,'LastHeardTime'))?:0;$u=user_lookup($call);$country=country_for_call($call);$out[]=['callsign'=>$call,'suffix'=>$suffix,'name'=>$u['name'],'location'=>$u['location'],'country'=>$country,'module'=>$module,'protocol'=>$protocol,'connected_at'=>$ct,'last_activity'=>$lt,'qrz'=>qrz_url($call),'via'=>tag_value($b,'Via'),'peer'=>tag_value($b,'Peer'),'ip'=>tag_value($b,'IP')];}usort($out,fn($a,$b)=>$b['connected_at']<=>$a['connected_at']);return $out; }
+function xlxd_self_addresses(): array {
+    /*
+     * O instalador autoritativo grava o endereço do XLXD no ExecStart.
+     * Ler a unit local evita DNS/chamada externa e permite distinguir nós
+     * internos do próprio refletor de estações remotas.
+     */
+    static $addresses = null;
+
+    if ($addresses !== null) {
+        return $addresses;
+    }
+
+    $addresses = [];
+
+    foreach ([
+        '/etc/systemd/system/xlxd.service',
+        '/lib/systemd/system/xlxd.service',
+        '/usr/lib/systemd/system/xlxd.service',
+    ] as $path) {
+        if (!is_readable($path)) {
+            continue;
+        }
+
+        $raw = @file_get_contents($path);
+
+        if (
+            $raw !== false
+            && preg_match(
+                '/^\\s*ExecStart=.*?\\s+XLX[A-Z0-9]{3}\\s+([^\\s]+)\\s+[^\\s]+/mi',
+                $raw,
+                $match
+            )
+        ) {
+            $ip = trim((string)($match[1] ?? ''));
+
+            if (filter_var($ip, FILTER_VALIDATE_IP)) {
+                $addresses[$ip] = true;
+            }
+        }
+    }
+
+    return array_keys($addresses);
+}
+
+function public_connections(
+    array $connections,
+    array $selfAddresses
+): array {
+    $selfIndex = [];
+
+    foreach ($selfAddresses as $address) {
+        $address = trim((string)$address);
+
+        if (filter_var($address, FILTER_VALIDATE_IP)) {
+            $selfIndex[$address] = true;
+        }
+    }
+
+    $visible = array_values(
+        array_filter(
+            $connections,
+            static function (array $connection) use ($selfIndex): bool {
+                $protocol = strtoupper(
+                    trim((string)($connection['protocol'] ?? ''))
+                );
+                $ip = trim((string)($connection['ip'] ?? ''));
+                $via = trim((string)($connection['via'] ?? ''));
+                $peer = trim((string)($connection['peer'] ?? ''));
+
+                $syntheticSelfDextra =
+                    $protocol === 'D-STAR/DEXTRA'
+                    && $ip !== ''
+                    && isset($selfIndex[$ip])
+                    && $via === ''
+                    && $peer === '';
+
+                return !$syntheticSelfDextra;
+            }
+        )
+    );
+
+    return canonical_connections($visible);
+}
+
 function canonical_connections(array $connections): array {
     /*
      * A lista XML do XLXD pode conter mais de um NODE para a mesma

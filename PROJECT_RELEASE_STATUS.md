@@ -70,6 +70,14 @@ Classificação: `SW/CI`. Isso **não** equivale a validação `ENV`, `HW` ou `P
 - PROD final: `connected_count=106`, 106 linhas, **0 grupos duplicados / 0 linhas extras** pela chave indicativo+sufixo+protocolo+módulo. Conexões distintas por protocolo/módulo permaneceram visíveis.
 - `/conectados`, `/api/live.php` e `/api/helix-status.php`: HTTP 200. XLXD permaneceu PID 1093634 e xuvd PID 3729899; Helix permaneceu `shadow`. Nenhum restart de XLXD/xuvd, nenhuma alteração de protocolo/áudio.
 
+## Conectados — nós DExtra internos identificados 2026-10-01
+- Evidência PROD somente leitura após a correção anterior: o XML contém cinco `NODE` DExtra para o mesmo indicativo do operador, nos módulos A, B, C, D e E.
+- Os cinco usam exatamente o endereço configurado no `ExecStart` do próprio XLXD, têm `Via`/`Peer` vazios e `LastHeardTime` igual ao instante de conexão de 2026-09-23. Não representam cinco usuários conectados.
+- A conexão YSF real do mesmo indicativo usa outro endpoint e atividade recente, portanto deve permanecer.
+- Branch de correção: `fix/connected-hide-xlxd-self-dextra-20261001`.
+- Escopo: somente apresentação/contagem do dashboard; XLXD, DMR/YSF/D-Star, xuvd/Helix e áudio não são alterados.
+- Testes, CI e promoção PROD ainda pendentes neste registro.
+
 ## Correções recentes confirmadas no main
 - PR #55: timeout FastCGI de 30 s limitado à rota privada do Admin; público permanece em 15 s.
 - PR #57: botão de informações nas 24h somente para gateway diferente do indicativo e confirmado como repetidor.
