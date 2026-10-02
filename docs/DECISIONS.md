@@ -53,3 +53,15 @@ deve usar essa identidade resolvida antes da contagem pública. Em produção XL
 onde existe normalizador RadioID local anterior ao JSON final, o alias é aplicado à
 cópia pública antes de `canonical_connections()`. A lista bruta permanece intacta
 para correlação TX/endpoint.
+
+
+## DEC-2026-10-01-012 — Nó DExtra interno do XLXD não conta como estação
+A captura PROD mostrou cinco entradas `DExtra` do indicativo do operador, uma por
+módulo A–E, todas originadas do mesmo endereço usado no `ExecStart` do próprio
+XLXD, com `Via` e `Peer` vazios e sem atividade posterior ao instante de criação.
+Essas entradas são nós internos do refletor, não cinco estações conectadas.
+
+A lista pública deve remover somente o caso comprovado: protocolo DExtra +
+endpoint igual a um endereço local do XLXD + `Via` vazio + `Peer` vazio.
+O endereço do XLXD é obtido localmente da unit systemd; não usar DNS ou API
+externa no hot path. A lista bruta continua intacta para correlação de TX.
