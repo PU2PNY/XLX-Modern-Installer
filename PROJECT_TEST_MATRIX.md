@@ -30,6 +30,7 @@ Níveis de evidência: DOC / SW / ENV / HW / PROD / OPERATOR.
 | TEST-021 | UI-010 | Ranking preserva histórico na virada de dia/mês, inclui período anual e mantém persistência no instalador | PR #67: cinco workflows PASS no head `468638a8...`; PROD 2026-10-01: API v3 com `year`, `/ranking` HTTP 200 e botão ANUAL, XLXD PID 1093634 preservado; próxima virada 23:59→00:00 ainda não foi reobservada em PROD | PASS (SW/CI) + PARCIAL (PROD) |
 
 | TEST-028 | UI-011 | Conectados elimina sessões XML duplicadas sem perder protocolo/módulo/sufixo distintos e preserva endpoints brutos para correlação de TX | WartyWallaby: teste específico PASS e `tests/run-all.sh` final com `failures=0`; PR #72 e follow-up de alias PR #73: quatro workflows CI PASS em cada head. PROD XLX026: primeira validação deixou 1 alias duplicado; após alias-before-canonicalization, 106/106 linhas, 0 grupos duplicados, rotas HTTP 200, XLXD PID 1093634 e xuvd PID 3729899 preservados. | PASS (SW/CI/PROD) |
+| TEST-029 | UI-012 | Conectados exclui nós DExtra internos do próprio XLXD sem esconder DExtra remoto nem outros protocolos locais | `tests/test-connected-dedupe.sh` inclui cinco nós DExtra sintéticos A–E no endereço do XLXD e exige remoção; mantém C4FM/YSF remoto, DExtra remoto e DMR no mesmo IP de teste. | PENDENTE (execução SW/CI/PROD) |
 
 ## Como registrar PASS
 Atualize a linha com:
