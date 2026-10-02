@@ -142,7 +142,7 @@ try {
         'xlx_user_directory_apply',
         parse_xml_connections()
     );
-    $connections = canonical_connections($rawConnections);
+    $connections = public_connections($rawConnections);
     $tx = active_and_history(
         $rawConnections,
         $historyLimit,
