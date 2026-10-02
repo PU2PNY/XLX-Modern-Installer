@@ -65,10 +65,38 @@ if (count($aliasRows) !== 1 || ($aliasRows[0]['callsign'] ?? '') !== 'PU2NEW') {
     fwrite(STDERR, "resolved callsign alias did not collapse to one canonical station\n");
     exit(1);
 }
+
+$selfRows = [
+    ['callsign'=>'PU2SYS','suffix'=>'G','protocol'=>'D-STAR/DExtra','module'=>'A','connected_at'=>10,'last_activity'=>10,'via'=>'','peer'=>'','ip'=>'203.0.113.10'],
+    ['callsign'=>'PU2SYS','suffix'=>'H','protocol'=>'D-STAR/DExtra','module'=>'B','connected_at'=>11,'last_activity'=>11,'via'=>'','peer'=>'','ip'=>'203.0.113.10'],
+    ['callsign'=>'PU2SYS','suffix'=>'I','protocol'=>'D-STAR/DExtra','module'=>'C','connected_at'=>12,'last_activity'=>12,'via'=>'','peer'=>'','ip'=>'203.0.113.10'],
+    ['callsign'=>'PU2SYS','suffix'=>'J','protocol'=>'D-STAR/DExtra','module'=>'D','connected_at'=>13,'last_activity'=>13,'via'=>'','peer'=>'','ip'=>'203.0.113.10'],
+    ['callsign'=>'PU2SYS','suffix'=>'K','protocol'=>'D-STAR/DExtra','module'=>'E','connected_at'=>14,'last_activity'=>14,'via'=>'','peer'=>'','ip'=>'203.0.113.10'],
+    ['callsign'=>'PU2SYS','suffix'=>'B','protocol'=>'C4FM/YSF','module'=>'C','connected_at'=>20,'last_activity'=>30,'via'=>'','peer'=>'','ip'=>'198.51.100.20'],
+    ['callsign'=>'PU2REMOTE','suffix'=>'B','protocol'=>'D-STAR/DExtra','module'=>'D','connected_at'=>21,'last_activity'=>31,'via'=>'','peer'=>'','ip'=>'198.51.100.21'],
+    ['callsign'=>'PU2LOCAL','suffix'=>'B','protocol'=>'DMR','module'=>'C','connected_at'=>22,'last_activity'=>32,'via'=>'','peer'=>'','ip'=>'203.0.113.10'],
+];
+
+$public = public_connections($selfRows, ['203.0.113.10']);
+
+if (count($public) !== 3) {
+    fwrite(STDERR, "expected 3 public rows after self-node filtering, got ".count($public)."\n");
+    exit(1);
+}
+
+foreach ($public as $row) {
+    if (
+        ($row['protocol'] ?? '') === 'D-STAR/DExtra'
+        && ($row['ip'] ?? '') === '203.0.113.10'
+    ) {
+        fwrite(STDERR, "synthetic XLXD self DExtra node remained public\n");
+        exit(1);
+    }
+}
 PHP
-ok 'duplicate same-identity/protocol/module sessions and resolved callsign aliases collapse safely'
+ok 'duplicate sessions, aliases and synthetic XLXD self DExtra nodes are filtered safely'
 
 grep -Fq '$rawConnections = array_map(' "$STATUS" || fail 'raw connection list missing'
-grep -Fq '$connections = canonical_connections($rawConnections);' "$STATUS" || fail 'public canonicalization missing'
+grep -Fq '$connections = public_connections($rawConnections);' "$STATUS" || fail 'public connection filtering missing'
 grep -Fq '$rawConnections,' "$STATUS" || fail 'TX/history no longer receives raw connections'
 ok 'status keeps raw endpoints for TX correlation while exposing canonical connected rows'
