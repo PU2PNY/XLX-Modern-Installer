@@ -1,6 +1,6 @@
 # Architecture
 
-Atualizado em: 2026-09-28
+Atualizado em: 2026-10-02
 
 ## Fluxo autoritativo
 
@@ -53,7 +53,6 @@ O arquivo legado `modules/70-apache.sh` ainda existe no repositório, mas não �
 
 Consulte `PROJECT_MASTER_SPEC.md` para requisitos e `docs/RECOVERY.md` para rollback.
 
-
 ## Helix Voice — fronteira experimental
 
 A integração Helix inicial é uma fronteira de processo, não uma substituição direta do XLXD nem do codec dos rádios.
@@ -74,3 +73,34 @@ Regras:
 - nenhum serviço remoto faz parte do hot path de áudio.
 
 A implementação inicial está em `experimental/helix-bridge/` e não é instalada/ativada automaticamente.
+
+## Stereo Tool — fronteira de processo e fundação LAB
+
+Stereo Tool não é dependência do XLXD nem do transcoder legado. A arquitetura aprovada para uma futura integração é:
+
+```text
+XLXD / backend legado -> PCM -> xlx-audio-router -> encoder legado
+                               |              ^
+                               |              |
+                               +-- IPC AF_UNIX --> xlx-stereotoold
+                                                    |
+                                                    v
+                                               libStereoTool
+```
+
+A primeira implantação em `experimental/stereotool/` contém apenas validação estática de artifact, mock de teste, documentação e referência de hardening. Ela não instala a biblioteca do fornecedor, não altera `xlxd`/`xuvd` e não entra no áudio.
+
+Invariantes:
+- biblioteca proprietária somente em processo isolado futuro;
+- nenhuma redistribuição de artifact/licença proprietários;
+- worker sem `AF_INET`/`AF_INET6` e sem web UI do fornecedor;
+- artifact fornecido pelo administrador passa por quarentena, SHA-256, ZIP seguro, ELF/arquitetura/GLIBC/símbolos antes de qualquer load test;
+- contexto DSP independente por stream/PTT;
+- falta de capacidade produz bypass, nunca fila de voz;
+- fail-open sticky por PTT;
+- `PROCESS` futuro exige bypass original delay-matched;
+- artifact/preset ativo é imutável e troca é geracional;
+- autorização comercial/jurídica escrita e licença válida são gates de produção;
+- Helix e Stereo Tool não são empilhados automaticamente.
+
+Detalhes e gates: `docs/STEREOTOOL_INTEGRATION.md`.
