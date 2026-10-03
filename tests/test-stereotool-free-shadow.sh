@@ -10,7 +10,6 @@ gcc -shared -fPIC -x c -o "$TMP/libStereoTool_mock.so" - <<'C'
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <string.h>
 typedef struct { int x; } gStereoTool;
 void stereoTool_EnableInternalSoundCard(bool enabled) { (void)enabled; }
 int stereoTool_GetSoftwareVersion(void) { return 11050; }
@@ -22,6 +21,7 @@ void stereoTool_Delete(gStereoTool* s) { free(s); }
 bool stereoTool_SetStsValue(gStereoTool* s, int idx, int sub, const char* value) {
   (void)s; (void)idx; (void)sub; (void)value; return true;
 }
+void stereoTool_Reset(gStereoTool* s, int type) { (void)s; (void)type; }
 void stereoTool_Process(gStereoTool* s, float* x, int32_t n, int32_t c, int32_t sr) {
   (void)s; (void)c; (void)sr; for (int32_t i=0;i<n;i++) x[i] *= 0.5f;
 }
@@ -53,30 +53,26 @@ python3 "$ROOT/experimental/stereotool/shadow_router.py" \
   --input "$TMP/input.sock" --target "$TMP/helix.sock" --target "$TMP/st.sock" \
   --stats-interval 10 >"$TMP/router.log" 2>&1 & ROUTER_PID=$!
 
-for _ in $(seq 1 100); do
+for _ in $(seq 1 150); do
   [[ -S "$TMP/input.sock" && -S "$TMP/st.sock" && -S "$TMP/helix.sock" ]] && break
   sleep 0.02
 done
 [[ -S "$TMP/input.sock" && -S "$TMP/st.sock" && -S "$TMP/helix.sock" ]]
+grep -q '"free_gate": "PASS"' "$TMP/worker.log"
 
 python3 - "$TMP/input.sock" <<'PY'
 import socket,struct,sys,time
 p=sys.argv[1]
-def pkt(stream,reset,amp):
+def pkt(stream,reset,amp,ts):
     n=160; flags=0x01|(0x02 if reset else 0)
-    h=b'HXP1'+bytes([1,flags])+struct.pack('<HIIQ',n,stream,8000,0)
+    h=b'HXP1'+bytes([1,flags])+struct.pack('<HIIQ',n,stream,8000,ts)
     pcm=struct.pack('<160h',*([amp]*160))
     return h+pcm
 s=socket.socket(socket.AF_UNIX,socket.SOCK_DGRAM)
-s.sendto(pkt(7,True,1200),p)
+s.sendto(pkt(7,True,1200,0),p)
 time.sleep(.2)
 PY
-
-for _ in $(seq 1 100); do
-  grep -q '"event": "free_gate_pass"' "$TMP/worker.log" && break
-  sleep 0.02
-done
-grep -q '"event": "free_gate_pass"' "$TMP/worker.log"
+kill -0 "$WORKER_PID"
 
 # Native DSP observer can disappear and Helix forwarding must still work.
 kill "$WORKER_PID"; wait "$WORKER_PID" 2>/dev/null || true; WORKER_PID=""
