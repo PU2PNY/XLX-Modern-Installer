@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Static validator for administrator-supplied Stereo Tool Linux artifacts.
 
-LAB-ONLY foundation. The validator never dlopen()s or executes the supplied
+LAB-ONLY foundation. The validator never dynamically loads or executes the supplied
 library. It inspects ZIP structure and ELF metadata, and returns JSON.
 """
 
