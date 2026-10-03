@@ -63,8 +63,9 @@ if python3 "$VALIDATOR" "$TMP/symlink.zip" >"$TMP/link.out" 2>"$TMP/link.err"; t
 fi
 grep -F 'ZIP symlink is not allowed' "$TMP/link.err" >/dev/null
 
-# Static validator must remain non-executing: no dlopen/ctypes path.
-if grep -En '\b(dlopen|ctypes\.CDLL|ctypes\.PyDLL)\b' "$VALIDATOR"; then
+# Static validator must remain non-executing: reject actual loader call patterns,
+# not documentation that merely mentions dlopen.
+if grep -En 'dlopen[[:space:]]*\(|ctypes\.(CDLL|PyDLL)[[:space:]]*\(' "$VALIDATOR"; then
   echo "FAIL | validator gained a runtime library load path"
   exit 1
 fi
