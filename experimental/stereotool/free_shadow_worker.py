@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Stereo Tool 11.05 no-key shadow worker for XLX HXP1 PCM copies.
 
-The worker discards processed PCM. It is intentionally incapable of returning
-or committing audio to xuvd. Native library failure can only kill this observer.
+Processed PCM is always discarded. The single DSP context is created and
+free-feature-gated before the socket is exposed, then reset between PTTs using
+the official SDK reset contract. There is no application voice queue.
 """
 from __future__ import annotations
 
@@ -17,7 +18,6 @@ import socket
 import stat
 import struct
 import time
-from dataclasses import dataclass
 from pathlib import Path
 
 MAGIC = b"HXP1"
@@ -33,6 +33,7 @@ PARAM_PREAMP = 6
 PARAM_LOWPASS_ENABLED = 98
 PARAM_LOWPASS_FREQUENCY = 99
 PARAM_HIGHPASS_FREQUENCY = 100
+ID_SAVE_PROCESSING = 20709
 
 
 def sha256(path: Path) -> str:
@@ -72,6 +73,8 @@ class StereoApi:
         L.stereoTool_Process.restype = None
         L.stereoTool_SetStsValue.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_char_p]
         L.stereoTool_SetStsValue.restype = ctypes.c_bool
+        L.stereoTool_Reset.argtypes = [ctypes.c_void_p, ctypes.c_int]
+        L.stereoTool_Reset.restype = None
         L.stereoTool_GetUnlicensedUsedFeatures.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int]
         L.stereoTool_GetUnlicensedUsedFeatures.restype = ctypes.c_bool
         L.stereoTool_CheckLicenseValid.argtypes = [ctypes.c_void_p]
@@ -86,27 +89,30 @@ class StereoApi:
         self.software_version = sw
         self.api_version = api
 
-    def create(self, name: str) -> int:
-        ptr = self.lib.stereoTool_Create3(False, None, name.encode(), b"/tmp", False)
+    def create(self) -> int:
+        ptr = self.lib.stereoTool_Create3(False, None, b"XLX026-FREE-SHADOW", b"/tmp", False)
         if not ptr:
             raise RuntimeError("stereoTool_Create3 failed")
-        # Conservative, no-key radio profile verified in the 11.05 SDK lab:
-        # unity input gain + 200 Hz high-pass + 3.4 kHz low-pass.
-        settings = (
-            (PARAM_PREAMP, b"1"),
-            (PARAM_HIGHPASS_FREQUENCY, b"200"),
-            (PARAM_LOWPASS_ENABLED, b"1"),
-            (PARAM_LOWPASS_FREQUENCY, b"3400"),
-        )
-        for param, value in settings:
-            if not self.lib.stereoTool_SetStsValue(ptr, param, 0, value):
-                self.lib.stereoTool_Delete(ptr)
-                raise RuntimeError(f"Stereo Tool rejected profile parameter {param}")
         return int(ptr)
 
     def delete(self, ptr: int) -> None:
         if ptr:
             self.lib.stereoTool_Delete(ctypes.c_void_p(ptr))
+
+    def apply_profile(self, ptr: int, reset: bool) -> None:
+        p = ctypes.c_void_p(ptr)
+        if reset:
+            self.lib.stereoTool_Reset(p, ID_SAVE_PROCESSING)
+        # Conservative no-key radio profile verified with SDK 11.05:
+        # unity gain, 200 Hz high-pass, 3.4 kHz low-pass.
+        for param, value in (
+            (PARAM_PREAMP, b"1"),
+            (PARAM_HIGHPASS_FREQUENCY, b"200"),
+            (PARAM_LOWPASS_ENABLED, b"1"),
+            (PARAM_LOWPASS_FREQUENCY, b"3400"),
+        ):
+            if not self.lib.stereoTool_SetStsValue(p, param, 0, value):
+                raise RuntimeError(f"Stereo Tool rejected profile parameter {param}")
 
     def process(self, ptr: int, pcm: tuple[int, ...], sample_rate: int) -> tuple[float, float, int]:
         n = len(pcm)
@@ -117,6 +123,11 @@ class StereoApi:
         out_sq = sum(float(x) * float(x) for x in buf)
         return in_sq, out_sq, n
 
+    def warm(self, ptr: int, sample_rate: int = 8000, frames: int = 30) -> None:
+        silent = (0,) * 160
+        for _ in range(frames):
+            self.process(ptr, silent, sample_rate)
+
     def free_gate(self, ptr: int) -> tuple[bool, str, bool]:
         text = ctypes.create_string_buffer(8192)
         ok = bool(self.lib.stereoTool_GetUnlicensedUsedFeatures(ctypes.c_void_p(ptr), text, len(text)))
@@ -126,14 +137,6 @@ class StereoApi:
 
     def latency(self, ptr: int, sample_rate: int) -> int:
         return int(self.lib.stereoTool_GetLatency2(ctypes.c_void_p(ptr), sample_rate, False))
-
-
-@dataclass
-class Context:
-    ptr: int
-    last_seen: float
-    frames: int = 0
-    gated: bool = False
 
 
 def parse_hxp1(data: bytes):
@@ -156,36 +159,53 @@ def main() -> int:
     ap.add_argument("--lib", required=True)
     ap.add_argument("--sha256", required=True)
     ap.add_argument("--max-contexts", type=int, default=1)
-    ap.add_argument("--idle-seconds", type=float, default=3.0)
+    ap.add_argument("--idle-seconds", type=float, default=1.0)
     ap.add_argument("--stats-interval", type=int, default=60)
     args = ap.parse_args()
-    if args.max_contexts < 1 or args.max_contexts > 2:
-        raise SystemExit("--max-contexts must be 1..2 for free shadow V1")
+    if args.max_contexts != 1:
+        raise SystemExit("free shadow V1 intentionally supports exactly one prewarmed context")
+    if args.idle_seconds < 0.25:
+        raise SystemExit("--idle-seconds must be >= 0.25")
 
     api = StereoApi(Path(args.lib), args.sha256)
+    ptr = api.create()
+    api.apply_profile(ptr, reset=False)
+    api.warm(ptr)
+    free_ok, message, license_valid = api.free_gate(ptr)
+    if not free_ok:
+        api.delete(ptr)
+        raise SystemExit(f"no-key free-feature gate failed: {message[:300]}")
+    latency = api.latency(ptr, 8000)
+
     sock_path = Path(args.socket)
     sock_path.parent.mkdir(parents=True, exist_ok=True)
     remove_socket(sock_path)
     rx = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-    rx.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 262144)
+    # Keep the kernel queue bounded. There is deliberately no application queue.
+    rx.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 8192)
+    rx.settimeout(0.2)
     rx.bind(str(sock_path))
     os.chmod(sock_path, 0o660)
 
     running = True
     disabled = False
-    contexts: dict[int, Context] = {}
+    owner_stream: int | None = None
+    last_seen = 0.0
+    frames_on_owner = 0
     stats = {
         "received": 0, "processed": 0, "invalid": 0, "context_full": 0,
-        "free_gate_failures": 0, "native_errors": 0, "samples": 0,
+        "free_gate_failures": 0, "native_errors": 0, "resets": 0, "samples": 0,
     }
     in_sq = 0.0
     out_sq = 0.0
     last_stats = time.monotonic()
 
-    def destroy(stream_id: int) -> None:
-        ctx = contexts.pop(stream_id, None)
-        if ctx:
-            api.delete(ctx.ptr)
+    def prepare_idle() -> None:
+        nonlocal owner_stream, frames_on_owner
+        api.apply_profile(ptr, reset=True)
+        owner_stream = None
+        frames_on_owner = 0
+        stats["resets"] += 1
 
     def stop(_signum, _frame):
         nonlocal running
@@ -201,17 +221,30 @@ def main() -> int:
     print(json.dumps({
         "component": "xlx-stereotoold", "mode": "shadow", "no_key": True,
         "software_version": api.software_version, "api_version": api.api_version,
-        "max_contexts": args.max_contexts,
+        "max_contexts": 1, "free_gate": "PASS", "license_valid": license_valid,
+        "latency_samples": latency, "latency_ms": round(latency * 1000.0 / 8000, 3),
+        "profile": "radio-free-v1",
     }, sort_keys=True), flush=True)
 
     try:
         while running:
+            now = time.monotonic()
             try:
                 data = rx.recv(HEADER_LEN + MAX_SAMPLES * 2 + 1)
+            except socket.timeout:
+                if owner_stream is not None and now - last_seen > args.idle_seconds:
+                    try:
+                        prepare_idle()
+                    except Exception as exc:
+                        stats["native_errors"] += 1
+                        disabled = True
+                        print(json.dumps({"component": "xlx-stereotoold", "event": "reset_failed", "error": str(exc)[:200]}), flush=True)
+                continue
             except OSError:
                 if not running:
                     break
                 raise
+
             stats["received"] += 1
             parsed = parse_hxp1(data)
             if not parsed:
@@ -221,73 +254,72 @@ def main() -> int:
                 continue
             stream_id, sample_rate, reset, pcm = parsed
             now = time.monotonic()
-            for sid, ctx in list(contexts.items()):
-                if now - ctx.last_seen > args.idle_seconds:
-                    destroy(sid)
-            if reset:
-                destroy(stream_id)
-            ctx = contexts.get(stream_id)
-            if ctx is None:
-                if len(contexts) >= args.max_contexts:
-                    stats["context_full"] += 1
-                    continue
+
+            if owner_stream is not None and now - last_seen > args.idle_seconds:
                 try:
-                    ptr = api.create(f"XLX026-SHADOW-{stream_id}")
-                    ctx = Context(ptr=ptr, last_seen=now)
-                    contexts[stream_id] = ctx
+                    prepare_idle()
                 except Exception as exc:
                     stats["native_errors"] += 1
-                    print(json.dumps({"component": "xlx-stereotoold", "event": "context_create_failed", "error": str(exc)[:200]}), flush=True)
+                    disabled = True
+                    print(json.dumps({"component": "xlx-stereotoold", "event": "reset_failed", "error": str(exc)[:200]}), flush=True)
                     continue
-            ctx.last_seen = now
+
+            if owner_stream is None:
+                owner_stream = stream_id
+                frames_on_owner = 0
+            elif stream_id != owner_stream:
+                stats["context_full"] += 1
+                continue
+            elif reset and frames_on_owner > 0:
+                # Very short PTT gap: reset synchronously rather than leak DSP state.
+                try:
+                    api.apply_profile(ptr, reset=True)
+                    stats["resets"] += 1
+                    frames_on_owner = 0
+                except Exception as exc:
+                    stats["native_errors"] += 1
+                    disabled = True
+                    print(json.dumps({"component": "xlx-stereotoold", "event": "reset_failed", "error": str(exc)[:200]}), flush=True)
+                    continue
+
+            last_seen = now
             try:
-                a, b, n = api.process(ctx.ptr, pcm, sample_rate)
+                a, b, n = api.process(ptr, pcm, sample_rate)
                 in_sq += a
                 out_sq += b
                 stats["samples"] += n
                 stats["processed"] += 1
-                ctx.frames += 1
-                if not ctx.gated:
-                    free_ok, message, license_valid = api.free_gate(ctx.ptr)
-                    if not free_ok:
+                frames_on_owner += 1
+                if stats["processed"] % 250 == 0:
+                    gate_ok, gate_message, gate_license = api.free_gate(ptr)
+                    if not gate_ok:
                         stats["free_gate_failures"] += 1
                         disabled = True
                         print(json.dumps({
                             "component": "xlx-stereotoold", "event": "free_gate_failed",
-                            "message": message[:300], "license_valid": license_valid,
+                            "message": gate_message[:300], "license_valid": gate_license,
                         }, sort_keys=True), flush=True)
-                        destroy(stream_id)
-                        continue
-                    ctx.gated = True
-                    latency = api.latency(ctx.ptr, sample_rate)
-                    print(json.dumps({
-                        "component": "xlx-stereotoold", "event": "free_gate_pass",
-                        "license_valid": license_valid, "latency_samples": latency,
-                        "latency_ms": round(latency * 1000.0 / sample_rate, 3),
-                    }, sort_keys=True), flush=True)
             except Exception as exc:
                 stats["native_errors"] += 1
+                disabled = True
                 print(json.dumps({"component": "xlx-stereotoold", "event": "process_error", "error": str(exc)[:200]}), flush=True)
-                destroy(stream_id)
 
             if now - last_stats >= max(10, args.stats_interval):
                 samples = max(1, stats["samples"])
-                payload = {
+                print(json.dumps({
                     "component": "xlx-stereotoold", "mode": "shadow", "disabled": disabled,
-                    "contexts": len(contexts), **stats,
+                    "context_busy": owner_stream is not None, **stats,
                     "input_rms": round(math.sqrt(in_sq / samples), 7),
                     "output_rms": round(math.sqrt(out_sq / samples), 7),
-                }
-                print(json.dumps(payload, sort_keys=True), flush=True)
+                }, sort_keys=True), flush=True)
                 last_stats = now
     finally:
-        for sid in list(contexts):
-            destroy(sid)
         try:
             rx.close()
         except OSError:
             pass
         remove_socket(sock_path)
+        api.delete(ptr)
     return 0
 
 
