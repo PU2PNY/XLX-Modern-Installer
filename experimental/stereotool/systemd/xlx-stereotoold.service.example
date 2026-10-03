@@ -1,0 +1,39 @@
+# Reference only. Do not install automatically.
+# The real worker is not part of the lab-foundation stage.
+[Unit]
+Description=XLX Stereo Tool isolated DSP worker
+After=local-fs.target
+ConditionPathExists=/opt/xlx-audio/bin/xlx-stereotoold
+
+[Service]
+Type=simple
+User=xlx-stereotool
+Group=xlx-audio
+ExecStart=/opt/xlx-audio/bin/xlx-stereotoold --socket /run/xlx-audio/stereotool.sock
+Restart=on-failure
+RestartSec=1s
+
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+RestrictAddressFamilies=AF_UNIX
+RestrictNamespaces=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+UMask=0077
+
+ReadOnlyPaths=/opt/xlx-audio/stereotool
+ReadOnlyPaths=/var/lib/xlx-audio/presets
+ReadWritePaths=/run/xlx-audio
+
+# Realtime/CPU affinity intentionally omitted until measured in ENV.
+# Network families AF_INET/AF_INET6 intentionally unavailable.
+
+[Install]
+WantedBy=multi-user.target
