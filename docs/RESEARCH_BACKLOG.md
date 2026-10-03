@@ -38,6 +38,16 @@ Backups são documentados, mas esta auditoria não encontrou evidência atual de
 ### B6. Validação independente em VPS Debian 12
 Há runtime gate e documentação de beta, mas uma nova instalação limpa da revisão atual deve ser registrada com commit, ambiente e evidência antes de promover mudanças críticas.
 
+### B7. Stereo Tool — autorização/licenciamento para refletor multiusuário
+A documentação pública analisada não resolve com segurança se o modelo de uso do XLX026 — áudio de terceiros em refletor público, múltiplos contexts/streams e SDK em servidor — está coberto pela licença comum nem como “instance” é contada.
+
+Ação: obter resposta escrita da Thimeo sobre uso multiusuário, prestação de funcionalidade via Internet, contexts/instances, SDK, backup e servidor público. Sem essa resposta, `PROCESS_CANARY`/`PROCESS` permanecem bloqueados.
+
+### B8. Stereo Tool — contrato runtime do SDK e sizing real
+A fundação estática não prova thread-safety/reentrância, custo por context, canais/formato PCM aceitos, funções exatas da API, latência, CPU ou RAM.
+
+Ação: somente após artifact/SDK legítimos fornecidos pelo administrador, validar headers/exemplos oficiais em worker isolado, medir N=1/2/4/8/12/16/20 contexts e congelar o contrato PCM/SDK. Não inferir nomes de funções nem sizing a partir de terceiros.
+
 ## C — não aplicar agora
 ### C1. Upgrade do XLXD apenas por versão
 Não promover 2.6.x ou qualquer versão numericamente superior sem laboratório. O baseline atual tem prioridade sobre novidade.
