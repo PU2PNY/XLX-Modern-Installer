@@ -14,7 +14,10 @@ cat >"$TMP/good.c" <<'EOF'
 const char *stereoTool_GetSoftwareVersion(void) { return "mock-0"; }
 int stereoTool_GetApiVersion(void) { return 0; }
 EOF
-gcc -shared -fPIC -Wl,-soname,libStereoTool_mock.so -o "$TMP/libStereoTool_mock.so" "$TMP/good.c"
+# This synthetic shared object exports only two trivial identity functions and
+# intentionally links without host libc/startup files. The Debian runtime gate
+# uses --no-install-recommends, so its CI-only mock must not require libc6-dev.
+gcc -shared -fPIC -nostdlib -Wl,-soname,libStereoTool_mock.so -o "$TMP/libStereoTool_mock.so" "$TMP/good.c"
 
 python3 "$VALIDATOR" "$TMP/libStereoTool_mock.so" >"$TMP/direct.json"
 grep -F '"status": "READY_FOR_SANDBOX"' "$TMP/direct.json" >/dev/null
@@ -23,7 +26,7 @@ grep -F '"artifact_kind": "shared_library"' "$TMP/direct.json" >/dev/null
 cat >"$TMP/bad.c" <<'EOF'
 int not_stereotool(void) { return 1; }
 EOF
-gcc -shared -fPIC -o "$TMP/libbad.so" "$TMP/bad.c"
+gcc -shared -fPIC -nostdlib -o "$TMP/libbad.so" "$TMP/bad.c"
 if python3 "$VALIDATOR" "$TMP/libbad.so" >"$TMP/bad.out" 2>"$TMP/bad.err"; then
   echo "FAIL | library missing identity symbols was accepted"
   exit 1
