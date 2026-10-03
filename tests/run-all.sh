@@ -61,6 +61,8 @@ echo "[stereotool lab foundation]"
 bash "$ROOT/tests/test-stereotool-foundation.sh" || failures=$((failures+1))
 echo "[stereotool free shadow]"
 bash "$ROOT/tests/test-stereotool-free-shadow.sh" || failures=$((failures+1))
+echo "[stereotool shadow systemd]"
+bash "$ROOT/tests/test-stereotool-shadow-systemd.sh" || failures=$((failures+1))
 echo "[project governance]"
 bash "$ROOT/tests/test-project-governance.sh" || failures=$((failures+1))
 echo "[release hardening]"
