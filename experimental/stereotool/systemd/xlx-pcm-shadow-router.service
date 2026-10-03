@@ -1,0 +1,35 @@
+[Unit]
+Description=XLX PCM shadow fanout for Helix and Stereo Tool
+After=helix-voice-shadow.service xlx-stereotool-shadow.service
+Wants=helix-voice-shadow.service xlx-stereotool-shadow.service
+Before=xlx-unified-voice.service
+
+[Service]
+Type=simple
+User=helix-voice
+Group=helix-voice
+ExecStart=/opt/xlx-stereotool/bin/shadow_router.py --input /run/helix-voice/observe.sock --target /run/helix-voice/helix.sock --target /run/xlx-stereotool/observe.sock --stats-interval 60
+Restart=always
+RestartSec=1
+TimeoutStopSec=3
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+RestrictAddressFamilies=AF_UNIX
+RestrictNamespaces=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+MemoryMax=32M
+CPUQuota=10%
+TasksMax=4
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target
