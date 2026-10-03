@@ -123,10 +123,18 @@ class StereoApi:
         out_sq = sum(float(x) * float(x) for x in buf)
         return in_sq, out_sq, n
 
-    def warm(self, ptr: int, sample_rate: int = 8000, frames: int = 30) -> None:
-        silent = (0,) * 160
+    def warm(self, ptr: int, sample_rate: int = 8000, frames: int = 40) -> None:
+        # A non-zero voice-band signal forces lazy DSP initialization before
+        # the live observer socket is exposed. The generated samples never
+        # leave this process and all processed output is discarded.
+        phase = 0.0
+        step = 2.0 * math.pi * 700.0 / sample_rate
         for _ in range(frames):
-            self.process(ptr, silent, sample_rate)
+            pcm = []
+            for _i in range(160):
+                pcm.append(int(1200.0 * math.sin(phase)))
+                phase += step
+            self.process(ptr, tuple(pcm), sample_rate)
 
     def free_gate(self, ptr: int) -> tuple[bool, str, bool]:
         text = ctypes.create_string_buffer(8192)
