@@ -1,0 +1,87 @@
+{
+  "schema": 1,
+  "date_local": "2026-10-02",
+  "timezone": "America/Sao_Paulo",
+  "scope": "Stereo Tool LAB-only foundation; no proprietary artifact and no production audio-path mutation",
+  "repository": "PU2PNY/XLX-Modern-Installer",
+  "base_main": "377f5e4bea0d311657d5df1258724aecc2b4efbf",
+  "branch": "feature/stereotool-lab-foundation-v1-20261002",
+  "evidence_levels": {
+    "foundation_tests": "SW/ENV",
+    "production_state_check": "PROD read-only"
+  },
+  "wartywallaby": {
+    "specific_gate_head": "b7248af4eb69ed50146df6632b94a4b81c757a4b",
+    "specific_gate": {
+      "command_class": "python compile + bash syntax + tests/test-stereotool-foundation.sh",
+      "result": "PASS",
+      "validated": [
+        "synthetic valid shared library -> READY_FOR_SANDBOX",
+        "missing identity symbols -> REJECTED",
+        "ZIP traversal -> REJECTED",
+        "ZIP symlink -> REJECTED",
+        "static validator has no runtime library-load call path",
+        "reference worker unit is AF_UNIX-only and hardened",
+        "no vendor Stereo Tool binary is tracked under experimental/stereotool"
+      ]
+    },
+    "governance": {
+      "head": "b7248af4eb69ed50146df6632b94a4b81c757a4b",
+      "result": "PASS",
+      "summary": "canonical project governance and Nginx documentation are coherent"
+    },
+    "public_release_audit": {
+      "head": "b7248af4eb69ed50146df6632b94a4b81c757a4b",
+      "result": "PASS",
+      "failures": 0,
+      "warnings": 0
+    },
+    "full_suite": {
+      "head": "7449c4538c9dc68df6a40d9a521816e23720943b",
+      "command": "tests/run-all.sh",
+      "result": "PASS",
+      "failures": 0,
+      "note": "A later documentation-only RESEARCH_BACKLOG commit advanced the branch; the latest head was rechecked with the specific Stereo Tool gate, governance and public-release audit. Final PR CI remains authoritative for the final head."
+    },
+    "vendor_artifact": {
+      "found_in_lab_opt_scan": false,
+      "real_sdk_or_library_tested": false
+    }
+  },
+  "production_read_only": {
+    "host": "xlx026",
+    "xlxd": {
+      "active": true,
+      "pid": 1093634
+    },
+    "xuvd": {
+      "active": true,
+      "pid": 3729899
+    },
+    "helix_shadow": {
+      "service_active": true,
+      "pid": 3716236,
+      "mode": "shadow"
+    },
+    "stereotool_worker": {
+      "service_active": false
+    },
+    "socket_probe_note": "The SentinelX service identity lacked permission to traverse /run/helix-voice; no socket state is inferred from that permission-limited probe.",
+    "mutations_performed": false,
+    "services_restarted": false
+  },
+  "blocked_gates": [
+    "administrator-supplied legitimate Stereo Tool artifact and official SDK",
+    "written vendor authorization/licensing for public multi-user reflector use and instance/context semantics",
+    "isolated runtime load/smoke test",
+    "actual XLX PCM format/frame inventory",
+    "per-stream context isolation with real SDK",
+    "latency CPU RAM and multi-context sizing",
+    "delay-matched fail-open and emergency bypass",
+    "chaos tests and complete restore",
+    "shadow soak",
+    "controlled canary",
+    "production PROCESS"
+  ],
+  "conclusion": "PASS for the open-source/static LAB foundation only. No evidence in this record authorizes Stereo Tool processing in production."
+}
