@@ -59,6 +59,8 @@ echo "[helix shadow monitor]"
 bash "$ROOT/tests/test-helix-shadow-monitor.sh" || failures=$((failures+1))
 echo "[stereotool lab foundation]"
 bash "$ROOT/tests/test-stereotool-foundation.sh" || failures=$((failures+1))
+echo "[stereotool free shadow]"
+bash "$ROOT/tests/test-stereotool-free-shadow.sh" || failures=$((failures+1))
 echo "[project governance]"
 bash "$ROOT/tests/test-project-governance.sh" || failures=$((failures+1))
 echo "[release hardening]"
