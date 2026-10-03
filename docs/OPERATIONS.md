@@ -51,7 +51,6 @@ Interpretação:
 - `concurrent_endpoints`: mais de um endpoint recente para o mesmo indicativo;
 - o V1 não mede ruído acústico, clipping ou equalização porque não decodifica AMBE/AMBE+2.
 
-
 ## Helix PCM Bridge
 A integração experimental Helix deve ser operada em três fases explícitas:
 1. `off` — comportamento legado; estado padrão;
@@ -59,7 +58,6 @@ A integração experimental Helix deve ser operada em três fases explícitas:
 3. `process` — PCM retornado pode ser usado somente após validação ENV e gate específico de áudio/rollback.
 
 O cliente tem timeout local limitado a 5 ms na V1, com orçamento total por requisição e comportamento fail-open. Erro, socket ausente, timeout ou resposta inválida devem manter o PCM original; em `process`, a primeira falha fixa o restante daquele stream no legado. Não introduza API/cloud no caminho de áudio. Antes de qualquer mudança do transcoder ativo, registre PID, binário/hash, unit/config, tráfego ativo, proveniência das dependências usadas no build e ponto de retorno.
-
 
 ### Gate adicional antes de shadow
 
@@ -79,3 +77,28 @@ Não aumentar a deadline para esconder falhas sob contenção. A execução adic
 - O indicador do Live deve dizer `HELIX • MONITORANDO`/`SHADOW`, nunca `PROCESSANDO`, enquanto `XLX_HELIX_MODE=shadow`.
 - Se Helix/monitor/OpenAI falhar, verificar o caminho legado antes de qualquer ação; não reiniciar XLXD por causa do observador.
 - `process` continua proibido até seus gates próprios serem concluídos.
+
+## Stereo Tool — operação da fundação LAB
+
+A etapa atual é somente laboratório. Ela não instala Stereo Tool no XLX026, não altera `xlxd`/`xuvd` e não muda o áudio transmitido.
+
+Procedimento permitido:
+1. obter o artifact diretamente do fornecedor pelo administrador;
+2. manter o artifact fora do Git e fora do webroot;
+3. executar `experimental/stereotool/artifact_validator.py` em ambiente de laboratório;
+4. interpretar `READY_FOR_SANDBOX` apenas como aprovação para a próxima etapa isolada;
+5. registrar SHA-256, arquitetura, GLIBC, origem e resultado sem registrar licença/chave;
+6. só depois construir/usar worker sandbox com o SDK oficial.
+
+Rejeitar promoção quando:
+- houver dúvida de origem/integridade do artifact;
+- SDK oficial não estiver disponível;
+- autorização comercial/jurídica para o uso pretendido não estiver escrita;
+- licença estiver inválida/ambígua;
+- houver crash, state leakage, audio drop ou crescimento de memória;
+- latência/CPU/RAM não estiverem medidos;
+- emergency bypass e restore não estiverem comprovados.
+
+A unidade em `experimental/stereotool/systemd/xlx-stereotoold.service.example` é **referência**, não deve ser habilitada na etapa atual. A futura unidade deve permanecer `AF_UNIX`-only e sem web UI do fornecedor.
+
+Não usar Stereo Tool para “corrigir” a instabilidade atual de `process` do Helix e não empilhar os dois DSPs automaticamente. Cada mecanismo mantém gates, benchmark e rollback separados.

@@ -1,6 +1,6 @@
 # PROJECT_RELEASE_STATUS — fotografia atual
 
-Atualizado em: 2026-09-30
+Atualizado em: 2026-10-02
 
 ## Repositório
 - Repositório: `PU2PNY/XLX-Modern-Installer`
@@ -107,7 +107,6 @@ Escopo:
 
 Estado: SW + ENV validados e deploy PROD do serviço passivo validado no XLX026 em 2026-09-30. `tests/test-transmission-analyzer.sh`: 7/7 PASS; `tests/run-all.sh`: failures=0. Em ENV, o serviço real com CAP_NET_RAW capturou YSF sintético enviado por segunda VPS e detectou corretamente uma lacuna 11→14/~300 ms. Em PROD, o serviço permaneceu ativo com ~10 MB, recebeu mais de 1.500 YSFP reais, não abriu listener UDP adicional e o PID do XLXD permaneceu 1093634 antes/depois do deploy. O analisador detectou automaticamente PS7JAP com `concurrent_endpoints` e `endpoint_count=2`, confirmando a detecção de sessões concorrentes em tráfego real. Não houve YSFD/voz real durante a janela curta de validação PROD; a análise de continuidade dos frames de voz permanece comprovada em ENV, não promovida por inferência.
 
-
 ## Helix PCM Bridge V1 — integrado como experimental
 Branch de origem: `feature/helix-pcm-fallback-v1-20260930`.
 PR #65 mesclada em `main` por squash em `15a1612a720bbab4882bf1b56f4584301a2ec16b`. O merge apenas versiona o código experimental; não habilita Helix no áudio de produção.
@@ -122,7 +121,6 @@ Objetivo:
 - timeout/falha do Helix mantém PCM original e caminho legado.
 
 Evidência atual: DOC/SW/ENV registrada abaixo. Não promove áudio de produção. O transcoder `xuvd` ativo do XLX026 foi identificado como backend local em `127.0.0.1:10100`; nenhuma substituição/restart de produção foi executada durante esta etapa.
-
 
 ### Evidência ENV — Helix PCM Bridge V1 (2026-09-30)
 
@@ -140,7 +138,6 @@ WartyWallaby:
 Classificação: `SW/ENV PASS` para contrato, shadow, fail-open e continuidade multi-stream. `process` continua **não autorizado em PROD** até áudio real/soak/rollback e reconciliação da proveniência do transcoder ativo.
 
 Proveniência histórica recuperada em backup: o trabalho do transcoder de 2026-09-08 preserva `boatbod/op25@28f2c40645deca3f8c2d529d27d0df2555ed287a`, o source `xuvd.cpp` atual (SHA-256 `2327548067...bfea5c`) e uma cópia byte-idêntica do binário PROD atual (SHA-256 `4b72dfc7...e58069`). O log de instalação prova que esse binário foi obtido por um patch binário único de 1 byte no predecessor `50ac33df...cec15`, alterando o limite FEC 3→4. Porém o rebuild limpo preservado daquela mesma investigação gera SHA-256 `cc163930...a475d0`, não o ELF ativo. Portanto a cadeia histórica foi identificada, mas a reprodução byte a byte por compilação ainda não foi comprovada; o binário de produção não foi substituído nem reiniciado.
-
 
 ### Equivalência contra xuvd PROD — ENV com corpus PROD (2026-09-30)
 
@@ -183,7 +180,6 @@ Evidência sanitizada reproduzível: [Helix PCM bridge ENV](docs/evidence/helix-
 O script completo test-e2e-lab.sh passou seus critérios de continuidade/fail-open. Porém, no multi-TX dessa execução adicional, stream 1 teve helix_ok=4 e helix_fallback=1, stream 2 helix_ok=5 e helix_fallback=1; cada um entregou 40/40 frames, sem falhas de codec. Isso difere das duas execuções anteriores com Helix 40/40 em ambos. Não escolher apenas o melhor run: a confiabilidade de processamento sob contenção permanece PARCIAL, e disputa de CPU/scheduling é hipótese a investigar. A latência do wrapper é round-trip incluindo codec/IPC/scheduling, não latência isolada Helix. Soak/áudio/PROD continuam bloqueados. O prazo 5 ms não será aumentado para mascarar a falha.
 Evidência adicional: [wrapper ENV](docs/evidence/helix-pcm-bridge-wrapper-20260930.json).
 
-
 ### Repetibilidade multi-TX após o gate final da PR #65
 Três repetições controladas adicionais na WartyWallaby mantiveram 40/40 frames por stream e zero falha de codec, mas cada stream acionou uma vez o fallback sticky em momentos variáveis: 35/34, 2/28 e 18/14 respostas Helix antes do fallback. Isso confirma que a continuidade/fail-open está PASS, porém a confiabilidade de `process` sob contenção permanece PARCIAL. O teto de 5 ms não foi aumentado. Scheduling/contenção continua hipótese, não causa raiz provada. Nenhuma alteração foi feita em produção.
 
@@ -195,3 +191,21 @@ Por autorização explícita do operador, o XLX026 recebeu a integração Helix 
 PROD inicial: o XLXD permaneceu no PID 1093634 e não foi reiniciado. O xuvd candidate tem SHA-256 `559f580b5edf58883eb81293d8fbdc044e13eff9ca4dc6437e6b16014f75a243`; `helix-voice-shadow.service` usa socket Unix datagram local `0660` com identidade dedicada. Foram observados streams reais de 18, 108 e 72 frames com `helix_ok` igual ao total de frames, `helix_fallback=0` e `failures=0`. Isso é evidência PROD inicial de `shadow`, não valida `process` e não substitui o soak de 24 h ainda pendente.
 
 Foi instalado monitor técnico separado do hot path. Ele coleta somente estado de serviços/socket/hash/RSS/counters; a OpenAI recebe somente telemetria agregada em intervalo limitado (15 min ou transição de anomalia), nunca áudio/voz/indicativo. O dashboard expõe estado sanitizado por endpoint dedicado e mostra `HELIX • MONITORANDO` no box Ao Vivo quando `shadow` está pronto. A primeira análise remota retornou estado OK. `process` permanece bloqueado.
+
+## Stereo Tool — fundação LAB 2026-10-02
+Branch: `feature/stereotool-lab-foundation-v1-20261002`, criada a partir de `main` em `377f5e4bea0d311657d5df1258724aecc2b4efbf`.
+
+Escopo implantado na branch:
+- `experimental/stereotool/artifact_validator.py` para inspeção estática, sem carregar/rodar a biblioteca;
+- quarentena segura de ZIP com rejeição de traversal, symlink e special file;
+- SHA-256, ELF64, arquitetura, GLIBC e símbolos de identidade;
+- `xlx-stereotoold.service.example` como referência hardening `AF_UNIX`-only, não instalada;
+- mock sintético e teste de regressão sem artifact proprietário;
+- arquitetura/gates em `docs/STEREOTOOL_INTEGRATION.md`;
+- invariantes ST-001…ST-010 e testes TEST-030/031.
+
+Evidência ENV na WartyWallaby: `python3 -m py_compile`, `bash -n` e `tests/test-stereotool-foundation.sh` PASS. O teste aceitou mock `.so` válido como `READY_FOR_SANDBOX` e rejeitou biblioteca sem símbolos, ZIP traversal e ZIP symlink. Nenhuma biblioteca/CLI Stereo Tool real foi encontrada/fornecida no laboratório e nenhum artifact proprietário foi versionado.
+
+Classificação: `SW/ENV PASS` somente para a fundação estática/mock. `TEST-031` permanece PENDENTE para artifact/SDK reais, licença/autorização escrita, sandbox load, PCM inventory, contextos por stream, latência/CPU/RAM, shadow, delay-matched fail-open, chaos, canário e rollback.
+
+**Produção XLX026 não foi modificada nesta etapa.** Nenhum serviço Stereo Tool foi criado/habilitado, nenhum `xlxd`/`xuvd` foi reiniciado e `PROCESS` Stereo Tool permanece proibido.

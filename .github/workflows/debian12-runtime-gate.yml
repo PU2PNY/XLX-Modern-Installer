@@ -20,7 +20,7 @@ jobs:
           apt-get update
           DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
             git ca-certificates bash coreutils file rsync python3 php-cli php-sqlite3 \
-            php-curl php-mbstring php-xml sqlite3 curl iproute2 systemd
+            php-curl php-mbstring php-xml sqlite3 curl iproute2 systemd gcc binutils
 
       - name: Checkout
         uses: actions/checkout@v4

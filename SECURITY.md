@@ -16,7 +16,10 @@ Security is especially important for this project because an XLX reflector is no
 - logs contendo dados pessoais ou informações operacionais sensíveis;
 - segredos de Calling Home;
 - configuração real de produção que exponha credenciais;
-- arquivos de autenticação de serviços externos.
+- arquivos de autenticação de serviços externos;
+- chaves/arquivos de licença de software proprietário;
+- `libStereoTool*.so`, pacotes Stereo Tool ou outros binários proprietários fornecidos pelo administrador;
+- headers/SDK proprietários sem autorização expressa de redistribuição.
 
 ### Como relatar uma vulnerabilidade
 
@@ -46,6 +49,21 @@ O projeto procura manter:
 - separação entre núcleo e dashboard;
 - rollback como requisito de manutenção.
 
+### Upload de DSP/binário proprietário
+
+Upload de biblioteca executável deve ser tratado como código não confiável até validação. Para Stereo Tool, a política é:
+
+- upload futuro somente por privilégio elevado;
+- artifact fora do webroot;
+- quarentena antes de qualquer load;
+- limites de tamanho e quantidade;
+- ZIP sem `../`, caminho absoluto, symlink ou special file;
+- SHA-256 como identidade interna, sem chamar hash local de assinatura do fornecedor;
+- inspeção ELF/arquitetura/GLIBC/símbolos antes do sandbox;
+- processo de sandbox/worker separado de XLXD/xuvd/PHP;
+- worker sem `AF_INET`/`AF_INET6` e sem web UI nativa do fornecedor;
+- nunca registrar chave/licença em logs/auditoria.
+
 ## 🇺🇸 English
 
 ### Never commit
@@ -60,13 +78,16 @@ O projeto procura manter:
 - logs containing personal or sensitive operational data;
 - Calling Home secrets;
 - production configuration exposing credentials;
-- authentication files for external services.
+- authentication files for external services;
+- proprietary software license keys/files;
+- administrator-supplied `libStereoTool*.so`, Stereo Tool packages or other proprietary binaries;
+- proprietary SDK headers unless redistribution is explicitly permitted.
 
 ### Reporting a vulnerability
 
 Do not publish credentials or directly exploitable details in a public issue.
 
-Once the repository is public, prefer **GitHub Private vulnerability reporting / Security Advisories** when enabled. If private reporting is unavailable, contact the project maintainer through the official GitHub profile before disclosing sensitive technical details publicly.
+Once the repository is public, prefer **Private vulnerability reporting / Security Advisories** when enabled. If private reporting is unavailable, contact the project maintainer through the official GitHub profile before disclosing sensitive technical details publicly.
 
 When possible, include:
 

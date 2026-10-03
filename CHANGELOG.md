@@ -1,3 +1,14 @@
+## Unreleased — Stereo Tool LAB foundation
+
+- Adds a **lab-only** foundation for future Stereo Tool integration without installing the proprietary product or changing XLXD/xuvd/audio production paths.
+- Adds static artifact validation with SHA-256, ELF64/architecture/GLIBC checks and identity-symbol sanity checks; the validator does not dynamically load or execute the supplied library.
+- Adds safe ZIP quarantine rules rejecting traversal, absolute-path escapes, symlinks and special files, plus bounded package/unpacked/file-count limits.
+- Adds a hardened `xlx-stereotoold.service` reference restricted to local Unix sockets; it is documentation/reference only and is not installed or enabled.
+- Adds synthetic/mock regression coverage so public CI does not require or redistribute Stereo Tool binaries, SDK files or licenses.
+- Records ST-001…ST-010, TEST-030/031, security/operation/recovery rules and the process-isolation architecture in `docs/STEREOTOOL_INTEGRATION.md`.
+- WartyWallaby ENV gate passed for the mock/static foundation. Real Stereo Tool SDK/artifact, licensing authorization, runtime sandbox, PCM inventory, multi-context benchmark, delay-matched fail-open, shadow/canary and production rollback remain blocked/pending.
+- Fixes a pre-existing literal `\\n` in `tests/run-all.sh` so the Helix shadow-monitor and project-governance calls remain separate executable lines; no runtime service behavior is changed.
+
 ## Unreleased — Connected station de-duplication
 
 - Excludes synthetic DExtra self-nodes created by the reflector itself from public Connected counts when the endpoint matches the XLXD service address and no Via/Peer evidence exists; remote DExtra and other protocols remain visible.
@@ -126,7 +137,6 @@
 - replaces legacy example identifiers `BRA`/`xlxbra.net` with `026`/`xlx026.net`;
 - no runtime protocol, reflector-core, dashboard data-path or security behavior was changed.
 
-
 ### Fresh-install runtime parity
 
 - Synchronizes the generic installer with the current dashboard/runtime behavior validated after the v1.2.11 fresh-VPS failures.
@@ -203,7 +213,6 @@
 - Added the `noimageindex` crawler directive without restoring the removed Quick Guide.
 - Added regression checks for callable identifiers and identical live callsign rewrites.
 
-
 ## v1.2.5 — 2026-09-08
 
 ### Fixed
@@ -216,7 +225,6 @@
 - **Connected** now follows production layout: filters plus station table, without the merged summary-card block.
 - Restored the production 1240 px dashboard content width.
 - Removed hard-coded reference-server identifiers from the public Modules JavaScript; REF/XRF/DCS/YSF labels now derive from installation data.
-
 
 ## v1.2.4 — 2026-09-07
 
@@ -238,7 +246,6 @@
 - Final validation now tests the protocol actually available and reports HTTPS as pending instead of failing the whole installation.
 - HTTPS diagnostics no longer falsely claim DNS/port failure without evidence; relevant ACME diagnostics are surfaced when available.
 - Added regression tests preventing mandatory full OS upgrades and fatal HTTPS behavior from returning.
-
 
 ## v1.2.2 — 2026-09-07
 

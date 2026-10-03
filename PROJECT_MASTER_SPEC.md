@@ -66,8 +66,19 @@ Fornecer um instalador público, reproduzível e seguro para refletor XLXD em De
 - **HELIX-003** — O cliente PCM deve ser fail-open: erro, timeout ou resposta inválida preserva o PCM legado original. Em `process`, após a primeira falha de um stream, o restante daquele stream permanece no caminho legado para evitar alternância repetida de processamento. Nenhuma dependência remota/cloud pode entrar no hot path.
 - **HELIX-004** — O estado padrão em produção é `off`. `shadow` usa IPC Unix datagram não bloqueante, sem esperar resposta e sem comitar PCM. `process` usa request/reply local com timeout estritamente limitado (máximo 5 ms na V1, com orçamento total por requisição) e exige validação ENV e gate separado de áudio/rollback antes de produção.
 - **HELIX-005** — Usuários sem Helix não podem exigir firmware, rádio ou hotspot especial para continuar conversando pelos protocolos legados suportados.
-
 - **HELIX-006** — O orçamento IPC é uma única deadline monotônica de 1..5 ms para conectar, escrever e ler a resposta completa. Conexão e I/O não podem bloquear sem limite; respostas atrasadas não podem comitar PCM. A primeira falha mantém o stream em legado conforme HELIX-003. O sistema operacional não oferece garantia hard real-time.
+
+### STEREO TOOL / EXTERNAL DSP
+- **ST-001** — Stereo Tool é opcional e proprietário. O repositório/instalador público não pode redistribuir `libStereoTool`, CLI, licença, chave ou pacote do fornecedor; o artifact deve ser fornecido pelo administrador.
+- **ST-002** — Qualquer biblioteca proprietária do Stereo Tool deve ser carregada somente em worker isolado (`xlx-stereotoold` ou equivalente), nunca dentro de `xlxd`, `xuvd`, PHP/Nginx ou processo web.
+- **ST-003** — O data plane usa somente IPC local; o worker de produção não pode expor web UI do Stereo Tool nem abrir `AF_INET`/`AF_INET6`. Cloud/API externa não entra no hot path.
+- **ST-004** — Estado DSP deve ser independente por stream/PTT. Saturação de contexto produz bypass, não fila de voz. Mudança de preset/artifact é geracional e não altera PTT já aberto.
+- **ST-005** — `PROCESS` deve ser fail-open e sticky por PTT: primeira falha usa PCM original até fechar o stream. Antes de qualquer canário, o bypass original deve ser delay-matched ao caminho processado para evitar salto temporal.
+- **ST-006** — Upload de artifact executável exige privilégio elevado, quarentena, limites de tamanho/quantidade, SHA-256, inspeção ZIP segura, ELF/arquitetura/GLIBC/símbolos, sandbox posterior e trilha de auditoria. Artifact ativo é imutável e não pode ser apagado/substituído durante validação de outro.
+- **ST-007** — Identificadores e chamadas runtime do SDK não podem ser inventados. Inicialização/processamento/settings/meters/presets só serão implementados contra headers/exemplos da versão efetivamente licenciada.
+- **ST-008** — Produção com `PROCESS_CANARY`/`PROCESS` exige autorização comercial/jurídica escrita do fornecedor para refletor multiusuário, definição de “instance”/contextos e uso de SDK/servidor público, além de licença runtime válida.
+- **ST-009** — A primeira etapa permitida é fundação de laboratório e validação estática. `READY_FOR_SANDBOX` não equivale a artifact aprovado, licença válida, qualidade aprovada, `SHADOW` ou `PROCESS`.
+- **ST-010** — Stereo Tool e Helix não devem ser empilhados automaticamente no caminho de áudio. Qualquer comparação/combinação futura requer corpus comum, benchmark, A/B e gate de rollback independente.
 
 ### BACKUP / RECOVERY
 - **BACKUP-001** — Backups preventivos devem existir antes de mudanças críticas.
@@ -87,6 +98,8 @@ Fornecer um instalador público, reproduzível e seguro para refletor XLXD em De
 
 ## 3. Arquitetura canônica
 Consultar `ARCHITECTURE.md`. Componentes atualmente documentados incluem XLXD core, Echo opcional, Nginx + PHP-FPM, dashboard, callsign database, CallingHome, APRS/D-PRS, certificados, observabilidade, Admin privado, módulos de instalação e suíte de regressão.
+
+A arquitetura e os gates de Stereo Tool ficam detalhados em `docs/STEREOTOOL_INTEGRATION.md`.
 
 ## 4. Segurança
 Consultar `SECURITY.md`. Segredos não podem ser copiados para documentação de governança.

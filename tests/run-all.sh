@@ -55,7 +55,11 @@ echo "[helix pcm fallback]"
 bash "$ROOT/tests/test-helix-pcm-fallback.sh" || failures=$((failures+1))
 echo "[helix total deadline]"
 bash "$ROOT/tests/test-helix-pcm-deadline.sh" || failures=$((failures+1))
-echo "[helix shadow monitor]"\nbash "$ROOT/tests/test-helix-shadow-monitor.sh" || failures=$((failures+1))\necho "[project governance]"
+echo "[helix shadow monitor]"
+bash "$ROOT/tests/test-helix-shadow-monitor.sh" || failures=$((failures+1))
+echo "[stereotool lab foundation]"
+bash "$ROOT/tests/test-stereotool-foundation.sh" || failures=$((failures+1))
+echo "[project governance]"
 bash "$ROOT/tests/test-project-governance.sh" || failures=$((failures+1))
 echo "[release hardening]"
 bash "$ROOT/tests/test-release-hardening.sh" || failures=$((failures+1))
