@@ -128,3 +128,7 @@ Uma mudança só é aceita se:
 - **TURN-008** — A IA é somente observadora consultiva, fora do hot path. Pode receber apenas contadores técnicos agregados sem áudio, conteúdo de voz, indicativo, RadioID, IP ou payload; falha ou opinião da IA nunca pode liberar/bloquear stream nem alterar o temporizador local.
 
 - **TURN-009** — Observador remoto consulta somente resumos com eventos novos/diferentes; silêncio e resumo idêntico não geram chamada. Respeitar mínimo absoluto de 900 s entre tentativas, inclusive mudança de avaliação e falha da API.
+
+- **TURN-010** — Ao iniciar cooldown real, o box de TX deve informar todos os indicativos inelegíveis naquele módulo e exibir a contagem regressiva de até 7 s. O aviso usa estado autoritativo local, não resposta remota de IA; deve desaparecer na expiração ou terceira estação. Não apresentar espera como transmissão ativa.
+- **TURN-011** — A promoção deve preservar integralmente o TOT180 existente da PR #54 e a configuração efetiva. O binário conhecido-bom c0283b7f deve ser recuperado/reproduzido ou ter equivalência comprovada; código divergente em /usr/src não representa automaticamente o processo ativo.
+- **TURN-012** — Identidades do aviso permanecem somente no estado local/painel público de rádio; o observador externo recebe exclusivamente contadores agregados. Estado é limitado por módulo e temporário, sem logs de áudio ou consulta externa por PTT.
