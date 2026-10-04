@@ -1,6 +1,6 @@
 # TX Turn Guard / Anti-Ping-Pong V1
 
-Status: experimental / LAB. **Não é ativado automaticamente e não autoriza deploy em produção.**
+Status: feature opcional, OFF por padrão no instalador. Ativada explicitamente no XLX026 por autorização do operador em 2026-10-04; veja [evidência e limites](PRODUCTION-20261004.md).
 
 ## Objetivo
 
@@ -50,6 +50,10 @@ Valores inválidos voltam ao padrão seguro do código.
 
 A IA é consultiva. Ela pode apontar excesso de bloqueios, frequência de detecção e necessidade de revisar limiares, mas **não pode liberar, bloquear ou alterar um stream**. Falha de API não afeta XLXD.
 
+## Painel ao vivo
+
+Com XLX_TX_TURN_STATE_DIR=/run/xlx-tx-turn-state, o núcleo publica localmente o prazo e as duas identidades. O box TX mostra a contagem de até7s e informa que outras estações podem entrar. Expiração/terceiro removem o aviso; espera não conta como TX ativa. WebSocket e SSE usam esse estado, sem consulta à IA por aviso. Arquivos root0644 em diretório root0755.
+
 ## Upstream alvo do patch
 
 O artefato V1 é validado contra:
@@ -60,7 +64,7 @@ e69f2dcdd9cf004d5ad199f85c27f1fa1e7e5004
 XLXD 2.5.3
 ```
 
-`apply-and-build.sh` recusa outra revisão para evitar aplicar patch em código divergente. Depois do build, `test-cpp-unit.sh /caminho/do/xlxd` executa a máquina de estados diretamente sobre as classes C++ do candidato; ele não instala nem inicia o daemon.
+O patch combinado inclui também o TOT existente de 180 s (PR54). `apply-and-build.sh` recusa outra revisão para evitar aplicar patch em código divergente. Depois do build, `test-cpp-unit.sh /caminho/do/xlxd` executa a máquina de estados diretamente sobre as classes C++ do candidato; ele não instala nem inicia o daemon.
 
 ## Gates antes de produção
 

@@ -1,0 +1,90 @@
+{
+  "schema": 1,
+  "date": "2026-10-04",
+  "source_commit": "e13f4e1a95ac8064688763017761601fea149e0f",
+  "baseline": {
+    "upstream": "PP5PK/xlxd",
+    "commit": "e69f2dcdd9cf004d5ad199f85c27f1fa1e7e5004",
+    "tot_pr": 54,
+    "sha256": "c0283b7f6c7644b84284140ecaa20e7643bd60a99b961a8f099f9fea19976441",
+    "reproduced_exactly": true
+  },
+  "candidate": {
+    "sha256": "9dce43475fed2fa464e8b76f1363167827b5cb80e33981523d2e701ea3d0b9f0",
+    "config": {
+      "modules": 5,
+      "ysf_tx_rx_hz": 433125000,
+      "ysf_autolink": "C",
+      "mmdvm_keepalive_seconds": 180,
+      "ysf_keepalive_seconds": 90,
+      "tot_seconds": 180,
+      "trigger_ms": 2000,
+      "cooldown_ms": 7000,
+      "reset_ms": 60000
+    }
+  },
+  "ci": {
+    "status": "PASS",
+    "runs": [
+      37235697443,
+      37235697453,
+      37235697534
+    ]
+  },
+  "env": {
+    "status": "PASS",
+    "cpp_lifecycle_tot": true,
+    "protocol_classes_synthetic": [
+      "DCS",
+      "YSF",
+      "DMRMMDVM"
+    ],
+    "restore_systemd_private_network": true,
+    "websocket_snapshot_expiry_third_invalid": true,
+    "ui_fixture_desktop_and_350px": true,
+    "proof": "tx-turn-wait-ui-20261004.jpg"
+  },
+  "prod": {
+    "deployed_at": "2026-10-04T21:36:13Z",
+    "status": "PASS initial operation",
+    "xlxd_pid": 655997,
+    "listeners": 13,
+    "xuvd_pid": 3729899,
+    "helix_shadow_pid": 3716236,
+    "xuvd_helix_preserved": true,
+    "connected_count_sample": 96,
+    "streams_opened_sample": 4,
+    "streams_closed_sample": 3,
+    "stream_loops": 0,
+    "transcoder_timeout_samples": [
+      {
+        "total": 1224,
+        "timeouts": 0
+      },
+      {
+        "total": 986,
+        "timeouts": 0
+      },
+      {
+        "total": 198,
+        "timeouts": 0
+      }
+    ],
+    "guard_env_enabled": true,
+    "tx_turn_events": 0,
+    "observer": "quiet: zero API calls",
+    "backup": "/opt/xlx026-backups/TX_TURN_WAIT_20261004_2120",
+    "prior_rollback_attempts": 2,
+    "rollback_reason": [
+      "premature listener check while loading directories",
+      "service status newline normalization"
+    ],
+    "rollback_baseline_verified": true
+  },
+  "pending": [
+    "real pair/cooldown observation in PROD",
+    "real API call for this feature",
+    "RF/interlink full coverage",
+    "long soak"
+  ]
+}

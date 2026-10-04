@@ -15,4 +15,6 @@ PASS ENV: binário Rust idêntico ao candidato, handshake WebSocket, evento espe
 PASS UI: fixture explícita fictícia, desktop e box350px, contagem7s, remoção expiry/terceiro; nenhum erro do aplicativo. Erros vistos apenas da extensão do navegador.
 Backup produção verificado: /opt/xlx026-backups/TX_TURN_WAIT_20261004_2120, manifest SHA256 e rollback.py. Restauração core exercitada em ENV; não reiniciar produção durante TX.
 Observer: resumo sem identidade, somente novos eventos, 900s mínimos entre tentativas mesmo em erro, máximo120 tokens. Modelo explicitamente configurado via OPENAI_TX_TURN_MODEL; segredo existente não versionado.
-Deploy/ocorrência real ainda aguardam verificação posterior registrada em PROJECT_RELEASE_STATUS.md.
+Deploy PROD PASS em21:36:13 UTC: PID655997, candidato9dce4347, 13 listeners, xuvd/Helix preservados. Dois rollbacks automáticos por falhas do verificador foram executados antes da promoção final; readiness agora aguarda até90s pelo carregamento das bases e normaliza o status. Reconexões dos três protocolos/streams reais confirmadas; nenhuma dupla real observada ainda. API real/RF/interlink/soak permanecem pendentes. Veja PROJECT_RELEASE_STATUS.md.
+
+PASS ENV adicional: test-protocol-env.sh usa encoders/decoders e callbacks de admissão/EOT/timeout/TOT reais das classes DCS, YSF e DMR com fixtures sintéticas. Teste systemd PrivateNetwork exercitou baseline→candidato→restore de unit/binário/ambiente/restart. Não afirmar transporte UDP ou RF pela execução dessas classes.
