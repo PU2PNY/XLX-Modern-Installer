@@ -209,3 +209,13 @@ Evidência ENV na WartyWallaby: `python3 -m py_compile`, `bash -n` e `tests/test
 Classificação: `SW/ENV PASS` somente para a fundação estática/mock. `TEST-031` permanece PENDENTE para artifact/SDK reais, licença/autorização escrita, sandbox load, PCM inventory, contextos por stream, latência/CPU/RAM, shadow, delay-matched fail-open, chaos, canário e rollback.
 
 **Produção XLX026 não foi modificada nesta etapa.** Nenhum serviço Stereo Tool foi criado/habilitado, nenhum `xlxd`/`xuvd` foi reiniciado e `PROCESS` Stereo Tool permanece proibido.
+
+## TX Turn Guard V1 — continuação 2026-10-04
+- PR #78, branch `feature/tx-reentry-cooldown-v1-20261004`.
+- Head funcional `c623b011746963a1d83cd31fe23357e277936224`: XLX Modern Installer CI (37232991651), Debian 12 runtime gate (37232991644) e Stream identity regression (37232991665) PASS. Evidência SW/CI, não PROD.
+- Patch reproduzível pinado em PP5PK/xlxd `e69f2dcdd9cf004d5ad199f85c27f1fa1e7e5004`, off por padrão; IA somente consultiva.
+- WartyWallaby: teste específico da política/privacidade/observador PASS antes da continuação final. Compilação limpa final atingiu timeout de 605,27 s (job_8ea0659ac2e2); objetos foram preservados e o build/teste C++ foi retomado em job_e98b4c55e964. Na última consulta o job ainda estava running, sem resultado: não registrar ENV final PASS.
+- Observador final: silêncio/resumo idêntico sem chamada, intervalo mínimo absoluto 900 s entre tentativas, saída máxima 120 tokens, journal limitado a 4096 eventos TXTURN; modelo remoto exige configuração explícita. Self-test final PASS em SW; chamada real API/modelo PENDENTE.
+- PROD somente leitura: xlxd PID 1093634 e transcoder PID 3729899 ativos, Nginx e Helix shadow ativos. Nenhum deploy/restart desta regra.
+- PENDENTE: ENV final, regressão DMR/YSF/D-Star/controle/interlink/EOT, restore completo e canário. Não promover CI/build para protocolo/áudio PROD.
+- Evidência sanitizada: `docs/evidence/tx-turn-guard-20261004.json`.

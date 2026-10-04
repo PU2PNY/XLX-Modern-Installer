@@ -1,0 +1,55 @@
+{
+  "date": "2026-10-04",
+  "functional_head": "c623b011746963a1d83cd31fe23357e277936224",
+  "pr": 78,
+  "ci": [
+    {
+      "id": 37232991665,
+      "name": "Stream identity regression",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 37232991644,
+      "name": "Debian 12 runtime gate",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 37232991651,
+      "name": "XLX Modern Installer CI",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "sw": {
+    "final_observer_self_test": "PASS"
+  },
+  "env": {
+    "initial_clean_build": {
+      "job": "job_8ea0659ac2e2",
+      "status": "timeout",
+      "duration_s": 605.27
+    },
+    "resume": {
+      "job": "job_e98b4c55e964",
+      "status": "running_last_observed",
+      "result": "PENDING"
+    },
+    "protocol_regression": "PENDING",
+    "full_restore": "PENDING",
+    "remote_api": "PENDING"
+  },
+  "prod": {
+    "inspection_only": true,
+    "xlxd_pid": 1093634,
+    "transcoder_pid": 3729899,
+    "services_active": [
+      "xlxd",
+      "xlx-unified-voice",
+      "nginx",
+      "helix-voice-shadow"
+    ],
+    "deployment": false
+  }
+}
