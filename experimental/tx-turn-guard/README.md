@@ -19,6 +19,8 @@ A regra trabalha por **módulo lógico** e pela identidade `MY`/origem já norma
 
 A regra é por módulo. Uma dupla detectada em C não bloqueia o mesmo indicativo em outro módulo independente.
 
+A identidade principal é o callsign `MY`. Em DMR, se o RadioID não puder ser resolvido para callsign, o próprio RadioID é usado **somente como fallback interno de identidade** para não deixar uma estação sem proteção. Essa identidade interna nunca é incluída nos eventos `TXTURN` enviados ao observador. Indicativos compartilhados/forjados continuam sendo uma limitação de uma rede sem autenticação forte de operador e exigem observação no gate real.
+
 ## Controles que não são bloqueados
 
 A decisão ocorre somente em `CReflector::OpenStream()` para abertura de stream DV. Keepalive, conexão, link/unlink e demais pacotes de controle que não abrem stream DV não passam pelo bloqueio. Se algum protocolo provar em ENV que um comando legítimo é transportado como stream DV comum, a exceção deve ser implementada de forma explícita e testada; não inferir.
@@ -37,7 +39,8 @@ XLX_TX_TURN_RESET_MS=60000
 Limites internos:
 - trigger: 250..10000 ms;
 - cooldown: 1000..30000 ms;
-- reset: 10000..600000 ms.
+- reset configurado: 10000..600000 ms;
+- o reset efetivo nunca fica abaixo do cooldown, mesmo com configuração incoerente.
 
 Valores inválidos voltam ao padrão seguro do código.
 
@@ -57,7 +60,7 @@ e69f2dcdd9cf004d5ad199f85c27f1fa1e7e5004
 XLXD 2.5.3
 ```
 
-`apply-and-build.sh` recusa outra revisão para evitar aplicar patch em código divergente.
+`apply-and-build.sh` recusa outra revisão para evitar aplicar patch em código divergente. Depois do build, `test-cpp-unit.sh /caminho/do/xlxd` executa a máquina de estados diretamente sobre as classes C++ do candidato; ele não instala nem inicia o daemon.
 
 ## Gates antes de produção
 
