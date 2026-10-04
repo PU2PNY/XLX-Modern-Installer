@@ -1,0 +1,227 @@
+diff --git a/src/cpacketstream.cpp b/src/cpacketstream.cpp
+index 87d278d..fe1198d 100644
+--- a/src/cpacketstream.cpp
++++ b/src/cpacketstream.cpp
+@@ -53,6 +53,7 @@ bool CPacketStream::Open(const CDvHeaderPacket &DvHeader, CClient *client)
+         m_uiPacketCntr = 0;
+         m_DvHeader = DvHeader;
+         m_OwnerClient = client;
++        m_OpenTime.Now();
+         m_LastPacketTime.Now();
+         m_CodecStream = g_Transcoder.GetStream(this, client->GetCodec());
+         ok = true;
+diff --git a/src/cpacketstream.h b/src/cpacketstream.h
+index c910158..089ccff 100644
+--- a/src/cpacketstream.h
++++ b/src/cpacketstream.h
+@@ -34,6 +34,9 @@
+ 
+ //#define STREAM_TIMEOUT      (0.600)
+ #define STREAM_TIMEOUT      (1.600)
++#ifndef STREAM_MAX_DURATION
++#define STREAM_MAX_DURATION (180.0)
++#endif
+ 
+ ////////////////////////////////////////////////////////////////////////////////////////
+ // class
+@@ -60,6 +63,7 @@ public:
+     CClient         *GetOwnerClient(void)           { return m_OwnerClient; }
+     const CIp       *GetOwnerIp(void);
+     bool            IsExpired(void) const           { return (m_LastPacketTime.DurationSinceNow() > STREAM_TIMEOUT); }
++    bool            IsMaxDurationReached(void) const { return (m_OpenTime.DurationSinceNow() >= STREAM_MAX_DURATION); }
+     bool            IsOpen(void) const              { return m_bOpen; }
+     uint16          GetStreamId(void) const         { return m_uiStreamId; }
+     const CCallsign &GetUserCallsign(void) const    { return m_DvHeader.GetMyCallsign(); }
+@@ -71,6 +75,7 @@ protected:
+     uint32              m_uiPacketCntr;
+     CClient             *m_OwnerClient;
+     CTimePoint          m_LastPacketTime;
++    CTimePoint          m_OpenTime;
+     CDvHeaderPacket     m_DvHeader;
+     CCodecStream        *m_CodecStream;
+ };
+diff --git a/src/cprotocol.cpp b/src/cprotocol.cpp
+index d1e852e..bd66347 100755
+--- a/src/cprotocol.cpp
++++ b/src/cprotocol.cpp
+@@ -136,6 +136,12 @@ bool CProtocol::EncodeDvPacket(const CPacket &packet, CBuffer *buffer) const
+ 
+ void CProtocol::OnDvFramePacketIn(CDvFramePacket *Frame, const CIp *Ip)
+ {
++    if ( g_Reflector.IsTotBlocked(Frame->GetStreamId(), Ip, true) )
++    {
++        delete Frame;
++        return;
++    }
++
+     // find the stream
+     CPacketStream *stream = GetStream(Frame->GetStreamId(), Ip);
+     if ( stream == NULL )
+@@ -155,6 +161,13 @@ void CProtocol::OnDvFramePacketIn(CDvFramePacket *Frame, const CIp *Ip)
+ 
+ void CProtocol::OnDvLastFramePacketIn(CDvLastFramePacket *Frame, const CIp *Ip)
+ {
++    if ( g_Reflector.IsTotBlocked(Frame->GetStreamId(), Ip, false) )
++    {
++        g_Reflector.ReleaseTotBlock(Frame->GetStreamId(), Ip);
++        delete Frame;
++        return;
++    }
++
+     // find the stream
+     CPacketStream *stream = GetStream(Frame->GetStreamId(), Ip);
+     if ( stream == NULL )
+@@ -225,19 +238,31 @@ void CProtocol::CheckStreamsTimeout(void)
+ {
+     for ( int i = 0; i < m_Streams.size(); i++ )
+     {
+-        // time out ?
+         m_Streams[i]->Lock();
+-        if ( m_Streams[i]->IsExpired() )
++        const bool expired = m_Streams[i]->IsExpired();
++        const bool maxDuration = m_Streams[i]->IsMaxDurationReached();
++        const uint16 streamId = m_Streams[i]->GetStreamId();
++        const CIp *ownerIp = m_Streams[i]->GetOwnerIp();
++
++        if ( maxDuration && !expired && (streamId != 0) && (ownerIp != NULL) )
+         {
+-            // yes, close it
+-            m_Streams[i]->Unlock();
+-            g_Reflector.CloseStream(m_Streams[i]);
+-            // and remove it
+-            m_Streams.erase(m_Streams.begin()+i);
++            g_Reflector.BlockTotStream(streamId, ownerIp);
+         }
+-        else
++        m_Streams[i]->Unlock();
++
++        if ( expired || maxDuration )
+         {
+-            m_Streams[i]->Unlock();
++            if ( maxDuration && !expired )
++            {
++                std::cout << "TX time limit reached for stream "
++                          << streamId
++                          << " after " << STREAM_MAX_DURATION << " seconds"
++                          << std::endl;
++            }
++
++            g_Reflector.CloseStream(m_Streams[i]);
++            m_Streams.erase(m_Streams.begin()+i);
++            i--;
+         }
+     }
+ }
+diff --git a/src/creflector.cpp b/src/creflector.cpp
+index a813df9..0ffa9e1 100644
+--- a/src/creflector.cpp
++++ b/src/creflector.cpp
+@@ -202,8 +202,9 @@ CPacketStream *CReflector::OpenStream(CDvHeaderPacket *DvHeader, CClient *client
+     // clients MUST have bee locked by the caller
+     // so we can freely access it within the fuction
+     
+-    // check sid is not NULL
+-    if ( DvHeader->GetStreamId() != 0 )
++    // check sid is not NULL and this exact PTT was not stopped by TOT
++    if ( (DvHeader->GetStreamId() != 0) &&
++         !IsTotBlocked(DvHeader->GetStreamId(), &(client->GetIp()), true) )
+     {
+         // check if client is valid candidate
+         if ( m_Clients.IsClient(client) && !client->IsAMaster() )
+@@ -258,6 +259,58 @@ CPacketStream *CReflector::OpenStream(CDvHeaderPacket *DvHeader, CClient *client
+     return retStream;
+ }
+ 
++void CReflector::BlockTotStream(uint16 streamId, const CIp *ip)
++{
++    if ( (streamId == 0) || (ip == NULL) ) return;
++
++    std::lock_guard<std::mutex> guard(m_TotBlocksMutex);
++    for ( auto &item : m_TotBlocks )
++    {
++        if ( (item.m_StreamId == streamId) && (item.m_Ip == *ip) )
++        {
++            item.m_LastActivity.Now();
++            return;
++        }
++    }
++    m_TotBlocks.push_back(CTotBlock(streamId, *ip));
++}
++
++bool CReflector::IsTotBlocked(uint16 streamId, const CIp *ip, bool touch)
++{
++    if ( (streamId == 0) || (ip == NULL) ) return false;
++
++    std::lock_guard<std::mutex> guard(m_TotBlocksMutex);
++    for ( auto it = m_TotBlocks.begin(); it != m_TotBlocks.end(); )
++    {
++        if ( it->m_LastActivity.DurationSinceNow() > STREAM_TIMEOUT )
++        {
++            it = m_TotBlocks.erase(it);
++            continue;
++        }
++        if ( (it->m_StreamId == streamId) && (it->m_Ip == *ip) )
++        {
++            if ( touch ) it->m_LastActivity.Now();
++            return true;
++        }
++        ++it;
++    }
++    return false;
++}
++
++void CReflector::ReleaseTotBlock(uint16 streamId, const CIp *ip)
++{
++    if ( (streamId == 0) || (ip == NULL) ) return;
++
++    std::lock_guard<std::mutex> guard(m_TotBlocksMutex);
++    for ( auto it = m_TotBlocks.begin(); it != m_TotBlocks.end(); )
++    {
++        if ( (it->m_StreamId == streamId) && (it->m_Ip == *ip) )
++            it = m_TotBlocks.erase(it);
++        else
++            ++it;
++    }
++}
++
+ void CReflector::CloseStream(CPacketStream *stream)
+ {
+     //
+diff --git a/src/creflector.h b/src/creflector.h
+index ece983e..4ed3875 100644
+--- a/src/creflector.h
++++ b/src/creflector.h
+@@ -79,6 +79,9 @@ public:
+     CPacketStream *OpenStream(CDvHeaderPacket *, CClient *);
+     bool IsStreaming(char);
+     void CloseStream(CPacketStream *);
++    void BlockTotStream(uint16, const CIp *);
++    bool IsTotBlocked(uint16, const CIp *, bool = false);
++    void ReleaseTotBlock(uint16, const CIp *);
+     
+     // users
+     CUsers  *GetUsers(void)                         { m_Users.Lock(); return &m_Users; }
+@@ -121,6 +124,14 @@ protected:
+     bool UpdateListenMac(void);
+     
+ protected:
++    struct CTotBlock
++    {
++        uint16 m_StreamId;
++        CIp m_Ip;
++        CTimePoint m_LastActivity;
++        CTotBlock(uint16 id, const CIp &ip) : m_StreamId(id), m_Ip(ip) {}
++    };
++
+     // identity
+     CCallsign       m_Callsign;
+     CIp             m_Ip;
+@@ -144,6 +155,8 @@ protected:
+     
+     // notifications
+     CNotificationQueue  m_Notifications;
++    std::vector<CTotBlock> m_TotBlocks;
++    std::mutex          m_TotBlocksMutex;
+     
+ public:
+ #ifdef DEBUG_DUMPFILE
