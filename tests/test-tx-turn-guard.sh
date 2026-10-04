@@ -38,7 +38,7 @@ if grep -Ei 'openai|api\.openai\.com|curl|urllib' "$PATCH"; then
 fi
 grep -F "'advisory_only': True" "$MON" >/dev/null
 grep -F 'https://api.openai.com/v1/responses' "$MON" >/dev/null
-grep -F "OPENAI_TX_TURN_MODEL', 'gpt-6-luna'" "$MON" >/dev/null
+grep -F "OPENAI_TX_TURN_MODEL', ''" "$MON" >/dev/null
 grep -F 'OnUnitActiveSec=60s' "$TIMER" >/dev/null
 grep -F 'SupplementaryGroups=systemd-journal' "$SVC" >/dev/null
 grep -F 'TOT existente de 180 s' "$README" >/dev/null

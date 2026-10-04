@@ -81,3 +81,5 @@ Não confundir build/CI com validação de protocolo real.
 
 ## Economia do observador
 Sem chamadas em silêncio ou para resumo agregado idêntico. Mínimo absoluto de 15 minutos entre tentativas, inclusive falhas e mudanças de avaliação; saída limitada a 120 tokens. A integração real da API/modelo continua pendente até ser validada.
+
+Defina explicitamente OPENAI_TX_TURN_MODEL com um modelo validado para sua conta. Sem modelo configurado, o observador funciona localmente e não tenta a API. A leitura de eventos é limitada a 4.096 linhas TXTURN da janela de 20 minutos.

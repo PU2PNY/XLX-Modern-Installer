@@ -15,7 +15,7 @@ STATE_DIR = pathlib.Path('/var/lib/xlx-tx-turn-monitor')
 PUBLIC = RUNTIME / 'public.json'
 STATE = STATE_DIR / 'state.json'
 RESPONSES_URL = 'https://api.openai.com/v1/responses'
-MODEL = os.environ.get('OPENAI_TX_TURN_MODEL', 'gpt-6-luna').strip() or 'gpt-6-luna'
+MODEL = os.environ.get('OPENAI_TX_TURN_MODEL', '').strip()
 AI_INTERVAL = 900
 EVENT_RE = re.compile(r'^TXTURN event=(pair_detected|blocked|cooldown_started|third_party_break) module=([A-Z])(?:\s+.*)?$')
 
@@ -52,7 +52,7 @@ def read_events(lines):
 def journal_lines():
     try:
         proc = subprocess.run(
-            ['journalctl', '-u', 'xlxd.service', '--since', '20 minutes ago', '-o', 'cat', '--no-pager'],
+            ['journalctl', '-u', 'xlxd.service', '--since', '20 minutes ago', '--grep', '^TXTURN ', '--lines=4096', '-o', 'cat', '--no-pager'],
             capture_output=True, text=True, timeout=5, check=False,
         )
         if proc.returncode not in (0, 1):
@@ -188,7 +188,7 @@ def main():
     ai_ok = bool(state.get('ai_last_ok', False))
     ai_summary = str(state.get('ai_summary', 'Observador local ativo.'))[:320]
     key = os.environ.get('OPENAI_API_KEY', '').strip()
-    if ai_due and key:
+    if ai_due and key and MODEL:
         ai_ok, ai_summary = ask_ai(telemetry, key)
         last_ai = now
         state['last_ai_fingerprint'] = fingerprint
@@ -204,6 +204,7 @@ def main():
         'ok': True,
         'advisory_only': True,
         'api_key_present': bool(key),
+        'ai_model_configured': bool(MODEL),
         'ai_last_ok': ai_ok,
         'ai_last_analysis_at': last_ai,
         'ai_summary': ai_summary,
