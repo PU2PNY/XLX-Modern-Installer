@@ -132,3 +132,10 @@ Uma mudança só é aceita se:
 - **TURN-010** — Ao iniciar cooldown real, o box de TX deve informar todos os indicativos inelegíveis naquele módulo e exibir a contagem regressiva de até 7 s. O aviso usa estado autoritativo local, não resposta remota de IA; deve desaparecer na expiração ou terceira estação. Não apresentar espera como transmissão ativa.
 - **TURN-011** — A promoção deve preservar integralmente o TOT180 existente da PR #54 e a configuração efetiva. O binário conhecido-bom c0283b7f deve ser recuperado/reproduzido ou ter equivalência comprovada; código divergente em /usr/src não representa automaticamente o processo ativo.
 - **TURN-012** — Identidades do aviso permanecem somente no estado local/painel público de rádio; o observador externo recebe exclusivamente contadores agregados. Estado é limitado por módulo e temporário, sem logs de áudio ou consulta externa por PTT.
+
+### COMPLETE RECONSTRUCTION
+- **REC-003** — Public installation pins the reviewed XLXD upstream revision and applies the versioned TOT180/Turn Guard patch before per-operator configuration; Turn Guard remains OFF by default.
+- **REC-004** — The Live Rust/WebSocket and SSE fallback sources, Cargo lock, loopback services and Nginx routes are included in the canonical installation.
+- **REC-005** — Control retains the observed XLX026 view/navigation/layout with dynamic title/domain/private slug and the generic CSRF/rate-limit/helper boundaries.
+- **REC-006** — Private recovery captures Nginx/PHP/TLS, local service/configuration/helpers, dashboard, persistent SQLite via online backup, sources and the ELF actually executing. Archive integrity is verified by extraction and per-file hashes/SQLite checks outside production, without overwriting the running root.
+- **REC-007** — Recovery distinguishes reconstruction from GitHub with new operator data from restoring an existing operator's private archive. No credentials/databases/production backups or proprietary artifacts enter GitHub.

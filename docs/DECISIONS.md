@@ -77,3 +77,18 @@ A IA é observadora: recebe somente contadores técnicos agregados e pode sugeri
 
 ### Continuação 2026-10-04 — economia do observador
 Silêncio ou resumo idêntico não geram consulta. Mudança de avaliação não pode furar o limite de 15 minutos entre tentativas. A regra local permanece independente da API. Teste C++ deve exercitar a sequência completa admit/EOT, além dos casos de estado preparado.
+
+## DEC-2026-10-04-015 — Emergency reconstruction and generic runtime parity
+The operator requests the complete current XLX026 capability set in GitHub,
+including the current Control layout, new Live transports and reproducible
+XLXD installation. Installation must derive identity/domain/YSF/modules from
+each operator's inputs. Preserve the six dashboard languages and CallingHome.
+The approved upstream core is pinned; TOT180 is included and Turn Guard is OFF
+by default. Preserve existing generic identity/security fixes when merging
+production presentation changes. Do not replace production or enable DSP.
+Private recovery archives preserve installed extensions, secrets, data and the
+ELF actually executing. They stay outside GitHub and require extraction/hash/
+SQLite verification in another environment. Public Support/ANATEL/News policy
+is unchanged. Exact audio-recovery sources are preserved separately because
+the running binary differs from both /usr/src and the experimental baseline;
+process/retry behavior is not promoted to the public audio path.

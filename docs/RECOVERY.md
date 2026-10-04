@@ -86,3 +86,41 @@ Antes de um futuro canário do XLXD:
 Rollback de produção, se o canário vier a ser autorizado: parar somente o `xlxd` pelo procedimento operacional aprovado, restaurar o binário/unit/env anteriores, executar `daemon-reload` quando necessário, iniciar o serviço e revalidar DMR/YSF/D-Star, Live e interlinks. O monitor consultivo pode ser parado/retirado independentemente porque não participa do caminho de voz.
 
 Qualquer bloqueio indevido de terceira estação, comando legítimo, módulo independente ou regressão de EOT é critério de rollback imediato.
+
+## Complete private reconstruction archive (current parity candidate)
+
+Two recovery paths have different inputs:
+1. **New reflector**: install the tagged public source on Debian 12 x86_64 and
+   enter the new operator's callsign, domain, modules, YSF identity and credentials.
+2. **Existing reflector**: restore its private archive, retaining CallingHome's
+   ownership token, admin password hash, TLS/private keys, APRS/certificate secrets,
+   persistent databases and service configuration. Never publish that archive.
+
+Create a private archive without restarting XLXD:
+```bash
+sudo bash scripts/backup-production.sh
+```
+The command reports the archive and SHA-256. Copy both to storage independent
+of the original VPS. A copy left on the same VPS does not protect against its loss.
+
+Verify and extract on a separate Debian 12 host into an empty private directory:
+```bash
+sudo python3 scripts/restore-production.py --archive /path/recovery.tar.gz --destination /opt/xlx-recovery-staging
+```
+The helper refuses `/`, a populated destination, traversal, duplicate members,
+special files and checksum mismatch. It verifies all recorded file hashes and
+SQLite integrity; no production services are restarted. The manifest maps
+`recovery-running/` ELFs to actual install paths; disk source can be stale.
+
+Only after staging verification, preserve target files, review hostname/IP/
+DNS/timezone paths, restore ownership/configuration/service units and databases,
+run `systemctl daemon-reload`, `nginx -t`, and start services in dependency order.
+Restore the running ELF from the recorded mapping if the source-tree binary
+has a different hash. Validate CallingHome identity/token without re-registering
+as another reflector; verify Control login/CSRF, Live multi-TX, connected/history,
+APRS, certificates and DMR/YSF/D-Star before directing public traffic to it.
+A staging file restore is not a completed operational or RF restoration.
+
+Audio reconstruction sources matching the observed d3ea28ef transcoder are in
+`runtime/audio-recovery/`; the passive VU source is in `runtime/audio-vu/`.
+These are preserved recovery references, not automatic DSP activation.

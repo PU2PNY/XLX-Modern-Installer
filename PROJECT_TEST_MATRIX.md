@@ -75,3 +75,7 @@ Evidência sanitizada reproduzível: [Helix PCM bridge ENV](docs/evidence/helix-
 
 ### Continuação final TX Turn Guard — 2026-10-04
 Código e13f4e1: CI3/3 PASS; ENV build/lifecycle/protocol classes/TOT/restore/WebSocket/UI PASS. Produção ativada21:36:13 UTC com PID655997; primeira sequência A/B/A/cooldown real, RF/interlink/soak e API real ainda PENDENTES. Evidência: [resultado](docs/evidence/tx-turn-guard-production-20261004.json). Falhas anteriores de timeout/verificação foram registradas; não são classificadas como PASS.
+
+| TEST-039 | REC-003/004/005, UI-008, SEC-001 | Pinned core patch, generic Live transports, six language builds, Control views and own-data rendering | current parity candidate; execution pending | PENDENTE |
+| TEST-040 | REC-006/007, BACKUP-002 | Private archive extraction/checksums, SQLite online snapshot, unsafe path rejection and remote restore staging | current parity candidate; execution pending | PENDENTE |
+| TEST-041 | INSTALL-001, REC-003/004 | Complete installation on an isolated Debian 12 environment with synthetic operator data | pending; fixtures/CI cannot substitute a complete fresh installation | PENDENTE |

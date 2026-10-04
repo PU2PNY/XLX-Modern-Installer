@@ -26,6 +26,7 @@ readonly WORK_ROOT="/opt/xlx-modern-installer"
 readonly SOURCE_DIR="${WORK_ROOT}/vendor/pp5pk-installer"
 readonly BACKUP_ROOT="/var/backups/xlx-reflector"
 readonly LOG_ROOT="/var/log/xlx-reflector/installer"
+export XLX_MODERN_REPO_ROOT="$ROOT_DIR"
 readonly DEFAULT_DASHBOARD_DIR="/var/www/html/xlxd"
 
 MODE="install"
@@ -498,6 +499,18 @@ HOOK
     rm -f "$state_hook"
 
 
+    # Reproduce the reviewed production core, then let upstream apply each
+    # operator's module/frequency/identity inputs before compilation.
+    python3 - "$translated" <<'XLXSOURCE'
+import sys
+from pathlib import Path
+p=Path(sys.argv[1]);s=p.read_text()
+old='git clone --depth 1 "$XLXREP" || error_exit "Failed to clone XLX repository"'
+new='bash "$XLX_MODERN_REPO_ROOT/runtime/prepare-xlxd-source.sh" "$USRSRC/xlxd" || error_exit "Failed to prepare pinned XLXD source"'
+if s.count(old)!=1: raise SystemExit('XLXD clone hook mismatch')
+p.write_text(s.replace(old,new))
+XLXSOURCE
+
     # Strict language isolation. The language chooser above is the only
     # intentionally bilingual screen because no language has been selected yet.
     # After selection, English stays native English and pt-BR becomes pt-BR only.
@@ -818,6 +831,8 @@ execute_installer() {
 
     section "$(msg "ATIVANDO NGINX + PHP-FPM" "ENABLING NGINX + PHP-FPM")"
     XLX_DASHBOARD_DIR="$dashboard_dest" XLX_UI_LANG="$UI_LANG" bash "$ROOT_DIR/modules/70-nginx.sh" "--dashboard-dir=$dashboard_dest"
+
+    XLX_DASHBOARD_DIR="$dashboard_dest" XLX_UI_LANG="$UI_LANG" bash "$ROOT_DIR/modules/72-live-runtime.sh"
 
     section "$(msg "PROVISIONANDO APRS/D-PRS NATIVO" "PROVISIONING NATIVE APRS/D-PRS")"
     XLX_DASHBOARD_DIR="$dashboard_dest" XLX_UI_LANG="$UI_LANG" bash "$ROOT_DIR/modules/67-aprs-dprs.sh" "--dashboard-dir=$dashboard_dest"

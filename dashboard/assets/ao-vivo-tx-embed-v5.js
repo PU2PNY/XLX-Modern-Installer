@@ -293,7 +293,36 @@
      * Não existe timer adicional.
      */
     const observer =
-        new MutationObserver(schedule);
+        new MutationObserver(mutations => {
+
+            const relevant =
+                mutations.some(mutation => {
+
+                    if (
+                        mutation.type !== 'childList'
+                    ) {
+                        return false;
+                    }
+
+                    return Array.from(
+                        mutation.addedNodes
+                    ).some(node =>
+                        node.nodeType === 1
+                        && (
+                            node.matches?.(
+                                '.tx-card.live.tx-v30, .tx-mtr-stack'
+                            )
+                            || node.querySelector?.(
+                                '.tx-card.live.tx-v30, .tx-mtr-stack'
+                            )
+                        )
+                    );
+                });
+
+            if (relevant) {
+                schedule();
+            }
+        });
 
     observer.observe(
         grid,

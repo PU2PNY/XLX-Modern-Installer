@@ -1,4 +1,4 @@
-/* {{REFLECTOR_NAME}}_MOBILE_VISUAL_V1 — 2026-09-08
+/* XLXMODERN_MOBILE_VISUAL_V1 — 2026-09-08
    Escopo: somente telas moveis. Nao altera desktop, JS ou APIs. */
 
 @media screen and (max-width:820px){
@@ -132,7 +132,7 @@
     padding:8px !important;
   }
 }
-/* {{REFLECTOR_NAME}}_MOBILE_VISUAL_V2 — refinamento de densidade */
+/* XLXMODERN_MOBILE_VISUAL_V2 — refinamento de densidade */
 @media screen and (max-width:820px) and (hover:none) and (pointer:coarse){
   html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30{
     padding:8px 9px !important;
@@ -162,7 +162,7 @@
   }
 }
 
-/* {{REFLECTOR_NAME}}_A11Y_MOBILE_MENU_V1 — 2026-09-08
+/* XLXMODERN_A11Y_MOBILE_MENU_V1 — 2026-09-08
    No mobile, acessibilidade fica dentro do MENU e nao flutuando no header. */
 @media screen and (max-width:820px){
   html body .universal-header > .xlx-a11y-mobile-icon{
@@ -182,4 +182,53 @@
     pointer-events:auto !important;
   }
 }
-/* /{{REFLECTOR_NAME}}_A11Y_MOBILE_MENU_V1 */
+/* /XLXMODERN_A11Y_MOBILE_MENU_V1 */
+
+/* XLXMODERN_A11Y_RESPONSIVE_ALIGNMENT_V2
+   Um único gatilho por breakpoint:
+   - >=821px: ♿ participa da barra horizontal;
+   - <=820px: ♿ aparece dentro do menu móvel aberto.
+   Evita o ícone absoluto intermediário (821-1180px). */
+@media screen and (min-width:821px){
+  html body section.universal-header > .xlx-a11y-mobile-icon{
+    display:none !important;
+  }
+
+  html body section.universal-header > .universal-nav .xlx-a11y-menu-icon{
+    display:inline-flex !important;
+    position:static !important;
+    flex:0 0 auto !important;
+    align-self:center !important;
+    margin:0 !important;
+    transform:none !important;
+  }
+}
+
+@media screen and (max-width:820px){
+  html body section.universal-header > .xlx-a11y-mobile-icon{
+    display:none !important;
+  }
+
+  html body section.universal-header > .universal-nav:not(.xlxmodern-v4-open) .xlx-a11y-menu-icon{
+    display:none !important;
+  }
+
+  html body section.universal-header > .universal-nav.xlxmodern-v4-open .xlx-a11y-menu-icon{
+    display:flex !important;
+    position:static !important;
+    transform:none !important;
+  }
+}
+
+/* A caixa permanece ancorada à viewport, sem deslocamento lateral. */
+#xlxA11yV5E{
+  box-sizing:border-box !important;
+}
+
+@media screen and (min-width:601px){
+  #xlxA11yV5E{
+    left:auto !important;
+    right:max(10px, env(safe-area-inset-right)) !important;
+  }
+}
+/* /XLXMODERN_A11Y_RESPONSIVE_ALIGNMENT_V2 */

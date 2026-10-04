@@ -187,7 +187,7 @@
             const img = new Image();
             img.onload = () => resolve(img);
             img.onerror = () => resolve(null);
-            img.src = 'assets/logo-{{REFLECTOR_NAME}}.svg';
+            img.src = 'assets/logo-xlxmodern.jpeg';
         });
 
         return state.logo;
@@ -364,7 +364,7 @@
 
     function clearEventName(campaign) {
         return String(
-            campaign?.title || 'Participação {{REFLECTOR_NAME}}'
+            campaign?.title || 'Participação {{REFLECTOR_TITLE}}'
         ).replace(/\s+\d{4}$/, '');
     }
 
@@ -382,13 +382,13 @@
 
             return [
                 `EDIÇÃO ESPECIAL — ${eventName}`,
-                'Uma homenagem do {{REFLECTOR_NAME}} aos profissionais que fazem a diferença.'
+                'Uma homenagem do {{REFLECTOR_TITLE}} aos profissionais que fazem a diferença.'
             ];
         }
 
         const map = {
             profissao: [
-                'O {{REFLECTOR_NAME}} celebra esta data profissional especial,',
+                'O {{REFLECTOR_TITLE}} celebra esta data profissional especial,',
                 'reconhecendo a importância desses profissionais para a sociedade.'
             ],
             carnaval: [
@@ -423,7 +423,7 @@
 
             'corpus-christi': [
                 'Uma data de fé, união e reflexão,',
-                'celebrada com respeito pelo {{REFLECTOR_NAME}}.'
+                'celebrada com respeito pelo {{REFLECTOR_TITLE}}.'
             ],
 
             namorados: [
@@ -473,7 +473,7 @@
             ],
 
             aniversario: [
-                'Celebramos mais um ano do {{REFLECTOR_NAME}},',
+                'Celebramos mais um ano do {{REFLECTOR_TITLE}},',
                 'conectando radioamadores, tecnologia e amizade.',
                 'Obrigado por fazer parte desta história.'
             ],
@@ -704,7 +704,7 @@
 
         centeredText(
             ctx,
-            '{{REFLECTOR_NAME}}',
+            'XLXMODERN',
             w / 2,
             118,
             39,
@@ -1251,7 +1251,7 @@
         clearLines(
             [
                 'UMA HOMENAGEM',
-                'DO {{REFLECTOR_NAME}}',
+                'DO {{REFLECTOR_TITLE}}',
                 'AOS PAIS',
                 'RADIOAMADORES'
             ],
@@ -1553,7 +1553,7 @@
 
         centeredText(
             ctx,
-            'Registro oficial {{REFLECTOR_NAME}}',
+            'Registro oficial {{REFLECTOR_TITLE}}',
             x + bw / 2,
             y + 194,
             12,
@@ -1564,7 +1564,7 @@
 
     function premiumEventLabel(campaign) {
         if (!campaign?.special) {
-            return 'CERTIFICADO OFICIAL {{REFLECTOR_NAME}}';
+            return 'CERTIFICADO OFICIAL {{REFLECTOR_TITLE}}';
         }
 
         return clearEventName(
@@ -1939,7 +1939,7 @@
 
         leftText(
             ctx,
-            'Equipe {{REFLECTOR_NAME}}',
+            'Equipe {{REFLECTOR_TITLE}}',
             x,
             1100,
             16,
@@ -2467,7 +2467,7 @@
         } else {
             centeredText(
                 ctx,
-                '{{REFLECTOR_NAME}} BRASIL',
+                'XLXMODERN BRASIL',
                 leftX + w / 2,
                 y + 235,
                 8,
@@ -2646,10 +2646,55 @@
     }
 
     function certificateVerificationUrl(cert) {
-        const raw = String(cert?.verification_url || '').trim();
-        if (!raw) return '';
+        const raw =
+            String(
+                cert?.verification_url
+                || ''
+            ).trim();
+
+        if (!raw) {
+            return '';
+        }
+
         try {
-            return new URL(raw, window.location.origin).toString();
+            const source =
+                new URL(
+                    raw,
+                    window.location.origin
+                );
+
+            const id =
+                source.searchParams.get(
+                    'validar'
+                );
+
+            const token =
+                source.searchParams.get(
+                    'token'
+                );
+
+            if (!id || !token) {
+                return raw;
+            }
+
+            const target =
+                new URL(
+                    '/certificado',
+                    window.location.origin
+                );
+
+            target.searchParams.set(
+                'validar',
+                id
+            );
+
+            target.searchParams.set(
+                'token',
+                token
+            );
+
+            return target.toString();
+
         } catch (_) {
             return raw;
         }
@@ -2820,7 +2865,7 @@
 
         centeredText(
             ctx,
-            '{{REFLECTOR_NAME}} • CONECTANDO VOZES, CONECTANDO AMIZADES!',
+            '{{REFLECTOR_TITLE}} • CONECTANDO VOZES, CONECTANDO AMIZADES!',
             x + w / 2,
             y + 31,
             14,
@@ -2874,7 +2919,7 @@
         clearLines(
             [
                 'O certificado será gerado com os dados reais',
-                'registrados pelo {{REFLECTOR_NAME}}.'
+                'registrados pelo {{REFLECTOR_TITLE}}.'
             ],
             x,
             648,
@@ -2901,7 +2946,7 @@
 
         centeredText(
             ctx,
-            '{{REFLECTOR_NAME}}',
+            '{{REFLECTOR_TITLE}}',
             x,
             1050,
             17,
@@ -3007,7 +3052,7 @@
 
         clearLines(
             [
-                'teve sua participação registrada no {{REFLECTOR_NAME}},',
+                'teve sua participação registrada no {{REFLECTOR_TITLE}},',
                 'contribuindo com a integração, a amizade e a atividade',
                 'da comunidade do radioamadorismo digital.'
             ],
@@ -3072,7 +3117,7 @@
 
             campaignLead.textContent = data.campaign.special
                 ? `${data.campaign.title} — ${data.campaign.subtitle}`
-                : 'Comprove sua participação registrada no {{REFLECTOR_NAME}}.';
+                : 'Comprove sua participação registrada no {{REFLECTOR_TITLE}}.';
 
             if (data.campaign.special) {
                 specialBanner.hidden = false;

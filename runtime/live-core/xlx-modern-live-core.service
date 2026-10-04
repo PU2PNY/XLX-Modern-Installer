@@ -1,0 +1,25 @@
+[Unit]
+Description=XLX Modern Live Core (Rust/WebSocket)
+After=network.target xlxd.service
+Wants=xlxd.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+ExecStart=/usr/local/bin/xlx-modern-live-core
+Environment=XLX_LIVE_BIND=127.0.0.1:8092
+Restart=on-failure
+RestartSec=2
+MemoryMax=128M
+TasksMax=64
+LimitNOFILE=4096
+NoNewPrivileges=true
+AmbientCapabilities=CAP_NET_RAW
+CapabilityBoundingSet=CAP_NET_RAW
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+
+[Install]
+WantedBy=multi-user.target

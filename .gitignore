@@ -14,3 +14,11 @@ backups/
 releases/
 dashboard/*.zip
 dashboard/**/*.zip
+
+__pycache__/
+*.pyc
+runtime/live-core/target/
+*.tar.gz
+*.tgz
+*.pcap
+*.pcapng

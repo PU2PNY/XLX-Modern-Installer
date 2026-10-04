@@ -6,6 +6,32 @@ header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
 
+$isLiveHub = (($_SERVER['XLXMODERN_LIVE_HUB'] ?? '') === '1');
+
+/* XLXMODERN_LIVE_HUB_SNAPSHOT_V1
+ * Navegadores em fallback/versões antigas recebem o estado já calculado
+ * pelo hub. O próprio hub usa ?hub=1 e continua sendo a única fonte que
+ * executa o parser completo. /run é tmpfs: sem escrita em disco.
+ */
+if (!$isLiveHub) {
+    $hubSnapshot = '/run/xlx-modern-live-hub/latest.json';
+    if (is_readable($hubSnapshot)) {
+        $hubRaw = @file_get_contents($hubSnapshot);
+        $hubData = is_string($hubRaw) ? json_decode($hubRaw, true) : null;
+        $hubMtime = @filemtime($hubSnapshot);
+        $hubAge = $hubMtime ? max(0.0, microtime(true) - (float)$hubMtime) : 999.0;
+        if (is_array($hubData) && !empty($hubData['ok'])) {
+            $hubActive = (int)($hubData['active_count'] ?? 0);
+            $hubMaxAge = $hubActive > 0 ? 0.70 : 10.0;
+            if ($hubAge <= $hubMaxAge) {
+                header('X-XLXMODERN-Live-Cache: HUB');
+                echo $hubRaw;
+                exit;
+            }
+        }
+    }
+}
+
 $logFile = '/var/log/xlx.log';
 $statusCache = '/var/cache/xlx-dashboard/status.json';
 

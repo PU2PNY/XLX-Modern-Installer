@@ -1,0 +1,26 @@
+[Unit]
+Description=XLX Modern Live SSE fallback hub
+After=network-online.target nginx.service php8.2-fpm.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+RuntimeDirectory=xlx-modern-live-hub
+RuntimeDirectoryMode=0755
+EnvironmentFile=/etc/xlx-modern-live/hub.env
+ExecStart=/usr/bin/node /usr/local/lib/xlx-modern/live-hub/server.js
+Restart=on-failure
+RestartSec=2
+NoNewPrivileges=true
+AmbientCapabilities=CAP_NET_RAW
+CapabilityBoundingSet=CAP_NET_RAW
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+MemoryMax=96M
+TasksMax=64
+
+[Install]
+WantedBy=multi-user.target

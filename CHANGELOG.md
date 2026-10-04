@@ -1,3 +1,12 @@
+## Unreleased — Complete reconstruction parity
+
+- Pins the reviewed XLXD source and carries TOT180 plus the optional default-OFF Turn Guard into the canonical installation.
+- Includes the production-observed Rust/WebSocket and SSE fallback sources/services with generic runtime paths and locked dependencies.
+- Synchronizes Control navigation/views and Live presentation while retaining generic identity/configuration/security and six-language contracts.
+- Adds private recovery with online SQLite snapshots, executing ELF capture and verified safe staging extraction; sensitive artifacts remain outside GitHub.
+- Preserves current audio/VU recovery source references separately; no production restart or processing activation.
+- Complete fresh-install, restore-service and RF gates must be recorded separately; no CI promotion by inference.
+
 ## Unreleased — TX Turn Guard V1
 
 - Versions the optional XLXD 2.5.3 per-module anti-ping-pong patch and advisory observer; off remains the default.

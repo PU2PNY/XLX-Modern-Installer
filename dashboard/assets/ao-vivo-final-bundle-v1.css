@@ -1406,3 +1406,80 @@ html body[data-page="ao-vivo"] #moduleGrid .operator-visual.qrz-photo-active img
     max-height:72px !important;
   }
 }
+
+
+/* XLXMODERN_DMR_AUDIO_VU_V1
+   Reaproveita exatamente a linha decorativa SPECTRUM do box.
+   Não altera grid-template, altura mínima nem estrutura do card. */
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .spectrum.tx-vu{
+  position:relative !important;
+  justify-content:flex-start !important;
+  align-items:center !important;
+  gap:2px !important;
+  padding:1px 74px 0 0 !important;
+  overflow:hidden !important;
+}
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .spectrum.tx-vu .tx-vu-readout{
+  display:none;
+  position:absolute;
+  right:0;
+  top:0;
+  width:70px;
+  height:10px;
+  line-height:10px;
+  text-align:right;
+  white-space:nowrap;
+  overflow:hidden;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.02em;
+  color:#a8c5d2;
+}
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .spectrum.tx-vu.is-live .tx-vu-readout{
+  display:block;
+}
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .spectrum.tx-vu.is-live > i{
+  flex:1 1 0 !important;
+  width:auto !important;
+  min-width:2px !important;
+  max-width:18px !important;
+  height:6px !important;
+  max-height:6px !important;
+  opacity:.22 !important;
+  animation:none !important;
+  background:#31505f !important;
+  box-shadow:none !important;
+  transition:opacity .12s linear,background .12s linear,box-shadow .12s linear !important;
+}
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .spectrum.tx-vu.is-live > i.vu-lit:nth-child(-n+6){
+  opacity:.96 !important;
+  background:#4fa9c7 !important;
+}
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .spectrum.tx-vu.is-live > i.vu-lit:nth-child(n+7):nth-child(-n+13){
+  opacity:1 !important;
+  background:#21eaa0 !important;
+  box-shadow:0 0 5px rgba(33,234,160,.24) !important;
+}
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .spectrum.tx-vu.is-live > i.vu-lit:nth-child(n+14):nth-child(-n+16){
+  opacity:1 !important;
+  background:#ffc857 !important;
+  box-shadow:0 0 5px rgba(255,200,87,.22) !important;
+}
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .spectrum.tx-vu.is-live > i.vu-lit:nth-child(n+17){
+  opacity:1 !important;
+  background:#ff315c !important;
+  box-shadow:0 0 6px rgba(255,49,92,.25) !important;
+}
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .spectrum.tx-vu.is-live > i.vu-peak{
+  outline:1px solid rgba(255,255,255,.92) !important;
+  outline-offset:0 !important;
+  opacity:1 !important;
+}
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .spectrum.tx-vu.vu-low .tx-vu-readout{color:#8bcbe2 !important}
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .spectrum.tx-vu.vu-ideal .tx-vu-readout{color:#21eaa0 !important}
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .spectrum.tx-vu.vu-high .tx-vu-readout{color:#ffc857 !important}
+@container (max-width:650px){
+ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .spectrum.tx-vu{padding-right:62px !important;gap:1px !important}
+ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .spectrum.tx-vu .tx-vu-readout{width:59px;font-size:6px}
+}
+/* /XLXMODERN_DMR_AUDIO_VU_V1 */
