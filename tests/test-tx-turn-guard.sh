@@ -8,7 +8,8 @@ SVC="$BASE/systemd/xlx-tx-turn-ai-monitor.service"
 TIMER="$BASE/systemd/xlx-tx-turn-ai-monitor.timer"
 README="$BASE/README.md"
 
-python3 -m py_compile "$MON"
+python3 -m py_compile "$MON" "$ROOT/tests/test-tx-turn-guard-policy.py"
+python3 "$ROOT/tests/test-tx-turn-guard-policy.py" | grep -F 'tx_turn_guard_policy=PASS' >/dev/null
 python3 "$MON" --self-test | grep -F 'tx_turn_ai_monitor_self_test=PASS' >/dev/null
 
 test -s "$PATCH"
