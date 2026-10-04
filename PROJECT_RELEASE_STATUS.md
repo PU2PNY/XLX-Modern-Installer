@@ -219,3 +219,6 @@ Classificação: `SW/ENV PASS` somente para a fundação estática/mock. `TEST-0
 - PROD somente leitura: xlxd PID 1093634 e transcoder PID 3729899 ativos, Nginx e Helix shadow ativos. Nenhum deploy/restart desta regra.
 - PENDENTE: ENV final, regressão DMR/YSF/D-Star/controle/interlink/EOT, restore completo e canário. Não promover CI/build para protocolo/áudio PROD.
 - Evidência sanitizada: `docs/evidence/tx-turn-guard-20261004.json`.
+
+### Bloqueio ENV confirmado
+SentinelX confirmou WartyWallaby offline em 2026-10-04 às 20:43:34 UTC. A retomada job_e98b4c55e964 permaneceu sem resultado; seu estado running no hub não prova execução ou sucesso após a desconexão. Não repetir build/deploy às cegas: ao reconectar, inspecionar processos, log /opt/xlx-tx-turn-final-build.log e checkout /opt/xlx-tx-turn-core-final-20261004 antes de retomar. Repositório final de trabalho: /opt/xlx-tx-turn-final-20261004. Gate de protocolo/restore/API continua pendente.
