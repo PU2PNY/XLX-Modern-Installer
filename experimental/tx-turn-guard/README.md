@@ -78,3 +78,6 @@ XLXD 2.5.3
 - somente depois canário de produção, com rollback imediato em regressão.
 
 Não confundir build/CI com validação de protocolo real.
+
+## Economia do observador
+Sem chamadas em silêncio ou para resumo agregado idêntico. Mínimo absoluto de 15 minutos entre tentativas, inclusive falhas e mudanças de avaliação; saída limitada a 120 tokens. A integração real da API/modelo continua pendente até ser validada.

@@ -53,6 +53,23 @@ int main()
     auto third = header_for("PY2CCC", 'C', 3);
     auto a_d = header_for("PU2AAA", 'D', 4);
 
+    // Exercise actual admit/EOT calls before checking the seeded boundary cases.
+    assert(reflector.TxTurnGuardAdmit(&a));
+    reflector.m_Streams[c].m_DvHeader = a;
+    reflector.TxTurnGuardClosed(&reflector.m_Streams[c]);
+    assert(reflector.TxTurnGuardAdmit(&b));
+    assert(!reflector.m_TxTurnGuard[c].pairActive);
+    reflector.m_Streams[c].m_DvHeader = b;
+    reflector.TxTurnGuardClosed(&reflector.m_Streams[c]);
+    assert(reflector.TxTurnGuardAdmit(&a));
+    assert(reflector.m_TxTurnGuard[c].pairActive);
+    reflector.m_Streams[c].m_DvHeader = a;
+    reflector.TxTurnGuardClosed(&reflector.m_Streams[c]);
+    assert(!reflector.TxTurnGuardAdmit(&b));
+    assert(reflector.TxTurnGuardAdmit(&third));
+    assert(!reflector.m_TxTurnGuard[c].pairActive);
+    reflector.m_TxTurnGuard[c] = CReflector::STxTurnGuardState();
+
     // Seed the state immediately before the third transmission of A -> B -> A.
     auto &state = reflector.m_TxTurnGuard[c];
     state.previousUser = "PU2AAA";

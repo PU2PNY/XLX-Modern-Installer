@@ -136,8 +136,30 @@ def self_test():
     assert local_assessment(counts) == 'observed'
     # Event contract intentionally contains no user identity fields.
     assert all('callsign=' not in line and 'station=' not in line and 'radioid=' not in line for line in sample[:4])
+    quiet = {'pair_detected': 0, 'blocked_attempts': 0}
+    active = {'pair_detected': 1, 'blocked_attempts': 1}
+    assert not ai_should_run(1000, {}, quiet)[0]
+    due, fingerprint = ai_should_run(1000, {}, active)
+    assert due
+    saved = {'last_ai_at': 1000, 'last_ai_fingerprint': fingerprint}
+    assert not ai_should_run(2000, saved, active)[0]
+    changed = {'pair_detected': 2, 'blocked_attempts': 4}
+    assert not ai_should_run(1100, saved, changed)[0]
+    assert ai_should_run(1900, saved, changed)[0]
     print('tx_turn_ai_monitor_self_test=PASS')
     return 0
+
+
+
+def ai_should_run(now, state, telemetry):
+    # Never call the remote observer for a quiet or unchanged summary.
+    fingerprint = json.dumps(telemetry, sort_keys=True, separators=(',', ':'))
+    last_ai = int(state.get('last_ai_at', 0) or 0)
+    has_events = any(telemetry.get(field, 0) for field in (
+        'pair_detected', 'blocked_attempts', 'cooldown_started', 'third_party_breaks'))
+    due = (has_events and fingerprint != state.get('last_ai_fingerprint')
+           and (last_ai <= 0 or now - last_ai >= AI_INTERVAL))
+    return due, fingerprint
 
 
 def main():
@@ -161,15 +183,15 @@ def main():
     }
 
     state = load_state()
-    old_assessment = str(state.get('last_assessment', ''))
     last_ai = int(state.get('last_ai_at', 0) or 0)
-    ai_due = last_ai <= 0 or now - last_ai >= AI_INTERVAL or assessment != old_assessment
+    ai_due, fingerprint = ai_should_run(now, state, telemetry)
     ai_ok = bool(state.get('ai_last_ok', False))
     ai_summary = str(state.get('ai_summary', 'Observador local ativo.'))[:320]
     key = os.environ.get('OPENAI_API_KEY', '').strip()
     if ai_due and key:
         ai_ok, ai_summary = ask_ai(telemetry, key)
         last_ai = now
+        state['last_ai_fingerprint'] = fingerprint
 
     state.update({
         'last_assessment': assessment,

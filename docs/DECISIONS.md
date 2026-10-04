@@ -74,3 +74,6 @@ O objetivo é criar espaço real de câmbio sem impor um lockout global. A V1 id
 A decisão de admitir ou negar stream deve ocorrer localmente no XLXD, usando relógio monotônico e a identidade `MY`/origem, nunca API externa. Keepalive, conexão, Wires-X/controle fora de stream e demais pacotes que não abrem DV não entram no bloqueio. Se algum protocolo usar stream DV comum para comando legítimo, a exceção depende de evidência ENV e teste específico.
 
 A IA é observadora: recebe somente contadores técnicos agregados e pode sugerir revisão de limiares/falsos positivos. Não recebe áudio, conteúdo de voz, indicativos, RadioID, IP ou payload e nunca participa da decisão em tempo real. O recurso fica `off` por padrão até gates de DMR, YSF/C4FM, D-Star, backup e restore.
+
+### Continuação 2026-10-04 — economia do observador
+Silêncio ou resumo idêntico não geram consulta. Mudança de avaliação não pode furar o limite de 15 minutos entre tentativas. A regra local permanece independente da API. Teste C++ deve exercitar a sequência completa admit/EOT, além dos casos de estado preparado.

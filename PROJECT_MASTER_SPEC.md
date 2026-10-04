@@ -126,3 +126,5 @@ Uma mudança só é aceita se:
 - **TURN-006** — O guard atua somente na admissão de novo stream DV. Keepalive, conexão e controle fora de stream não são bloqueados. Qualquer protocolo que transportar comando legítimo como stream DV exige exceção explícita comprovada em ENV antes de produção.
 - **TURN-007** — O recurso permanece `off` por padrão no candidato. Habilitação requer variável explícita, validação de DMR/YSF/D-Star, backup e restore testado.
 - **TURN-008** — A IA é somente observadora consultiva, fora do hot path. Pode receber apenas contadores técnicos agregados sem áudio, conteúdo de voz, indicativo, RadioID, IP ou payload; falha ou opinião da IA nunca pode liberar/bloquear stream nem alterar o temporizador local.
+
+- **TURN-009** — Observador remoto consulta somente resumos com eventos novos/diferentes; silêncio e resumo idêntico não geram chamada. Respeitar mínimo absoluto de 900 s entre tentativas, inclusive mudança de avaliação e falha da API.
