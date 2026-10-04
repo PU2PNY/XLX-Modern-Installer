@@ -128,14 +128,19 @@ int main()
     const std::string dmr_identity = CReflector::TxTurnGuardIdentity(dmr_only.GetMyCallsign());
     assert(!dmr_identity.empty());
 
+    CPacketStream tot;
+    tot.m_OpenTime.Now();
+    assert(!tot.IsMaxDurationReached());
+    tot.m_OpenTime.m_TimePoint = std::chrono::steady_clock::now() - std::chrono::seconds(181);
+    assert(tot.IsMaxDurationReached());
     std::cout << "tx_turn_guard_cpp_unit=PASS\n";
     return 0;
 }
 CPP
 
 # main.cpp owns globals needed by the XLXD objects. Rename only its entry point.
-g++ -c -std=c++11 -pthread -I"$BUILD" -Dmain=xlxd_original_main "$BUILD/main.cpp" -o "$TMP/main-test.o"
-g++ -c -std=c++11 -pthread -I"$BUILD" "$TMP/txturn_unit.cpp" -o "$TMP/txturn_unit.o"
+g++ -c -std=c++11 -pthread -iquote "$BUILD" -Dmain=xlxd_original_main "$BUILD/main.cpp" -o "$TMP/main-test.o"
+g++ -c -std=c++11 -pthread -iquote "$BUILD" "$TMP/txturn_unit.cpp" -o "$TMP/txturn_unit.o"
 
 objects=()
 while IFS= read -r obj; do

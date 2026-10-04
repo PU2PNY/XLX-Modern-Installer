@@ -1,0 +1,18 @@
+--- a/opt/xlx026-live-hub/server.js
++++ b/opt/xlx026-live-hub/server.js
+@@ -2,6 +2,7 @@
+ const http = require('http');
+ const https = require('https');
+ const fs = require('fs');
++const {readTurnWait}=require('./tx-turn-state.js');
+ const net = require('net');
+ const { spawn } = require('child_process');
+ const readline = require('readline');
+@@ -387,6 +388,7 @@
+             const nowActive = Number(data.active_count || 0) > 0;
+             syncMtrMonitors(data);
+             attachMtrSnapshots(data);
++            data.tx_turn_wait=readTurnWait();
+             latest = data;
+             latestUpdatedAt = Date.now();
+             writeSnapshot(data);

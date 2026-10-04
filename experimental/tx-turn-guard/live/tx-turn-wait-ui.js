@@ -1,0 +1,87 @@
+/* XLX_TX_TURN_WAIT_UI_V1 */
+(()=> {
+ if(page!=='ao-vivo')return;
+ const waits=new Map();
+ let ticker=null, observer=null, root=null;
+ function draw(){
+  root=document.getElementById('moduleGrid');
+  if(!root)return;
+  if(!observer){
+   observer=new MutationObserver(()=>{if(ticker)draw();});
+   observer.observe(root,{childList:true,subtree:true});
+  }
+  const now=performance.now();
+  const live=[...waits.values()].filter(x=>x.deadline>now);
+  if(live.length){
+   root.querySelectorAll('.tx-card.standby:not(.tx-turn-wait-card)').forEach(x=>x.remove());
+  }
+  root.querySelectorAll('[data-turn-wait-module]').forEach(el=>{
+   if(!live.some(x=>x.module===el.dataset.turnWaitModule))el.remove();
+  });
+  root.querySelectorAll('.tx-turn-notice').forEach(el=>{
+   if(!live.some(x=>x.module===el.dataset.turnNoticeModule))el.remove();
+  });
+  for(const x of live){
+   const seconds=Math.max(1,Math.ceil((x.deadline-now)/1000));
+   let el=root.querySelector('[data-turn-wait-module="'+x.module+'"]');
+   const active=root.querySelector('.tx-card.live[data-turn-module="'+x.module+'"]');
+   if(active){
+    if(el)el.remove();
+    el=active.querySelector('.tx-turn-notice');
+    if(!el){
+     el=document.createElement('div');
+     el.className='tx-turn-notice';
+     el.dataset.turnNoticeModule=x.module;
+     active.appendChild(el);
+    }
+   }else if(!el){
+    el=document.createElement('article');
+    el.className='tx-card standby compact-tx tx-turn-wait-card';
+    el.dataset.turnWaitModule=x.module;
+    root.appendChild(el);
+   }
+   const label=x.callsigns.join(' • ');
+   const signature=label+':'+seconds;
+   if(el.dataset.turnSignature!==signature){
+    el.dataset.turnSignature=signature;
+    el.innerHTML='<div class="tx-turn-label">MÓDULO '+esc(x.module)+
+     ' • ESPAÇO DE CÂMBIO</div><h3>'+esc(label)+
+     '</h3><div class="tx-turn-count">AGUARDE <b>'+seconds+
+     ' s</b></div><p>Esses indicativos estão em espera. Outras estações podem entrar.</p>';
+    el.setAttribute('aria-label',label+' em espera no módulo '+x.module);
+   }
+  }
+  if(!live.length){
+   if(ticker){clearInterval(ticker);ticker=null;}
+   if(!root.querySelector('.tx-card')){
+    const modules=lastData?.modules||{};
+    const m=Object.values(modules)[0]||{module:'C'};
+    const last=[...(lastData?.history||[])].sort((a,b)=>b.started_at-a.started_at)[0]||null;
+    root.innerHTML=standbyCard(m,last);
+   }
+  }
+ }
+ function update(data){
+  if(!data||!Array.isArray(data.tx_turn_wait))return;
+  const allowed=new Set(),now=performance.now();
+  for(const x of data.tx_turn_wait.slice(0,26)){
+   if(!/^[A-Z]$/.test(x.module)||!Array.isArray(x.callsigns))continue;
+   const calls=x.callsigns.slice(0,2).map(String).filter(s=>/^[A-Z0-9/:.-]{1,24}$/.test(s));
+   const ms=Math.min(7000,Math.max(0,Number(x.remaining_ms)||0));
+   if(!calls.length||!ms)continue;
+   const key=String(x.until_ms)+':'+calls.join(',');
+   const old=waits.get(x.module);
+   const deadline=old&&old.key===key?Math.min(old.deadline,now+ms):now+ms;
+   waits.set(x.module,{module:x.module,callsigns:calls,key,deadline});
+   allowed.add(x.module);
+  }
+  for(const module of waits.keys())if(!allowed.has(module))waits.delete(module);
+  if([...waits.values()].some(x=>x.deadline>now)&&!ticker)ticker=setInterval(draw,250);
+  draw();
+ }
+ const style=document.createElement('style');
+ style.id='xlx-tx-turn-wait-styles';
+ style.textContent='.tx-turn-wait-card,.tx-turn-notice{background:#ffe391!important;color:#151a20!important;border:3px solid #9b6700!important;border-radius:16px;padding:22px;min-width:0;box-sizing:border-box}.tx-turn-notice{margin:14px 12px 0;padding:14px}.tx-turn-label{font-size:15px;font-weight:800;letter-spacing:.04em}.tx-turn-wait-card h3,.tx-turn-notice h3{color:#151a20!important;font-size:clamp(22px,3vw,34px)!important;line-height:1.3;overflow-wrap:anywhere;margin:16px 0!important}.tx-turn-count{display:flex;align-items:center;flex-wrap:wrap;gap:12px;font-size:20px;font-weight:800}.tx-turn-count b{font-size:42px;color:#151a20!important}.tx-turn-wait-card p,.tx-turn-notice p{color:#151a20!important;font-size:16px;line-height:1.45;margin:14px 0 0}';
+ document.head.appendChild(style);
+ window.XLX026TurnWait={update,draw};
+})();
