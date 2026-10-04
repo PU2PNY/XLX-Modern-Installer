@@ -116,3 +116,13 @@ Uma mudança só é aceita se:
 - **HELIX-007** — Quando `shadow` for explicitamente habilitado pelo operador em produção, a interface deve identificá-lo como observação/monitoramento, nunca como processamento do áudio. O caminho transmitido continua legado; indisponibilidade do observador não pode derrubar o áudio.
 - **HELIX-008** — Monitoramento por IA do Helix fica fora do hot path. Somente telemetria técnica agregada pode sair do servidor; áudio, conteúdo de voz, indicativos e payloads de rádio não são enviados à IA. Falha da API externa não pode afetar XLXD, xuvd ou o áudio.
 - **HELIX-009** — O monitor local deve validar serviço Helix, socket, xuvd, XLXD, hash do candidato e fallbacks; chamadas externas devem ser limitadas e orientadas a resumo/anomalia, preservando baixo consumo.
+
+### TX TURN GUARD / ANTI-PING-PONG
+- **TURN-001** — O TOT existente de 180 s permanece independente e não pode ser alterado por este recurso.
+- **TURN-002** — A detecção V1 é por módulo lógico: `A -> B -> A` somente arma a dupla quando os dois intervalos EOT→novo stream são de até 2.000 ms por padrão. Uma alternância isolada A→B não basta.
+- **TURN-003** — Depois de armada a dupla, cada EOT de A ou B inicia 7.000 ms de inelegibilidade para novo stream DV de voz somente para A/B naquele módulo. Tentativa negada não reinicia nem prolonga o prazo; em `elapsed >= 7000 ms`, a estação volta a ser elegível.
+- **TURN-004** — Terceira estação C não pode ser bloqueada pela dupla e, ao conseguir abrir stream no mesmo módulo, quebra o estado A/B. Estado de um módulo não bloqueia módulo independente.
+- **TURN-005** — A identidade usada é o `MY`/origem transmissora já normalizada pelo XLXD; gateway, peer, IP ou repetidora não podem substituir o operador quando a origem estiver disponível. O relógio de decisão é monotônico e o estado é efêmero.
+- **TURN-006** — O guard atua somente na admissão de novo stream DV. Keepalive, conexão e controle fora de stream não são bloqueados. Qualquer protocolo que transportar comando legítimo como stream DV exige exceção explícita comprovada em ENV antes de produção.
+- **TURN-007** — O recurso permanece `off` por padrão no candidato. Habilitação requer variável explícita, validação de DMR/YSF/D-Star, backup e restore testado.
+- **TURN-008** — A IA é somente observadora consultiva, fora do hot path. Pode receber apenas contadores técnicos agregados sem áudio, conteúdo de voz, indicativo, RadioID, IP ou payload; falha ou opinião da IA nunca pode liberar/bloquear stream nem alterar o temporizador local.
