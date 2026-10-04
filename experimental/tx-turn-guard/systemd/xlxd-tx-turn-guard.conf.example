@@ -1,0 +1,6 @@
+# Reference drop-in only. Do not copy to production before ENV/HW gates and rollback.
+[Service]
+Environment=XLX_TX_TURN_GUARD=1
+Environment=XLX_TX_TURN_TRIGGER_MS=2000
+Environment=XLX_TX_TURN_COOLDOWN_MS=7000
+Environment=XLX_TX_TURN_RESET_MS=60000
