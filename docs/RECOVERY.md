@@ -70,3 +70,19 @@ Antes de qualquer promoção futura para `SHADOW`, `PROCESS_CANARY` ou `PROCESS`
 Rollback futuro de artifact deve trocar somente a geração usada por novos streams e drenar a geração problemática; rollback de preset deve selecionar a revisão anterior para novos PTTs. Artifact/preset problemático é quarantined, não sobrescrito.
 
 Se o fail-open delay-matched, o emergency bypass ou o restore completo não puderem ser demonstrados, `PROCESS` permanece bloqueado.
+
+## TX Turn Guard / anti-ping-pong
+
+Enquanto o recurso estiver somente na branch experimental, rollback é reverter a branch/patch; nenhum runtime de produção foi alterado.
+
+Antes de um futuro canário do XLXD:
+- registrar commit/hash do binário XLXD ativo, unit, drop-ins, ambiente e configuração;
+- copiar o binário conhecido-bom e todos os arquivos de serviço/configuração afetados para backup root-only;
+- validar a cópia de restore em ENV;
+- manter o candidato com `XLX_TX_TURN_GUARD` ausente/`0` como bypass funcional;
+- provar que remover o drop-in e restaurar o binário anterior retorna exatamente ao comportamento conhecido-bom;
+- não usar a IA como mecanismo de rollback e não tornar a API OpenAI dependência do serviço XLXD.
+
+Rollback de produção, se o canário vier a ser autorizado: parar somente o `xlxd` pelo procedimento operacional aprovado, restaurar o binário/unit/env anteriores, executar `daemon-reload` quando necessário, iniciar o serviço e revalidar DMR/YSF/D-Star, Live e interlinks. O monitor consultivo pode ser parado/retirado independentemente porque não participa do caminho de voz.
+
+Qualquer bloqueio indevido de terceira estação, comando legítimo, módulo independente ou regressão de EOT é critério de rollback imediato.

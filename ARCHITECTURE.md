@@ -104,3 +104,20 @@ Invariantes:
 - Helix e Stereo Tool não são empilhados automaticamente.
 
 Detalhes e gates: `docs/STEREOTOOL_INTEGRATION.md`.
+
+## TX Turn Guard / anti-ping-pong — candidato experimental
+
+O candidato em `experimental/tx-turn-guard/` adiciona uma política de admissão de **novo stream DV**, não um DSP e não um proxy de áudio. O hook fica no caminho central de `CReflector::OpenStream()` para que DMR, YSF/C4FM e D-Star possam compartilhar a mesma regra depois de validação individual.
+
+```text
+header DV -> valida cliente/módulo/stream livre -> TX Turn Guard -> CPacketStream::Open()
+                                                     |
+                                                     +-- allow -> caminho XLXD existente
+                                                     +-- deny  -> header recusado; nenhum stream novo
+```
+
+Estado é separado por módulo e protegido por mutex. O relógio usa `std::chrono::steady_clock`. A identidade é `MY`/origem do `CDvHeaderPacket`, não IP/gateway. A sequência rápida `A -> B -> A` arma a dupla; após EOT, somente A/B aguardam 7 s. Terceiro C continua livre e quebra a dupla. O TOT de 180 s não é alterado.
+
+O patch é `off` por padrão e a configuração V1 só é habilitada por ambiente explícito. Keepalive/Wires-X/conexão que não abrem stream DV permanecem fora do hook; comandos que eventualmente usem DV comum precisam de teste específico antes de produção.
+
+O observador `xlx-tx-turn-ai-monitor.py` é processo/timer separado. Ele lê somente eventos técnicos `TXTURN` sem identidade de estação, agrega contadores e pode solicitar análise consultiva à OpenAI. A resposta da IA nunca retorna ao caminho de admissão e não pode alterar timer, permitir ou negar transmissão. Falha de rede/API é operacionalmente irrelevante ao XLXD.

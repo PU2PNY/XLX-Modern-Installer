@@ -209,3 +209,20 @@ Evidência ENV na WartyWallaby: `python3 -m py_compile`, `bash -n` e `tests/test
 Classificação: `SW/ENV PASS` somente para a fundação estática/mock. `TEST-031` permanece PENDENTE para artifact/SDK reais, licença/autorização escrita, sandbox load, PCM inventory, contextos por stream, latência/CPU/RAM, shadow, delay-matched fail-open, chaos, canário e rollback.
 
 **Produção XLX026 não foi modificada nesta etapa.** Nenhum serviço Stereo Tool foi criado/habilitado, nenhum `xlxd`/`xuvd` foi reiniciado e `PROCESS` Stereo Tool permanece proibido.
+
+## TX Turn Guard V1 — ativo no XLX026 (2026-10-04)
+- PR #78, branch `feature/tx-reentry-cooldown-v1-20261004`. Código funcional e13f4e1a95ac8064688763017761601fea149e0f: três workflows CI PASS (37235697443, 37235697453, 37235697534).
+- Base ativa recuperada: PP5PK/xlxd e69f2dc + TOT180 da PR54. Rebuild exato c0283b7f6c7644b84284140ecaa20e7643bd60a99b961a8f099f9fea19976441; fonte divergente em /usr/src não utilizada.
+- ENV Warty: build completo -j1 PASS; C++ lifecycle guard/TOT PASS; encoders/decoders + admissão real de classes DCS/YSF/DMR com A/B/A, bloqueio, terceiro, EOT, timeout e TOT PASS. Dados sintéticos, sem alegar teste RF.
+- ENV: restauração de ELF/unit/ambiente/restart em serviço systemd com rede privada PASS; baseline final hash exato e variável guard removida. WebSocket/snapshot de espera/expiry/terceiro/dado inválido PASS.
+- UI: fixture explicitamente fictícia PASS em desktop e box350px; contagem7s e remoção no expiry/terceiro. Componente e versão nova de app.js conferidos no painel real. Captura [teste visual](docs/evidence/tx-turn-wait-ui-20261004.jpg).
+- PROD promovido em 2026-10-04 21:36:13 UTC, após janela sem TX. XLXD PID655997/hash9dce43475fed2fa464e8b76f1363167827b5cb80e33981523d2e701ea3d0b9f0; 13 listeners confirmados, variáveis guard1/trigger2000/cooldown7000/reset60000 e estado local no tmpfs.
+- Live Core V2 hash83977c221a327a6d39d7fd12a6aa1170274b3fa71de367934ce8fd87601099ed, WebSocket entrega espera local; fallback SSE e box TX instalados. Nginx/PHP mantidos.
+- Transcoder PID3729899 e Helix shadow PID3716236 preservados. Serviços sem reinício automático (NRestarts0). Reconexões reais observadas em DCS, YSF e DMR; contagem pública recuperou96 estações na amostra dinâmica.
+- Canário inicial: quatro streams abertos e três encerrados, zero loop; três estatísticas ambed com 0 de1224, 0 de986 e 0 de198 pacotes em timeout. Um stream ainda ativo na amostra. Rotas ao-vivo, live-v2/snapshot, live.php e helix-status.php HTTP200. Não equivale a escuta de áudio/RF/soak.
+- Backup root-only `/opt/xlx026-backups/TX_TURN_WAIT_20261004_2120`, manifest SHA256, rollback.py e deploy-result.json. Duas tentativas foram revertidas automaticamente por falhas do verificador (checagem antes do carregamento das bases; comparação sem remover newline do status). Baseline exato e todas as portas foram reconfirmados antes da promoção final. Não ocultar essas reversões como deploys bem-sucedidos.
+- Observador local/timer ativos e modelo explicitamente configurado reutilizando a configuração existente; silêncio confirmado com zero eventos e nenhuma análise remota. Não houve gasto por aviso/PTT. Limites: resumo novo/diferente, mínimo900s entre tentativas inclusive erro, máximo120 tokens, no máximo4096 eventos; nunca voz/identidade para IA.
+- PENDENTE: primeira dupla/cooldown real observada em PROD, chamada real da API deste recurso, RF multiprotocolo/interlink e soak prolongado. Política padrão do instalador continua OFF; ativação explícita somente nesta instância autorizada.
+- Evidência sanitizada [resultado](docs/evidence/tx-turn-guard-production-20261004.json) e [procedimento](experimental/tx-turn-guard/PRODUCTION-20261004.md).
+
+O bloqueio de conectividade de Warty às20:43 UTC foi superado após reconexão; o build antigo divergente não foi promovido. O timeout anterior permanece histórico, não resultado final.

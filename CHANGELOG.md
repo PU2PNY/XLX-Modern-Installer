@@ -1,3 +1,11 @@
+## Unreleased — TX Turn Guard V1
+
+- Versions the optional XLXD 2.5.3 per-module anti-ping-pong patch and advisory observer; off remains the default.
+- Preserves the existing 180 s TOT, third-party admission and module independence.
+- Adds a reproducible C++ gate using the patched XLXD classes and full admit/EOT sequence.
+- Remote observation skips quiet/identical summaries and enforces at least 15 minutes between attempts; voice and identities are excluded.
+- Production activation remains gated on protocol regression and full restore; no production service is changed.
+
 ## Unreleased — Stereo Tool LAB foundation
 
 - Adds a **lab-only** foundation for future Stereo Tool integration without installing the proprietary product or changing XLXD/xuvd/audio production paths.
