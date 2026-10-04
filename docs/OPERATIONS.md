@@ -102,3 +102,29 @@ Rejeitar promoção quando:
 A unidade em `experimental/stereotool/systemd/xlx-stereotoold.service.example` é **referência**, não deve ser habilitada na etapa atual. A futura unidade deve permanecer `AF_UNIX`-only e sem web UI do fornecedor.
 
 Não usar Stereo Tool para “corrigir” a instabilidade atual de `process` do Helix e não empilhar os dois DSPs automaticamente. Cada mecanismo mantém gates, benchmark e rollback separados.
+
+## TX Turn Guard / anti-ping-pong
+
+O candidato está em `experimental/tx-turn-guard/` e permanece desligado por padrão. `apply-and-build.sh` é somente LAB: aplica o patch à revisão XLXD aprovada e compila, sem instalar, reiniciar ou habilitar o recurso.
+
+Configuração V1 de referência:
+
+```text
+XLX_TX_TURN_GUARD=1
+XLX_TX_TURN_TRIGGER_MS=2000
+XLX_TX_TURN_COOLDOWN_MS=7000
+XLX_TX_TURN_RESET_MS=60000
+```
+
+Antes de qualquer canário:
+1. validar o patch no commit upstream documentado;
+2. executar `tests/test-tx-turn-guard.sh` e a suíte geral;
+3. testar DMR MMDVM, YSF/C4FM e D-Star separadamente em ENV, incluindo EOT normal e timeout;
+4. provar que Wires-X/link/unlink/keepalive/comandos legítimos continuam funcionando;
+5. provar que terceiro usuário entra imediatamente durante a janela A/B;
+6. provar que módulo independente não é bloqueado;
+7. registrar binário/hash/unit/env atuais do XLXD e criar backup root-only;
+8. restaurar o binário/config/unit conhecidos em ENV e revalidar protocolos;
+9. somente então considerar canário PROD.
+
+Eventos `TXTURN` não devem conter indicativo, RadioID, IP ou payload. O monitor de IA é consultivo e executado por timer separado; a OpenAI recebe somente contadores agregados. Ausência de chave/API não muda o comportamento do guard. Nunca usar resposta da IA como autorização para abrir/fechar stream.
