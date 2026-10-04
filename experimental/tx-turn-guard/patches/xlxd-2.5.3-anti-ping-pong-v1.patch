@@ -1,5 +1,5 @@
 diff --git a/src/creflector.cpp b/src/creflector.cpp
-index a813df9..e6bd127 100644
+index a813df9..ba38ccc 100644
 --- a/src/creflector.cpp
 +++ b/src/creflector.cpp
 @@ -24,6 +24,8 @@
@@ -11,7 +11,7 @@ index a813df9..e6bd127 100644
  #include "creflector.h"
  #include "cgatekeeper.h"
  #include "cdmriddirfile.h"
-@@ -187,6 +189,154 @@ void CReflector::Stop(void)
+@@ -187,6 +189,160 @@ void CReflector::Stop(void)
  
  }
  
@@ -23,7 +23,11 @@ index a813df9..e6bd127 100644
 +    char value[CALLSIGN_LEN + 1];
 +    ::memset(value, 0, sizeof(value));
 +    callsign.GetCallsignString(value);
-+    return std::string(value);
++    if (value[0] != 0)
++        return std::string(value);
++    if (callsign.GetDmrid() != 0)
++        return std::string("DMR:") + std::to_string(callsign.GetDmrid());
++    return std::string();
 +}
 +
 +long CReflector::TxTurnGuardEnvMs(const char *name, long fallback, long minValue, long maxValue)
@@ -55,7 +59,8 @@ index a813df9..e6bd127 100644
 +
 +    const long triggerMs = TxTurnGuardEnvMs("XLX_TX_TURN_TRIGGER_MS", 2000, 250, 10000);
 +    const long cooldownMs = TxTurnGuardEnvMs("XLX_TX_TURN_COOLDOWN_MS", 7000, 1000, 30000);
-+    const long resetMs = TxTurnGuardEnvMs("XLX_TX_TURN_RESET_MS", 60000, 10000, 600000);
++    const long resetConfiguredMs = TxTurnGuardEnvMs("XLX_TX_TURN_RESET_MS", 60000, 10000, 600000);
++    const long resetMs = std::max(resetConfiguredMs, cooldownMs);
 +    const auto now = std::chrono::steady_clock::now();
 +
 +    std::lock_guard<std::mutex> lock(m_TxTurnGuardMutex);
@@ -147,7 +152,8 @@ index a813df9..e6bd127 100644
 +        return;
 +
 +    const long cooldownMs = TxTurnGuardEnvMs("XLX_TX_TURN_COOLDOWN_MS", 7000, 1000, 30000);
-+    const long resetMs = TxTurnGuardEnvMs("XLX_TX_TURN_RESET_MS", 60000, 10000, 600000);
++    const long resetConfiguredMs = TxTurnGuardEnvMs("XLX_TX_TURN_RESET_MS", 60000, 10000, 600000);
++    const long resetMs = std::max(resetConfiguredMs, cooldownMs);
 +    const auto now = std::chrono::steady_clock::now();
 +
 +    std::lock_guard<std::mutex> lock(m_TxTurnGuardMutex);
@@ -166,7 +172,7 @@ index a813df9..e6bd127 100644
  ////////////////////////////////////////////////////////////////////////////////////////
  // stream opening & closing
  
-@@ -219,8 +369,10 @@ CPacketStream *CReflector::OpenStream(CDvHeaderPacket *DvHeader, CClient *client
+@@ -219,8 +375,10 @@ CPacketStream *CReflector::OpenStream(CDvHeaderPacket *DvHeader, CClient *client
                  {
                      // lock it
                      stream->Lock();
@@ -179,7 +185,7 @@ index a813df9..e6bd127 100644
                      {
                          // stream open, mark client as master
                          // so that it can't be deleted
-@@ -297,6 +449,9 @@ void CReflector::CloseStream(CPacketStream *stream)
+@@ -297,6 +455,9 @@ void CReflector::CloseStream(CPacketStream *stream)
              // notify
              g_Reflector.OnStreamClose(stream->GetUserCallsign());
  
