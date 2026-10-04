@@ -67,3 +67,10 @@ Stereo Tool é código proprietário, stateful e potencialmente pesado. A primei
 A integração runtime futura deve usar processo separado e IPC local. O worker não pode expor rede Internet/web UI do fornecedor; falha deve resultar em bypass para o PCM original, e `PROCESS` só pode existir depois de delay-matched fail-open, contexto por stream, benchmark, chaos/rollback e autorização comercial/jurídica escrita para o uso multiusuário. `READY_FOR_SANDBOX` não autoriza `SHADOW` nem `PROCESS`.
 
 Helix e Stereo Tool mantêm gates independentes. Não usar o Stereo Tool para mascarar a confiabilidade ainda parcial do `process` Helix nem empilhar ambos automaticamente no hot path.
+
+## DEC-2026-10-04-014 — Anti-ping-pong usa regra local determinística e IA apenas consultiva
+O objetivo é criar espaço real de câmbio sem impor um lockout global. A V1 identifica, por módulo lógico, alternância rápida `A -> B -> A`; após a detecção, o EOT de um membro inicia uma janela de 7 s na qual somente a dupla A/B fica inelegível para novo stream DV de voz. Terceiros permanecem livres e quebram o estado da dupla. Tentativas negadas não prolongam o cronômetro e o TOT de 180 s permanece separado.
+
+A decisão de admitir ou negar stream deve ocorrer localmente no XLXD, usando relógio monotônico e a identidade `MY`/origem, nunca API externa. Keepalive, conexão, Wires-X/controle fora de stream e demais pacotes que não abrem DV não entram no bloqueio. Se algum protocolo usar stream DV comum para comando legítimo, a exceção depende de evidência ENV e teste específico.
+
+A IA é observadora: recebe somente contadores técnicos agregados e pode sugerir revisão de limiares/falsos positivos. Não recebe áudio, conteúdo de voz, indicativos, RadioID, IP ou payload e nunca participa da decisão em tempo real. O recurso fica `off` por padrão até gates de DMR, YSF/C4FM, D-Star, backup e restore.
