@@ -17,7 +17,8 @@ grep -F "now-last_ai>=900" "$MON" >/dev/null
 grep -F "https://api.openai.com/v1/responses" "$MON" >/dev/null
 grep -F "'mode':'shadow'" "$MON" >/dev/null
 grep -F "recent_fallback" "$MON" >/dev/null
-grep -F "HELIX</b><span>MONITORANDO" "$JS" >/dev/null
+grep -F "const active=state.mode==='shadow'&&state.shadow_active;" "$JS" >/dev/null
+grep -F "HELIX</b><span>" "$JS" >/dev/null
 grep -F "O áudio transmitido continua no caminho legado." "$JS" >/dev/null
 
 if grep -R -n -F "XLX_HELIX_MODE=process" "$MON" "$SVC" "$TIMER" "$API" "$JS"; then
