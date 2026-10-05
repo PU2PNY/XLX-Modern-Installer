@@ -767,8 +767,19 @@ def callinghome_runtime_health():
         and exit_code in ("0", "")
     )
 
+    # Observe the configured identity without exposing its secret hash.
+    hash_present = False
+    try:
+        config = Path('/etc/xlx-modern/callinghome.php').read_text()
+        hash_present = bool(re.search(r"['\"]hash['\"]\s*=>\s*['\"][A-Za-z0-9]{16,128}['\"]", config))
+    except OSError:
+        pass
     return {
         "ok": timer_ok and service_ok,
+        "hash_present": hash_present,
+        "identity_backup_ok": False,
+        "identity_backup_status": "not_configured",
+        "version": "CALLHOME_IDENTITY_HEALTH_V2",
         "timer_active": timer_ok,
         "result": result,
         "exit_code": exit_code,

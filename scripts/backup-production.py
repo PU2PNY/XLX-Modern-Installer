@@ -15,6 +15,7 @@ import time
 STATIC = ['/xlxd', '/var/www/html', '/etc/nginx', '/etc/php',
           '/etc/letsencrypt', '/etc/systemd/system', '/etc/cron.d',
           '/etc/crontab', '/etc/logrotate.d', '/etc/ufw', '/etc/nftables.conf',
+          '/etc/passwd', '/etc/group',
           '/usr/src/xlxd', '/usr/local/lib/xlx-modern']
 PATTERNS = {'/etc': ['xlx*', 'helix*'], '/var/lib': ['xlx*', 'helix*'],
             '/opt': ['xlx*', 'helix-voice'],

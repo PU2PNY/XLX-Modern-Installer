@@ -16,3 +16,7 @@ jobs:
           rustup toolchain install 1.90.0 --profile minimal
           cargo +1.90.0 test --locked --manifest-path runtime/live-core/Cargo.toml
           cargo +1.90.0 build --locked --release --manifest-path runtime/live-core/Cargo.toml --jobs 1
+      - name: Build preserved audio and Helix recovery references
+        run: |
+          bash runtime/build-audio-recovery.sh "$RUNNER_TEMP/audio-reference"
+          bash runtime/build-helix-recovery.sh "$RUNNER_TEMP/helix-reference"
