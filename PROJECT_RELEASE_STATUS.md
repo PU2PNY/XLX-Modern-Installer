@@ -240,11 +240,16 @@ observer/audio recovery sources, and private snapshot/restore tools.
 The health reader now includes current stream/peer/capability diagnostics.
 CallingHome implementation and public identity ownership are preserved.
 
-Evidence: synthetic archive/SQLite restore and hostile-archive rejection
-PASS (SW). Initial Debian lab suite exposed a standby CSS regression, fixed
-in the candidate; the complete rerun, Rust/XLXD build, rendered UI comparison
-and clean Debian installation remain pending. Production services were
-observed active read-only. No service replacement is part of this task.
+Evidence: nine GitHub workflows PASS on `ea58307fa4f6f077513097d3ccf5d2e37db0fd2c`,
+including Debian 12, CallingHome, six-language builds, locked Rust test/release
+build and 60 rendered Control views at desktop/mobile widths. Pinned XLXD
+compiled in ENV. The actual private archive was transferred encrypted to a
+separate VPS and extracted/verified: 4,588 files, five SQLite snapshots and
+eight running ELFs preserved. This is file restoration, not operational/RF
+restoration. A complete fresh Debian 12 installation is now running in an
+isolated filesystem/PID/network namespace with synthetic XLX123 identity.
+No public fake reflector registration or production service replacement is
+part of this test. See `docs/evidence/complete-recovery-20261005.json`.
 
 Private archives contain operator data and must be stored outside GitHub.
 A source-only checkout cannot recreate private credentials, TLS keys or

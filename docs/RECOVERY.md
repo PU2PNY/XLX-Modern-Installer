@@ -124,3 +124,40 @@ A staging file restore is not a completed operational or RF restoration.
 Audio reconstruction sources matching the observed d3ea28ef transcoder are in
 `runtime/audio-recovery/`; the passive VU source is in `runtime/audio-vu/`.
 These are preserved recovery references, not automatic DSP activation.
+
+
+### Service identities and activation checklist
+
+Use the archive's `/etc/passwd` and `/etc/group` as a reference for the service
+accounts only; never replace the target host's complete account databases.
+Archives created before this addition retain user/group names and numeric IDs
+in tar member metadata. Create missing service accounts, reconcile UID/GID
+conflicts on the replacement host and restore ownership before starting units.
+Review the recovered unit `User`, `Group`, `EnvironmentFile`, `ExecStart` and
+`ReadWritePaths` fields rather than guessing account names or paths.
+
+On a replacement host, install Debian packages and PHP/Node runtime versions
+first. Keep public reflector ports closed while validating. After copying only
+the reviewed reflector files from staging, use these checks:
+```bash
+sudo systemctl daemon-reload
+sudo nginx -t
+sudo php-fpm8.2 -t
+sudo systemctl --failed
+```
+Start PHP-FPM/Nginx and the read-only local data services first, then XLXD and
+the recovered legacy/shadow audio services using their original unit/config.
+Check each `systemctl status`, `/api/status.php`, `/api/live.php`, Control
+login and the loopback Live health endpoints before opening reflector traffic.
+Use the private manifest's exact running ELF mapping instead of stale source
+outputs. Retain the staging archive and a copy of target files for rollback.
+DNS/TLS and public CallingHome validation require the replacement host's real
+address and domain. Preserve the private CallingHome hash for an existing
+reflector; generate a new identity for a different operator.
+
+The observed Helix daemon is reproducible from the pinned public revision in
+`runtime/helix-recovery/README.md`; the accompanying locked build helper and
+`runtime/build-audio-recovery.sh` only compile into a new directory. They do not
+install a service, replace XLXD or activate DSP. The current 4,588-file restore
+result proves archive integrity on another VPS; RF/audio/interlink continuity
+and operational activation still require the checks above on the replacement.

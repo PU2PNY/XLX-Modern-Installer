@@ -22,5 +22,19 @@ g++ -std=c++17 -O2 -Wall -Wextra \
   "$OP25/ambe_encoder.cc" "$OP25/p25p2_vf.cc" "$OP25/rs.cc" "$OP25/mbelib.c" \
   "$OUT/ambe.o" "${IMBE_SRC[@]}" -lm -o "$OUT/xuvd"
 sha256sum "$OUT/xuvd" > "$OUT/xuvd.sha256"
+bash "$ROOT/runtime/prepare-xlxd-source.sh" "$OUT/xlxd"
+XLXD="$OUT/xlxd/src"
+# Preserve the observed file while making its include independent of /usr/src.
+sed 's|"/usr/src/xlxd/src/cysffich.h"|"cysffich.h"|' \
+  "$ROOT/runtime/audio-vu/xlx-vu-tap.cpp" > "$OUT/xlx-vu-tap.cpp"
+g++ -std=c++17 -O2 -ffunction-sections -fdata-sections -Wl,--gc-sections \
+  -I"$ROOT/runtime/audio-recovery" -I"$OP25" -I"$OP25/imbe_vocoder" -I"$XLXD" \
+  "$OUT/xlx-vu-tap.cpp" "$ROOT/runtime/audio-recovery/adapter.cpp" \
+  "$XLXD/cysffich.cpp" "$XLXD/cysfutils.cpp" "$XLXD/ccrc.cpp" \
+  "$XLXD/cgolay24128.cpp" "$XLXD/cysfconvolution.cpp" \
+  "$OP25/software_imbe_decoder.cc" "$OP25/imbe_decoder.cc" \
+  "$OP25/ambe_encoder.cc" "$OP25/p25p2_vf.cc" "$OP25/rs.cc" "$OP25/mbelib.c" \
+  "$OUT/ambe.o" "${IMBE_SRC[@]}" -lm -o "$OUT/xlx-vu-tap"
+sha256sum "$OUT/xlx-vu-tap" > "$OUT/xlx-vu-tap.sha256"
 printf 'AUDIO_REFERENCE_BUILD=PASS output=%s\n' "$OUT/xuvd"
 printf 'No service installed or restarted. Helix process remains prohibited for this reference.\n'
