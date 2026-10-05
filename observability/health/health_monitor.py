@@ -79,9 +79,9 @@ def dashboard_status(history24=False):
         return cached[1]
 
     url = (
-        PUBLIC_URL + '/api/status.php?history_hours=24'
+        PUBLIC_URL + '/api/status.php?history_hours=24&control=1'
         if history24
-        else PUBLIC_URL + '/api/runtime.php'
+        else PUBLIC_URL + '/api/status.php?control=1'
     )
     request = urllib.request.Request(
         url,
