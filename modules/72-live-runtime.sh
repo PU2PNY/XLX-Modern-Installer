@@ -18,10 +18,11 @@ if [[ ! -x "$CARGO_HOME/bin/cargo" ]]; then
   rm -f "$installer"
 fi
 export PATH="$CARGO_HOME/bin:$PATH"
+rustup toolchain install 1.90.0 --profile minimal
 BUILD="$(mktemp -d /opt/xlx-modern-live-build.XXXXXX)"
 trap 'rm -rf "$BUILD"' EXIT
 cp -a "$ROOT/runtime/live-core/." "$BUILD/"
-cargo build --manifest-path "$BUILD/Cargo.toml" --locked --release --jobs 1
+cargo +1.90.0 build --manifest-path "$BUILD/Cargo.toml" --locked --release --jobs 1
 install -m 0755 "$BUILD/target/release/xlx-modern-live-core" /usr/local/bin/xlx-modern-live-core
 install -d -m 0755 /usr/local/lib/xlx-modern/live-hub /etc/xlx-modern-live
 install -d -m 0750 -o www-data -g www-data /var/cache/xlx-dashboard
@@ -41,6 +42,12 @@ install -m 0644 "$ROOT/runtime/live-core/xlx-modern-live-core.service" /etc/syst
 install -m 0644 "$ROOT/runtime/live-hub/xlx-modern-live-hub.service" /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable --now xlx-modern-live-core.service xlx-modern-live-hub.service
-curl --fail --silent --show-error --max-time 10 http://127.0.0.1:8092/health >/dev/null
-curl --fail --silent --show-error --max-time 10 http://127.0.0.1:8091/health >/dev/null
+for port in 8092 8091; do
+  ready=no
+  for attempt in {1..20}; do
+    if curl --fail --silent --max-time 2 "http://127.0.0.1:$port/health" >/dev/null; then ready=yes; break; fi
+    sleep 1
+  done
+  [[ "$ready" == yes ]] || { echo "ERROR: Live service on $port did not become ready" >&2; exit 1; }
+done
 say '[OK] WebSocket e SSE ativos; CallHome e núcleo não foram reiniciados.' '[OK] WebSocket and SSE active; CallHome and core were not restarted.'

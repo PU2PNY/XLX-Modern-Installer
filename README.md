@@ -198,3 +198,11 @@ See [LICENSE](LICENSE), [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) and [CO
 ## HTTPS and final readiness
 
 If Let's Encrypt returns a rate limit, the installer keeps the dashboard available over HTTP, records the `retry after` time and automatically schedules Certbot for another attempt. Completion is shown only after validating the dashboard, APIs, APRS/D-PRS, Health, private Admin, Nginx/PHP-FPM, XLXD and Echo.
+
+### Recovery parity candidate
+
+The recovery candidate includes pinned XLXD sources, the current Control
+layout, generic Live WebSocket/SSE services and private backup/restore tools.
+See [recovery instructions](docs/RECOVERY.md) and
+[validation status](PROJECT_RELEASE_STATUS.md). It is not yet a certified
+complete server recovery release. Never place the private archive in GitHub.
