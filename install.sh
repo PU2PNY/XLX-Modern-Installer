@@ -508,7 +508,11 @@ p=Path(sys.argv[1]);s=p.read_text()
 old='git clone --depth 1 "$XLXREP" || error_exit "Failed to clone XLX repository"'
 new='bash "$XLX_MODERN_REPO_ROOT/runtime/prepare-xlxd-source.sh" "$USRSRC/xlxd" || error_exit "Failed to prepare pinned XLXD source"'
 if s.count(old)!=1: raise SystemExit('XLXD clone hook mismatch')
-p.write_text(s.replace(old,new))
+# HTTPS is the dependency transport; ICMP may be blocked on valid VPS/proxies.
+ping='if ping -c 1 -W 2 google.com &>/dev/null; then'
+https='if curl -fsSI --connect-timeout 10 --max-time 20 https://github.com/ &>/dev/null; then'
+if s.count(ping)!=1: raise SystemExit('Base network hook mismatch')
+p.write_text(s.replace(old,new).replace(ping,https))
 XLXSOURCE
 
     # Strict language isolation. The language chooser above is the only
