@@ -289,9 +289,14 @@ fn enrich_tx(tx: &mut Tx, status: Option<&Value>, recent: &[RecentClient]) {
 
 fn apply_verified_radioid_alias(tx: &mut Tx) {
     if !tx.protocol.to_uppercase().contains("DMR") { return; }
-    let old = tx.callsign.to_uppercase();
     let raw = match fs::read_to_string(RADIOID_ALIAS_FILE) { Ok(v) => v, Err(_) => return };
     let data: Value = match serde_json::from_str(&raw) { Ok(v) => v, Err(_) => return };
+    apply_radioid_alias_data(tx, &data);
+}
+
+fn apply_radioid_alias_data(tx: &mut Tx, data: &Value) {
+    if !tx.protocol.to_uppercase().contains("DMR") { return; }
+    let old = tx.callsign.to_uppercase();
     let item = match data.get(&old) { Some(v) => v, None => return };
     let current = copy_str(item, "callsign").to_uppercase();
     let id = copy_str(item, "id");
@@ -919,7 +924,8 @@ mod radioid_alias_tests {
     #[test]
     fn verified_alias_updates_first_dmr_frame_and_gateway() {
         let mut tx = Tx { callsign: "PU2UJY".into(), protocol: "DMR".into(), gateway: "PU2UJY".into(), ..Default::default() };
-        apply_verified_radioid_alias(&mut tx);
+        let data = json!({"PU2UJY": {"callsign":"PY2UYY", "id":"7240001", "name":"Fixture", "location":"Test"}});
+        apply_radioid_alias_data(&mut tx, &data);
         assert_eq!(tx.callsign, "PY2UYY");
         assert_eq!(tx.gateway, "PY2UYY");
         assert_eq!(tx.network_callsign, "PU2UJY");
@@ -929,7 +935,8 @@ mod radioid_alias_tests {
     fn preserves_unrelated_or_non_dmr_identity() {
         for (call, protocol) in [("PU2UJY", "D-STAR"), ("PU2PNY", "DMR")] {
             let mut tx = Tx { callsign: call.into(), protocol: protocol.into(), ..Default::default() };
-            apply_verified_radioid_alias(&mut tx);
+            let data = json!({"PU2UJY": {"callsign":"PY2UYY", "id":"7240001", "name":"Fixture"}});
+            apply_radioid_alias_data(&mut tx, &data);
             assert_eq!(tx.callsign, call);
         }
     }

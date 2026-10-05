@@ -432,7 +432,7 @@ body[data-page="ao-vivo"]
 #moduleGrid
 .tx-card.standby.compact-tx.standby-v30
 .standby-v30-state::before{
-    content:"Monitor em escuta" !important;
+    content:none !important;
 
     display:block !important;
 
@@ -459,7 +459,7 @@ body[data-page="ao-vivo"]
 #moduleGrid
 .tx-card.standby.compact-tx.standby-v30
 .standby-v30-state::after{
-    content:"Aguardando a proxima transmissao" !important;
+    content:none !important;
 
     display:block !important;
 
