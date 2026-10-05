@@ -1,0 +1,26 @@
+name: Control visual parity
+on:
+  pull_request:
+    paths: ['control/**', 'tests/control-ui.cjs', 'tests/render-control-fixtures.py', '.github/workflows/control-visual-parity.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  control-ui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install browser in isolated test prefix
+        run: |
+          npm install --prefix "$RUNNER_TEMP/xlx-ui" playwright@1.62.1
+          node "$RUNNER_TEMP/xlx-ui/node_modules/playwright/cli.js" install --with-deps chromium --only-shell
+      - name: Render actual PHP and verify navigation and layouts
+        run: |
+          python3 tests/render-control-fixtures.py --output "$RUNNER_TEMP/control-fixtures"
+          XLX_QA_PLAYWRIGHT="$RUNNER_TEMP/xlx-ui/node_modules/playwright" node tests/control-ui.cjs "$RUNNER_TEMP/control-fixtures"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: control-layouts
+          path: ${{ runner.temp }}/control-fixtures/*.png
+          retention-days: 7
