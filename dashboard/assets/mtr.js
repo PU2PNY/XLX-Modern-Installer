@@ -1,11 +1,15 @@
 'use strict';
 
 (() => {
-    const INTERVAL = 3000;
+    const INTERVAL = 15000;
     const MAX_WIDGETS = 3;
 
     let updateTimer = null;
     let widgets = [];
+    let lastSyncSignature = '';
+    let lastPushAt = 0;
+    const PUSH_STALE_MS = 4000;
+    const lastPushSignature = new Map();
 
     const escapeHtml = value =>
         String(value ?? '')
@@ -20,8 +24,7 @@
             module.transmission || {};
 
         return String(
-            tx.key
-            || `${module.module}:${tx.stream_id || ''}:${tx.started_at || ''}`
+            `${module.module || ''}:${tx.stream_id || ''}:${tx.started_at || ''}`
         );
     }
 
@@ -759,7 +762,7 @@
         const timeout =
             setTimeout(
                 () => controller.abort(),
-                9500
+                6500
             );
 
         try {
@@ -842,7 +845,10 @@
     }
 
     function refreshAll() {
-        if (document.hidden) {
+        if (
+            document.hidden
+            || Date.now() - lastPushAt < PUSH_STALE_MS
+        ) {
             return;
         }
 
@@ -851,27 +857,62 @@
         );
     }
 
+    function push(live) {
+        if (!live || !live.active || typeof live.active !== 'object') {
+            return;
+        }
+
+        let received = false;
+
+        widgets.forEach(item => {
+            const moduleName = String(item.module?.module || '').toUpperCase();
+            const data = live.active?.[moduleName]?.network_mtr;
+            if (!data || !item.widget?.isConnected) return;
+
+            const signature = [
+                data.updated_at ?? '',
+                data.samples ?? '',
+                data.probes ?? '',
+                data.avg_ms ?? '',
+                data.loss_pct ?? '',
+                data.jitter_ms ?? '',
+                data.status ?? '',
+                Array.isArray(data.history) ? data.history.join(',') : ''
+            ].join('|');
+
+            if (lastPushSignature.get(moduleName) !== signature) {
+                renderResult(item.widget, data);
+                lastPushSignature.set(moduleName, signature);
+            }
+
+            item.widget.dataset.loading = '0';
+            received = true;
+        });
+
+        if (received) {
+            lastPushAt = Date.now();
+        }
+    }
+
     function stop() {
         if (updateTimer !== null) {
-            clearInterval(
-                updateTimer
-            );
-
+            clearInterval(updateTimer);
             updateTimer = null;
         }
 
         widgets = [];
+        lastSyncSignature = '';
+        lastPushSignature.clear();
     }
 
     function sync(activeModules) {
-        stop();
-
         const grid =
             document.getElementById(
                 'moduleGrid'
             );
 
         if (!grid) {
+            stop();
             return;
         }
 
@@ -889,42 +930,107 @@
                 MAX_WIDGETS
             );
 
-        if (modules.length === 0) {
+        const signature =
+            modules
+                .map(module => txKey(module))
+                .join('|');
+
+        if (
+            signature
+            && signature === lastSyncSignature
+            && widgets.length === modules.length
+            && widgets.every(
+                item =>
+                    item.widget
+                    && item.widget.isConnected
+            )
+        ) {
+            widgets.forEach(
+                (item,index) => {
+                    item.module=modules[index];
+                }
+            );
+
             return;
         }
 
-        const cards = [
-            ...grid.children,
-        ].filter(element =>
-            element.matches(
-                'article.tx-card'
+        if (
+            !signature
+            && !lastSyncSignature
+        ) {
+            return;
+        }
+
+        if (updateTimer !== null) {
+            clearInterval(updateTimer);
+            updateTimer=null;
+        }
+
+        widgets=[];
+
+        Array.from(
+            grid.querySelectorAll(
+                ':scope > .tx-mtr-stack'
             )
-        );
+        ).forEach(stack => {
+            const card =
+                stack.querySelector(
+                    ':scope > article.tx-card'
+                )
+                || stack.querySelector(
+                    'article.tx-card'
+                );
+
+            if (card) {
+                grid.insertBefore(
+                    card,
+                    stack
+                );
+            }
+
+            stack.remove();
+        });
+
+        lastSyncSignature=signature;
+
+        if (modules.length===0) {
+            return;
+        }
+
+        const cards =
+            Array.from(
+                grid.querySelectorAll(
+                    ':scope > article.tx-card.live'
+                )
+            )
+            .slice(
+                0,
+                MAX_WIDGETS
+            );
 
         modules.forEach(
-            (module, index) => {
-                const card =
-                    cards[index];
+            (module,index) => {
+                const card=cards[index];
 
                 if (!card) {
                     return;
                 }
 
-                const stack =
+                const stack=
                     document.createElement(
                         'div'
                     );
 
-                stack.className =
+                stack.className=
                     'tx-mtr-stack';
 
-                stack.dataset.mtrKey =
+                stack.dataset.mtrKey=
                     txKey(module);
 
-                stack.innerHTML =
+                stack.innerHTML=
                     widgetHtml(module);
 
-                const widget =
+                const widget=
                     stack.querySelector(
                         '.mtr-mini'
                     );
@@ -934,33 +1040,42 @@
                     card
                 );
 
-                stack.appendChild(
-                    card
-                );
+                stack.appendChild(card);
 
                 if (widget) {
                     widgets.push({
                         module,
-                        widget,
+                        widget
                     });
                 }
             }
         );
 
-        refreshAll();
+        setTimeout(refreshAll, 1500);
 
-        updateTimer =
-            setInterval(
-                refreshAll,
-                INTERVAL
-            );
+        if (widgets.length>0 && !document.hidden) {
+            updateTimer=
+                setInterval(
+                    refreshAll,
+                    INTERVAL
+                );
+        }
     }
 
     document.addEventListener(
         'visibilitychange',
         () => {
-            if (!document.hidden) {
-                refreshAll();
+            if (document.hidden) {
+                if (updateTimer !== null) {
+                    clearInterval(updateTimer);
+                    updateTimer = null;
+                }
+                return;
+            }
+
+            refreshAll();
+            if (widgets.length>0 && updateTimer===null) {
+                updateTimer=setInterval(refreshAll,INTERVAL);
             }
         }
     );
@@ -968,5 +1083,6 @@
     window.XLXMODERNMTR =
         Object.freeze({
             sync,
+            push,
         });
 })();

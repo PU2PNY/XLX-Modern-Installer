@@ -121,3 +121,21 @@ Estado é separado por módulo e protegido por mutex. O relógio usa `std::chron
 O patch é `off` por padrão e a configuração V1 só é habilitada por ambiente explícito. Keepalive/Wires-X/conexão que não abrem stream DV permanecem fora do hook; comandos que eventualmente usem DV comum precisam de teste específico antes de produção.
 
 O observador `xlx-tx-turn-ai-monitor.py` é processo/timer separado. Ele lê somente eventos técnicos `TXTURN` sem identidade de estação, agrega contadores e pode solicitar análise consultiva à OpenAI. A resposta da IA nunca retorna ao caminho de admissão e não pode alterar timer, permitir ou negar transmissão. Falha de rede/API é operacionalmente irrelevante ao XLXD.
+
+
+## Reproducible recovery runtime (2026-10-05)
+
+The installer builds the pinned upstream XLXD plus the versioned TOT180/Turn
+Guard patch before applying operator settings. Turn Guard remains OFF by
+default. `modules/72-live-runtime.sh` builds the locked Rust Live core and
+installs the Node SSE fallback, both listening on loopback. Nginx routes browser
+WebSocket/SSE requests to these services; the hub reads the existing PHP API
+through a localhost-only route. No production identity or OpenAI key is required.
+
+The Control source follows current production navigation/layout and renders
+operator identity, URL slug and six languages from configuration. Optional
+Helix/audio/VU references preserve source provenance without enabling process
+mode. Recovery snapshots include consistent SQLite copies and actual running
+ELFs, because a source directory on disk may be stale. Restore verification
+extracts into a private empty staging directory; activating a replacement host
+is a separate operational step described in `docs/RECOVERY.md`.

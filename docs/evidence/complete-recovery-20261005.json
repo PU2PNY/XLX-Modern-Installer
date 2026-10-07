@@ -1,0 +1,42 @@
+{
+  "date": "2026-10-05",
+  "scope": "SW/CI, ENV build and private extraction; no production service deployment",
+  "baseline": "56a8591c9f3504805136be64bfcbf48e98fbeb46",
+  "tested_ui_head": "ea58307fa4f6f077513097d3ccf5d2e37db0fd2c",
+  "workflows_passed": 9,
+  "control_views": 60,
+  "viewports": [
+    390,
+    1440
+  ],
+  "languages": [
+    "pt-BR",
+    "en",
+    "es",
+    "de",
+    "fr",
+    "it"
+  ],
+  "xlxd_source": "PP5PK/xlxd@e69f2dcdd9cf004d5ad199f85c27f1fa1e7e5004 plus versioned TOT180/Turn Guard patch",
+  "observed_running_sha256": {
+    "xlxd": "9dce43475fed2fa464e8b76f1363167827b5cb80e33981523d2e701ea3d0b9f0",
+    "xuvd": "d3ea28efb76ff61f615a5613bc5475b08b9a94a3085f638d470e70a8d21e1884",
+    "helix": "7c4292bfe5610bc22870308b6c5b934b492caf4d579626586ac30da4c2ff6745"
+  },
+  "helix_source": "PU2PNY/Helix-Voice@e80969d58d0ecf0f4bd55bbc7fae85311c0176d2",
+  "op25_audio_source": "boatbod/op25@28f2c40645deca3f8c2d529d27d0df2555ed287a",
+  "private_archive": {
+    "files_verified": 4588,
+    "sqlite_verified": 5,
+    "running_elfs_preserved": 8,
+    "separate_host_extraction": "PASS",
+    "operational_root_restore": "not yet validated",
+    "user_credentials_published": false
+  },
+  "fresh_install": "in progress in isolated fresh Debian 12 root and network",
+  "limits": [
+    "RF audio and interlinks not exercised by CI",
+    "Helix process remains blocked",
+    "Public source cannot recreate private operator credentials/history"
+  ]
+}

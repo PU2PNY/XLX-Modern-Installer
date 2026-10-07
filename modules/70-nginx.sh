@@ -170,6 +170,29 @@ server {
         fastcgi_pass unix:/run/php/php8.2-fpm.sock;
     }
 $ADMIN_LOCATION_HTTP
+    # Shared loopback Live transport: no PHP parser per connected browser.
+    location ^~ /api/live-v2/ {
+        proxy_pass http://127.0.0.1:8092/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_buffering off;
+        proxy_read_timeout 90s;
+    }
+    location = /api/live-stream {
+        proxy_pass http://127.0.0.1:8091/stream;
+        proxy_http_version 1.1;
+        proxy_buffering off;
+        proxy_read_timeout 90s;
+    }
+    location = /api/live-hub-source {
+        allow 127.0.0.1; allow ::1; deny all;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME \$document_root/api/live.php;
+        fastcgi_param SCRIPT_NAME /api/live.php;
+        fastcgi_param XLXMODERN_LIVE_HUB 1;
+        fastcgi_pass unix:/run/php/php8.2-fpm.sock;
+    }
     location = /api/status.php { include /etc/nginx/xlx-modern-fastcgi.conf; fastcgi_cache xlxmodern_fpm_api; fastcgi_cache_key "\$uri|history=\$arg_history|hours=\$arg_history_hours"; fastcgi_cache_valid 200 1s; fastcgi_cache_lock on; fastcgi_ignore_headers Cache-Control Expires; }
     location = /api/mtr.php { include /etc/nginx/xlx-modern-fastcgi.conf; fastcgi_cache xlxmodern_fpm_api; fastcgi_cache_key "\$uri|\$arg_key|\$arg_module|\$arg_callsign|\$arg_suffix"; fastcgi_cache_valid 200 10s; fastcgi_cache_lock on; fastcgi_ignore_headers Cache-Control Expires; }
     location = /api/repeater.php { include /etc/nginx/xlx-modern-fastcgi.conf; fastcgi_cache xlxmodern_fpm_api; fastcgi_cache_key "\$uri|\$arg_callsign"; fastcgi_cache_valid 200 1h; fastcgi_cache_valid 404 10m; fastcgi_cache_lock on; fastcgi_ignore_headers Cache-Control Expires; }
@@ -253,6 +276,29 @@ server {
         fastcgi_pass unix:/run/php/php8.2-fpm.sock;
     }
 $ADMIN_LOCATION_HTTPS
+    # Shared loopback Live transport: no PHP parser per connected browser.
+    location ^~ /api/live-v2/ {
+        proxy_pass http://127.0.0.1:8092/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_buffering off;
+        proxy_read_timeout 90s;
+    }
+    location = /api/live-stream {
+        proxy_pass http://127.0.0.1:8091/stream;
+        proxy_http_version 1.1;
+        proxy_buffering off;
+        proxy_read_timeout 90s;
+    }
+    location = /api/live-hub-source {
+        allow 127.0.0.1; allow ::1; deny all;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME \$document_root/api/live.php;
+        fastcgi_param SCRIPT_NAME /api/live.php;
+        fastcgi_param XLXMODERN_LIVE_HUB 1;
+        fastcgi_pass unix:/run/php/php8.2-fpm.sock;
+    }
     location = /api/live.php { include /etc/nginx/xlx-modern-fastcgi.conf; fastcgi_param HTTPS on; fastcgi_param SERVER_PORT 443; fastcgi_param HTTP_X_FORWARDED_PROTO https; add_header X-XLX-Modern-Edge nginx-fpm always; }
     location = /api/status.php { include /etc/nginx/xlx-modern-fastcgi.conf; fastcgi_param HTTPS on; fastcgi_param SERVER_PORT 443; fastcgi_param HTTP_X_FORWARDED_PROTO https; fastcgi_cache xlxmodern_fpm_api; fastcgi_cache_key "\$uri|history=\$arg_history|hours=\$arg_history_hours"; fastcgi_cache_valid 200 1s; fastcgi_cache_lock on; fastcgi_ignore_headers Cache-Control Expires; add_header X-XLX-Modern-Edge-Cache \$upstream_cache_status always; }
     location = /api/mtr.php { include /etc/nginx/xlx-modern-fastcgi.conf; fastcgi_param HTTPS on; fastcgi_param SERVER_PORT 443; fastcgi_param HTTP_X_FORWARDED_PROTO https; fastcgi_cache xlxmodern_fpm_api; fastcgi_cache_key "\$uri|\$arg_key|\$arg_module|\$arg_callsign|\$arg_suffix"; fastcgi_cache_valid 200 10s; fastcgi_cache_lock on; fastcgi_ignore_headers Cache-Control Expires; add_header X-XLX-Modern-Edge-Cache \$upstream_cache_status always; }

@@ -1,3 +1,6 @@
+const xlxYsfId='{{YSF_ID}}';
+const xlxReflectorNumber='{{REFLECTOR_NUMBER}}';
+const xlxReflectorName='{{REFLECTOR_NAME}}';
 const $=s=>document.querySelector(s);let previousConnections=null,lastData=null;const page=document.body.dataset.page||'ao-vivo';
 const historyExpandedCalls=new Set();
 const reflectorName=String(document.body.dataset.reflector||'XLX').trim().toUpperCase();
@@ -158,13 +161,20 @@ function txCard(m){
  const gatewayHtml=hotspotRepeaterMarkup(tx);
  const callsign=esc(tx.callsign);
 
- return `<article class="tx-card live compact-tx tx-v30">
+ return `<article class="tx-card live compact-tx tx-v30" data-turn-module="${esc(m.module)}">
   <div class="tx-top">
-   <div>
+   <div class="tx-top-main">
     <span class="module-badge">MÓDULO ${esc(m.module)} • ${esc(tx.protocol)}</span>
     <h3>Transmitindo agora</h3>
    </div>
-   <span class="on-air"><i></i> NO AR</span>
+   <div class="tx-ai-monitor-wrap">
+    <span class="tx-ai-monitor is-ready" data-ai-module="${esc(m.module)}" role="status" aria-live="polite" title="Monitoramento local ativo; verificando estado da IA.">
+     <i aria-hidden="true"></i><b>IA</b><span>carregando</span><em class="tx-ai-scan" aria-hidden="true"></em>
+    </span>
+   </div>
+   <div class="tx-top-actions">
+    <span class="on-air"><i></i> NO AR</span>
+   </div>
   </div>
 
   <div class="tx-v30-content">
@@ -202,6 +212,64 @@ function txCard(m){
  </article>`
 }
 
+
+/* XLXMODERN_AI_MONITOR_UI_V1 */
+function xlxmodernAiPublicState(){
+ const ai=lastData&&lastData.ai_monitor&&typeof lastData.ai_monitor==='object'
+  ?lastData.ai_monitor
+  :{};
+ return ai;
+}
+function xlxmodernUpdateTxAi(live){
+ if(page!=='ao-vivo')return;
+ const ai=xlxmodernAiPublicState();
+ const active=live&&live.active?live.active:{};
+
+ document.querySelectorAll('#moduleGrid .tx-ai-monitor[data-ai-module]').forEach(pill=>{
+  const module=String(pill.dataset.aiModule||'').trim().toUpperCase();
+  const tx=active[module]||lastData?.modules?.[module]?.transmission||null;
+  const audio=tx&&tx.audio_vu?tx.audio_vu:null;
+  const audioMode=String(audio?.mode||'').toLowerCase();
+  const configured=Boolean(ai.configured);
+  const connected=Boolean(ai.api_connected);
+  const state=String(ai.state||'ready').toLowerCase();
+  const action=ai.last_action&&typeof ai.last_action==='object'?ai.last_action:null;
+  const actionAt=Number(action?.at||0);
+  const actionFresh=actionAt>0&&Math.abs(Date.now()/1000-actionAt)<=900;
+
+  let css='is-ready',primary='OPENAI',text='não configurada';
+  let title='Monitor local ativo; API OpenAI ainda não configurada.';
+
+  if(audioMode==='adaptive-gain'){
+   css='is-dsp';primary='DSP';text='ajustando';
+   title='O normalizador local está aplicando uma microcorreção de áudio. Não é uma alteração feita pela IA.';
+  }else if(configured&&connected&&state==='analyzing'){
+   css='is-analyzing';primary='IA CONECTADA';text='analisando';
+   title='A IA está analisando telemetria resumida do servidor.';
+  }else if(configured&&connected&&actionFresh&&state==='ai_applied'){
+   css='is-applied';primary='IA CONECTADA';text='ajuste orientado';
+   title=String(action?.message||'Ajuste dentro dos limites de segurança orientado pela IA.');
+  }else if(configured&&connected&&actionFresh&&state==='recommendation'){
+   css='is-recommendation';primary='IA CONECTADA';text='recomendação';
+   title=String(action?.message||'A IA gerou uma recomendação; nenhuma alteração automática é presumida.');
+  }else if(configured&&connected){
+   css='is-monitoring';primary='OPENAI';text='conectada';
+   title=String(ai.message||'API OpenAI disponível. Este indicador confirma conectividade; não significa que uma análise técnica esteja em execução.');
+  }else if(configured){
+   css='is-error';primary='OPENAI';text='reconectando';
+   title=String(ai.message||'Chave configurada, mas a API ainda não foi validada.');
+  }
+
+  pill.className='tx-ai-monitor '+css;
+  const primaryLabel=pill.querySelector('b');
+  const label=pill.querySelector('span');
+  if(primaryLabel&&primaryLabel.textContent!==primary)primaryLabel.textContent=primary;
+  if(label&&label.textContent!==text)label.textContent=text;
+  if(pill.title!==title)pill.title=title;
+ });
+}
+/* /XLXMODERN_AI_MONITOR_UI_V1 */
+
 const xlxmodernVuPeakHold=new Map();
 function xlxmodernVuSegment(value,min=-45,max=-10){
  const v=Math.max(min,Math.min(max,Number(value)));
@@ -222,9 +290,16 @@ function xlxmodernUpdateTxVu(live){
   const fresh=audio&&Number.isFinite(ts)&&Math.abs(now-ts)<=1800;
 
   if(!fresh){
-   vu.classList.remove('is-live','vu-low','vu-ideal','vu-high');
-   bars.forEach(bar=>bar.classList.remove('vu-lit','vu-peak'));
-   if(readout)readout.textContent='NÍVEL —';
+   if(vu.dataset.vuFresh!=='0'){
+    vu.classList.remove('is-live','vu-low','vu-ideal','vu-high');
+    bars.forEach(bar=>bar.classList.remove('vu-lit','vu-peak'));
+    if(readout)readout.textContent='NÍVEL —';
+    vu.dataset.vuFresh='0';
+    vu.dataset.vuLit='';
+    vu.dataset.vuPeak='';
+    vu.dataset.vuState='';
+    vu.dataset.vuText='NÍVEL —';
+   }
    return;
   }
 
@@ -246,20 +321,38 @@ function xlxmodernUpdateTxVu(live){
    xlxmodernVuPeakHold.set(holdKey,hold);
   }
 
-  vu.classList.add('is-live');
-  vu.classList.remove('vu-low','vu-ideal','vu-high');
-  vu.classList.add(`vu-${state}`);
-  vu.title=`Nível recebido pelo servidor: ${rms.toFixed(1)} dBFS · pico ${peak.toFixed(1)} dBFS · ${label}`;
+  if(vu.dataset.vuFresh!=='1'){
+   vu.classList.add('is-live');
+   vu.dataset.vuFresh='1';
+  }
 
-  bars.forEach((bar,index)=>{
-   const n=index+1;
-   bar.classList.toggle('vu-lit',n<=lit);
-   bar.classList.toggle('vu-peak',n===hold.segment);
-  });
+  if(vu.dataset.vuState!==state){
+   vu.classList.remove('vu-low','vu-ideal','vu-high');
+   vu.classList.add(`vu-${state}`);
+   vu.dataset.vuState=state;
+  }
 
-  if(readout){
-   readout.textContent=`${label} ${Math.round(rms)} dB`;
-   readout.setAttribute('aria-hidden','false');
+  const litKey=String(lit);
+  const peakKey=String(hold.segment);
+  if(vu.dataset.vuLit!==litKey||vu.dataset.vuPeak!==peakKey){
+   bars.forEach((bar,index)=>{
+    const n=index+1;
+    bar.classList.toggle('vu-lit',n<=lit);
+    bar.classList.toggle('vu-peak',n===hold.segment);
+   });
+   vu.dataset.vuLit=litKey;
+   vu.dataset.vuPeak=peakKey;
+  }
+
+  const roundedRms=Math.round(rms);
+  const text=`${label} ${roundedRms} dB`;
+  if(vu.dataset.vuText!==text){
+   vu.title=`Nível recebido pelo servidor: ${rms.toFixed(1)} dBFS · pico ${peak.toFixed(1)} dBFS · ${label}`;
+   if(readout){
+    readout.textContent=text;
+    readout.setAttribute('aria-hidden','false');
+   }
+   vu.dataset.vuText=text;
   }
  });
 }
@@ -299,6 +392,7 @@ function standbyCard(m,newest){
 }
 
 function toast(c){let el=document.createElement('div');el.className='toast';el.innerHTML=`<div class="toast-icon">${flag(c)}</div><div><strong>${esc(c.callsign)} — ${esc(c.name)}</strong><span>Conectou por ${esc(c.protocol)} • módulo ${esc(c.module)}</span></div>`;$('#toastStack')?.append(el);setTimeout(()=>el.classList.add('out'),7500);setTimeout(()=>el.remove(),8500)}
+let xlxmodernLastDocumentTitle='';
 function updateTitle(d){const active=Object.values(d.modules).filter(m=>m.transmission).map(m=>m.transmission.callsign);document.title=active.length?`(${d.connected_count}) ${active.join(' + ')} TX — ${reflectorName}`:`(${d.connected_count}) ${reflectorName}`;}
 function historyCallKey(x){return String(x?.callsign||'').trim().toUpperCase()}
 function historyRowId(callKey,index){const safe=Array.from(callKey).map(ch=>/[A-Z0-9_-]/.test(ch)?ch:'x'+ch.charCodeAt(0).toString(16)+'x').join('');return `history-${safe}-${index}`}
@@ -364,7 +458,7 @@ function xlxmodernDmrTalkerAliasMarkup(call){
 }
 async function xlxmodernLoadAprsPresence(force=false){
  if(xlxmodernAprsPresenceLoading)return;
- if(!force && Date.now()-xlxmodernAprsPresenceAt<15000)return;
+ if(!force && Date.now()-xlxmodernAprsPresenceAt<60000)return;
  xlxmodernAprsPresenceLoading=true;
  try{
   const r=await fetch('/api/digital-lab.php?presence=1&ts='+Date.now(),{cache:'no-store',headers:{Accept:'application/json'}});
@@ -420,11 +514,11 @@ function xlxmodernRepeaterEligible(x,gatewayCall,callsign){const selfRepeater=ga
 async function xlxmodernRepeaterInfo(call){
  const key=xlxmodernBaseCall(call); if(!key)return null;
  if(xlxmodernRepeaterCache.has(key))return xlxmodernRepeaterCache.get(key);
- try{
-  const r=await fetch('/api/repeater.php?callsign='+encodeURIComponent(key),{cache:'no-store',headers:{Accept:'application/json'}});
-  const d=await r.json(); const v=(r.ok&&d&&d.ok&&d.repeater)?d.repeater:null;
-  xlxmodernRepeaterCache.set(key,v); return v;
- }catch(_e){xlxmodernRepeaterCache.set(key,null);return null}
+ const pending=fetch('/api/repeater.php?callsign='+encodeURIComponent(key),{cache:'no-store',headers:{Accept:'application/json'}})
+  .then(async r=>{const d=await r.json();return (r.ok&&d&&d.ok&&d.repeater)?d.repeater:null})
+  .catch(()=>null);
+ xlxmodernRepeaterCache.set(key,pending);
+ return pending;
 }
 function xlxmodernEnsureRepeaterDialog(){
  let d=document.getElementById('xlxmodernRepeaterDialog'); if(d)return d;
@@ -443,6 +537,7 @@ async function xlxmodernOpenRepeater(call){
 }
 async function xlxmodernEnableRepeaterButtons(root=document){
  const nodes=[...root.querySelectorAll('[data-repeater-call]')];
+ const eagerLookup=Boolean(root&&root.id==='moduleGrid');
  for(const n of nodes){
   if(n.dataset.repeaterBound==='1')continue;
   n.dataset.repeaterBound='1';
@@ -519,7 +614,7 @@ function hotspotRepeaterMarkup(x){
  /*
   * A comparação é feita pelo indicativo-base.
   *
-  * N0CALL B = N0CALL
+  * PU2PNY B = PU2PNY
   * PY4RWC B = PY4RWC
   */
  const different=
@@ -802,17 +897,16 @@ function toggleHistoryGroup(callKey,button){
  else historyExpandedCalls.add(callKey);
  xlxmodernRenderHistory(lastData);
 }
-const xlxNatoModules=['Alfa','Bravo','Charlie','Delta','Echo','Foxtrot','Golf','Hotel','India','Juliett','Kilo','Lima','Mike','November','Oscar','Papa','Quebec','Romeo','Sierra','Tango','Uniform','Victor','Whiskey','X-Ray','Yankee','Zulu'];
-const xlxReflectorName='{{REFLECTOR_NAME}}';
-const xlxReflectorNumber='{{REFLECTOR_NUMBER}}';
-const xlxReflectorShort='{{REFLECTOR_SHORT_NUMBER}}';
-const xlxYsfId='{{YSF_ID}}';
-function xlxModulePhonetic(letter){const i=String(letter||'').toUpperCase().charCodeAt(0)-65;return xlxNatoModules[i]||String(letter||'');}
 function moduleInfo(m){const defs={A:['Envio de imagens D-STAR','Módulo A • imagens digitais',`${xlxReflectorName}-A`],B:['APRS / D-PRS','Dados digitais',`${xlxReflectorName}-B`],C:['C4FM/YSF e DMR',`YSF ${xlxYsfId} • DMR TG 4003`,`${xlxReflectorName}-C`],D:['D-STAR',`${xlxReflectorName}-D / XRF${xlxReflectorNumber}-D`,`${xlxReflectorName}-D`],E:['D-STAR Echo','Teste de áudio',`${xlxReflectorName}-E`]};return defs[m.module]||[m.configured_protocol,m.access,`${xlxReflectorName}-${m.module}`]}
-function renderModules(d){$('#moduleOverview').innerHTML=Object.values(d.modules).map(m=>{const i=moduleInfo(m);return `<article class="module-mini ${m.transmission?'active':''}"><div class="module-mini-top"><span class="module-letter">${esc(m.module)}</span><span class="module-count">${m.connected_count} conectado${m.connected_count===1?'':'s'}</span></div><strong>${esc(i[0])}</strong><small>${esc(i[1])}</small><div class="module-id">${esc(i[2])}</div><div class="module-state">${m.transmission?'<i class="red"></i> Transmitindo agora':'<i></i> Aguardando transmissão'}</div></article>`}).join('');
- const functions={A:'Imagens D-STAR',B:'APRS / D-PRS',C:'C4FM/YSF/DMR',D:'D-STAR',E:'Echo / teste'};
- const dtmfBase=/^[0-9]+$/.test(xlxReflectorShort)?xlxReflectorShort:'';
- const rows=Object.values(d.modules).map((m,idx)=>{const n=idx+1,letter=m.module;const refDtmf=dtmfBase?`*${dtmfBase}${letter}`:'—';const xrfDtmf=dtmfBase?`B${dtmfBase}${letter}`:'—';const dcsDtmf=dtmfBase?`D${dtmfBase}${letter}`:'—';return `<tr><td><b>${esc(letter)}</b></td><td><strong>${esc(xlxModulePhonetic(letter))}</strong><br><span>${esc(functions[letter]||m.configured_protocol)}</span></td><td>${m.connected_count}</td><td>REF${esc(xlxReflectorNumber)}${letter}L</td><td>${refDtmf}</td><td>XRF${esc(xlxReflectorNumber)}${letter}L</td><td>${xrfDtmf}</td><td>DCS${esc(xlxReflectorNumber)}${letter}L</td><td>${dcsDtmf}</td><td>${4000+n}</td><td>${9+n}</td></tr>`}).join('');$('#moduleReferenceRows').innerHTML=rows; }
+function renderModules(d){
+ const modules=(d&&d.modules)||{};
+ Object.values(modules).forEach(m=>{
+  const letter=String(m&&m.module||'').trim().toUpperCase();
+  if(!letter)return;
+  const el=document.getElementById('moduleCount'+letter);
+  if(el)el.textContent=Number(m.connected_count||0);
+ });
+}
 /* XLXMODERN_CONECTADOS_UNIFICADO_V1 */
 function filterConnectedRows(d,query='',moduleFilter='',protocolFilter=''){
  const q=String(query||'').trim().toLowerCase();
@@ -855,6 +949,7 @@ function syncConnectedProtocolFilter(d){
  select.dataset.signature=signature;
 }
 
+let xlxmodernConnectedRowsSignature='';
 function renderConnectedTable(d){
  const query=$('#connectedSearch')?.value||'';
  const moduleFilter=$('#connectedModuleFilter')?.value||'';
@@ -870,9 +965,13 @@ function renderConnectedTable(d){
    :`${base} • ${visible} exibida${visible===1?'':'s'}`;
  }
 
- $('#connectedRows').innerHTML=
-  connectedRows(d,query,moduleFilter,protocolFilter);
- xlxmodernEnableRepeaterButtons(document);
+ const connectedRowsElement=$('#connectedRows');
+ const connectedMarkup=connectedRows(d,query,moduleFilter,protocolFilter);
+ if(connectedRowsElement&&connectedMarkup!==xlxmodernConnectedRowsSignature){
+  connectedRowsElement.innerHTML=connectedMarkup;
+  xlxmodernConnectedRowsSignature=connectedMarkup;
+  xlxmodernEnableRepeaterButtons(connectedRowsElement);
+ }
 }
 
 function renderConnected(d){
@@ -942,11 +1041,29 @@ function renderReflectors(data){
 /* /XLXMODERN_REFLETORES_COMPLETO_V2B */
 
 let xlxmodernHistorySignature='';
+let xlxmodernHistoryQuickSignature='';
 let xlxmodernHistoryRenderedAt=0;
+function xlxmodernHistoryQuickKey(d){
+ const recent=(Array.isArray(d&&d.history)?d.history:[]).slice(0,30)
+  .map(x=>[
+   xlxmodernHistoryItemKey(x),
+   Number(x&&x.duration||0),
+   x&&x.online?1:0,
+   x&&x.gateway||'',
+   x&&x.identity_source||''
+  ].join('~')).join('|');
+ const online=(Array.isArray(d&&d.connections)?d.connections:[])
+  .map(c=>xlxmodernBaseCall(c&&c.callsign)).filter(Boolean).sort().join(',');
+ const expanded=[...historyExpandedCalls].sort().join(',');
+ return [recent,online,expanded,xlxmodernAprsPresenceAt].join('||');
+}
 /* XLXMODERN_HISTORY_ON_DEMAND_RESEARCH_V1 */
 function xlxmodernRenderHistory(d){
  const rows=$('#historyRows');
  if(!rows||!d||xlxmodernHistoryPeriodDays!==1)return false;
+ const quickSignature=xlxmodernHistoryQuickKey(d);
+ if(quickSignature===xlxmodernHistoryQuickSignature)return false;
+ xlxmodernHistoryQuickSignature=quickSignature;
  // Compare every displayed field, including APRS, alias and online state.
  // Closed groups retain their data but do not create hidden DOM rows.
  const markup=historyMarkup(d);
@@ -1049,7 +1166,39 @@ async function update(){
  }
 }
 async function loadReflectors(){ if(page!=='refletores') return; try{ const r=await fetch('api/reflectors.php?ts='+Date.now(), {cache:'no-store'}); const d=await r.json(); if(!d.ok) throw Error(); renderReflectors(d);} catch(e){ const tb=$('#reflectorRows'); if(tb) tb.innerHTML='<tr><td colspan="5">Não foi possível carregar a lista de refletores neste momento.</td></tr>'; }}
-setInterval(()=>document.querySelectorAll('[data-start]').forEach(e=>e.textContent=elapsed(Number(e.dataset.start))),1000);
+let xlxmodernElapsedTimer=null;
+function xlxmodernRefreshElapsed(){
+ if(document.hidden)return;
+ const nowSeconds=Date.now()/1000;
+ document.querySelectorAll('[data-start]').forEach(e=>{
+  const started=Number(e.dataset.start);
+  e.textContent=elapsed(started);
+  const card=e.closest('.tx-card.live');
+  if(!card||!Number.isFinite(started)||started<=0)return;
+  const seconds=Math.max(0,Math.floor(nowSeconds-started));
+  const yellowWarning=seconds>=160&&seconds<170;
+  const redWarning=seconds>=170&&seconds<180;
+  const expired=seconds>=180;
+  card.classList.remove('tx-tot-warning');
+  card.classList.toggle('tx-tot-warning-yellow',yellowWarning);
+  card.classList.toggle('tx-tot-warning-red',redWarning);
+  card.classList.toggle('tx-tot-expired',expired);
+  card.dataset.totRemaining=(yellowWarning||redWarning)
+   ?String(Math.max(0,180-seconds))
+   :'';
+ });
+}
+function xlxmodernStartElapsedTimer(){
+ if(xlxmodernElapsedTimer!==null||document.hidden)return;
+ xlxmodernRefreshElapsed();
+ xlxmodernElapsedTimer=setInterval(xlxmodernRefreshElapsed,1000);
+}
+function xlxmodernStopElapsedTimer(){
+ if(xlxmodernElapsedTimer===null)return;
+ clearInterval(xlxmodernElapsedTimer);
+ xlxmodernElapsedTimer=null;
+}
+xlxmodernStartElapsedTimer();
 
 let liveUpdateRunning=false;
 let liveUpdateTimer=null;
@@ -1536,6 +1685,25 @@ function armConnectedVoice(){
 
  connectedVoiceUserActivated=true;
 
+ if(
+  connectedVoicePendingEvent&&
+  connectedVoiceCurrentTotal!==null&&
+  xlxmodernConnectedVoiceEnabled()&&
+  connectedVoiceSupported()&&
+  !connectedVoiceTxActive()
+ ){
+  clearConnectedVoiceEventTimer();
+  if(
+   speakConnectedCount(
+    connectedVoiceCurrentTotal,
+    'user-activate'
+   )
+  ){
+   connectedVoicePendingEvent=false;
+   return;
+  }
+ }
+
  scheduleConnectedVoiceEvent();
 }
 
@@ -1548,6 +1716,11 @@ if(page==='ao-vivo'){
    once:true,
    passive:true
   }
+ );
+ document.addEventListener(
+  'keydown',
+  armConnectedVoice,
+  {once:true}
  );
 
  document.addEventListener(
@@ -1869,7 +2042,19 @@ function renderLiveTxRxOnly(live){
      return [
       module.module||'',
       tx.stream_id||'',
-      tx.started_at||''
+      tx.started_at||'',
+      tx.callsign||'',
+      tx.suffix||'',
+      tx.name||'',
+      tx.location||'',
+      tx.protocol||'',
+      tx.qrz||'',
+      tx.gateway||'',
+      tx.gateway_suffix||'',
+      tx.network_callsign||'',
+      tx.identity_source||'',
+      tx.identity_confidence||'',
+      tx.country?.code||tx.country?.name||''
      ].join(':');
     })
     .sort()
@@ -1923,7 +2108,6 @@ function renderLiveTxRxOnly(live){
  }
 
  updateTitle(lastData);
- ensureTxRxSoundButton();
 }
 
 
@@ -2071,6 +2255,91 @@ try{
  }
 }catch(_liveChannelError){}
 
+/* XLXMODERN_LIVE_SSE_CLIENT_V1
+ * Transporte primário: SSE push.
+ * Fallback: polling atual quando EventSource não existe ou a conexão cai.
+ */
+let xlxmodernLiveEventSource=null;
+let xlxmodernLiveSseOpen=false;
+let xlxmodernLiveSsePending=false;
+let xlxmodernLiveCoreConnected=false;
+
+function xlxmodernStartLiveSse(){
+ if(
+  page!=='ao-vivo'||
+  document.hidden||
+  xlxmodernLiveCoreConnected||
+  typeof EventSource!=='function'||
+  xlxmodernLiveEventSource
+ )return;
+
+ try{
+  const source=new EventSource('/api/live-stream');
+  xlxmodernLiveEventSource=source;
+
+  source.onopen=()=>{
+   xlxmodernLiveSseOpen=true;
+  };
+
+  source.addEventListener('live',event=>{
+   try{
+    const live=JSON.parse(event.data);
+    if(!live||live.ok!==true)return;
+    xlxmodernLiveSseOpen=true;
+    xlxmodernLiveShared=live;
+    xlxmodernLiveSharedAt=Date.now();
+    /* SSE já é fan-out no servidor; não duplique o mesmo evento entre abas. */
+    if(liveUpdateRunning){
+     xlxmodernLiveSsePending=true;
+    }else if(page==='ao-vivo'&&!document.hidden){
+     updateLiveTxRx();
+    }
+   }catch(_liveSseParseError){}
+  });
+
+  source.onerror=()=>{
+   xlxmodernLiveSseOpen=false;
+   if(
+    liveLoopEnabled&&
+    !document.hidden&&
+    page==='ao-vivo'
+   ){
+    if(liveUpdateTimer!==null){
+     clearTimeout(liveUpdateTimer);
+     liveUpdateTimer=null;
+    }
+    liveUpdateTimer=setTimeout(runLiveTxRxLoop,0);
+   }
+  };
+ }catch(_liveSseError){
+  xlxmodernLiveSseOpen=false;
+  xlxmodernLiveEventSource=null;
+ }
+}
+
+function xlxmodernStopLiveSse(){
+ xlxmodernLiveSseOpen=false;
+ xlxmodernLiveSsePending=false;
+ if(!xlxmodernLiveEventSource)return;
+ try{xlxmodernLiveEventSource.close()}catch(_liveSseCloseError){}
+ xlxmodernLiveEventSource=null;
+}
+
+window.addEventListener('xlxmodern-live-core-state',event=>{
+ const connected=Boolean(event?.detail?.connected);
+ xlxmodernLiveCoreConnected=connected;
+ if(connected){
+  xlxmodernStopLiveSse();
+  return;
+ }
+ if(liveLoopEnabled&&!document.hidden&&page==='ao-vivo'){
+  xlxmodernStartLiveSse();
+  if(liveUpdateTimer===null&&!liveUpdateRunning){
+   liveUpdateTimer=setTimeout(runLiveTxRxLoop,0);
+  }
+ }
+});
+
 async function updateLiveTxRx(){
  if(
   liveUpdateRunning||
@@ -2080,11 +2349,8 @@ async function updateLiveTxRx(){
 
  liveUpdateRunning=true;
 
- const controller=new AbortController();
- const timeoutId=setTimeout(
-  ()=>controller.abort(),
-  1200
- );
+ let controller=null;
+ let timeoutId=null;
 
  try{
   let live=null;
@@ -2097,6 +2363,8 @@ async function updateLiveTxRx(){
   ){
    live=xlxmodernLiveShared;
   }else{
+   controller=new AbortController();
+   timeoutId=setTimeout(()=>controller.abort(),1200);
    const response=await fetch(
     'api/live.php?ts='+Date.now(),
     {
@@ -2224,7 +2492,10 @@ async function updateLiveTxRx(){
   }
 
   renderLiveTxRxOnly(live);
+  window.XLXMODERNTurnWait?.update(live);
   try{xlxmodernUpdateTxVu(live)}catch(_vuError){}
+  try{xlxmodernUpdateTxAi(live)}catch(_aiUiError){}
+  try{window.XLXMODERNMTR?.push?.(live)}catch(_mtrPushError){}
 
   /* O áudio é efeito secundário: nunca pode bloquear o estado visual. */
   try{
@@ -2232,8 +2503,16 @@ async function updateLiveTxRx(){
   }catch(_audioError){}
  }catch(error){
  }finally{
-  clearTimeout(timeoutId);
+  if(timeoutId!==null)clearTimeout(timeoutId);
   liveUpdateRunning=false;
+  if(
+   xlxmodernLiveSsePending&&
+   page==='ao-vivo'&&
+   !document.hidden
+  ){
+   xlxmodernLiveSsePending=false;
+   Promise.resolve().then(updateLiveTxRx);
+  }
  }
 }
 
@@ -2256,6 +2535,12 @@ async function runLiveTxRxLoop(){
   page!=='ao-vivo'
  ){
   liveUpdateTimer=null;
+  return;
+ }
+
+ /* Com WebSocket ou SSE aberto, não consulta live.php por navegador. */
+ if(xlxmodernLiveCoreConnected||xlxmodernLiveSseOpen){
+  liveUpdateTimer=setTimeout(runLiveTxRxLoop,5000);
   return;
  }
 
@@ -2299,6 +2584,9 @@ function startLiveTxRx(){
  )return;
 
  ensureTxRxSoundButton();
+ if(!xlxmodernLiveCoreConnected){
+  xlxmodernStartLiveSse();
+ }
 
  liveUpdateTimer=setTimeout(
   runLiveTxRxLoop,
@@ -2308,6 +2596,7 @@ function startLiveTxRx(){
 
 function stopLiveTxRx(){
  liveLoopEnabled=false;
+ xlxmodernStopLiveSse();
 
  if(liveUpdateTimer===null)return;
 
@@ -2316,23 +2605,41 @@ function stopLiveTxRx(){
 }
 
 let statusUpdateTimer=null;
+function xlxmodernStatusInterval(){
+ if(page==='ao-vivo')return 15000;
+ if(page==='conectados')return 30000;
+ if(page==='modulos'||page==='ranking')return 60000;
+ return 0;
+}
 function startStatusUpdates(){
- if(statusUpdateTimer!==null)return;
+ const interval=xlxmodernStatusInterval();
+ if(interval<=0||statusUpdateTimer!==null)return;
  update();
- statusUpdateTimer=setInterval(update,15000);
+ statusUpdateTimer=setInterval(update,interval);
 }
 function stopStatusUpdates(){
  if(statusUpdateTimer===null)return;
  clearInterval(statusUpdateTimer);
  statusUpdateTimer=null;
 }
+let xlxmodernPageHiddenAt=0;
 document.addEventListener('visibilitychange',()=>{
  if(document.hidden){
+  xlxmodernPageHiddenAt=Date.now();
   stopStatusUpdates();
   stopLiveTxRx();
-  if(page==='ao-vivo')xlxmodernAoVivoHistoryReady=false;
+  xlxmodernStopElapsedTimer();
 
  }else{
+  if(
+   page==='ao-vivo'&&
+   xlxmodernPageHiddenAt>0&&
+   Date.now()-xlxmodernPageHiddenAt>300000
+  ){
+   xlxmodernAoVivoHistoryReady=false;
+  }
+  xlxmodernPageHiddenAt=0;
+  xlxmodernStartElapsedTimer();
   startStatusUpdates();
   startLiveTxRx();
  }
@@ -2676,11 +2983,14 @@ toggle?.addEventListener('click',()=>{if(!nav)return;const open=nav.classList.to
             }
         });
 
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true,
-            attributes: false,
-            characterData: false
+        document.querySelectorAll('table').forEach(table => {
+            if (!isTargetTable(table)) return;
+            observer.observe(table, {
+                childList: true,
+                subtree: true,
+                attributes: false,
+                characterData: false
+            });
         });
     };
 
@@ -2843,8 +3153,8 @@ toggle?.addEventListener('click',()=>{if(!nav)return;const open=nav.classList.to
       grid,
       {
         childList: true,
-        subtree: true,
-        characterData: true
+        subtree: false,
+        characterData: false
       }
     );
   }
@@ -2909,7 +3219,11 @@ toggle?.addEventListener('click',()=>{if(!nav)return;const open=nav.classList.to
         }
 
         if (!wrap.parentNode){
-            row.insertBefore(wrap, nav);
+            if (nav.parentNode === row){
+                row.insertBefore(wrap, nav);
+            }else{
+                row.appendChild(wrap);
+            }
         }
 
         const isMobile = () => window.matchMedia(MOBILE_QUERY).matches;
@@ -3065,7 +3379,7 @@ window.XLXMODERNAudioControl={
   if(!enabled){
 
    try{
-    clearConnectedVoiceTimer();
+    clearConnectedVoiceEventTimer();
    }catch(error){}
 
    try{
@@ -3106,7 +3420,7 @@ window.XLXMODERNAudioControl={
   if(!enabled){
 
    try{
-    clearConnectedVoiceTimer();
+    clearConnectedVoiceEventTimer();
    }catch(error){}
 
    try{
@@ -3114,6 +3428,24 @@ window.XLXMODERNAudioControl={
      window.speechSynthesis.cancel();
     }
    }catch(error){}
+  }else if(page==='ao-vivo'){
+   connectedVoiceUserActivated=true;
+   if(lastData){
+    connectedVoiceCurrentTotal=connectedVoiceValue(lastData.connected_count);
+    connectedVoicePendingEvent=true;
+    clearConnectedVoiceEventTimer();
+    if(
+     !connectedVoiceTxActive()&&
+     speakConnectedCount(
+      connectedVoiceCurrentTotal,
+      'manual-enable'
+     )
+    ){
+     connectedVoicePendingEvent=false;
+    }else{
+     scheduleConnectedVoiceEvent();
+    }
+   }
   }
 
   return true;
@@ -3197,7 +3529,7 @@ window.XLXMODERNAudioControl={
  stopAll:function(){
 
   try{
-   clearConnectedVoiceTimer();
+   clearConnectedVoiceEventTimer();
   }catch(error){}
 
   try{
@@ -3212,3 +3544,93 @@ window.XLXMODERNAudioControl={
  }
 
 };
+
+
+
+/* XLX_TX_TURN_WAIT_UI_V1 */
+(()=> {
+ if(page!=='ao-vivo')return;
+ const waits=new Map();
+ let ticker=null, observer=null, root=null;
+ function draw(){
+  root=document.getElementById('moduleGrid');
+  if(!root)return;
+  if(!observer){
+   observer=new MutationObserver(()=>{if(ticker)draw();});
+   observer.observe(root,{childList:true,subtree:true});
+  }
+  const now=performance.now();
+  const live=[...waits.values()].filter(x=>x.deadline>now);
+  if(live.length){
+   root.querySelectorAll('.tx-card.standby:not(.tx-turn-wait-card)').forEach(x=>x.remove());
+  }
+  root.querySelectorAll('[data-turn-wait-module]').forEach(el=>{
+   if(!live.some(x=>x.module===el.dataset.turnWaitModule))el.remove();
+  });
+  root.querySelectorAll('.tx-turn-notice').forEach(el=>{
+   if(!live.some(x=>x.module===el.dataset.turnNoticeModule))el.remove();
+  });
+  for(const x of live){
+   const seconds=Math.max(1,Math.ceil((x.deadline-now)/1000));
+   let el=root.querySelector('[data-turn-wait-module="'+x.module+'"]');
+   const active=root.querySelector('.tx-card.live[data-turn-module="'+x.module+'"]');
+   if(active){
+    if(el)el.remove();
+    el=active.querySelector('.tx-turn-notice');
+    if(!el){
+     el=document.createElement('div');
+     el.className='tx-turn-notice';
+     el.dataset.turnNoticeModule=x.module;
+     active.appendChild(el);
+    }
+   }else if(!el){
+    el=document.createElement('article');
+    el.className='tx-card standby compact-tx tx-turn-wait-card';
+    el.dataset.turnWaitModule=x.module;
+    root.appendChild(el);
+   }
+   const label=x.callsigns.join(' • ');
+   const signature=label+':'+seconds;
+   if(el.dataset.turnSignature!==signature){
+    el.dataset.turnSignature=signature;
+    el.innerHTML='<div class="tx-turn-label">MÓDULO '+esc(x.module)+
+     ' • ESPAÇO DE CÂMBIO</div><h3>'+esc(label)+
+     '</h3><div class="tx-turn-count">AGUARDE <b>'+seconds+
+     ' s</b></div><p>Esses indicativos estão em espera. Outras estações podem entrar.</p>';
+    el.setAttribute('aria-label',label+' em espera no módulo '+x.module);
+   }
+  }
+  if(!live.length){
+   if(ticker){clearInterval(ticker);ticker=null;}
+   if(!root.querySelector('.tx-card')){
+    const modules=lastData?.modules||{};
+    const m=Object.values(modules)[0]||{module:'C'};
+    const last=[...(lastData?.history||[])].sort((a,b)=>b.started_at-a.started_at)[0]||null;
+    root.innerHTML=standbyCard(m,last);
+   }
+  }
+ }
+ function update(data){
+  if(!data||!Array.isArray(data.tx_turn_wait))return;
+  const allowed=new Set(),now=performance.now();
+  for(const x of data.tx_turn_wait.slice(0,26)){
+   if(!/^[A-Z]$/.test(x.module)||!Array.isArray(x.callsigns))continue;
+   const calls=x.callsigns.slice(0,2).map(String).filter(s=>/^[A-Z0-9/:.-]{1,24}$/.test(s));
+   const ms=Math.min(7000,Math.max(0,Number(x.remaining_ms)||0));
+   if(!calls.length||!ms)continue;
+   const key=String(x.until_ms)+':'+calls.join(',');
+   const old=waits.get(x.module);
+   const deadline=old&&old.key===key?Math.min(old.deadline,now+ms):now+ms;
+   waits.set(x.module,{module:x.module,callsigns:calls,key,deadline});
+   allowed.add(x.module);
+  }
+  for(const module of waits.keys())if(!allowed.has(module))waits.delete(module);
+  if([...waits.values()].some(x=>x.deadline>now)&&!ticker)ticker=setInterval(draw,250);
+  draw();
+ }
+ const style=document.createElement('style');
+ style.id='xlx-tx-turn-wait-styles';
+ style.textContent='.tx-turn-wait-card,.tx-turn-notice{background:#ffe391!important;color:#151a20!important;border:3px solid #9b6700!important;border-radius:16px;padding:22px;min-width:0;box-sizing:border-box}.tx-turn-notice{margin:14px 12px 0;padding:14px}.tx-turn-label{font-size:15px;font-weight:800;letter-spacing:.04em}.tx-turn-wait-card h3,.tx-turn-notice h3{color:#151a20!important;font-size:clamp(22px,3vw,34px)!important;line-height:1.3;overflow-wrap:anywhere;margin:16px 0!important}.tx-turn-count{display:flex;align-items:center;flex-wrap:wrap;gap:12px;font-size:20px;font-weight:800}.tx-turn-count b{font-size:42px;color:#151a20!important}.tx-turn-wait-card p,.tx-turn-notice p{color:#151a20!important;font-size:16px;line-height:1.45;margin:14px 0 0}';
+ document.head.appendChild(style);
+ window.XLXMODERNTurnWait={update,draw};
+})();

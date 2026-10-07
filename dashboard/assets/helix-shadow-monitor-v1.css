@@ -11,6 +11,13 @@ html body[data-page="ao-vivo"] #moduleGrid .tx-helix-status>i{
 }
 html body[data-page="ao-vivo"] #moduleGrid .tx-helix-status>b{font-size:1em;letter-spacing:.06em}
 html body[data-page="ao-vivo"] #moduleGrid .tx-helix-status>span{font-size:.9em;opacity:.9}
+html body[data-page="ao-vivo"] #moduleGrid .tx-helix-status.is-processing{
+ border-color:rgba(192,132,252,.92);background:rgba(63,24,91,.96);color:#f5e9ff;
+ box-shadow:0 0 16px rgba(192,132,252,.35)
+}
+html body[data-page="ao-vivo"] #moduleGrid .tx-helix-status.is-processing>i{
+ background:#c084fc;box-shadow:0 0 12px rgba(192,132,252,.98)
+}
 html body[data-page="ao-vivo"] #moduleGrid .tx-helix-status.is-warning{
  border-color:rgba(250,204,21,.85);background:rgba(83,51,6,.94);color:#fff7c2
 }

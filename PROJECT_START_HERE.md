@@ -52,3 +52,6 @@ Não publicar senhas, tokens, chaves privadas, certificados privados, bancos, ba
 - Não apagar requisito aprovado silenciosamente.
 - Não declarar teste como PASS sem evidência.
 - Mudanças de alto risco exigem rollback definido antes da execução.
+
+Recovery parity candidate: see the dated section in PROJECT_RELEASE_STATUS.md,
+`runtime/README.md` and `docs/RECOVERY.md` before using the new runtime paths.

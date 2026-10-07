@@ -62,6 +62,316 @@ except Exception:
     MODULE_COUNT = 5
 MODULE_LETTERS = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ"[:MODULE_COUNT])
 
+_DASHBOARD_STATUS_CACHE = {}
+_DASHBOARD_STATUS_CACHE_TTL = 45.0
+FLIGHT_INCIDENT_DIR = STATE_DIR / "flight-incidents"
+
+def dashboard_status(history24=False):
+    now = time.monotonic()
+
+    full = _DASHBOARD_STATUS_CACHE.get("full")
+    if full and now - full[0] < _DASHBOARD_STATUS_CACHE_TTL:
+        return full[1]
+
+    key = "full" if history24 else "base"
+    cached = _DASHBOARD_STATUS_CACHE.get(key)
+    if cached and now - cached[0] < _DASHBOARD_STATUS_CACHE_TTL:
+        return cached[1]
+
+    url = (
+        PUBLIC_URL + '/api/status.php?history_hours=24&control=1'
+        if history24
+        else PUBLIC_URL + '/api/status.php?control=1'
+    )
+    request = urllib.request.Request(
+        url,
+        headers={
+            "Accept": "application/json",
+            "User-Agent": "XLX Modern-Health-Monitor/1.0",
+        },
+    )
+    with urllib.request.urlopen(request, timeout=20) as response:
+        data = json.loads(response.read().decode("utf-8", errors="replace"))
+
+    if not isinstance(data, dict) or not data.get("ok"):
+        raise RuntimeError("dashboard_status_invalid")
+
+    _DASHBOARD_STATUS_CACHE[key] = (now, data)
+    if history24:
+        _DASHBOARD_STATUS_CACHE["base"] = (now, data)
+    return data
+
+def parse_unified_voice(minutes=15):
+    """TRANSCODER_HEALTH_V2: correlaciona OPEN/CLOSE por rota de codec e módulo."""
+    raw = recent_journal("xlx-unified-voice.service", minutes)
+    totals={"streams_open":0,"streams_close":0,"frames":0,"failures":0,"bad":0,"concealed":0,"muted":0,"severe_streams":0}
+    opens={}; routes={}
+
+    for line in raw.splitlines():
+        if "OPEN stream=" in line:
+            totals["streams_open"] += 1
+            sid_m=re.search(r"\bstream=(\d+)",line)
+            codec_m=re.search(r"\bcodec=(\d+)->(\d+)",line)
+            module_m=re.search(r"\bmodule=([A-Z])",line)
+            clean_m=re.search(r"\bcleanC=([A-Z]+)",line,re.I)
+            if sid_m:
+                opens[sid_m.group(1)]={
+                    "codec": f"{codec_m.group(1)}->{codec_m.group(2)}" if codec_m else "?",
+                    "module": module_m.group(1) if module_m else "?",
+                    "clean": clean_m.group(1).upper() if clean_m else "?",
+                }
+        if "CLOSE stream=" not in line:
+            continue
+        totals["streams_close"] += 1
+        row={}
+        for key in ("frames","failures","bad","concealed","muted"):
+            match=re.search(rf"\b{key}=(\d+)",line)
+            value=int(match.group(1)) if match else 0
+            row[key]=value; totals[key]+=value
+        if row["frames"] >= 100 and row["bad"] / row["frames"] >= 0.80:
+            totals["severe_streams"] += 1
+        sid_m=re.search(r"\bstream=(\d+)",line)
+        meta=opens.get(sid_m.group(1),{}) if sid_m else {}
+        route=f"codec_{meta.get('codec','?')}_module_{meta.get('module','?')}"
+        rr=routes.setdefault(route,{"codec":meta.get("codec","?"),"module":meta.get("module","?"),"clean":meta.get("clean","?"),"streams":0,"frames":0,"failures":0,"bad":0,"concealed":0,"muted":0,"severe_streams":0})
+        rr["streams"] += 1
+        for key in ("frames","failures","bad","concealed","muted"):
+            rr[key] += row[key]
+        if row["frames"] >= 100 and row["bad"] / row["frames"] >= 0.80:
+            rr["severe_streams"] += 1
+
+    frames=totals["frames"]
+    totals["bad_ratio"]=totals["bad"]/frames if frames else 0.0
+    totals["failure_ratio"]=totals["failures"]/frames if frames else 0.0
+    totals["concealed_ratio"]=totals["concealed"]/frames if frames else 0.0
+    totals["muted_ratio"]=totals["muted"]/frames if frames else 0.0
+    for rr in routes.values():
+        f=rr["frames"]
+        rr["bad_ratio"]=rr["bad"]/f if f else 0.0
+        rr["failure_ratio"]=rr["failures"]/f if f else 0.0
+        rr["muted_ratio"]=rr["muted"]/f if f else 0.0
+        rr["degraded"]=bool(f>=100 and (rr["failure_ratio"]>=0.02 or rr["bad_ratio"]>=0.10 or rr["severe_streams"]>=1))
+        if rr["codec"] == "2->1":
+            rr["meaning"]="AMBE2 -> AMBE (tipicamente DMR/YSF para D-STAR)"
+        elif rr["codec"] == "1->2":
+            rr["meaning"]="AMBE -> AMBE2 (tipicamente D-STAR para DMR/YSF)"
+        else:
+            rr["meaning"]="rota de codec observada"
+    totals["routes"]=routes
+    totals["version"]="TRANSCODER_HEALTH_V2"
+    return totals
+
+def crossmode_peer_health(interlink=None, transcoder=None):
+    interlink = interlink if isinstance(interlink, dict) else interlink_health(5)
+    transcoder = transcoder if isinstance(transcoder, dict) else parse_unified_voice(15)
+    service_active = systemd_active("xlx-unified-voice.service")
+    frames = int(transcoder.get("frames", 0) or 0)
+    failure_ratio = float(transcoder.get("failure_ratio", 0) or 0)
+    bad_ratio = float(transcoder.get("bad_ratio", 0) or 0)
+    degraded = bool(
+        service_active and frames >= 100 and (
+            failure_ratio >= 0.02 or bad_ratio >= 0.10 or int(transcoder.get("severe_streams",0) or 0) >= 3
+        )
+    )
+    if not service_active:
+        cross_state, cross_label = "failure", "FALHA"
+    elif degraded:
+        cross_state, cross_label = "degraded", "ATENÇÃO"
+    else:
+        cross_state, cross_label = "ok", "OK"
+    peer_state = str(interlink.get("state", "not_configured"))
+    peer_label = str(interlink.get("state_label", "—"))
+    overall_ok = cross_state == "ok" and bool(interlink.get("ok", True))
+    return {
+        "ok": overall_ok,
+        "crossmode": {
+            "state": cross_state,
+            "label": cross_label,
+            "service_active": service_active,
+            "frames": frames,
+            "failure_ratio": failure_ratio,
+            "bad_ratio": bad_ratio,
+            "streams_open": int(transcoder.get("streams_open",0) or 0),
+            "streams_close": int(transcoder.get("streams_close",0) or 0),
+        },
+        "peer": {
+            "state": peer_state,
+            "label": peer_label,
+            "configured": int(interlink.get("configured",0) or 0),
+            "ack": int(interlink.get("ack",0) or 0),
+            "nack": int(interlink.get("nack",0) or 0),
+            "attempts": int(interlink.get("connect_attempts",0) or 0),
+        },
+        "detail": f"CrossMode={cross_label}; Interlink={peer_label}",
+    }
+
+def capability_matrix_v2(ysf, dstar, dmr, streams, data_health):
+    """CAPABILITY_MATRIX_V2: separa suportado, configurado, observado e validado."""
+    sp=streams.get("protocols",{}) if isinstance(streams,dict) else {}
+    dhp=data_health.get("pipelines",{}) if isinstance(data_health,dict) else {}
+    yobs=((ysf.get("observed_modes",{}) or {}).get("modes",{}) if isinstance(ysf,dict) else {})
+    dmr_emb=(dmr.get("embedded_monitor",{}) or {}) if isinstance(dmr,dict) else {}
+
+    items={
+        "YSF_DN_VD2": {
+            "protocol":"YSF/C4FM","feature":"Voz DN / VD Mode 2",
+            "supported":bool((ysf.get("voice",{}) or {}).get("dn_vd_mode2",False)),
+            "configured":bool(ysf.get("listener",False)),
+            "observed":int(((yobs.get("2",{}) or {}).get("frames",0) or 0))>0,
+            "validated":bool((sp.get("C4FM/YSF",{}) or {}).get("activity_seen_24h",False)),
+        },
+        "YSF_WIRESX": {
+            "protocol":"YSF/C4FM","feature":"Wires-X commands",
+            "supported":bool((ysf.get("wires_x",{}) or {}).get("supported",False)),
+            "configured":bool(ysf.get("listener",False)),
+            "observed":int(((yobs.get("1",{}) or {}).get("frames",0) or 0))>0,
+            "validated":bool((ysf.get("wires_x",{}) or {}).get("supported",False) and ysf.get("listener",False)),
+        },
+        "YSF_GPS": {
+            "protocol":"YSF/C4FM","feature":"GPS YSF por sidecar",
+            "supported":bool((ysf.get("data",{}) or {}).get("gps_rx_extract",False)),
+            "configured":bool((((ysf.get("data",{}) or {}).get("gps_rx_sidecar",{}) or {}).get("active",False))),
+            "observed":int(((dhp.get("ysf_data",{}) or {}).get("event_count",0) or 0))>0,
+            "validated":str((dhp.get("ysf_data",{}) or {}).get("state",""))=="ok",
+        },
+        "DMR_GROUP_VOICE": {
+            "protocol":"DMR","feature":"Group Call",
+            "supported":bool((dmr.get("voice",{}) or {}).get("group_call",False)),
+            "configured":all(bool((x or {}).get("active",False)) for x in (dmr.get("listeners",{}) or {}).values()),
+            "observed":int((sp.get("DMR",{}) or {}).get("tx_24h",0) or 0)>0,
+            "validated":bool(((sp.get("DMR",{}) or {}).get("lifecycle_1h",{}) or {}).get("ok",True)),
+        },
+        "DMR_TA_RX": {
+            "protocol":"DMR","feature":"Talker Alias RX passivo",
+            "supported":bool(dmr_emb.get("sidecar",False)),
+            "configured":bool(dmr_emb.get("active",False)),
+            "observed":int(dmr_emb.get("ta_complete",0) or 0)>0,
+            "validated":str(dmr_emb.get("state",""))=="validated",
+        },
+        "DMR_GPS_RX": {
+            "protocol":"DMR","feature":"GPS DMR RX passivo",
+            "supported":bool(dmr_emb.get("sidecar",False)),
+            "configured":bool(dmr_emb.get("active",False)),
+            "observed":int(dmr_emb.get("gps",0) or 0)>0,
+            "validated":str(dmr_emb.get("state",""))=="validated",
+        },
+        "DSTAR_DV": {
+            "protocol":"D-STAR","feature":"DV DPlus/DExtra/DCS",
+            "supported":bool(dstar.get("dv_voice",False)),
+            "configured":all(bool((x or {}).get("active",False)) for x in (dstar.get("listeners",{}) or {}).values()),
+            "observed":int((sp.get("D-STAR",{}) or {}).get("tx_24h",0) or 0)>0,
+            "validated":bool(((sp.get("D-STAR",{}) or {}).get("lifecycle_1h",{}) or {}).get("ok",True)),
+        },
+        "DSTAR_DPRS": {
+            "protocol":"D-STAR","feature":"D-PRS/GPS",
+            "supported":bool((dstar.get("dprs_gps",{}) or {}).get("decode",False)),
+            "configured":bool((dstar.get("dprs_gps",{}) or {}).get("decode",False)),
+            "observed":int((dhp.get("digital_lab",{}) or {}).get("events",0) or 0)>0,
+            "validated":str((dhp.get("aprs_dprs",{}) or {}).get("state",""))=="ok",
+        },
+    }
+    summary={}
+    for proto in ("YSF/C4FM","DMR","D-STAR"):
+        rows=[v for v in items.values() if v["protocol"]==proto]
+        summary[proto]={k:sum(1 for r in rows if r[k]) for k in ("supported","configured","observed","validated")}
+        summary[proto]["total"]=len(rows)
+    return {"version":"CAPABILITY_MATRIX_V2","legend":{"supported":"recurso existe no código/arquitetura","configured":"está habilitado no XLX Modern","observed":"tráfego/dado real foi visto","validated":"há evidência operacional suficiente para considerar funcional"},"items":items,"summary":summary}
+
+def _last_jsonl_record(directory):
+    try:
+        files = sorted(directory.glob("*.jsonl"))
+        if not files:
+            return {}
+        path = files[-1]
+        with path.open("rb") as f:
+            f.seek(0, os.SEEK_END)
+            size = f.tell()
+            if size <= 0:
+                return {}
+            step = min(size, 65536)
+            f.seek(-step, os.SEEK_END)
+            chunk = f.read().decode("utf-8", errors="replace")
+        lines = [x for x in chunk.splitlines() if x.strip()]
+        return json.loads(lines[-1]) if lines else {}
+    except Exception:
+        return {}
+
+def _connected_total(snapshot):
+    protocols = (snapshot.get("stream_health", {}) or {}).get("protocols", {})
+    if not isinstance(protocols, dict):
+        return 0
+    return sum(int((row or {}).get("connected_now", 0) or 0) for row in protocols.values() if isinstance(row, dict))
+
+def _flight_incident(snapshot, previous):
+    if not isinstance(previous, dict) or not previous:
+        return None
+    now_x = snapshot.get("xlxd", {}) or {}
+    old_x = previous.get("xlxd", {}) or {}
+    activity = snapshot.get("activity_15m", {}) or {}
+    incidents = []
+
+    old_pid = int(old_x.get("pid", 0) or 0)
+    new_pid = int(now_x.get("pid", 0) or 0)
+    if old_pid and new_pid and old_pid != new_pid:
+        incidents.append(("critical", "xlxd_restart", "XLXD reiniciou", f"PID mudou de {old_pid} para {new_pid}", "reinício do processo XLXD"))
+    elif not bool(now_x.get("ok", False)) and bool(old_x.get("ok", False)):
+        incidents.append(("critical", "xlxd_down", "XLXD ficou indisponível", "processo/serviço deixou de ficar saudável", "falha do processo ou serviço"))
+
+    old_total = _connected_total(previous)
+    new_total = _connected_total(snapshot)
+    drop = max(0, old_total - new_total)
+    threshold = max(5, int(old_total * 0.20)) if old_total else 999999
+    if drop >= threshold:
+        keepalive = int(activity.get("keepalive_timeout", 0) or 0)
+        same_pid = old_pid and new_pid and old_pid == new_pid
+        if same_pid and bool(now_x.get("ok", False)) and keepalive > 0:
+            cause = "provável perda de conectividade/UDP ou keepalive; XLXD permaneceu ativo"
+        elif same_pid and bool(now_x.get("ok", False)):
+            cause = "queda concentrada de clientes sem reinício do XLXD; investigar rede/NAT/caminho de protocolo"
+        else:
+            cause = "queda de clientes associada ao estado do XLXD"
+        incidents.append(("warning", "mass_disconnect", "Queda concentrada de clientes", f"conectados {old_total}->{new_total}; queda={drop}; keepalive_15m={keepalive}", cause))
+
+    inter = snapshot.get("interlink_5m", {}) or {}
+    old_inter = previous.get("interlink_5m", {}) or {}
+    state = str(inter.get("state", ""))
+    old_state = str(old_inter.get("state", ""))
+    if state in ("rejected", "waiting") and state != old_state:
+        cause = "peer rejeitou a ligação" if state == "rejected" else "peer não respondeu ACK/NACK"
+        incidents.append(("warning", "interlink", "Mudança no Interlink", str(inter.get("detail", "")), cause))
+
+    tr = snapshot.get("transcoder_15m", {}) or {}
+    old_tr = previous.get("transcoder_15m", {}) or {}
+    if bool(tr.get("degraded", False)) and not bool(old_tr.get("degraded", False)):
+        incidents.append(("warning", "transcoder", "Transcoder entrou em atenção", f"frames={tr.get('frames',0)} bad={tr.get('bad',0)} muted={tr.get('muted',0)} failures={tr.get('failures',0)}", "qualidade degradada detectada; correlacionar por direção/protocolo"))
+
+    ch = snapshot.get("callinghome", {}) or {}
+    old_ch = previous.get("callinghome", {}) or {}
+    if not bool(ch.get("ok", False)) and bool(old_ch.get("ok", False)):
+        incidents.append(("warning", "callinghome", "CallingHome falhou", f"result={ch.get('result','')} exit={ch.get('exit_code','')}", "falha na publicação/rotina CallingHome"))
+
+    if not incidents:
+        return None
+    severity_order = {"info": 0, "warning": 1, "critical": 2}
+    top = max(incidents, key=lambda x: severity_order.get(x[0], 0))
+    categories = [x[1] for x in incidents]
+    return {
+        "ts": snapshot.get("generated_at") or snapshot.get("ts"),
+        "severity": top[0],
+        "category": "+".join(categories),
+        "title": top[2] if len(incidents) == 1 else f"{len(incidents)} eventos correlacionados",
+        "detail": " | ".join(x[3] for x in incidents),
+        "probable_cause": " | ".join(dict.fromkeys(x[4] for x in incidents)),
+        "evidence": {
+            "xlxd_pid": new_pid,
+            "connected_before": old_total,
+            "connected_now": new_total,
+            "keepalive_15m": int(activity.get("keepalive_timeout", 0) or 0),
+            "interlink_state": state,
+            "transcoder_degraded": bool(tr.get("degraded", False)),
+        },
+    }
+
 def now_text():
     return datetime.now(TIMEZONE).strftime(
         "%d/%m/%Y às %H:%M:%S"
@@ -355,10 +665,8 @@ def protocol_activity(minutes=15):
 
 
 def interlink_health(minutes=5):
-    configured_all = effective_config_lines(
-        "/xlxd/xlxd.interlink"
-    )
-
+    """INTERLINK_HEALTH_V2: configuração + resposta + diagnóstico local seguro."""
+    configured_all = effective_config_lines("/xlxd/xlxd.interlink")
     remote = []
     local_entries = []
 
@@ -367,121 +675,68 @@ def interlink_health(minutes=5):
         if len(parts) < 3:
             continue
         call, address, modules = parts[0].upper(), parts[1], parts[2].upper()
-        item = {
-            "callsign": call,
-            "address": address,
-            "modules": modules,
-        }
+        item = {"callsign": call, "address": address, "modules": modules}
         if call == "ECHO" or address in ("127.0.0.1", "::1", "localhost"):
             local_entries.append(item)
         elif call.startswith("XLX"):
             remote.append(item)
 
-    raw = recent_journal(
-        "xlxd.service",
-        minutes,
-    )
-
-    peers = []
-    total_ack = 0
-    total_nack = 0
-    total_connect = 0
-
+    raw = recent_journal("xlxd.service", minutes)
+    peers=[]; total_ack=0; total_nack=0; total_connect=0
     for item in remote:
         call = re.escape(item["callsign"])
-        connect = len(re.findall(
-            rf"Sending connect packet to XLX peer\s+{call}\b",
-            raw,
-            flags=re.I,
-        ))
-        ack = len(re.findall(
-            rf"XLX ack packet from\s+{call}\b",
-            raw,
-            flags=re.I,
-        ))
-        nack = len(re.findall(
-            rf"XLX nack packet from\s+{call}\b",
-            raw,
-            flags=re.I,
-        ))
-        peer = dict(item)
-        if nack > 0:
-            peer_state = "rejected"
-            peer_label = "NACK"
-            peer_ok = False
-        elif ack > 0:
-            peer_state = "connected"
-            peer_label = "ACK"
-            peer_ok = True
-        elif connect > 0:
-            peer_state = "waiting"
-            peer_label = "AGUARDANDO"
-            peer_ok = False
+        connect=len(re.findall(rf"Sending connect packet to XLX peer\s+{call}\b",raw,flags=re.I))
+        ack=len(re.findall(rf"XLX ack packet from\s+{call}\b",raw,flags=re.I))
+        nack=len(re.findall(rf"XLX nack packet from\s+{call}\b",raw,flags=re.I))
+        address=item["address"]
+        resolved=[]; resolve_ok=False; address_type="domain"
+        try:
+            socket.inet_pton(socket.AF_INET,address); address_type="ipv4"; resolved=[address]; resolve_ok=True
+        except OSError:
+            try:
+                socket.inet_pton(socket.AF_INET6,address); address_type="ipv6"; resolved=[address]; resolve_ok=True
+            except OSError:
+                try:
+                    resolved=sorted({x[4][0] for x in socket.getaddrinfo(address,10002,type=socket.SOCK_DGRAM)})
+                    resolve_ok=bool(resolved)
+                except Exception:
+                    resolve_ok=False
+        attempts_per_min=round(connect/max(1,minutes),2)
+        if nack>0:
+            state="rejected"; label="NACK"; ok=False; diagnosis="peer respondeu NACK; revisar reciprocidade, módulos e Gatekeeper remoto"
+        elif ack>0:
+            state="connected"; label="ACK"; ok=True; diagnosis="peer respondeu ACK; interlink operacional no período"
+        elif connect>0:
+            state="waiting"; label="AGUARDANDO"; ok=False
+            diagnosis=("endereço não resolve" if not resolve_ok else "peer silencioso: sem ACK/NACK; verificar cadastro recíproco, UDP 10002/firewall, serviço remoto e endereço")
         else:
-            peer_state = "idle"
-            peer_label = "SEM ATIVIDADE"
-            peer_ok = True
+            state="idle"; label="SEM ATIVIDADE"; ok=True; diagnosis="sem tentativa no período; nenhuma falha confirmada"
+        peer=dict(item)
         peer.update({
-            "connect_attempts": connect,
-            "ack": ack,
-            "nack": nack,
-            "ok": peer_ok,
-            "state": peer_state,
-            "state_label": peer_label,
+            "connect_attempts":connect,"attempts_per_minute":attempts_per_min,
+            "ack":ack,"nack":nack,"ok":ok,"state":state,"state_label":label,
+            "address_type":address_type,"resolve_ok":resolve_ok,"resolved":resolved,
+            "response":"nack" if nack else ("ack" if ack else "none"),
+            "reciprocity":"not_verifiable_locally","diagnosis":diagnosis,
         })
-        peers.append(peer)
-        total_connect += connect
-        total_ack += ack
-        total_nack += nack
+        peers.append(peer); total_connect+=connect; total_ack+=ack; total_nack+=nack
 
-    gatekeeper = len(re.findall(
-        r"Gatekeeper blocking",
-        raw,
-        flags=re.I,
-    ))
-
+    gatekeeper=len(re.findall(r"Gatekeeper blocking",raw,flags=re.I))
     if not remote:
-        ok = True
-        state = "not_configured"
-        label = "NÃO CONFIGURADO"
-        detail = "nenhum interlink XLX remoto configurado"
+        ok=True; state="not_configured"; label="NÃO CONFIGURADO"; detail="nenhum interlink XLX remoto configurado"
     elif total_nack:
-        ok = False
-        state = "rejected"
-        label = "NACK"
-        detail = (
-            f"{len(remote)} peer(s) remoto(s); "
-            f"NACK={total_nack}; ACK={total_ack}; tentativas={total_connect}"
-        )
-    elif total_connect > 0 and total_ack == 0:
-        ok = False
-        state = "waiting"
-        label = "AGUARDANDO"
-        detail = (
-            f"{len(remote)} peer(s) remoto(s); sem ACK/NACK; tentativas={total_connect}"
-        )
+        ok=False; state="rejected"; label="NACK"; detail=f"{len(remote)} peer(s); NACK={total_nack}; ACK={total_ack}; tentativas={total_connect}"
+    elif total_connect>0 and total_ack==0:
+        ok=False; state="waiting"; label="AGUARDANDO"; detail=f"{len(remote)} peer(s); sem ACK/NACK; tentativas={total_connect}"
     else:
-        ok = True
-        state = "connected" if total_ack > 0 else "idle"
-        label = "ACK" if total_ack > 0 else "SEM ATIVIDADE"
-        detail = (
-            f"{len(remote)} peer(s) remoto(s); "
-            f"NACK=0; ACK={total_ack}; tentativas={total_connect}"
-        )
+        ok=True; state="connected" if total_ack>0 else "idle"; label="ACK" if total_ack>0 else "SEM ATIVIDADE"; detail=f"{len(remote)} peer(s); NACK=0; ACK={total_ack}; tentativas={total_connect}"
 
     return {
-        "ok": ok,
-        "state": state,
-        "state_label": label,
-        "configured": len(remote),
-        "local_entries": len(local_entries),
-        "peers": peers,
-        "ack": total_ack,
-        "nack": total_nack,
-        "connect_attempts": total_connect,
-        "gatekeeper_blocks": gatekeeper,
-        "gatekeeper_role": "security_policy",
-        "detail": detail,
+        "ok":ok,"version":"INTERLINK_HEALTH_V2","state":state,"state_label":label,
+        "configured":len(remote),"local_entries":len(local_entries),"peers":peers,
+        "ack":total_ack,"nack":total_nack,"connect_attempts":total_connect,
+        "gatekeeper_blocks":gatekeeper,"gatekeeper_role":"security_policy",
+        "diagnostic_scope":"local_observation_no_remote_scan","detail":detail,
     }
 
 
@@ -512,8 +767,19 @@ def callinghome_runtime_health():
         and exit_code in ("0", "")
     )
 
+    # Observe the configured identity without exposing its secret hash.
+    hash_present = False
+    try:
+        config = Path('/etc/xlx-modern/callinghome.php').read_text()
+        hash_present = bool(re.search(r"['\"]hash['\"]\s*=>\s*['\"][A-Za-z0-9]{16,128}['\"]", config))
+    except OSError:
+        pass
     return {
         "ok": timer_ok and service_ok,
+        "hash_present": hash_present,
+        "identity_backup_ok": False,
+        "identity_backup_status": "not_configured",
+        "version": "CALLHOME_IDENTITY_HEALTH_V2",
         "timer_active": timer_ok,
         "result": result,
         "exit_code": exit_code,
@@ -591,46 +857,78 @@ def radioid_data_health():
 
 # XLX Modern_IDENTITY_HEALTH_V1
 def identity_health_summary():
+    """IDENTITY_ENGINE_V2: proveniência + enriquecimento + evidência MMDVM."""
     try:
-        request = urllib.request.Request(
-            PUBLIC_URL + '/api/status.php?history_hours=24&control=1',
-            headers={"User-Agent": "XLX Modern-Health-Monitor/1.0"},
-        )
-        with urllib.request.urlopen(request, timeout=20) as response:
-            data = json.loads(response.read().decode("utf-8", errors="replace"))
+        data = dashboard_status(history24=True)
     except Exception as error:
-        return {"ok": False, "detail": type(error).__name__}
-    history = data.get("history", []) if isinstance(data, dict) else []
-    if not isinstance(history, list): history = []
-    total=len(history); station=0; gateway_different=0; unsafe=0; exact=0; log_client=0; by_source={}; by_confidence={}
+        return {"ok": False, "version":"IDENTITY_ENGINE_V2", "detail": type(error).__name__}
+    history=data.get("history",[]) if isinstance(data,dict) else []
+    if not isinstance(history,list): history=[]
+
+    metadata_by_call={}
+    try:
+        mp=Path("/var/lib/xlx-modern-dmr-meta/metadata.json")
+        md=json.loads(mp.read_text(encoding="utf-8")) if mp.exists() else {}
+        devices=md.get("devices",{}) if isinstance(md,dict) else {}
+        if isinstance(devices,dict):
+            for row in devices.values():
+                if not isinstance(row,dict): continue
+                c=str(row.get("callsign","") or "").strip().upper()
+                if c: metadata_by_call.setdefault(c,[]).append(row)
+    except Exception:
+        metadata_by_call={}
+
+    total=len(history); station=0; gateway_different=0; unsafe=0; exact=0; log_client=0
+    enriched=0; dmr_rows=0; dmr_meta_rows=0; by_source={}; by_confidence={}; unique_calls=set(); dmr_calls=set()
     for item in history:
-        if not isinstance(item, dict): continue
-        source=str(item.get("identity_source", "") or "none")
-        conf=str(item.get("identity_confidence", "") or "legacy")
-        by_source[source]=by_source.get(source,0)+1
-        by_confidence[conf]=by_confidence.get(conf,0)+1
+        if not isinstance(item,dict): continue
+        source=str(item.get("identity_source","") or "none")
+        conf=str(item.get("identity_confidence","") or "legacy")
+        by_source[source]=by_source.get(source,0)+1; by_confidence[conf]=by_confidence.get(conf,0)+1
         if source.startswith("xlxd-station"): station+=1
-        origin=str(item.get("origin_match", ""))
+        origin=str(item.get("origin_match",""))
         if origin=="exata": exact+=1
         if origin=="log-client": log_client+=1
-        call=str(item.get("callsign", "")).split()[0].upper()
-        gateway=str(item.get("gateway", "")).split()[0].upper()
+        call=str(item.get("callsign","")).split()[0].upper()
+        gateway=str(item.get("gateway","")).split()[0].upper()
+        if call: unique_calls.add(call)
+        if item.get("name") or item.get("location"): enriched+=1
+        proto=str(item.get("protocol","") or "")
+        if proto=="DMR":
+            dmr_rows+=1
+            if call: dmr_calls.add(call)
+            if call in metadata_by_call: dmr_meta_rows+=1
         if call and gateway and call!=gateway:
             gateway_different+=1
             if not source.startswith("xlxd-station"): unsafe+=1
     coverage=(station*100.0/total) if total else 0.0
+    enrichment=(enriched*100.0/total) if total else 0.0
+    dmr_meta_cov=(dmr_meta_rows*100.0/dmr_rows) if dmr_rows else 0.0
+    dmr_unique_meta=sum(1 for c in dmr_calls if c in metadata_by_call)
+    low_conf=sum(v for k,v in by_confidence.items() if k not in ("station-strict","station"))
     return {
-        "ok": unsafe==0,
-        "history_24h": total,
-        "station_resolved": station,
-        "station_coverage_pct": round(coverage,2),
-        "gateway_different": gateway_different,
-        "unsafe_gateway_different": unsafe,
-        "origin_exact": exact,
-        "origin_log_client": log_client,
-        "by_source": by_source,
-        "by_confidence": by_confidence,
-        "detail": f"{station}/{total} com STATION; gateway diferente={gateway_different}; sem prova={unsafe}",
+        "ok":unsafe==0,
+        "version":"IDENTITY_ENGINE_V2",
+        "history_24h":total,
+        "unique_callsigns":len(unique_calls),
+        "station_resolved":station,
+        "station_coverage_pct":round(coverage,2),
+        "gateway_different":gateway_different,
+        "unsafe_gateway_different":unsafe,
+        "origin_exact":exact,
+        "origin_log_client":log_client,
+        "radioid_enriched_rows":enriched,
+        "radioid_enrichment_pct":round(enrichment,2),
+        "dmr_rows":dmr_rows,
+        "dmr_metadata_rows":dmr_meta_rows,
+        "dmr_metadata_coverage_pct":round(dmr_meta_cov,2),
+        "dmr_unique_callsigns":len(dmr_calls),
+        "dmr_unique_with_metadata":dmr_unique_meta,
+        "metadata_confidence":"self-declared complemento; nunca prova única",
+        "low_confidence_rows":low_conf,
+        "by_source":by_source,
+        "by_confidence":by_confidence,
+        "detail":f"{station}/{total} com STATION; gateway diferente={gateway_different}; sem prova={unsafe}; enriquecidos={enriched}; DMR+metadata={dmr_meta_rows}/{dmr_rows}",
     }
 
 
@@ -673,12 +971,7 @@ def ysf_capability_health():
 
     modules = []
     try:
-        request = urllib.request.Request(
-            PUBLIC_URL + '/api/status.php?control=1',
-            headers={"User-Agent": "XLX Modern-Health-Monitor/1.0"},
-        )
-        with urllib.request.urlopen(request, timeout=10) as response:
-            data = json.loads(response.read().decode("utf-8", errors="replace"))
+        data = dashboard_status(history24=False)
         raw_modules = data.get("modules", {}) if isinstance(data, dict) else {}
         if isinstance(raw_modules, dict):
             modules = sorted(
@@ -730,6 +1023,11 @@ def ysf_capability_health():
                 if systemd_active("xlx-modern-ysf-data-monitor.service")
                 else "GPS YSF não publicado; sidecar inativo"
             ),
+        },
+        "crossmode_safe": {
+            "dn_vd_mode2": True,
+            "vw_voice_fr": False,
+            "dw_data_fr": False,
         },
         "observed_modes": mode_observed,
         "audit_version": "YSF_CAPABILITY_AUDIT_V2",
@@ -789,7 +1087,7 @@ def dstar_capability_summary():
 # XLX Modern_DMR_MMDVM_META_HEALTH_V1
 def dmr_metadata_health():
     path = Path("/var/lib/xlx-modern-dmr-meta/metadata.json")
-    active = systemd_active("xlx-modern-dmr-meta-monitor.service")
+    active = systemd_active("xlx-dmr-meta-monitor.service")
     total = 0
     hotspots = 0
     repeater_candidates = 0
@@ -825,7 +1123,7 @@ def dmr_metadata_health():
 # XLX Modern_DMR_DATA_HEALTH_V1
 def dmr_data_health():
     path = Path("/var/lib/xlx-modern-dmr-data/state.json")
-    active = systemd_active("xlx-modern-dmr-data-monitor.service")
+    active = systemd_active("xlx-dmr-data-monitor.service")
     data = {}
     read_error = ""
     try:
@@ -999,15 +1297,11 @@ def dmr_capability_summary():
 
 # XLX Modern_STREAM_HEALTH_V1
 def stream_health_summary():
+    """STREAM_HEALTH_V2: infraestrutura + ciclo real observado dos streams."""
     try:
-        request = urllib.request.Request(
-            PUBLIC_URL + '/api/status.php?history_hours=24&control=1',
-            headers={"User-Agent": "XLX Modern-Health-Monitor/1.0"},
-        )
-        with urllib.request.urlopen(request, timeout=20) as response:
-            data = json.loads(response.read().decode("utf-8", errors="replace"))
+        data = dashboard_status(history24=True)
     except Exception as error:
-        return {"ok": False, "detail": type(error).__name__, "protocols": {}}
+        return {"ok": False, "version": "STREAM_HEALTH_V2.2", "detail": type(error).__name__, "protocols": {}}
 
     history = data.get("history", []) if isinstance(data, dict) else []
     connections = data.get("connections", []) if isinstance(data, dict) else []
@@ -1015,6 +1309,7 @@ def stream_health_summary():
     if not isinstance(connections, list): connections=[]
 
     now=int(time.time())
+    recent_cutoff=now-3600
     definitions={
         "DMR": {"match": ("DMR",), "ports": (62030,8880)},
         "C4FM/YSF": {"match": ("C4FM/YSF","C4FM ou DMR"), "ports": (42000,)},
@@ -1023,6 +1318,7 @@ def stream_health_summary():
     }
     open_ports=udp_open_ports()
     result={}
+    overall_lifecycle_ok=True
     for label,rule in definitions.items():
         def matches(proto):
             proto=str(proto or "")
@@ -1030,8 +1326,41 @@ def stream_health_summary():
             return proto in rule.get("match",())
         tx=[x for x in history if isinstance(x,dict) and matches(x.get("protocol"))]
         clients=[x for x in connections if isinstance(x,dict) and matches(x.get("protocol"))]
+        recent=[x for x in tx if int(x.get("started_at",0) or 0) >= recent_cutoff]
         last=max((int(x.get("started_at",0) or 0) for x in tx),default=0)
         ports_ok=all(port in open_ports for port in rule["ports"])
+
+        ended=0; active=0; invalid_time=0; zero_duration=0; ids={}; id_windows={}
+        for row in recent:
+            started=int(row.get("started_at",0) or 0)
+            ended_at=int(row.get("ended_at",0) or 0)
+            state=str(row.get("state","") or "")
+            duration=int(row.get("duration",0) or 0)
+            sid=str(row.get("stream_id","") or "")
+            if state == "ended" or ended_at:
+                ended += 1
+            else:
+                active += 1
+            if ended_at and started and ended_at < started:
+                invalid_time += 1
+            if ended_at and started and duration <= 0:
+                zero_duration += 1
+            if sid:
+                ids[sid]=ids.get(sid,0)+1
+                id_windows.setdefault(sid,[]).append((started,ended_at or now))
+        reused={sid:count for sid,count in ids.items() if count>1}
+        overlapping={}
+        for sid,windows in id_windows.items():
+            ordered=sorted(windows)
+            collisions=0
+            for pos,(start,end) in enumerate(ordered):
+                if any(start <= previous_end for _,previous_end in ordered[:pos]):
+                    collisions += 1
+            if collisions:
+                overlapping[sid]=collisions
+        reuse_is_suspicious = label in ("DMR", "C4FM/YSF") and bool(overlapping)
+        lifecycle_ok=(invalid_time==0 and not reuse_is_suspicious)
+        overall_lifecycle_ok = overall_lifecycle_ok and lifecycle_ok
         result[label]={
             "listener_ok": ports_ok,
             "ports": list(rule["ports"]),
@@ -1041,13 +1370,30 @@ def stream_health_summary():
             "last_tx_age_seconds": (max(0,now-last) if last else None),
             "activity_seen_24h": bool(tx),
             "status": "active" if tx or clients else ("ready" if ports_ok else "down"),
+            "lifecycle_1h": {
+                "observed": len(recent),
+                "ended": ended,
+                "active": active,
+                "invalid_time": invalid_time,
+                "zero_duration": zero_duration,
+                "unique_stream_ids": len(ids),
+                "reused_stream_ids": reused,
+                "overlapping_stream_ids": overlapping,
+                "reuse_suspicious": reuse_is_suspicious,
+                "reuse_policy": "reuso sequencial: informativo; sobreposição DMR/YSF: alertar",
+                "ok": lifecycle_ok,
+            },
         }
     infra_ok=all(x["listener_ok"] for x in result.values())
     return {
-        "ok": infra_ok,
+        "ok": infra_ok and overall_lifecycle_ok,
+        "version": "STREAM_HEALTH_V2.2",
+        "evidence_source": "api/status history + listeners",
+        "end_to_end_test": False,
         "protocols": result,
+        "lifecycle_ok": overall_lifecycle_ok,
         "detail": "; ".join(
-            f"{name}: {item['connected_now']} cliente(s), {item['tx_24h']} TX/24h"
+            f"{name}: {item['connected_now']} cliente(s), {item['tx_24h']} TX/24h, ciclo1h={item['lifecycle_1h']['observed']}"
             for name,item in result.items()
         ),
     }
@@ -1092,7 +1438,7 @@ def data_health_summary():
         }
 
     dmr_data = service_row(
-        "xlx-modern-dmr-data-monitor.service",
+        "xlx-dmr-data-monitor.service",
         "/var/lib/xlx-modern-dmr-data/state.json",
         False,
     )
@@ -1111,7 +1457,7 @@ def data_health_summary():
             dmr_data["label"] = "ATENÇÃO"
 
     dmr_meta = service_row(
-        "xlx-modern-dmr-meta-monitor.service",
+        "xlx-dmr-meta-monitor.service",
         "/var/lib/xlx-modern-dmr-meta/metadata.json",
         False,
     )
@@ -1262,48 +1608,92 @@ def data_health_summary():
 
 # XLX Modern_INTERLINK_HEALTH_V1
 def build_operational_snapshot(checks):
-    xlxd = process_health("xlxd.service", "xlxd")
+    xlxd = process_health(
+        "xlxd.service",
+        "xlxd",
+    )
+
+    voice = parse_unified_voice(15)
     activity = protocol_activity(15)
     interlink = interlink_health(5)
     callinghome = callinghome_runtime_health()
+    streams = stream_health_summary()
+    ysf = ysf_capability_health()
+    dstar = dstar_capability_summary()
+    dmr = dmr_capability_summary()
+    data_health = data_health_summary()
     open_ports = udp_open_ports()
-    protocol_ports = {
-        label: {"port": port, "listener": port in open_ports}
-        for label, port in PROTOCOL_PORTS.items()
-    }
+
+    protocol_ports = {}
+
+    for label, port in PROTOCOL_PORTS.items():
+        protocol_ports[label] = {
+            "port": port,
+            "listener": port in open_ports,
+        }
+
+    voice_active = systemd_active(
+        "xlx-unified-voice.service"
+    )
+
+    voice_degraded = (
+        voice_active
+        and voice["frames"] >= 100
+        and (
+            voice["failure_ratio"] >= 0.02
+            or voice["bad_ratio"] >= 0.10
+            or voice["severe_streams"] >= 3
+        )
+    )
+
     return {
         "schema": 1,
         "version": OPERATIONAL_VERSION,
-        "generated_at": datetime.now(TIMEZONE).isoformat(),
+        "generated_at": datetime.now(
+            TIMEZONE
+        ).isoformat(),
         "xlxd": xlxd,
         "protocol_ports": protocol_ports,
         "activity_15m": activity,
         "interlink_5m": interlink,
         "callinghome": callinghome,
+        "transcoder_15m": {
+            **voice,
+            "service_active": voice_active,
+            "degraded": voice_degraded,
+        },
+        "crossmode_peer_health": crossmode_peer_health(interlink, voice),
         "database_files": database_file_health(),
         "radioid_data": radioid_data_health(),
         "identity_health": identity_health_summary(),
-        "stream_health": stream_health_summary(),
-        "ysf_capabilities": ysf_capability_health(),
-        "dstar_capabilities": dstar_capability_summary(),
-        "dmr_capabilities": dmr_capability_summary(),
+        "stream_health": streams,
+        "ysf_capabilities": ysf,
+        "dstar_capabilities": dstar,
+        "dmr_capabilities": dmr,
         "dmr_metadata": dmr_metadata_health(),
-        "data_health": data_health_summary(),
+        "data_health": data_health,
+        "capability_matrix": capability_matrix_v2(ysf, dstar, dmr, streams, data_health),
         "flight_recorder": flight_recorder_status(),
         "checks": {
             key: {
                 "ok": bool(value.get("ok")),
-                "label": str(value.get("label", "")),
-                "detail": str(value.get("detail", "")),
+                "label": str(
+                    value.get("label", "")
+                ),
+                "detail": str(
+                    value.get("detail", "")
+                ),
             }
             for key, value in checks.items()
         },
     }
 
 def save_flight_snapshot(snapshot):
-    """FLIGHT_RECORDER_V1: snapshot operacional compacto por ciclo."""
+    """FLIGHT_RECORDER_V2: snapshot + correlação de incidentes por transição."""
     FLIGHT_DIR.mkdir(parents=True, exist_ok=True, mode=0o700)
+    FLIGHT_INCIDENT_DIR.mkdir(parents=True, exist_ok=True, mode=0o700)
     now = datetime.now(TIMEZONE)
+    previous = _last_jsonl_record(FLIGHT_DIR)
     path = FLIGHT_DIR / f"{now.date().isoformat()}.jsonl"
     data = {
         "ts": snapshot.get("generated_at"),
@@ -1311,27 +1701,53 @@ def save_flight_snapshot(snapshot):
         "activity_15m": snapshot.get("activity_15m", {}),
         "interlink_5m": snapshot.get("interlink_5m", {}),
         "callinghome": snapshot.get("callinghome", {}),
+        "transcoder_15m": snapshot.get("transcoder_15m", {}),
+        "crossmode_peer_health": snapshot.get("crossmode_peer_health", {}),
+        "stream_health": snapshot.get("stream_health", {}),
         "radioid_data": snapshot.get("radioid_data", {}),
     }
+    incident = _flight_incident(data, previous)
+    if incident:
+        incident_path = FLIGHT_INCIDENT_DIR / f"{now.date().isoformat()}.jsonl"
+        with incident_path.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(incident, ensure_ascii=False, separators=(",", ":")) + "\n")
+        os.chmod(incident_path, 0o600)
     with path.open("a", encoding="utf-8") as f:
         f.write(json.dumps(data, ensure_ascii=False, separators=(",", ":")) + "\n")
     os.chmod(path, 0o600)
     cutoff = now.date() - timedelta(days=FLIGHT_RETENTION_DAYS)
-    for old in FLIGHT_DIR.glob("*.jsonl"):
-        try:
-            day = datetime.strptime(old.stem, "%Y-%m-%d").date()
-            if day < cutoff: old.unlink()
-        except Exception:
-            continue
+    for directory in (FLIGHT_DIR, FLIGHT_INCIDENT_DIR):
+        for old_path in directory.glob("*.jsonl"):
+            try:
+                day = datetime.strptime(old_path.stem, "%Y-%m-%d").date()
+                if day < cutoff:
+                    old_path.unlink()
+            except Exception:
+                continue
 
 
 def flight_recorder_status():
     try:
         files = sorted(FLIGHT_DIR.glob("*.jsonl"))
+        incident_files = sorted(FLIGHT_INCIDENT_DIR.glob("*.jsonl"))
         total = sum(x.stat().st_size for x in files)
-        return {"enabled": True, "retention_days": FLIGHT_RETENTION_DAYS, "files": len(files), "bytes": total, "latest": str(files[-1]) if files else ""}
+        incidents = 0
+        for item in incident_files:
+            with item.open("rb") as f:
+                incidents += sum(1 for line in f if line.strip())
+        latest_incident = _last_jsonl_record(FLIGHT_INCIDENT_DIR)
+        return {
+            "enabled": True,
+            "version": "FLIGHT_RECORDER_V2",
+            "retention_days": FLIGHT_RETENTION_DAYS,
+            "files": len(files),
+            "bytes": total,
+            "latest": str(files[-1]) if files else "",
+            "incidents": incidents,
+            "latest_incident": latest_incident,
+        }
     except Exception:
-        return {"enabled": False, "retention_days": FLIGHT_RETENTION_DAYS}
+        return {"enabled": False, "version": "FLIGHT_RECORDER_V2", "retention_days": FLIGHT_RETENTION_DAYS}
 
 
 def save_operational_snapshot(snapshot):

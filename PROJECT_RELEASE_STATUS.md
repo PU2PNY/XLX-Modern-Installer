@@ -226,3 +226,33 @@ Classificação: `SW/ENV PASS` somente para a fundação estática/mock. `TEST-0
 - Evidência sanitizada [resultado](docs/evidence/tx-turn-guard-production-20261004.json) e [procedimento](experimental/tx-turn-guard/PRODUCTION-20261004.md).
 
 O bloqueio de conectividade de Warty às20:43 UTC foi superado após reconexão; o build antigo divergente não foi promovido. O timeout anterior permanece histórico, não resultado final.
+
+## Complete recovery parity — candidate 2026-10-05
+
+Branch: `feature/complete-recovery-parity-20261004`, based on main
+`56a8591c9f3504805136be64bfcbf48e98fbeb46`. This is a candidate, not a new
+release. VERSION remains 1.4.6 until the full release gates pass.
+
+Included: current Control navigation and visual source, generic operator
+identity, six Control languages, new public Live assets, Rust WebSocket/SSE
+sources and locked dependencies, pinned XLXD build with TOT180, optional
+observer/audio recovery sources, and private snapshot/restore tools.
+The health reader now includes current stream/peer/capability diagnostics.
+CallingHome implementation and public identity ownership are preserved.
+
+Evidence: nine GitHub workflows PASS on `ea58307fa4f6f077513097d3ccf5d2e37db0fd2c`,
+including Debian 12, CallingHome, six-language builds, locked Rust test/release
+build and 60 rendered Control views at desktop/mobile widths. Pinned XLXD
+compiled in ENV. The actual private archive was transferred encrypted to a
+separate VPS and extracted/verified: 4,588 files, five SQLite snapshots and
+eight running ELFs preserved. This is file restoration, not operational/RF
+restoration. A complete fresh Debian 12 installation is now running in an
+isolated filesystem/PID/network namespace with synthetic XLX123 identity.
+No public fake reflector registration or production service replacement is
+part of this test. See `docs/evidence/complete-recovery-20261005.json`.
+
+Private archives contain operator data and must be stored outside GitHub.
+A source-only checkout cannot recreate private credentials, TLS keys or
+history. Restored binaries must be verified against the running binary
+manifest; `/usr/src` alone is not authoritative. Optional audio sources
+retain their documented runtime policy and are not auto-enabled.

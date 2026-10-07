@@ -432,10 +432,9 @@ body[data-page="ao-vivo"]
 #moduleGrid
 .tx-card.standby.compact-tx.standby-v30
 .standby-v30-state::before{
-    /* Status text is rendered by the translated HTML/JavaScript layer. */
     content:none !important;
 
-    display:none !important;
+    display:block !important;
 
     color:#f2fff9 !important;
 
@@ -462,7 +461,7 @@ body[data-page="ao-vivo"]
 .standby-v30-state::after{
     content:none !important;
 
-    display:none !important;
+    display:block !important;
 
     margin-top:6px !important;
 

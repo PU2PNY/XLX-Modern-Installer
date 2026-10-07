@@ -86,3 +86,78 @@ Antes de um futuro canário do XLXD:
 Rollback de produção, se o canário vier a ser autorizado: parar somente o `xlxd` pelo procedimento operacional aprovado, restaurar o binário/unit/env anteriores, executar `daemon-reload` quando necessário, iniciar o serviço e revalidar DMR/YSF/D-Star, Live e interlinks. O monitor consultivo pode ser parado/retirado independentemente porque não participa do caminho de voz.
 
 Qualquer bloqueio indevido de terceira estação, comando legítimo, módulo independente ou regressão de EOT é critério de rollback imediato.
+
+## Complete private reconstruction archive (current parity candidate)
+
+Two recovery paths have different inputs:
+1. **New reflector**: install the tagged public source on Debian 12 x86_64 and
+   enter the new operator's callsign, domain, modules, YSF identity and credentials.
+2. **Existing reflector**: restore its private archive, retaining CallingHome's
+   ownership token, admin password hash, TLS/private keys, APRS/certificate secrets,
+   persistent databases and service configuration. Never publish that archive.
+
+Create a private archive without restarting XLXD:
+```bash
+sudo bash scripts/backup-production.sh
+```
+The command reports the archive and SHA-256. Copy both to storage independent
+of the original VPS. A copy left on the same VPS does not protect against its loss.
+
+Verify and extract on a separate Debian 12 host into an empty private directory:
+```bash
+sudo python3 scripts/restore-production.py --archive /path/recovery.tar.gz --destination /opt/xlx-recovery-staging
+```
+The helper refuses `/`, a populated destination, traversal, duplicate members,
+special files and checksum mismatch. It verifies all recorded file hashes and
+SQLite integrity; no production services are restarted. The manifest maps
+`recovery-running/` ELFs to actual install paths; disk source can be stale.
+
+Only after staging verification, preserve target files, review hostname/IP/
+DNS/timezone paths, restore ownership/configuration/service units and databases,
+run `systemctl daemon-reload`, `nginx -t`, and start services in dependency order.
+Restore the running ELF from the recorded mapping if the source-tree binary
+has a different hash. Validate CallingHome identity/token without re-registering
+as another reflector; verify Control login/CSRF, Live multi-TX, connected/history,
+APRS, certificates and DMR/YSF/D-Star before directing public traffic to it.
+A staging file restore is not a completed operational or RF restoration.
+
+Audio reconstruction sources matching the observed d3ea28ef transcoder are in
+`runtime/audio-recovery/`; the passive VU source is in `runtime/audio-vu/`.
+These are preserved recovery references, not automatic DSP activation.
+
+
+### Service identities and activation checklist
+
+Use the archive's `/etc/passwd` and `/etc/group` as a reference for the service
+accounts only; never replace the target host's complete account databases.
+Archives created before this addition retain user/group names and numeric IDs
+in tar member metadata. Create missing service accounts, reconcile UID/GID
+conflicts on the replacement host and restore ownership before starting units.
+Review the recovered unit `User`, `Group`, `EnvironmentFile`, `ExecStart` and
+`ReadWritePaths` fields rather than guessing account names or paths.
+
+On a replacement host, install Debian packages and PHP/Node runtime versions
+first. Keep public reflector ports closed while validating. After copying only
+the reviewed reflector files from staging, use these checks:
+```bash
+sudo systemctl daemon-reload
+sudo nginx -t
+sudo php-fpm8.2 -t
+sudo systemctl --failed
+```
+Start PHP-FPM/Nginx and the read-only local data services first, then XLXD and
+the recovered legacy/shadow audio services using their original unit/config.
+Check each `systemctl status`, `/api/status.php`, `/api/live.php`, Control
+login and the loopback Live health endpoints before opening reflector traffic.
+Use the private manifest's exact running ELF mapping instead of stale source
+outputs. Retain the staging archive and a copy of target files for rollback.
+DNS/TLS and public CallingHome validation require the replacement host's real
+address and domain. Preserve the private CallingHome hash for an existing
+reflector; generate a new identity for a different operator.
+
+The observed Helix daemon is reproducible from the pinned public revision in
+`runtime/helix-recovery/README.md`; the accompanying locked build helper and
+`runtime/build-audio-recovery.sh` only compile into a new directory. They do not
+install a service, replace XLXD or activate DSP. The current 4,588-file restore
+result proves archive integrity on another VPS; RF/audio/interlink continuity
+and operational activation still require the checks above on the replacement.

@@ -1,4 +1,4 @@
-/* {{REFLECTOR_NAME}} DIGITAL LAB V1.2 — contas e administração */
+/* XLXMODERN DIGITAL LAB V1.2 — contas e administração */
 (()=>{
 'use strict';
 
@@ -588,7 +588,7 @@ function showCredential(call,passwordValue,title='Nova senha'){
     'click',
     async()=>{
       const text=
-        `Olá ${call}. Sua nova senha de acesso ao Digital Lab {{REFLECTOR_NAME}} é: ${passwordValue}. Guarde esta senha para os próximos acessos.`;
+        `Olá ${call}. Sua nova senha de acesso ao Digital Lab XLXMODERN é: ${passwordValue}. Guarde esta senha para os próximos acessos.`;
 
       try{
         await navigator.clipboard.writeText(text);
@@ -1242,7 +1242,7 @@ registerForm?.addEventListener(
 
       const labels={
         not_recently_seen:
-          'Indicativo ainda não foi identificado. Faça um beacon D-PRS no módulo B ou envie uma mensagem APRS para {{APRS_SERVICE_CALLSIGN}} e tente novamente.',
+          'Indicativo ainda não foi identificado. Faça um beacon D-PRS no módulo B ou envie uma mensagem APRS para PU2PNY-10 e tente novamente.',
         account_exists:
           'Este indicativo já possui cadastro.',
         invalid_birthday:
@@ -1410,7 +1410,7 @@ document.querySelectorAll(
       form.hidden
     ){
       notify(
-        `Para usar ${command}, envie esse texto pelo seu rádio ou aplicativo APRS para {{APRS_SERVICE_CALLSIGN}}.`
+        `Para usar ${command}, envie esse texto pelo seu rádio ou aplicativo APRS para PU2PNY-10.`
       );
       return;
     }

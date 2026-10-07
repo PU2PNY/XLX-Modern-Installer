@@ -26,6 +26,7 @@ readonly WORK_ROOT="/opt/xlx-modern-installer"
 readonly SOURCE_DIR="${WORK_ROOT}/vendor/pp5pk-installer"
 readonly BACKUP_ROOT="/var/backups/xlx-reflector"
 readonly LOG_ROOT="/var/log/xlx-reflector/installer"
+export XLX_MODERN_REPO_ROOT="$ROOT_DIR"
 readonly DEFAULT_DASHBOARD_DIR="/var/www/html/xlxd"
 
 MODE="install"
@@ -498,6 +499,22 @@ HOOK
     rm -f "$state_hook"
 
 
+    # Reproduce the reviewed production core, then let upstream apply each
+    # operator's module/frequency/identity inputs before compilation.
+    python3 - "$translated" <<'XLXSOURCE'
+import sys
+from pathlib import Path
+p=Path(sys.argv[1]);s=p.read_text()
+old='git clone --depth 1 "$XLXREP" || error_exit "Failed to clone XLX repository"'
+new='bash "$XLX_MODERN_REPO_ROOT/runtime/prepare-xlxd-source.sh" "$USRSRC/xlxd" || error_exit "Failed to prepare pinned XLXD source"'
+if s.count(old)!=1: raise SystemExit('XLXD clone hook mismatch')
+# HTTPS is the dependency transport; ICMP may be blocked on valid VPS/proxies.
+ping='if ping -c 1 -W 2 google.com &>/dev/null; then'
+https='if curl -fsSI --connect-timeout 10 --max-time 20 https://github.com/ &>/dev/null; then'
+if s.count(ping)!=1: raise SystemExit('Base network hook mismatch')
+p.write_text(s.replace(old,new).replace(ping,https))
+XLXSOURCE
+
     # Strict language isolation. The language chooser above is the only
     # intentionally bilingual screen because no language has been selected yet.
     # After selection, English stays native English and pt-BR becomes pt-BR only.
@@ -765,6 +782,8 @@ execute_dashboard_only() {
     for required_file in "$dashboard_dest/index.php" "$dashboard_dest/config/site.php" "$dashboard_dest/api/status.php" "$dashboard_dest/api/live.php"; do
         [ -s "$required_file" ] || fatal "$(msg "Arquivo obrigatório do painel ausente após atualização: $required_file" "Required dashboard file missing after update: $required_file")"
     done
+    XLX_DASHBOARD_DIR="$dashboard_dest" XLX_UI_LANG="$UI_LANG" bash "$ROOT_DIR/modules/70-nginx.sh" "--dashboard-dir=$dashboard_dest"
+    XLX_DASHBOARD_DIR="$dashboard_dest" XLX_UI_LANG="$UI_LANG" bash "$ROOT_DIR/modules/72-live-runtime.sh"
     XLX_DASHBOARD_DIR="$dashboard_dest" XLX_UI_LANG="$UI_LANG" bash "$ROOT_DIR/dashboard/install/fresh-install-parity.sh"
     systemctl is-active --quiet xlxd || fatal "$(msg "XLXD não está ativo após a atualização do painel; o núcleo não foi reinstalado. Consulte os logs antes de continuar." "XLXD is not active after the dashboard update; the core was not reinstalled. Check the logs before continuing.")"
     section "$(msg "ATUALIZAÇÃO DO PAINEL CONCLUÍDA" "DASHBOARD UPDATE COMPLETE")"
@@ -818,6 +837,8 @@ execute_installer() {
 
     section "$(msg "ATIVANDO NGINX + PHP-FPM" "ENABLING NGINX + PHP-FPM")"
     XLX_DASHBOARD_DIR="$dashboard_dest" XLX_UI_LANG="$UI_LANG" bash "$ROOT_DIR/modules/70-nginx.sh" "--dashboard-dir=$dashboard_dest"
+
+    XLX_DASHBOARD_DIR="$dashboard_dest" XLX_UI_LANG="$UI_LANG" bash "$ROOT_DIR/modules/72-live-runtime.sh"
 
     section "$(msg "PROVISIONANDO APRS/D-PRS NATIVO" "PROVISIONING NATIVE APRS/D-PRS")"
     XLX_DASHBOARD_DIR="$dashboard_dest" XLX_UI_LANG="$UI_LANG" bash "$ROOT_DIR/modules/67-aprs-dprs.sh" "--dashboard-dir=$dashboard_dest"

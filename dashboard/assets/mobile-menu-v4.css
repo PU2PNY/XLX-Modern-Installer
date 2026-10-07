@@ -315,7 +315,7 @@
 
    SOMENTE POSICAO DO BOTAO MENU NO MOBILE
 
-   [ LOGO ] [ XLXMODERN Brasil ] [ MENU ]
+   [ LOGO ] [ {{REFLECTOR_TITLE}} ] [ MENU ]
 
    Nenhum outro componente e alterado.
    ========================================================== */
@@ -333,7 +333,7 @@
 
         /*
          * Alinha no lado direito da mesma linha
-         * onde aparece XLXMODERN Brasil.
+         * onde aparece {{REFLECTOR_TITLE}}.
          */
         justify-self:end !important;
         align-self:center !important;

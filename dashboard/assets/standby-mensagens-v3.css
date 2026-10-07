@@ -110,7 +110,7 @@ html body[data-page="ao-vivo"]
 #moduleGrid
 .tx-card.standby.standby-v30
 .standby-v30-last::after{
-    content:"⚠  DMR — Priorize o rádio • Aplicativos são uma alternativa complementar, não o meio preferencial.";
+    content:"";
 
     position:absolute !important;
     left:12px !important;
@@ -157,10 +157,10 @@ html body[data-page="ao-vivo"]
 /* alternância das mensagens */
 @keyframes xlxmodernStandbyInsideAdvice{
     0%,49%{
-        content:"⚠ DMR — Priorize o rádio • Aplicativos são uma alternativa complementar, não o meio preferencial.";
+        content:"";
     }
     50%,99%{
-        content:"⚠ Áudio do aplicativo • Mantenha o volume do app sempre baixo para evitar áudio excessivo ou distorcido.";
+        content:"";
     }
 }
 
@@ -240,8 +240,11 @@ html body[data-page="ao-vivo"]
     .tx-card.standby.standby-v30
     .standby-v30-last::after{
         animation:none !important;
-        content:"⚠  DMR — Priorize o rádio • No app, mantenha o volume de áudio baixo." !important;
+        content:"" !important;
     }
 }
 
 /* FIM XLXMODERN — STANDBY DENTRO DO BOX V3.1 */
+
+/* Labels come from translated DOM, never CSS-generated Portuguese. */
+.tx-card .module-badge::before,.tx-card .standby-message::before{content:none !important;}

@@ -1,0 +1,24 @@
+name: Complete recovery parity
+on:
+  push:
+    branches: [main, 'feature/complete-recovery-*']
+  pull_request:
+    paths: ['runtime/**', 'scripts/*production*', 'modules/72-live-runtime.sh', 'modules/70-nginx.sh', 'tests/test-complete-recovery.sh', 'tests/test-clean-debian-runtime-deps.sh', '.github/workflows/complete-recovery-parity.yml']
+jobs:
+  recovery:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify clean Debian runtime dependencies
+        run: bash tests/test-clean-debian-runtime-deps.sh
+      - name: Verify private recovery contract in synthetic root
+        run: sudo bash tests/test-complete-recovery.sh
+      - name: Build and test locked Live source
+        run: |
+          rustup toolchain install 1.90.0 --profile minimal
+          cargo +1.90.0 test --locked --manifest-path runtime/live-core/Cargo.toml
+          cargo +1.90.0 build --locked --release --manifest-path runtime/live-core/Cargo.toml --jobs 1
+      - name: Build preserved audio and Helix recovery references
+        run: |
+          bash runtime/build-audio-recovery.sh "$RUNNER_TEMP/audio-reference"
+          bash runtime/build-helix-recovery.sh "$RUNNER_TEMP/helix-reference"
