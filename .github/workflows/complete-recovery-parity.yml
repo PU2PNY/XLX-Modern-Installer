@@ -3,12 +3,14 @@ on:
   push:
     branches: [main, 'feature/complete-recovery-*']
   pull_request:
-    paths: ['runtime/**', 'scripts/*production*', 'modules/72-live-runtime.sh', 'modules/70-nginx.sh', 'tests/test-complete-recovery.sh', '.github/workflows/complete-recovery-parity.yml']
+    paths: ['runtime/**', 'scripts/*production*', 'modules/72-live-runtime.sh', 'modules/70-nginx.sh', 'tests/test-complete-recovery.sh', 'tests/test-clean-debian-runtime-deps.sh', '.github/workflows/complete-recovery-parity.yml']
 jobs:
   recovery:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Verify clean Debian runtime dependencies
+        run: bash tests/test-clean-debian-runtime-deps.sh
       - name: Verify private recovery contract in synthetic root
         run: sudo bash tests/test-complete-recovery.sh
       - name: Build and test locked Live source
