@@ -7,7 +7,9 @@ say(){ [[ "$LANGUAGE" == en ]] && printf '%s\n' "$2" || printf '%s\n' "$1"; }
 DOMAIN="$(php -r '$c=require $argv[1]; echo $c["reflector"]["domain"]??"";' "$DASH/config/site.php")"
 [[ "$DOMAIN" =~ ^[A-Za-z0-9.-]+$ ]] || { echo 'ERROR: invalid domain' >&2; exit 2; }
 say 'Compilando o motor Ao Vivo com fontes fixadas; o XLXD permanece ativo.' 'Building the pinned Live engine; XLXD remains active.'
-apt-get install -y -qq nodejs mtr-tiny build-essential pkg-config curl ca-certificates >/dev/null
+# `file` is required by modules/71-observability.sh to validate the shipped
+# protocol helper architecture. Minimal Debian 12 images do not guarantee it.
+apt-get install -y -qq nodejs mtr-tiny build-essential pkg-config curl ca-certificates file >/dev/null
 # Install a dedicated toolchain outside HOME. cargo/rustc from Debian 12 are
 # too old for the exact production-proven Axum/Tokio dependency lock.
 export RUSTUP_HOME=/opt/xlx-modern-rustup CARGO_HOME=/opt/xlx-modern-cargo
