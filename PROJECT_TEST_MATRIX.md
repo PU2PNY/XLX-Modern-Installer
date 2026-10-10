@@ -75,3 +75,5 @@ Evidência sanitizada reproduzível: [Helix PCM bridge ENV](docs/evidence/helix-
 
 ### Continuação final TX Turn Guard — 2026-10-04
 Código e13f4e1: CI3/3 PASS; ENV build/lifecycle/protocol classes/TOT/restore/WebSocket/UI PASS. Produção ativada21:36:13 UTC com PID655997; primeira sequência A/B/A/cooldown real, RF/interlink/soak e API real ainda PENDENTES. Evidência: [resultado](docs/evidence/tx-turn-guard-production-20261004.json). Falhas anteriores de timeout/verificação foram registradas; não são classificadas como PASS.
+
+| TEST-039 | TURN-013 / TURN-001/003/004 | C++ real com trigger3000 e gap preparado2500ms | Warty: teste unitário ligado aos objetos do candidato com ELF idêntico ao PROD; lifecycle, bloqueio A/B, retry, terceiro, módulo independente, bypass, expiração e TOT PASS. XLX026: env efetivo3000/7000, mesmo ELF, serviço ativo e snapshot OK; RF novo limite pendente | PASS (ENV lógica / PROD configuração); PENDENTE (RF) |

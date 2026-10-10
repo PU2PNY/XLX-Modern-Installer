@@ -132,3 +132,6 @@ Uma mudança só é aceita se:
 - **TURN-010** — Ao iniciar cooldown real, o box de TX deve informar todos os indicativos inelegíveis naquele módulo e exibir a contagem regressiva de até 7 s. O aviso usa estado autoritativo local, não resposta remota de IA; deve desaparecer na expiração ou terceira estação. Não apresentar espera como transmissão ativa.
 - **TURN-011** — A promoção deve preservar integralmente o TOT180 existente da PR #54 e a configuração efetiva. O binário conhecido-bom c0283b7f deve ser recuperado/reproduzido ou ter equivalência comprovada; código divergente em /usr/src não representa automaticamente o processo ativo.
 - **TURN-012** — Identidades do aviso permanecem somente no estado local/painel público de rádio; o observador externo recebe exclusivamente contadores agregados. Estado é limitado por módulo e temporário, sem logs de áudio ou consulta externa por PTT.
+
+### TURN-013 — Override operacional XLX026 (2026-10-10)
+Na instância XLX026 o gatilho autorizado é 3000 ms para as duas transições A→B→A; cooldown permanece7000 ms. Defaults públicos permanecem2000 ms/OFF. Preservar TURN-001/003/004 e independência da IA.
