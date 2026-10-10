@@ -77,3 +77,6 @@ A IA é observadora: recebe somente contadores técnicos agregados e pode sugeri
 
 ### Continuação 2026-10-04 — economia do observador
 Silêncio ou resumo idêntico não geram consulta. Mudança de avaliação não pode furar o limite de 15 minutos entre tentativas. A regra local permanece independente da API. Teste C++ deve exercitar a sequência completa admit/EOT, além dos casos de estado preparado.
+
+## DEC-2026-10-10-015 — XLX026 trigger de câmbio 3 s
+Operador autorizou 3 s após diagnóstico de alternâncias com intervalos de 2,079–2,286 s que não armavam o limite de 2 s. Override somente XLX026: XLX_TX_TURN_TRIGGER_MS=3000; cooldown7000, reset60000, TOT180 e política pública OFF preservados. Binário não alterado.

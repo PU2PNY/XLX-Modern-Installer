@@ -226,3 +226,6 @@ Classificação: `SW/ENV PASS` somente para a fundação estática/mock. `TEST-0
 - Evidência sanitizada [resultado](docs/evidence/tx-turn-guard-production-20261004.json) e [procedimento](experimental/tx-turn-guard/PRODUCTION-20261004.md).
 
 O bloqueio de conectividade de Warty às20:43 UTC foi superado após reconexão; o build antigo divergente não foi promovido. O timeout anterior permanece histórico, não resultado final.
+
+## XLX026 gatilho 3 s — 2026-10-10
+Autorizado pelo operador. Alterado somente drop-in tx-turn-wait.conf: trigger2000→3000 ms. Teste C++ ENV PASS com gap2500ms; cooldown7000/reset60000/TOT180 preservados. Reinício em janela observada sem TX; PID655997→2175715. ELF permanece9dce43475fed2fa464e8b76f1363167827b5cb80e33981523d2e701ea3d0b9f0. Ambiente efetivo e snapshot OK; PIDs transcoder/live preservados. Backup root-only TX_TRIGGER_3000_20261010_145841 com cópia verificada, hashes e rollback. Nenhuma alegação de novo teste RF ou escuta. Default do instalador não alterado.
