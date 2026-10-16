@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-16",
+  "feature": "XLX Unified Audio V1 canary",
+  "scope": ["D-Star to AMBE+2", "AMBE+2 to D-Star"],
+  "p25": "out of scope",
+  "base_main": "56a8591c9f3504805136be64bfcbf48e98fbeb46",
+  "production_source_branch": "fix/helix-live-observer-loop-20261001",
+  "production_source_commit": "bce9b1ff16d9be1bab593dfb63c2a56f1fc630c0",
+  "baseline_xuvd_sha256": "d3ea28efb76ff61f615a5613bc5475b08b9a94a3085f638d470e70a8d21e1884",
+  "candidate_xuvd_sha256": "76f080e8d2090955231dd23b5acb28380f07c8968ce3bc0e0fdb81311b7008ae",
+  "candidate_source_sha256": "6cfc84673a5203ea164bf6cc587204e65ac3280a7ad12325ab59c7e3ac096572",
+  "activation": "XLX_AUDIO_PROFILE=unified-v1",
+  "fallback": "remove audio profile drop-in or restore baseline xuvd",
+  "helix_mode": "shadow",
+  "env_evidence": {
+    "specific_tests": "PASS",
+    "full_suite": "PASS failures=0",
+    "legacy_off_equivalence": "PASS four codec/module paths bit-identical",
+    "legacy_shadow_equivalence": "PASS four codec/module paths bit-identical",
+    "unified_isolated_module_parity": "PASS A and C bit-identical in both directions",
+    "candidate_dependencies": "same runtime libraries as baseline"
+  },
+  "prod_canary": {
+    "status": "ACTIVE",
+    "xlxd_pid_before": 2175715,
+    "xlxd_pid_after": 2175715,
+    "xuvd_pid_after": 3890481,
+    "live_http": 200,
+    "status_http": 200,
+    "first_completed_stream": "codec 2->1, 731 frames, failures=0, helix_fallback=0",
+    "perceptual_audio": "PENDING OPERATOR/HW A-B validation"
+  },
+  "backup": "/opt/xlx026-backups/UNIFIED_AUDIO_BASELINE_20261016_194650",
+  "raw_audio_committed": false,
+  "secrets_committed": false
+}
