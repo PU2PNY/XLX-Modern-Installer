@@ -1,0 +1,133 @@
+/* ================================================================
+   XLX026_MENU_BREAKPOINT_FIX_V1
+
+   Problema corrigido:
+   Em algumas larguras intermediárias o menu caía para lista vertical,
+   mas o botão de abrir/fechar continuava oculto.
+
+   Estratégia:
+   - >= 1181px: menu horizontal normal
+   - 821px até 1180px: botão aparece e menu fecha por padrão
+   - <= 820px: comportamento atual preservado
+   ================================================================ */
+
+
+/* ================================================================
+   FAIXA INTERMEDIÁRIA
+   ================================================================ */
+
+@media (min-width:821px) and (max-width:1180px){
+
+    /*
+     * Desktop compacto / "site para computador" no celular:
+     * mantém o menu horizontal em vez de transformar os links
+     * em uma lista vertical gigante.
+     */
+    html body
+    section.universal-header
+    > .menu-toggle{
+        display:none !important;
+    }
+
+    html body
+    section.universal-header
+    > .universal-nav{
+        display:flex !important;
+        width:min(1080px,100%) !important;
+        margin:6px auto 0 !important;
+        padding:6px 0 0 !important;
+        flex-direction:row !important;
+        flex-wrap:nowrap !important;
+        align-items:center !important;
+        justify-content:flex-start !important;
+        gap:5px !important;
+        overflow-x:auto !important;
+        overflow-y:hidden !important;
+        -webkit-overflow-scrolling:touch;
+        scrollbar-width:none;
+        border-top:1px solid rgba(92,155,183,.13) !important;
+    }
+
+    html body
+    section.universal-header
+    > .universal-nav::-webkit-scrollbar{
+        display:none;
+    }
+
+    html body
+    section.universal-header
+    > .universal-nav a,
+    html body
+    section.universal-header
+    > .universal-nav button,
+    html body
+    section.universal-header
+    > .universal-nav .xlx026-universal-bip,
+    html body
+    section.universal-header
+    > .universal-nav .xlx026-menu-sound-control{
+        flex:0 0 auto !important;
+        width:auto !important;
+        min-width:max-content !important;
+        min-height:32px !important;
+        margin:0 !important;
+        padding:6px 8px !important;
+        font-size:clamp(9px,1vw,11px) !important;
+        line-height:1 !important;
+        white-space:nowrap !important;
+    }
+
+    html body
+    section.universal-header{
+        padding-bottom:10px !important;
+    }
+
+    html body
+    section.universal-header
+    .universal-copy
+    > .access-strip{
+        flex-wrap:wrap !important;
+        justify-content:flex-end !important;
+        row-gap:0 !important;
+    }
+
+    html body
+    section.universal-header
+    .access-strip
+    > span{
+        min-height:30px !important;
+        padding:5px 7px !important;
+    }
+}
+
+
+/* ================================================================
+   DESKTOP LARGO
+   ================================================================ */
+
+@media (min-width:1181px){
+
+    html body
+    section.universal-header
+    > .menu-toggle{
+
+        display:none !important;
+    }
+
+    html body
+    section.universal-header
+    > .universal-nav{
+
+        display:flex !important;
+    }
+
+}
+
+
+/* ================================================================
+   MOBILE
+   Não interferimos no comportamento já aprovado.
+   ================================================================ */
+
+
+/* /XLX026_MENU_BREAKPOINT_FIX_V1 */

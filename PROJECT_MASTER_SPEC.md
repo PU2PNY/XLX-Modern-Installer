@@ -85,6 +85,8 @@ Fornecer um instalador público, reproduzível e seguro para refletor XLXD em De
 - **BACKUP-002** — Backup só é considerado confiável após teste de restauração correspondente.
 - **REC-001** — Cada mudança de alto risco deve definir rollback antes da execução.
 - **REC-002** — Regressão grave contra baseline funcional deve bloquear promoção.
+- **REC-003** — O estado público/reproduzível do XLX026 deve possuir perfil de recuperação explícito e versionado, separado do instalador genérico; o perfil não pode conter segredos, bancos, logs ou backups reais e deve registrar hashes/proveniência dos artefatos que não possam ser reproduzidos byte a byte.
+
 
 ### GOVERNANÇA
 - **GOV-001** — Os documentos canônicos `PROJECT_START_HERE.md`, `PROJECT_MASTER_SPEC.md`, `PROJECT_RELEASE_STATUS.md` e `PROJECT_TEST_MATRIX.md` devem existir na branch principal mantida.

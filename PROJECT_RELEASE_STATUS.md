@@ -226,3 +226,11 @@ Classificação: `SW/ENV PASS` somente para a fundação estática/mock. `TEST-0
 - Evidência sanitizada [resultado](docs/evidence/tx-turn-guard-production-20261004.json) e [procedimento](experimental/tx-turn-guard/PRODUCTION-20261004.md).
 
 O bloqueio de conectividade de Warty às20:43 UTC foi superado após reconexão; o build antigo divergente não foi promovido. O timeout anterior permanece histórico, não resultado final.
+
+## Snapshot de recuperação XLX026 — 2026-10-17
+- Auditoria somente leitura confirmou drift entre `main` e produção: Live Core V2/Live Hub e diversas alterações do dashboard estão ativas no XLX026 mas não estavam integralmente versionadas no `main` de `56a8591c...`.
+- Foi criado o perfil explícito `profiles/xlx026-prod-20261017/` para capturar o código/runtime não secreto sem transformar customizações XLX026 em default de terceiros.
+- Hashes PROD registrados no manifesto: XLXD `9dce4347...`, xuvd `d3ea28ef...`, Helix daemon `7c4292bf...`, Live Core V2 `83977c22...`.
+- Estado PROD observado: TX Turn Guard habilitado por drop-in; Helix em `shadow`; Live Core V2/Live Hub/Health/analisador ativos. Nenhum serviço foi reiniciado ou modificado para produzir este snapshot.
+- O xuvd/Helix ELF exato não é publicado: reconstrução byte-idêntica continua condicionada ao gate de proveniência/equivalência. Isso não deve ser escondido como “cópia perfeita”.
+- O perfil ainda depende de SW/ENV/CI desta branch antes de merge/tag de recuperação.

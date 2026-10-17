@@ -1,0 +1,22 @@
+[Unit]
+Description=XLX026 Live Core V2 (Rust/WebSocket)
+After=network.target xlxd.service xlx-vu-tap.service
+Wants=xlxd.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+ExecStart=/usr/local/bin/xlx026-live-core-v2
+Restart=always
+RestartSec=1
+Nice=-2
+MemoryMax=128M
+TasksMax=64
+LimitNOFILE=4096
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target

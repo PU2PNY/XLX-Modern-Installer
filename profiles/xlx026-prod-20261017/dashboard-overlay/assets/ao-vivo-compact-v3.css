@@ -1,0 +1,1076 @@
+/* ==========================================================
+   XLX026 — MONITOR AO VIVO COMPACTO V3
+
+   OBJETIVO:
+   reduzir altura sem remover nenhuma informação.
+
+   Desktop:
+   1 TX = 100%
+   2 TX = 50/50
+   3 TX = 33/33/33
+
+   Mobile:
+   prioriza legibilidade e preservação dos dados.
+   ========================================================== */
+
+
+/* ==========================================================
+   PAINEL EXTERNO
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+.dashboard-layout > .live-widget{
+
+    padding:10px 12px !important;
+
+    border-radius:14px !important;
+}
+
+
+/* Espaço entre transmissões e status operacional */
+
+html body[data-page="ao-vivo"]
+#moduleGrid{
+
+    gap:8px !important;
+}
+
+
+/* ==========================================================
+   STANDBY
+
+   Sai do grande painel vertical centralizado e vira um
+   resumo horizontal mais profissional.
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.standby.standby-v30{
+
+    display:grid !important;
+
+    grid-template-rows:
+        auto
+        minmax(0,1fr) !important;
+
+    width:100% !important;
+
+    min-width:0 !important;
+
+    height:auto !important;
+    min-height:142px !important;
+    max-height:none !important;
+
+    padding:10px 12px !important;
+
+    gap:7px !important;
+
+    overflow:visible !important;
+
+    box-sizing:border-box !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.standby.standby-v30
+.tx-top{
+
+    display:flex !important;
+
+    align-items:center !important;
+
+    justify-content:space-between !important;
+
+    gap:10px !important;
+
+    margin:0 !important;
+
+    min-height:24px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.standby.standby-v30
+.tx-top > div{
+
+    display:flex !important;
+
+    align-items:center !important;
+
+    gap:9px !important;
+
+    min-width:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.standby.standby-v30
+.tx-top h3{
+
+    margin:0 !important;
+
+    font-size:13px !important;
+
+    line-height:1.1 !important;
+
+    white-space:nowrap !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.standby-v30-content{
+
+    display:grid !important;
+
+    grid-template-columns:
+        58px
+        minmax(150px,.75fr)
+        minmax(0,1.35fr) !important;
+
+    align-items:center !important;
+
+    width:100% !important;
+
+    min-width:0 !important;
+
+    min-height:76px !important;
+
+    margin:0 !important;
+
+    padding:4px 2px !important;
+
+    gap:14px !important;
+
+    text-align:left !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.standby-v30-radar{
+
+    display:block !important;
+
+    width:52px !important;
+    height:52px !important;
+
+    min-width:52px !important;
+
+    margin:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.standby-v30-state{
+
+    min-width:0 !important;
+
+    font-size:
+        clamp(15px,1.7vw,22px) !important;
+
+    font-weight:850 !important;
+
+    line-height:1.1 !important;
+
+    white-space:normal !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.standby-v30-last{
+
+    min-width:0 !important;
+
+    margin:0 !important;
+
+    padding:8px 12px !important;
+
+    border-left:
+        1px solid rgba(33,234,160,.28) !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.standby-v30-last small,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.standby-v30-last strong,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.standby-v30-last span{
+
+    display:block !important;
+
+    overflow:hidden !important;
+
+    text-overflow:ellipsis !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.standby-v30-last small{
+
+    font-size:8px !important;
+
+    letter-spacing:.08em !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.standby-v30-last strong{
+
+    margin-top:3px !important;
+
+    font-size:
+        clamp(15px,1.6vw,21px) !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.standby-v30-last span{
+
+    margin-top:2px !important;
+
+    font-size:
+        clamp(10px,1vw,13px) !important;
+}
+
+
+/* ==========================================================
+   STACK MTR + CARD TX
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid > *:has(> .mtr-mini){
+
+    display:grid !important;
+
+    grid-template-rows:
+        auto
+        auto !important;
+
+    align-content:start !important;
+
+    gap:6px !important;
+
+    min-width:0 !important;
+
+    width:100% !important;
+}
+
+
+/* ==========================================================
+   MTR COMPACTO
+
+   Nenhuma métrica é removida.
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid > * > .mtr-mini{
+
+    width:100% !important;
+
+    min-width:0 !important;
+
+    height:auto !important;
+    min-height:84px !important;
+    max-height:none !important;
+
+    margin:0 !important;
+
+    padding:8px 10px !important;
+
+    border-radius:10px !important;
+
+    box-sizing:border-box !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid .mtr-head{
+
+    min-height:20px !important;
+
+    margin:0 0 6px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid .mtr-label{
+
+    padding:3px 6px !important;
+
+    font-size:8px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid .mtr-gateway{
+
+    font-size:
+        clamp(10px,1vw,13px) !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid .mtr-update{
+
+    font-size:7px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid .mtr-metrics{
+
+    display:grid !important;
+
+    grid-template-columns:
+        repeat(3,minmax(0,1fr)) !important;
+
+    gap:6px !important;
+
+    margin:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid .mtr-metric{
+
+    min-width:0 !important;
+
+    min-height:28px !important;
+
+    height:auto !important;
+
+    padding:5px 7px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid .mtr-metric small{
+
+    font-size:7px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid .mtr-metric b{
+
+    font-size:
+        clamp(10px,1vw,13px) !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid .mtr-graph-row{
+
+    min-height:20px !important;
+
+    height:auto !important;
+
+    margin-top:5px !important;
+}
+
+
+/* ==========================================================
+   CARD VERMELHO TX
+
+   Sem altura fixa: se algum dado precisar de espaço,
+   o card cresce em vez de esconder.
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.live.tx-v30{
+
+    display:grid !important;
+
+    grid-template-rows:
+        auto
+        auto
+        auto !important;
+
+    width:100% !important;
+
+    min-width:0 !important;
+
+    height:auto !important;
+    min-height:172px !important;
+    max-height:none !important;
+
+    margin:0 !important;
+
+    padding:10px 12px !important;
+
+    gap:7px !important;
+
+    overflow:hidden !important;
+
+    box-sizing:border-box !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.live.tx-v30
+.tx-top{
+
+    display:flex !important;
+
+    align-items:center !important;
+
+    justify-content:space-between !important;
+
+    gap:8px !important;
+
+    min-height:24px !important;
+
+    margin:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.live.tx-v30
+.tx-top > div{
+
+    display:flex !important;
+
+    align-items:center !important;
+
+    gap:8px !important;
+
+    min-width:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.live.tx-v30
+.tx-top h3{
+
+    margin:0 !important;
+
+    font-size:
+        clamp(10px,1vw,13px) !important;
+
+    white-space:nowrap !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.live.tx-v30
+.module-badge{
+
+    padding:4px 7px !important;
+
+    font-size:
+        clamp(7px,.7vw,9px) !important;
+}
+
+
+/* ==========================================================
+   CONTEÚDO DO TX
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.live.tx-v30
+.tx-v30-content{
+
+    display:grid !important;
+
+    grid-template-columns:
+        minmax(0,1.45fr)
+        minmax(255px,.85fr) !important;
+
+    align-items:center !important;
+
+    width:100% !important;
+
+    min-width:0 !important;
+
+    gap:12px !important;
+
+    margin:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.live.tx-v30
+.tx-v30-person{
+
+    display:grid !important;
+
+    grid-template-columns:
+        52px
+        minmax(0,1fr) !important;
+
+    align-items:center !important;
+
+    gap:10px !important;
+
+    min-width:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.live.tx-v30
+.operator-visual{
+
+    width:50px !important;
+    height:50px !important;
+
+    min-width:50px !important;
+    min-height:50px !important;
+
+    margin:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.live.tx-v30
+.operator-visual img{
+
+    width:32px !important;
+    height:32px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-v30-person-data{
+
+    min-width:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-v30-callsign{
+
+    display:block !important;
+
+    font-size:
+        clamp(18px,2vw,27px) !important;
+
+    line-height:1 !important;
+
+    white-space:nowrap !important;
+
+    overflow:hidden !important;
+
+    text-overflow:ellipsis !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-v30-name{
+
+    display:block !important;
+
+    margin-top:3px !important;
+
+    font-size:
+        clamp(11px,1.1vw,14px) !important;
+
+    line-height:1.1 !important;
+
+    overflow:hidden !important;
+
+    text-overflow:ellipsis !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-v30-location,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-v30-country{
+
+    margin-top:3px !important;
+
+    font-size:
+        clamp(9px,.9vw,12px) !important;
+
+    line-height:1.15 !important;
+}
+
+
+/* ==========================================================
+   DETALHES
+
+   Mantém Gateway, Protocolo/Módulo e Tempo.
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-v30-details{
+
+    display:grid !important;
+
+    grid-template-columns:
+        minmax(0,1fr) !important;
+
+    gap:5px !important;
+
+    min-width:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-v30-details > div{
+
+    display:flex !important;
+
+    flex-direction:column !important;
+
+    justify-content:center !important;
+
+    min-width:0 !important;
+
+    min-height:39px !important;
+
+    height:auto !important;
+
+    padding:6px 9px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-v30-details small{
+
+    margin-bottom:3px !important;
+
+    font-size:7px !important;
+
+    line-height:1 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-v30-details strong{
+
+    font-size:
+        clamp(9px,.9vw,12px) !important;
+
+    line-height:1.05 !important;
+
+    overflow:hidden !important;
+
+    text-overflow:ellipsis !important;
+}
+
+
+/* Spectrum fica visível, porém menor. */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+.tx-card.live.tx-v30
+.spectrum{
+
+    display:flex !important;
+
+    height:16px !important;
+
+    min-height:16px !important;
+
+    margin:1px 0 0 !important;
+
+    padding-top:3px !important;
+}
+
+
+/* ==========================================================
+   SERVIDOR OPERACIONAL
+
+   Antes ocupava outro bloco alto.
+   Agora vira uma faixa compacta.
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#opsWidget.ops-widget{
+
+    display:grid !important;
+
+    grid-template-columns:
+        auto
+        minmax(0,1fr)
+        auto !important;
+
+    align-items:center !important;
+
+    width:100% !important;
+
+    min-width:0 !important;
+
+    min-height:54px !important;
+
+    margin-top:8px !important;
+
+    padding:7px 10px !important;
+
+    gap:8px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#opsWidget > div:first-of-type{
+
+    display:flex !important;
+
+    align-items:center !important;
+
+    gap:7px !important;
+
+    min-width:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#opsWidget > div:first-of-type b,
+
+html body[data-page="ao-vivo"]
+#opsWidget > div:first-of-type small{
+
+    display:inline !important;
+
+    margin:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#opsWidget > div:first-of-type b{
+
+    font-size:12px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#opsWidget > div:first-of-type small{
+
+    font-size:9px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#opsWidget .ops-numbers{
+
+    grid-column:auto !important;
+
+    display:flex !important;
+
+    align-items:center !important;
+
+    gap:6px !important;
+
+    width:auto !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#opsWidget .ops-numbers span{
+
+    display:flex !important;
+
+    align-items:baseline !important;
+
+    min-width:118px !important;
+
+    padding:6px 9px !important;
+
+    font-size:9px !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#opsWidget .ops-numbers b{
+
+    font-size:15px !important;
+
+    margin-right:4px !important;
+}
+
+
+/* ==========================================================
+   QUANDO EXISTEM 2 OU 3 TRANSMISSÕES
+
+   O container de cada coluna fica menor.
+   Reorganizamos dentro do card, mas nenhum dado some.
+   ========================================================== */
+
+@container (max-width:620px){
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30{
+
+        min-height:185px !important;
+
+        padding:8px !important;
+
+        gap:5px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-content{
+
+        grid-template-columns:
+            minmax(0,1fr) !important;
+
+        gap:7px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-person{
+
+        grid-template-columns:
+            38px
+            minmax(0,1fr) !important;
+
+        gap:7px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .operator-visual{
+
+        width:36px !important;
+        height:36px !important;
+
+        min-width:36px !important;
+        min-height:36px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .operator-visual img{
+
+        width:24px !important;
+        height:24px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-v30-callsign{
+
+        font-size:
+            clamp(14px,5cqw,20px) !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-v30-details{
+
+        grid-template-columns:
+            repeat(3,minmax(0,1fr)) !important;
+
+        gap:4px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-v30-details > div{
+
+        min-height:42px !important;
+
+        padding:5px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-v30-details small{
+
+        font-size:6px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-v30-details strong{
+
+        font-size:
+            clamp(7px,2.7cqw,10px) !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid > * > .mtr-mini{
+
+        min-height:80px !important;
+
+        padding:7px !important;
+    }
+}
+
+
+/* ==========================================================
+   TABLET / CELULAR
+
+   Aqui a prioridade é leitura.
+   3 cards de 33% em uma tela de 360px esconderiam dados.
+   Por isso cada transmissão recebe 100%.
+   ========================================================== */
+
+@media (max-width:720px){
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid.module-grid.widget-grid{
+
+        display:grid !important;
+
+        grid-template-columns:
+            minmax(0,1fr) !important;
+
+        grid-auto-flow:row !important;
+
+        grid-auto-columns:auto !important;
+
+        gap:8px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid > *{
+
+        width:100% !important;
+
+        min-width:0 !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .standby-v30-content{
+
+        grid-template-columns:
+            44px
+            minmax(0,1fr) !important;
+
+        gap:8px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .standby-v30-last{
+
+        grid-column:1 / -1 !important;
+
+        border-left:0 !important;
+
+        border-top:
+            1px solid rgba(33,234,160,.18) !important;
+
+        padding:7px 0 0 !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .standby-v30-radar{
+
+        width:40px !important;
+        height:40px !important;
+
+        min-width:40px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .standby-v30-state{
+
+        font-size:16px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #opsWidget.ops-widget{
+
+        grid-template-columns:
+            auto
+            minmax(0,1fr) !important;
+
+        min-height:0 !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #opsWidget .ops-numbers{
+
+        grid-column:1 / -1 !important;
+
+        width:100% !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #opsWidget .ops-numbers span{
+
+        flex:1 1 0 !important;
+
+        min-width:0 !important;
+    }
+}
+
+
+/* ==========================================================
+   PROTEÇÃO FINAL
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid,
+
+html body[data-page="ao-vivo"]
+#moduleGrid *,
+
+html body[data-page="ao-vivo"]
+#opsWidget,
+
+html body[data-page="ao-vivo"]
+#opsWidget *{
+
+    box-sizing:border-box;
+}
+
+html body[data-page="ao-vivo"]{
+
+    overflow-x:hidden;
+}

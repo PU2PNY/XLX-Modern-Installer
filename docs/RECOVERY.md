@@ -86,3 +86,7 @@ Antes de um futuro canário do XLXD:
 Rollback de produção, se o canário vier a ser autorizado: parar somente o `xlxd` pelo procedimento operacional aprovado, restaurar o binário/unit/env anteriores, executar `daemon-reload` quando necessário, iniciar o serviço e revalidar DMR/YSF/D-Star, Live e interlinks. O monitor consultivo pode ser parado/retirado independentemente porque não participa do caminho de voz.
 
 Qualquer bloqueio indevido de terceira estação, comando legítimo, módulo independente ou regressão de EOT é critério de rollback imediato.
+
+## Perfil de recuperação XLX026 — snapshot 2026-10-17
+
+O perfil público `profiles/xlx026-prod-20261017/` é a fonte versionada para reconstruir o código/runtime não secreto observado no XLX026. O comando de entrada é `sudo bash start.sh --profile=xlx026-prod-20261017`; a instalação ainda deve receber no momento da recuperação os dados privados que não pertencem ao Git. O manifesto registra os hashes PROD de XLXD, xuvd, Helix e Live Core V2. A recuperação não deve ser chamada de byte-idêntica enquanto o ELF xuvd/Helix não tiver rebuild/proveniência comprovados. Nunca copiar para o repositório `/etc/xlx-ai-monitor.env`, certificados/chaves privadas, banco/histórico/logs ou backups reais.

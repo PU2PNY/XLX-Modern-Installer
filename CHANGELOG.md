@@ -1,3 +1,13 @@
+## Unreleased — XLX026 production recovery parity 2026-10-17
+
+- Adds an explicit non-secret XLX026 recovery profile instead of hardcoding production identity into generic installs.
+- Captures the current production dashboard/control drift plus Live Core V2, Live Hub, Health Monitor, passive transmission analyzer, xuvd source snapshot and systemd runtime references.
+- Records production SHA-256 values for XLXD, xuvd, Helix daemon and Live Core V2.
+- Adds `--profile=xlx026-prod-20261017` and a dedicated profile module; generic installs remain unchanged.
+- Rebuilds the approved PP5PK/xlxd TX Turn Guard candidate and refuses an unexpected XLXD hash.
+- Keeps credentials, private keys, databases, logs and production backups out of Git.
+- Does not claim byte-identical xuvd/Helix recovery until the existing provenance/equivalence gate is satisfied.
+
 ## Unreleased — TX Turn Guard V1
 
 - Versions the optional XLXD 2.5.3 per-module anti-ping-pong patch and advisory observer; off remains the default.

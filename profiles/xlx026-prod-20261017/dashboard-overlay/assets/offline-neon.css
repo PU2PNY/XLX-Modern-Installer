@@ -1,0 +1,69 @@
+/* ==========================================================
+   XLX026 — somente o status Offline
+   Elemento real: .state-pill.offline
+   ========================================================== */
+
+@keyframes xlx026-offline-red-pulse {
+    0%,
+    100% {
+        color: #ff304f;
+
+        border-color:
+            rgba(255, 48, 79, 0.62);
+
+        background:
+            rgba(255, 48, 79, 0.07);
+
+        text-shadow:
+            0 0 4px rgba(255, 48, 79, 0.75),
+            0 0 8px rgba(255, 48, 79, 0.45);
+
+        box-shadow:
+            inset 0 0 8px rgba(255, 48, 79, 0.08),
+            0 0 5px rgba(255, 48, 79, 0.20);
+
+        opacity: 0.72;
+    }
+
+    50% {
+        color: #ff7184;
+
+        border-color:
+            #ff304f;
+
+        background:
+            rgba(255, 48, 79, 0.14);
+
+        text-shadow:
+            0 0 5px #ff304f,
+            0 0 10px #ff304f,
+            0 0 17px rgba(255, 48, 79, 0.85);
+
+        box-shadow:
+            inset 0 0 10px rgba(255, 48, 79, 0.16),
+            0 0 8px rgba(255, 48, 79, 0.60),
+            0 0 15px rgba(255, 48, 79, 0.28);
+
+        opacity: 1;
+    }
+}
+
+/*
+ * Seletor específico para não atingir:
+ * Online, Standby, TX, protocolos ou outros elementos.
+ */
+.state-pill.offline {
+    color: #ff304f !important;
+
+    border-color:
+        rgba(255, 48, 79, 0.72) !important;
+
+    background:
+        rgba(255, 48, 79, 0.09) !important;
+
+    font-weight: 900 !important;
+
+    animation:
+        xlx026-offline-red-pulse
+        1.15s ease-in-out infinite !important;
+}

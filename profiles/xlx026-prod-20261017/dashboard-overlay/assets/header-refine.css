@@ -1,0 +1,424 @@
+/* ==========================================================
+   XLX026 — HEADER REFINADO FINAL
+   Área: Header / Masthead / Hero Header
+   ========================================================== */
+
+.universal-header{
+    position:relative;
+    display:grid !important;
+    grid-template-columns:88px minmax(0,1fr) auto;
+    grid-template-rows:auto auto;
+    align-items:center;
+    gap:8px 18px;
+    padding:12px 18px !important;
+    min-height:0 !important;
+    border-radius:20px;
+    overflow:hidden;
+}
+
+/* fundo decorativo mais suave */
+.universal-header::before,
+.universal-header::after{
+    opacity:.15 !important;
+    transform:scale(.70) !important;
+    transform-origin:right center !important;
+}
+
+/* ==========================================================
+   BLOCO DO LOGO
+   ========================================================== */
+.universal-header .header-brand,
+.universal-header .brand,
+.universal-header .brand-wrap{
+    display:contents !important;
+}
+
+.universal-header .header-logo,
+.universal-header .brand-logo,
+.universal-header .brand img{
+    grid-column:1;
+    grid-row:1 / span 2;
+    width:82px !important;
+    height:82px !important;
+    min-width:82px !important;
+    max-width:82px !important;
+    object-fit:cover;
+    border-radius:50%;
+    margin:0 !important;
+    align-self:center;
+    justify-self:start;
+}
+
+/* ==========================================================
+   BLOCO CENTRAL: slogan + título + protocolos
+   ========================================================== */
+.universal-header .brand-copy,
+.universal-header .brand-text,
+.universal-header .brand-content{
+    grid-column:2;
+    grid-row:1;
+    display:flex !important;
+    flex-direction:column;
+    align-items:flex-start;
+    justify-content:center;
+    gap:6px;
+    min-width:0;
+    margin:0 !important;
+    padding:0 !important;
+}
+
+.universal-header .eyebrow,
+.universal-header .brand-eyebrow,
+.universal-header .brand-kicker{
+    margin:0 !important;
+    color:#00d9ff;
+    font-size:10px !important;
+    font-weight:900;
+    letter-spacing:.18em;
+    line-height:1.1;
+    text-transform:uppercase;
+    white-space:nowrap;
+}
+
+.universal-header h1,
+.universal-header .brand-title,
+.universal-header .page-title{
+    margin:0 !important;
+    color:#f2fbff;
+    font-size:clamp(26px,2.5vw,38px) !important;
+    font-weight:900;
+    line-height:.96 !important;
+    letter-spacing:-.04em;
+    white-space:nowrap;
+}
+
+/* protocolos sem “caixas” */
+.universal-header .brand-tags,
+.universal-header .brand-pills,
+.universal-header .hero-tags,
+.universal-header .hero-pills{
+    display:flex !important;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:8px 12px !important;
+    min-width:0;
+    margin:0 !important;
+    padding:0 !important;
+}
+
+.universal-header .brand-tags a,
+.universal-header .brand-tags span,
+.universal-header .brand-pills a,
+.universal-header .brand-pills span,
+.universal-header .hero-tags a,
+.universal-header .hero-tags span,
+.universal-header .hero-pills a,
+.universal-header .hero-pills span{
+    position:relative;
+    display:inline-flex !important;
+    align-items:center;
+    min-height:auto !important;
+    padding:0 !important;
+    margin:0 !important;
+    border:none !important;
+    background:transparent !important;
+    box-shadow:none !important;
+    border-radius:0 !important;
+    color:rgba(228,244,252,.92) !important;
+    font-size:13px !important;
+    font-weight:700;
+    line-height:1.2;
+    white-space:nowrap;
+}
+
+/* separadores elegantes */
+.universal-header .brand-tags a:not(:last-child)::after,
+.universal-header .brand-tags span:not(:last-child)::after,
+.universal-header .brand-pills a:not(:last-child)::after,
+.universal-header .brand-pills span:not(:last-child)::after,
+.universal-header .hero-tags a:not(:last-child)::after,
+.universal-header .hero-tags span:not(:last-child)::after,
+.universal-header .hero-pills a:not(:last-child)::after,
+.universal-header .hero-pills span:not(:last-child)::after{
+    content:"•";
+    margin-left:12px;
+    color:rgba(0,217,255,.65);
+    font-weight:900;
+}
+
+/* ==========================================================
+   STATUS AO VIVO — menor e neon
+   ========================================================== */
+@keyframes xlxLivePulse{
+    0%{
+        box-shadow:0 0 0 0 rgba(0,255,170,.32);
+        opacity:.95;
+    }
+    50%{
+        box-shadow:0 0 0 7px rgba(0,255,170,0);
+        opacity:1;
+    }
+    100%{
+        box-shadow:0 0 0 0 rgba(0,255,170,0);
+        opacity:.95;
+    }
+}
+
+.universal-header .header-status,
+.universal-header .status-pill,
+.universal-header .live-pill{
+    grid-column:3;
+    grid-row:1;
+    align-self:center;
+    justify-self:end;
+    display:inline-flex !important;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    min-width:auto !important;
+    min-height:34px !important;
+    padding:6px 12px !important;
+    margin:0 !important;
+    border-radius:999px !important;
+    border:1px solid rgba(0,255,170,.28) !important;
+    background:rgba(0,255,170,.06) !important;
+    color:#dffff4 !important;
+    font-size:12px !important;
+    font-weight:800;
+    line-height:1;
+    white-space:nowrap;
+    box-shadow:
+        0 0 16px rgba(0,255,170,.10),
+        inset 0 0 12px rgba(0,255,170,.05);
+}
+
+.universal-header .header-status::before,
+.universal-header .status-pill::before,
+.universal-header .live-pill::before{
+    content:"";
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:#1dff8c;
+    box-shadow:
+        0 0 6px #1dff8c,
+        0 0 12px #1dff8c,
+        0 0 20px rgba(29,255,140,.65);
+    animation:xlxLivePulse 1.4s infinite ease-in-out;
+}
+
+/* ==========================================================
+   MENU
+   ========================================================== */
+.universal-header .universal-nav{
+    grid-column:2 / 4;
+    grid-row:2;
+    display:flex !important;
+    align-items:center;
+    justify-content:flex-start;
+    flex-wrap:wrap;
+    gap:8px !important;
+    margin:0 !important;
+    padding:8px 0 0 !important;
+    border-top:1px solid rgba(0,217,255,.12);
+}
+
+.universal-header .universal-nav a{
+    display:inline-flex !important;
+    align-items:center;
+    justify-content:center;
+    min-height:32px !important;
+    padding:6px 12px !important;
+    border-radius:10px !important;
+    font-size:13px !important;
+    font-weight:750;
+    line-height:1;
+    white-space:nowrap;
+}
+
+.universal-header .universal-nav a.active,
+.universal-header .universal-nav a[aria-current="page"]{
+    box-shadow:
+        0 0 0 1px rgba(0,217,255,.18),
+        0 0 14px rgba(0,217,255,.12),
+        inset 0 0 10px rgba(0,217,255,.10);
+}
+
+/* botão mobile */
+.universal-header .menu-toggle{
+    min-width:34px !important;
+    min-height:34px !important;
+    padding:5px !important;
+    border-radius:10px !important;
+}
+
+/* ==========================================================
+   AJUSTES GERAIS PARA EVITAR CABEÇALHO ALTO
+   ========================================================== */
+.universal-header *{
+    box-sizing:border-box;
+}
+
+.universal-header p{
+    margin:0 !important;
+}
+
+/* ==========================================================
+   RESPONSIVO
+   ========================================================== */
+@media (max-width:1200px){
+    .universal-header{
+        grid-template-columns:76px minmax(0,1fr) auto;
+        gap:8px 14px;
+        padding:11px 15px !important;
+    }
+
+    .universal-header .header-logo,
+    .universal-header .brand-logo,
+    .universal-header .brand img{
+        width:74px !important;
+        height:74px !important;
+        min-width:74px !important;
+        max-width:74px !important;
+    }
+
+    .universal-header h1,
+    .universal-header .brand-title,
+    .universal-header .page-title{
+        font-size:clamp(24px,2.2vw,33px) !important;
+    }
+
+    .universal-header .brand-tags a,
+    .universal-header .brand-tags span,
+    .universal-header .brand-pills a,
+    .universal-header .brand-pills span,
+    .universal-header .hero-tags a,
+    .universal-header .hero-tags span,
+    .universal-header .hero-pills a,
+    .universal-header .hero-pills span{
+        font-size:12px !important;
+    }
+
+    .universal-header .universal-nav a{
+        font-size:12px !important;
+        padding:6px 10px !important;
+    }
+}
+
+@media (max-width:900px){
+    .universal-header{
+        grid-template-columns:64px minmax(0,1fr);
+        grid-template-rows:auto auto auto;
+        gap:8px 12px;
+        padding:12px !important;
+    }
+
+    .universal-header .header-logo,
+    .universal-header .brand-logo,
+    .universal-header .brand img{
+        grid-column:1;
+        grid-row:1 / span 2;
+        width:64px !important;
+        height:64px !important;
+        min-width:64px !important;
+        max-width:64px !important;
+    }
+
+    .universal-header .brand-copy,
+    .universal-header .brand-text,
+    .universal-header .brand-content{
+        grid-column:2;
+        grid-row:1;
+        gap:5px;
+    }
+
+    .universal-header .header-status,
+    .universal-header .status-pill,
+    .universal-header .live-pill{
+        grid-column:2;
+        grid-row:2;
+        justify-self:start;
+        min-height:30px !important;
+        padding:5px 10px !important;
+        font-size:11px !important;
+    }
+
+    .universal-header .universal-nav{
+        grid-column:1 / -1;
+        grid-row:3;
+        padding-top:8px !important;
+    }
+
+    .universal-header h1,
+    .universal-header .brand-title,
+    .universal-header .page-title{
+        font-size:clamp(22px,5vw,30px) !important;
+        white-space:normal;
+    }
+
+    .universal-header .brand-tags a,
+    .universal-header .brand-tags span,
+    .universal-header .brand-pills a,
+    .universal-header .brand-pills span,
+    .universal-header .hero-tags a,
+    .universal-header .hero-tags span,
+    .universal-header .hero-pills a,
+    .universal-header .hero-pills span{
+        font-size:11px !important;
+        white-space:normal;
+    }
+}
+
+@media (max-width:560px){
+    .universal-header{
+        grid-template-columns:56px minmax(0,1fr);
+        gap:8px 10px;
+        padding:10px !important;
+        border-radius:16px;
+    }
+
+    .universal-header .header-logo,
+    .universal-header .brand-logo,
+    .universal-header .brand img{
+        width:56px !important;
+        height:56px !important;
+        min-width:56px !important;
+        max-width:56px !important;
+    }
+
+    .universal-header .eyebrow,
+    .universal-header .brand-eyebrow,
+    .universal-header .brand-kicker{
+        font-size:8px !important;
+    }
+
+    .universal-header h1,
+    .universal-header .brand-title,
+    .universal-header .page-title{
+        font-size:clamp(20px,7vw,26px) !important;
+    }
+
+    .universal-header .brand-tags,
+    .universal-header .brand-pills,
+    .universal-header .hero-tags,
+    .universal-header .hero-pills{
+        gap:4px 8px !important;
+    }
+
+    .universal-header .brand-tags a:not(:last-child)::after,
+    .universal-header .brand-tags span:not(:last-child)::after,
+    .universal-header .brand-pills a:not(:last-child)::after,
+    .universal-header .brand-pills span:not(:last-child)::after,
+    .universal-header .hero-tags a:not(:last-child)::after,
+    .universal-header .hero-tags span:not(:last-child)::after,
+    .universal-header .hero-pills a:not(:last-child)::after,
+    .universal-header .hero-pills span:not(:last-child)::after{
+        margin-left:8px;
+    }
+
+    .universal-header .universal-nav a{
+        min-height:30px !important;
+        padding:6px 9px !important;
+        font-size:11px !important;
+    }
+}

@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0",
+  "site": "XLX026 Brasil",
+  "canonical_home": "https://xlx026.net/ao-vivo",
+  "language": "pt-BR",
+  "generated_at": "2026-08-22",
+  "description": "Fonte técnica canônica e legível por máquinas sobre o painel público XLX026 Brasil.",
+  "official_module_mapping": {
+    "A": {"purpose": "Imagens e serviços relacionados à transmissão de imagens", "primary_voice": false},
+    "B": {"purpose": "Beacons, APRS/D-PRS e dados relacionados", "primary_voice": false},
+    "C": {"purpose": "Fonia digital", "protocols": ["DMR", "C4FM", "YSF"], "primary_voice": true},
+    "D": {"purpose": "Fonia digital", "protocols": ["D-STAR"], "primary_voice": true},
+    "E": {"purpose": "Eco e testes de áudio", "primary_voice": false}
+  },
+  "voice_reference": {
+    "D-STAR": {"reflector": "XLX026", "module": "D"},
+    "DMR": {"reflector": "XLX026", "module": "C", "radio_tg": "6", "app_tg": "4003"},
+    "C4FM/YSF": {"reflector": "XLX026", "module": "C", "room": "BR-XLX026", "ysf_id": "72426"}
+  },
+  "interpretation_rules": [
+    "Indicativo do operador e Hotspot/Repetidora são campos diferentes.",
+    "O sufixo de um gateway, repetidora ou indicativo não substitui o campo Módulo do refletor.",
+    "Estar conectado ao XLX026 não significa estar transmitindo.",
+    "Tempo conectado e tempo de transmissão são métricas diferentes.",
+    "A lista de refletores contém servidores da rede XLX e não implica administração pelo XLX026 Brasil."
+  ],
+  "pages": [
+    {"name":"Ao Vivo","url":"https://xlx026.net/ao-vivo","purpose":"Monitor em tempo real das transmissões e atividade observada pelo XLX026."},
+    {"name":"Conectados","url":"https://xlx026.net/conectados","purpose":"Módulos A-E, identificações de acesso e estações conectadas."},
+    {"name":"APRS / D-PRS","url":"https://xlx026.net/aprs-dprs","purpose":"Laboratório de dados, posição, APRS/D-PRS, beacons e recursos associados ao módulo B."},
+    {"name":"Ranking","url":"https://xlx026.net/ranking","purpose":"Estatísticas de atividade, transmissões, tempo no ar, horários, módulos e protocolos."},
+    {"name":"Certificado","url":"https://xlx026.net/certificado","purpose":"Geração e validação de certificados vinculados a participação registrada no XLX026."},
+    {"name":"Simulado ANATEL","url":"https://xlx026.net/simulado-anatel/","purpose":"Ferramenta educacional independente e não oficial para estudo do Serviço de Radioamador."},
+    {"name":"Lista de Refletores XLX","url":"https://xlx026.net/refletores","purpose":"Diretório público de refletores da rede XLX."},
+    {"name":"Suporte","url":"https://xlx026.net/suporte","purpose":"Tutoriais, referências, vídeos, downloads e orientações técnicas relacionadas ao XLX026 e ao radioamadorismo digital."}
+  ],
+  "disclaimers": {
+    "certificate": "Certificados XLX026 não substituem licença, COER ou documento emitido pela ANATEL.",
+    "simulator": "O Simulado ANATEL do XLX026 é educacional e não oficial.",
+    "third_party_software": "Citação de software no suporte não implica autoria ou desenvolvimento pelo XLX026 Brasil.",
+    "news": "A autoria de notícias e documentos externos permanece com a fonte indicada."
+  }
+}

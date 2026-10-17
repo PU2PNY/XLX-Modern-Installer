@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>XUV Voice Codec V2 — XLX026</title>
+<style>
+:root{
+ color-scheme:dark;
+ --bg:#06110b;
+ --card:#0d2116;
+ --line:#2b5036;
+ --fg:#f4fff7;
+ --muted:#b7c9bd;
+ --accent:#f7df35;
+ --green:#4bf083
+}
+*{box-sizing:border-box}
+body{
+ margin:0;
+ background:linear-gradient(180deg,#06110b,#0b1b12);
+ color:var(--fg);
+ font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif
+}
+main{max-width:920px;margin:auto;padding:24px}
+h1{font-size:clamp(26px,5vw,44px);margin:0 0 8px}
+.sub{color:var(--muted);margin-bottom:22px}
+.card{
+ background:var(--card);
+ border:1px solid var(--line);
+ border-radius:18px;
+ padding:20px;
+ margin:14px 0
+}
+.controls{display:grid;gap:13px}
+label{font-weight:800}
+select,button{
+ width:100%;
+ padding:14px;
+ border-radius:12px;
+ border:1px solid var(--line);
+ font:inherit
+}
+select{background:#07140d;color:var(--fg)}
+button{
+ background:var(--accent);
+ color:#101000;
+ font-weight:900;
+ cursor:pointer
+}
+button.secondary{
+ background:#173522;
+ color:var(--fg)
+}
+button:disabled{opacity:.45}
+.grid{
+ display:grid;
+ grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+ gap:10px
+}
+.metric{
+ padding:14px;
+ border:1px solid var(--line);
+ border-radius:12px
+}
+.metric b{
+ display:block;
+ font-size:24px;
+ color:var(--green)
+}
+#status{
+ min-height:28px;
+ font-weight:800;
+ color:var(--accent)
+}
+small{color:var(--muted)}
+</style>
+</head>
+<body>
+<main>
+<h1>XUV Voice Codec V2</h1>
+<div class="sub">
+Codec próprio experimental do XLX026.
+Sem AMBE e sem Codec2.
+V2 com estados preditivos perfeitamente sincronizados.
+</div>
+
+<section class="card controls">
+<div>
+<label for="profile">Perfil</label>
+<select id="profile">
+<option value="HQ128">XUV-HQ128 — alta fidelidade</option>
+<option value="R64">XUV-R64 — compacto</option>
+</select>
+</div>
+
+<button id="record">Gravar 5 segundos</button>
+<button id="original" class="secondary" disabled>Ouvir ORIGINAL</button>
+<button id="play" class="secondary" disabled>Ouvir XUV DECODIFICADO</button>
+
+<div id="status">Pronto.</div>
+
+<small>
+Use fones. O áudio fica somente na memória do navegador.
+Nenhum WAV é criado.
+</small>
+</section>
+
+<section class="card">
+<div class="grid">
+<div class="metric">Amostragem<b>16 kHz</b></div>
+<div class="metric">Frame<b>10 ms</b></div>
+<div class="metric">Taxa real<b id="bitrate">—</b></div>
+<div class="metric">SNR da sua voz<b id="snr">—</b></div>
+<div class="metric">Processamento<b id="encodeMs">—</b></div>
+<div class="metric">Payload<b id="size">—</b></div>
+</div>
+</section>
+</main>
+
+<script src="xuv.js"></script>
+<script>
+"use strict";
+
+const $ = id =>
+  document.getElementById(id);
+
+let original16 = null;
+let decoded16 = null;
+
+function floatToI16(v) {
+  v = Math.max(-1, Math.min(1, v));
+
+  return Math.round(
+    v * (v < 0 ? 32768 : 32767)
+  );
+}
+
+function resampleTo16k(input, srcRate) {
+  const ratio =
+    srcRate / 16000;
+
+  const outLen =
+    Math.floor(input.length / ratio);
+
+  const out =
+    new Int16Array(outLen);
+
+  for (let i = 0; i < outLen; i++) {
+    const start =
+      Math.floor(i * ratio);
+
+    const end =
+      Math.max(
+        start + 1,
+        Math.floor((i + 1) * ratio)
+      );
+
+    let sum = 0;
+    let n = 0;
+
+    for (
+      let j = start;
+      j < end && j < input.length;
+      j++
+    ) {
+      sum += input[j];
+      n++;
+    }
+
+    out[i] =
+      floatToI16(
+        sum / Math.max(1, n)
+      );
+  }
+
+  return out;
+}
+
+function calcSNR(a, b) {
+  const n =
+    Math.min(a.length, b.length);
+
+  let sig = 0;
+  let err = 0;
+
+  for (let i = 160; i < n; i++) {
+    const x = a[i];
+    const e = a[i] - b[i];
+
+    sig += x * x;
+    err += e * e;
+  }
+
+  if (err <= 0) return 99;
+
+  return 10 *
+    Math.log10(sig / err);
+}
+
+async function playI16(samples) {
+  const ctx =
+    new AudioContext({
+      sampleRate:16000
+    });
+
+  const buffer =
+    ctx.createBuffer(
+      1,
+      samples.length,
+      16000
+    );
+
+  const ch =
+    buffer.getChannelData(0);
+
+  for (let i = 0; i < samples.length; i++) {
+    ch[i] =
+      samples[i] / 32768;
+  }
+
+  const src =
+    ctx.createBufferSource();
+
+  src.buffer = buffer;
+  src.connect(ctx.destination);
+  src.start();
+
+  await new Promise(resolve => {
+    src.onended = resolve;
+  });
+
+  await ctx.close();
+}
+
+$("record").onclick = async () => {
+  $("record").disabled = true;
+  $("original").disabled = true;
+  $("play").disabled = true;
+
+  $("status").textContent =
+    "Pedindo acesso ao microfone…";
+
+  try {
+    const stream =
+      await navigator.mediaDevices.getUserMedia({
+        audio:{
+          channelCount:1,
+          echoCancellation:false,
+          noiseSuppression:false,
+          autoGainControl:false
+        }
+      });
+
+    const ctx =
+      new AudioContext();
+
+    const src =
+      ctx.createMediaStreamSource(stream);
+
+    const proc =
+      ctx.createScriptProcessor(
+        4096,
+        1,
+        1
+      );
+
+    const chunks = [];
+    let total = 0;
+
+    proc.onaudioprocess = e => {
+      const data =
+        e.inputBuffer.getChannelData(0);
+
+      chunks.push(
+        new Float32Array(data)
+      );
+
+      total += data.length;
+    };
+
+    src.connect(proc);
+    proc.connect(ctx.destination);
+
+    $("status").textContent =
+      "Gravando 5 segundos…";
+
+    await new Promise(
+      r => setTimeout(r, 5000)
+    );
+
+    proc.disconnect();
+    src.disconnect();
+
+    stream.getTracks()
+      .forEach(t => t.stop());
+
+    const captured =
+      new Float32Array(total);
+
+    let off = 0;
+
+    for (const c of chunks) {
+      captured.set(c, off);
+      off += c.length;
+    }
+
+    original16 =
+      resampleTo16k(
+        captured,
+        ctx.sampleRate
+      );
+
+    await ctx.close();
+
+    const usable =
+      original16.length -
+      (original16.length % XUV.FRAME);
+
+    original16 =
+      original16.slice(0, usable);
+
+    const profile =
+      $("profile").value;
+
+    const t0 =
+      performance.now();
+
+    const result =
+      XUV.encodeDecode(
+        original16,
+        profile
+      );
+
+    const t1 =
+      performance.now();
+
+    decoded16 =
+      result.decoded;
+
+    const snr =
+      calcSNR(
+        original16,
+        decoded16
+      );
+
+    const seconds =
+      original16.length / 16000;
+
+    const kbps =
+      (
+        result.payloadBytes *
+        8 /
+        Math.max(seconds, 0.001)
+      ) /
+      1000;
+
+    $("snr").textContent =
+      snr.toFixed(1) + " dB";
+
+    $("encodeMs").textContent =
+      (t1 - t0).toFixed(1) + " ms";
+
+    $("size").textContent =
+      (result.payloadBytes / 1024)
+        .toFixed(1) + " KiB";
+
+    $("bitrate").textContent =
+      kbps.toFixed(1) + " kbps";
+
+    $("status").textContent =
+      "Pronto. Compare ORIGINAL e XUV.";
+
+    $("original").disabled = false;
+    $("play").disabled = false;
+
+  } catch (err) {
+    console.error(err);
+
+    $("status").textContent =
+      "Erro: " + err.message;
+  } finally {
+    $("record").disabled = false;
+  }
+};
+
+$("original").onclick =
+  async () => {
+    if (!original16) return;
+
+    $("status").textContent =
+      "Reproduzindo ORIGINAL…";
+
+    await playI16(original16);
+
+    $("status").textContent =
+      "Pronto.";
+  };
+
+$("play").onclick =
+  async () => {
+    if (!decoded16) return;
+
+    $("status").textContent =
+      "Reproduzindo XUV…";
+
+    await playI16(decoded16);
+
+    $("status").textContent =
+      "Pronto.";
+  };
+</script>
+</body>
+</html>

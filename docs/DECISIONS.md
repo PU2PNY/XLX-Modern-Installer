@@ -77,3 +77,6 @@ A IA é observadora: recebe somente contadores técnicos agregados e pode sugeri
 
 ### Continuação 2026-10-04 — economia do observador
 Silêncio ou resumo idêntico não geram consulta. Mudança de avaliação não pode furar o limite de 15 minutos entre tentativas. A regra local permanece independente da API. Teste C++ deve exercitar a sequência completa admit/EOT, além dos casos de estado preparado.
+
+## DEC-2026-10-17-015 — Recovery profile separates production parity from the generic installer
+The XLX026 production runtime has accumulated validated instance-specific code that is not fully represented by the generic dashboard. Recovery must not solve this by hardcoding XLX026 identity, private admin data or secrets into the public installer. The approved design is an explicit `xlx026-prod-20261017` recovery profile containing only non-secret code/runtime sources and hashes. Generic installations remain unchanged. The profile may rebuild the exact approved XLXD candidate and Live Core V2, but xuvd/Helix binaries are not published until their exact source/provenance gate is satisfied. Private data/secrets require a separate recovery source.

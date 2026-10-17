@@ -61,6 +61,8 @@ echo "[stereotool lab foundation]"
 bash "$ROOT/tests/test-stereotool-foundation.sh" || failures=$((failures+1))
 echo "[tx turn guard]"
 bash "$ROOT/tests/test-tx-turn-guard.sh" || failures=$((failures+1))
+echo "[xlx026 recovery profile]"
+bash "$ROOT/tests/test-xlx026-recovery-profile.sh" || failures=$((failures+1))
 echo "[project governance]"
 bash "$ROOT/tests/test-project-governance.sh" || failures=$((failures+1))
 echo "[release hardening]"
