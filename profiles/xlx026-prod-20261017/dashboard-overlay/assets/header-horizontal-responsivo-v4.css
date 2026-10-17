@@ -1,0 +1,641 @@
+/* ================================================================
+   XLX026_HEADER_HORIZONTAL_RESPONSIVO_V4
+
+   OBJETIVO
+   ---------------------------------------------------------------
+   Desktop / notebook:
+       XLX026 Brasil | D-STAR | DMR | C4FM/YSF
+
+   Linha imediatamente abaixo:
+       MENU
+
+   Ganho:
+   - remove uma linha vertical inteira do header
+   - reduz espaço vazio
+   - conteúdo operacional aparece mais cedo
+
+   IMPORTANTE
+   ---------------------------------------------------------------
+   - não altera JS
+   - não altera barra fixa V2
+   - não altera laser V3
+   - não altera mobile <= 820px
+   ================================================================ */
+
+
+/* ================================================================
+   821PX PARA CIMA
+   ================================================================ */
+
+@media (min-width:821px){
+
+    /*
+     * Header principal.
+     *
+     * Reduzimos deliberadamente o espaço vertical.
+     */
+    html body
+    section.universal-header{
+
+        padding:
+            12px clamp(14px,2vw,26px)
+            10px !important;
+
+        min-height:
+            0 !important;
+    }
+
+
+    /*
+     * Logo grande não aparece no layout desktop atual.
+     * Garantimos que não volte a consumir coluna/espaço.
+     *
+     * O logo permanece intacto no HTML.
+     */
+    html body
+    section.universal-header
+    > .universal-header-row
+    > .universal-brand{
+
+        display:
+            none !important;
+    }
+
+
+    /*
+     * Estado "Conectando" continua existindo e funcionando
+     * no DOM, mas não consome a linha principal.
+     *
+     * Os estados operacionais importantes continuam
+     * disponíveis no painel Ao Vivo.
+     */
+    html body
+    section.universal-header
+    > .universal-header-row
+    > .universal-live-pill{
+
+        display:
+            none !important;
+    }
+
+
+    /*
+     * A linha externa deixa de reservar alturas antigas.
+     */
+    html body
+    section.universal-header
+    > .universal-header-row{
+
+        display:
+            block !important;
+
+        width:
+            100% !important;
+
+        min-height:
+            0 !important;
+
+        margin:
+            0 !important;
+
+        padding:
+            0 !important;
+    }
+
+
+    /* ============================================================
+       TÍTULO + PROTOCOLOS NA MESMA LINHA
+       ============================================================ */
+
+    html body
+    section.universal-header
+    .universal-copy{
+
+        display:
+            grid !important;
+
+        grid-template-columns:
+            max-content minmax(0,1fr) !important;
+
+        align-items:
+            center !important;
+
+        column-gap:
+            clamp(22px,3.1vw,52px) !important;
+
+        row-gap:
+            0 !important;
+
+        width:
+            min(1080px,100%) !important;
+
+        max-width:
+            1080px !important;
+
+        min-width:
+            0 !important;
+
+        margin:
+            0 auto !important;
+
+        padding:
+            0 !important;
+    }
+
+
+    /*
+     * Título vira a âncora esquerda.
+     *
+     * Mantém todo o laser V3 porque não alteramos
+     * .xlx026-brasil-title nem seus pseudo-elementos.
+     */
+    html body
+    section.universal-header
+    .universal-copy > h1{
+
+        grid-column:
+            1 !important;
+
+        grid-row:
+            1 !important;
+
+        margin:
+            0 !important;
+
+        padding:
+            0 !important;
+
+        line-height:
+            1 !important;
+
+        text-align:
+            left !important;
+
+        white-space:
+            nowrap !important;
+
+        font-size:
+            clamp(24px,2.15vw,32px) !important;
+    }
+
+
+    /*
+     * Protocolos ocupam TODO o espaço restante
+     * à direita do título.
+     */
+    html body
+    section.universal-header
+    .universal-copy
+    > .access-strip{
+
+        grid-column:
+            2 !important;
+
+        grid-row:
+            1 !important;
+
+        justify-self:
+            end !important;
+
+        align-self:
+            center !important;
+
+        display:
+            flex !important;
+
+        align-items:
+            stretch !important;
+
+        justify-content:
+            flex-end !important;
+
+        flex-wrap:
+            nowrap !important;
+
+        width:
+            auto !important;
+
+        max-width:
+            100% !important;
+
+        min-width:
+            0 !important;
+
+        margin:
+            0 !important;
+
+        padding:
+            0 !important;
+
+        overflow:
+            hidden !important;
+
+        border-radius:
+            11px !important;
+    }
+
+
+    /*
+     * Segmentos mais compactos.
+     */
+    html body
+    section.universal-header
+    .access-strip
+    > span{
+
+        display:
+            inline-flex !important;
+
+        align-items:
+            center !important;
+
+        justify-content:
+            center !important;
+
+        min-width:
+            0 !important;
+
+        min-height:
+            36px !important;
+
+        margin:
+            0 !important;
+
+        padding:
+            7px clamp(9px,1vw,14px) !important;
+
+        font-size:
+            clamp(9px,.76vw,11px) !important;
+
+        line-height:
+            1.15 !important;
+
+        white-space:
+            nowrap !important;
+    }
+
+
+    html body
+    section.universal-header
+    .access-strip
+    > span b{
+
+        margin-right:
+            5px !important;
+
+        font-size:
+            inherit !important;
+
+        line-height:
+            inherit !important;
+    }
+
+
+    /* ============================================================
+       CORES DO BRASIL
+       ============================================================
+
+       Não pintamos o fundo.
+       Não usamos imagem de bandeira.
+       Apenas os três nomes técnicos recebem assinatura.
+       ============================================================ */
+
+
+    /* VERDE */
+    html body
+    section.universal-header
+    .access-strip
+    > span:nth-child(1) b{
+
+        color:
+            #35d56e !important;
+
+        text-shadow:
+            0 0 5px rgba(0,156,59,.18) !important;
+    }
+
+
+    /* AMARELO / DOURADO */
+    html body
+    section.universal-header
+    .access-strip
+    > span:nth-child(2) b{
+
+        color:
+            #ffe05a !important;
+
+        text-shadow:
+            0 0 5px rgba(255,223,0,.13) !important;
+    }
+
+
+    /* AZUL */
+    html body
+    section.universal-header
+    .access-strip
+    > span:nth-child(3) b{
+
+        color:
+            #55aeff !important;
+
+        text-shadow:
+            0 0 5px rgba(0,82,180,.18) !important;
+    }
+
+
+    /*
+     * Linha mínima dentro da barra de protocolos.
+     */
+    html body
+    section.universal-header
+    .access-strip{
+
+        position:
+            relative !important;
+    }
+
+
+    html body
+    section.universal-header
+    .access-strip::before{
+
+        content:
+            "" !important;
+
+        position:
+            absolute !important;
+
+        left:
+            7% !important;
+
+        right:
+            7% !important;
+
+        top:
+            0 !important;
+
+        height:
+            1px !important;
+
+        pointer-events:
+            none !important;
+
+        opacity:
+            .34 !important;
+
+        background:
+            linear-gradient(
+                90deg,
+                transparent,
+                #009c3b,
+                #ffdf00,
+                #1769c2,
+                transparent
+            ) !important;
+    }
+
+
+    /* ============================================================
+       MENU PRINCIPAL SOBE
+       ============================================================ */
+
+    html body
+    section.universal-header
+    > .universal-nav{
+
+        margin:
+            8px auto 0 !important;
+
+        padding:
+            8px 0 0 !important;
+
+        min-height:
+            0 !important;
+
+        gap:
+            7px !important;
+
+        border-top:
+            1px solid rgba(92,155,183,.13) !important;
+    }
+
+
+    html body
+    section.universal-header
+    > .universal-nav a{
+
+        min-height:
+            34px !important;
+
+        padding:
+            7px 11px !important;
+
+        line-height:
+            1 !important;
+    }
+
+
+    /*
+     * Menu mobile não participa no desktop.
+     */
+    html body
+    section.universal-header
+    > .menu-toggle{
+
+        display:
+            none !important;
+    }
+
+}
+
+
+/* ================================================================
+   DESKTOP / NOTEBOOK GRANDE
+   ================================================================ */
+
+@media (min-width:1180px){
+
+    /*
+     * Em espaço confortável:
+     * os três protocolos permanecem na mesma linha.
+     */
+    html body
+    section.universal-header
+    .universal-copy
+    > .access-strip{
+
+        flex-wrap:
+            nowrap !important;
+    }
+
+}
+
+
+/* ================================================================
+   NOTEBOOK / TABLET HORIZONTAL
+   821 - 1179
+   ================================================================ */
+
+@media (min-width:821px) and (max-width:1179px){
+
+    html body
+    section.universal-header{
+
+        padding-left:
+            12px !important;
+
+        padding-right:
+            12px !important;
+    }
+
+
+    html body
+    section.universal-header
+    .universal-copy{
+
+        width:
+            100% !important;
+
+        max-width:
+            none !important;
+
+        grid-template-columns:
+            max-content minmax(0,1fr) !important;
+
+        column-gap:
+            clamp(10px,1.8vw,20px) !important;
+    }
+
+
+    html body
+    section.universal-header
+    .universal-copy > h1{
+
+        font-size:
+            clamp(20px,2.45vw,26px) !important;
+    }
+
+
+    /*
+     * Dentro da região dos protocolos eles podem
+     * se reorganizar se faltar largura.
+     *
+     * Título continua na MESMA linha estrutural.
+     */
+    html body
+    section.universal-header
+    .universal-copy
+    > .access-strip{
+
+        flex-wrap:
+            wrap !important;
+
+        justify-content:
+            flex-end !important;
+
+        row-gap:
+            0 !important;
+    }
+
+
+    html body
+    section.universal-header
+    .access-strip
+    > span{
+
+        min-height:
+            30px !important;
+
+        padding:
+            5px 7px !important;
+
+        font-size:
+            clamp(8px,.95vw,10px) !important;
+    }
+
+
+    html body
+    section.universal-header
+    > .universal-nav{
+
+        margin-top:
+            6px !important;
+
+        padding-top:
+            6px !important;
+
+        gap:
+            5px !important;
+    }
+
+
+    html body
+    section.universal-header
+    > .universal-nav a{
+
+        min-height:
+            32px !important;
+
+        padding:
+            6px 8px !important;
+
+        font-size:
+            clamp(9px,1vw,11px) !important;
+    }
+
+}
+
+
+/* ================================================================
+   MOBILE <= 820PX
+   ================================================================
+
+   Deliberadamente preservado.
+
+   Os vários ajustes mobile atuais do XLX026 já tratam:
+   - menu
+   - header
+   - navegadores antigos
+   - celulares modernos
+
+   A V4 não disputa especificidade com eles.
+   ================================================================ */
+
+
+/* ================================================================
+   ALTO CONTRASTE
+   ================================================================ */
+
+.high-contrast
+section.universal-header
+.access-strip
+> span:nth-child(1) b,
+
+.high-contrast
+section.universal-header
+.access-strip
+> span:nth-child(2) b,
+
+.high-contrast
+section.universal-header
+.access-strip
+> span:nth-child(3) b{
+
+    color:
+        inherit !important;
+
+    text-shadow:
+        none !important;
+}
+
+
+.high-contrast
+section.universal-header
+.access-strip::before{
+
+    display:
+        none !important;
+}
+
+
+/* /XLX026_HEADER_HORIZONTAL_RESPONSIVO_V4 */

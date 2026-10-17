@@ -1,0 +1,266 @@
+/* =========================================================
+   HOTFIX EXCLUSIVO DO CABEÇALHO XLX026
+   Não altera o restante do painel.
+   ========================================================= */
+
+.hero.hero-compact.universal-header{
+  display:block !important;
+  min-height:auto !important;
+  height:auto !important;
+  padding:16px 26px 14px !important;
+  gap:0 !important;
+  overflow:visible !important;
+}
+
+.hero.hero-compact.universal-header::after{
+  opacity:.45 !important;
+}
+
+.universal-header .eyebrow{
+  display:none !important;
+}
+
+.universal-header .universal-header-row{
+  width:min(100%,1120px) !important;
+  margin:0 auto !important;
+  display:grid !important;
+  grid-template-columns:88px minmax(0,1fr) auto !important;
+  align-items:center !important;
+  gap:18px !important;
+}
+
+.universal-header .universal-brand{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-start !important;
+  text-decoration:none !important;
+}
+
+.universal-header .hero-logo{
+  width:82px !important;
+  height:82px !important;
+  min-width:82px !important;
+  min-height:82px !important;
+  max-width:82px !important;
+  max-height:82px !important;
+  border-radius:50% !important;
+  object-fit:cover !important;
+  display:block !important;
+}
+
+.universal-header .universal-copy{
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:center !important;
+  min-width:0 !important;
+  text-align:center !important;
+  gap:10px !important;
+}
+
+.universal-header .universal-copy h1{
+  margin:0 !important;
+  line-height:1 !important;
+  font-size:clamp(26px,3vw,38px) !important;
+  font-weight:950 !important;
+  letter-spacing:-.03em !important;
+  text-align:center !important;
+  white-space:nowrap !important;
+}
+
+.universal-header .universal-copy h1 span{
+  color:var(--cyan) !important;
+}
+
+.universal-header .access-strip.access-strip-compact{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  flex-wrap:nowrap !important;
+  gap:0 !important;
+  width:fit-content !important;
+  max-width:100% !important;
+  margin:0 auto !important;
+  padding:0 !important;
+  border:1px solid #28556b !important;
+  border-radius:10px !important;
+  background:rgba(5,19,28,.72) !important;
+  overflow:hidden !important;
+}
+
+.universal-header .access-strip.access-strip-compact span{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  min-height:38px !important;
+  padding:0 16px !important;
+  margin:0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  color:#cce6ef !important;
+  font-size:11px !important;
+  line-height:1.15 !important;
+  white-space:nowrap !important;
+}
+
+.universal-header .access-strip.access-strip-compact span + span{
+  border-left:1px solid rgba(40,85,107,.85) !important;
+}
+
+.universal-header .access-strip.access-strip-compact span b{
+  color:var(--cyan) !important;
+  margin-right:6px !important;
+}
+
+.universal-header .universal-live-pill{
+  position:static !important;
+  min-width:auto !important;
+  margin:0 !important;
+  align-self:center !important;
+  justify-self:end !important;
+  padding:10px 16px !important;
+  border:1px solid rgba(33,234,160,.38) !important;
+  background:rgba(6,30,24,.62) !important;
+  box-shadow:
+    inset 0 0 16px rgba(33,234,160,.08),
+    0 0 18px rgba(33,234,160,.10) !important;
+  border-radius:999px !important;
+}
+
+.universal-header .universal-live-pill i{
+  width:8px !important;
+  height:8px !important;
+  border-radius:50% !important;
+  background:var(--green) !important;
+  box-shadow:
+    0 0 8px var(--green),
+    0 0 16px var(--green),
+    0 0 24px rgba(33,234,160,.6) !important;
+  animation:xlxHeaderPulse 1.2s ease-in-out infinite !important;
+}
+
+.universal-header .universal-live-pill span{
+  font-size:11px !important;
+  font-weight:900 !important;
+  letter-spacing:.02em !important;
+  white-space:nowrap !important;
+}
+
+@keyframes xlxHeaderPulse{
+  0%,100%{opacity:.55;transform:scale(.9)}
+  50%{opacity:1;transform:scale(1.12)}
+}
+
+.universal-header .universal-nav{
+  width:min(100%,1120px) !important;
+  margin:12px auto 0 !important;
+  padding-top:12px !important;
+  border-top:1px solid rgba(26,58,76,.7) !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  flex-wrap:nowrap !important;
+  gap:8px !important;
+}
+
+.universal-header .universal-nav a{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  text-decoration:none !important;
+  color:#b7cfda !important;
+  font-size:12px !important;
+  font-weight:800 !important;
+  padding:8px 12px !important;
+  border-radius:10px !important;
+  white-space:nowrap !important;
+}
+
+.universal-header .universal-nav a:hover,
+.universal-header .universal-nav a.active{
+  color:#fff !important;
+  background:#0d2b3a !important;
+  box-shadow:0 0 0 1px rgba(0,216,255,.18) inset !important;
+}
+
+.universal-header .menu-toggle{
+  display:none !important;
+}
+
+/* impede sobras de layouts antigos */
+.universal-header .hero-status,
+.universal-header .hero-numbers{
+  display:none !important;
+}
+
+/* responsivo */
+@media (max-width: 980px){
+  .hero.hero-compact.universal-header{
+    padding:14px 16px 12px !important;
+  }
+
+  .universal-header .universal-header-row{
+    grid-template-columns:1fr !important;
+    justify-items:center !important;
+    gap:12px !important;
+  }
+
+  .universal-header .universal-brand{
+    justify-content:center !important;
+  }
+
+  .universal-header .hero-logo{
+    width:74px !important;
+    height:74px !important;
+    min-width:74px !important;
+    min-height:74px !important;
+  }
+
+  .universal-header .universal-copy h1{
+    white-space:normal !important;
+  }
+
+  .universal-header .universal-live-pill{
+    justify-self:center !important;
+  }
+
+  .universal-header .access-strip.access-strip-compact{
+    flex-wrap:wrap !important;
+    justify-content:center !important;
+    width:100% !important;
+  }
+
+  .universal-header .access-strip.access-strip-compact span{
+    min-height:34px !important;
+    padding:8px 12px !important;
+  }
+
+  .universal-header .access-strip.access-strip-compact span + span{
+    border-left:0 !important;
+    border-top:1px solid rgba(40,85,107,.55) !important;
+  }
+
+  .universal-header .universal-nav{
+    flex-wrap:wrap !important;
+    gap:6px !important;
+  }
+}
+
+@media (max-width: 640px){
+  .universal-header .universal-copy h1{
+    font-size:clamp(24px,8vw,30px) !important;
+  }
+
+  .universal-header .universal-nav a{
+    font-size:11px !important;
+    padding:8px 10px !important;
+  }
+
+  .universal-header .access-strip.access-strip-compact span{
+    width:100% !important;
+    justify-content:center !important;
+    text-align:center !important;
+    white-space:normal !important;
+  }
+}

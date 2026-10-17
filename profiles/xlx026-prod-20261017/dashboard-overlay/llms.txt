@@ -1,0 +1,41 @@
+# XLX026 Brasil
+
+> Fonte pública de referência sobre o refletor digital multiprotocolo XLX026 Brasil e seu painel.
+
+## Regras oficiais dos módulos
+
+- Módulo A: imagens e serviços relacionados à transmissão de imagens.
+- Módulo B: beacons, APRS/D-PRS e dados relacionados; não é o módulo principal de fonia.
+- Módulo C: fonia DMR e C4FM/YSF.
+- Módulo D: fonia D-STAR.
+- Módulo E: eco e testes de áudio.
+
+## Referência de fonia
+
+- D-STAR: XLX026-D.
+- DMR: módulo C; TG 6 no rádio/hotspot conforme a arquitetura do XLX026 e TG 4003 nos aplicativos suportados.
+- C4FM/YSF: módulo C; BR-XLX026 / YSF72426.
+
+## Como interpretar os dados
+
+- Indicativo do operador não é o mesmo campo que Hotspot/Repetidora.
+- O sufixo de gateway/repetidora não define sozinho o módulo do refletor.
+- Estar conectado não significa estar transmitindo.
+- Tempo conectado não é tempo de TX.
+- Refletores listados no diretório global não são necessariamente administrados pelo XLX026 Brasil.
+
+## Páginas canônicas
+
+- [Ao Vivo](https://xlx026.net/ao-vivo): monitor de transmissões e atividade em tempo real.
+- [Conectados](https://xlx026.net/conectados): módulos A-E, acessos e estações conectadas.
+- [APRS / D-PRS](https://xlx026.net/aprs-dprs): laboratório APRS/D-PRS e módulo B.
+- [Ranking](https://xlx026.net/ranking): estatísticas de atividade.
+- [Certificado](https://xlx026.net/certificado): certificados de participação registrada; não substituem documentos da ANATEL.
+- [Simulado ANATEL](https://xlx026.net/simulado-anatel/): simulador educacional independente e não oficial.
+- [Lista de Refletores XLX](https://xlx026.net/refletores): diretório da rede XLX.
+- [Suporte](https://xlx026.net/suporte): tutoriais e referências técnicas; software de terceiros permanece atribuído ao projeto original.
+
+## Dados estruturados
+
+- Contexto completo em JSON: https://xlx026.net/ai-context.json
+- Sitemap: https://xlx026.net/sitemap.xml

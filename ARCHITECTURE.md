@@ -121,3 +121,7 @@ Estado é separado por módulo e protegido por mutex. O relógio usa `std::chron
 O patch é `off` por padrão e a configuração V1 só é habilitada por ambiente explícito. Keepalive/Wires-X/conexão que não abrem stream DV permanecem fora do hook; comandos que eventualmente usem DV comum precisam de teste específico antes de produção.
 
 O observador `xlx-tx-turn-ai-monitor.py` é processo/timer separado. Ele lê somente eventos técnicos `TXTURN` sem identidade de estação, agrega contadores e pode solicitar análise consultiva à OpenAI. A resposta da IA nunca retorna ao caminho de admissão e não pode alterar timer, permitir ou negar transmissão. Falha de rede/API é operacionalmente irrelevante ao XLXD.
+
+## Recovery profile XLX026
+
+A reinstalação genérica continua seguindo `start.sh -> install.sh -> modules`. Quando o operador escolhe explicitamente `--profile=xlx026-prod-20261017`, `modules/69-runtime-profile.sh` aplica depois do fluxo genérico um overlay versionado específico do XLX026. O perfil contém somente código, fontes, units e hashes não secretos; identidade privada e dados mutáveis continuam externos ao Git. O perfil recompila o candidato XLXD aprovado sobre `PP5PK/xlxd@e69f2dc...` e exige o SHA-256 PROD esperado antes de instalar. Live Core V2 é compilado com `Cargo.lock`. xuvd/Helix permanecem com gate de proveniência/equivalência separado e não são publicados como ELF no repositório.

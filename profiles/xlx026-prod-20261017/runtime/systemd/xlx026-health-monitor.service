@@ -1,0 +1,37 @@
+[Unit]
+Description=XLX026 Health and Network Monitor
+After=network-online.target xlxd.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /opt/xlx026_health_monitor/health_monitor.py
+Restart=always
+RestartSec=10
+User=root
+Group=root
+SupplementaryGroups=www-data
+UMask=0077
+StandardOutput=journal
+StandardError=journal
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectHome=true
+ProtectSystem=strict
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
+CapabilityBoundingSet=
+ReadOnlyPaths=/opt/xlx026_telegram_monitor/config.json /xlxd /var/log /var/lib/xlx026-dmr-meta /var/lib/xlx026-dmr-data
+ReadWritePaths=/var/lib/xlx026-health-monitor
+MemoryAccounting=true
+MemoryHigh=80M
+MemoryMax=120M
+CPUAccounting=true
+CPUQuota=20%
+TasksMax=30
+
+[Install]
+WantedBy=multi-user.target

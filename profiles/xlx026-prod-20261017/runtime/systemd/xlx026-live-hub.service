@@ -1,0 +1,26 @@
+[Unit]
+Description=XLX026 Live SSE Hub
+After=network-online.target nginx.service php8.2-fpm.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+RuntimeDirectory=xlx026-live-hub
+RuntimeDirectoryMode=0755
+ExecStart=/usr/bin/node /opt/xlx026-live-hub/server.js
+Restart=always
+RestartSec=2
+NoNewPrivileges=true
+AmbientCapabilities=CAP_NET_RAW
+CapabilityBoundingSet=CAP_NET_RAW
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadOnlyPaths=/var/log/xlx.log /run/xlx-vu-tap /run/xlx-dmr-normalizer
+MemoryMax=96M
+TasksMax=64
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,378 @@
+/* ==========================================================
+   XLX026_MOBILE_MENU_V4
+   ARQUIVO EXCLUSIVO PARA DISPOSITIVOS MOVEIS
+   ========================================================== */
+
+
+/*
+ * Desktop:
+ * este arquivo nao altera absolutamente nada.
+ */
+
+@media (max-width:820px){
+
+    /* ======================================================
+       CABECALHO
+       ====================================================== */
+
+    body .universal-header{
+        overflow:visible !important;
+    }
+
+    body .universal-header .universal-header-row{
+        overflow:visible !important;
+    }
+
+
+    /* ======================================================
+       BOTAO MENU ORIGINAL
+
+       O HTML ja possui este botao.
+       Agora ele aparece como um quadradinho escrito MENU.
+       ====================================================== */
+
+    body .universal-header .menu-toggle{
+
+        display:inline-flex !important;
+
+        grid-column:1 / -1 !important;
+        grid-row:3 !important;
+
+        justify-self:center !important;
+        align-self:center !important;
+
+        position:relative !important;
+
+        width:92px !important;
+        min-width:92px !important;
+
+        height:40px !important;
+        min-height:40px !important;
+
+        margin:8px auto 4px !important;
+        padding:0 14px !important;
+
+        align-items:center !important;
+        justify-content:center !important;
+
+        border:1px solid #00d8ff !important;
+        border-radius:9px !important;
+
+        background:
+            linear-gradient(
+                180deg,
+                rgba(10,54,72,.98),
+                rgba(5,26,36,.98)
+            ) !important;
+
+        color:#ffffff !important;
+
+        font-family:inherit !important;
+        font-size:11px !important;
+        font-weight:950 !important;
+        line-height:1 !important;
+
+        letter-spacing:.08em !important;
+
+        cursor:pointer !important;
+
+        box-shadow:
+            0 0 5px rgba(0,216,255,.55),
+            0 0 14px rgba(0,216,255,.20),
+            inset 0 1px 0 rgba(255,255,255,.06) !important;
+
+        text-shadow:
+            0 0 8px rgba(0,216,255,.70) !important;
+
+        z-index:50 !important;
+
+        pointer-events:auto !important;
+    }
+
+
+    /*
+     * Estado aberto = verde.
+     */
+
+    body .universal-header
+    .menu-toggle[aria-expanded="true"]{
+
+        border-color:#21eaa0 !important;
+
+        background:
+            linear-gradient(
+                180deg,
+                rgba(33,234,160,.17),
+                rgba(5,40,32,.98)
+            ) !important;
+
+        color:#e8fff5 !important;
+
+        box-shadow:
+            0 0 7px rgba(33,234,160,.75),
+            0 0 18px rgba(33,234,160,.30),
+            inset 0 1px 0 rgba(255,255,255,.06) !important;
+
+        text-shadow:
+            0 0 8px rgba(33,234,160,.80) !important;
+    }
+
+
+    /* ======================================================
+       MENU
+
+       FECHADO E A REGRA PADRAO.
+
+       Repare que nao usamos mais .open.
+       Assim as regras antigas nao conseguem abrir o menu.
+       ====================================================== */
+
+    body .universal-header .universal-nav,
+    body .universal-header .universal-nav.open,
+    body .universal-header .universal-nav.xlx026-mobile-open,
+    body .universal-header .universal-nav.xlx026-mobile-open-v3{
+
+        display:none !important;
+
+        position:static !important;
+
+        grid-column:1 / -1 !important;
+        grid-row:4 !important;
+
+        left:auto !important;
+        right:auto !important;
+        top:auto !important;
+        bottom:auto !important;
+
+        width:100% !important;
+
+        margin:8px 0 0 !important;
+
+        flex-direction:column !important;
+
+        align-items:stretch !important;
+        justify-content:flex-start !important;
+
+        gap:7px !important;
+
+        transform:none !important;
+
+        overflow:visible !important;
+
+        pointer-events:auto !important;
+    }
+
+
+    /*
+     * SOMENTE nossa classe V4 pode abrir.
+     */
+
+    body .universal-header
+    .universal-nav.xlx026-v4-open{
+
+        display:flex !important;
+    }
+
+
+    /* ======================================================
+       LINKS
+       ====================================================== */
+
+    body .universal-header
+    .universal-nav.xlx026-v4-open a{
+
+        display:flex !important;
+
+        width:100% !important;
+
+        min-height:50px !important;
+
+        align-items:center !important;
+        justify-content:center !important;
+
+        margin:0 !important;
+
+        padding:10px 13px !important;
+
+        white-space:normal !important;
+
+        pointer-events:auto !important;
+    }
+
+
+    /* ======================================================
+       AO VIVO
+
+       Monitor passa a ser o PRIMEIRO bloco apos o header.
+       ====================================================== */
+
+    body[data-page='ao-vivo'] .dashboard-layout{
+
+        display:flex !important;
+
+        flex-direction:column !important;
+
+        gap:12px !important;
+
+        margin-top:10px !important;
+    }
+
+
+    body[data-page='ao-vivo']
+    .dashboard-layout .live-widget{
+
+        order:-100 !important;
+
+        width:100% !important;
+
+        position:static !important;
+
+        top:auto !important;
+
+        margin-top:0 !important;
+    }
+
+
+    body[data-page='ao-vivo']
+    .dashboard-layout .dashboard-main{
+
+        order:10 !important;
+    }
+
+
+    /* ======================================================
+       REMOVE SOMENTE A PALAVRA "TRANSMISSÕES"
+
+       Mantemos:
+       MONITOR AO VIVO
+       1 NO AR / STANDBY
+       box transmitindo / aguardando
+       ====================================================== */
+
+    body[data-page='ao-vivo']
+    .live-widget .widget-heading h2{
+
+        display:none !important;
+    }
+
+
+    body[data-page='ao-vivo']
+    .live-widget .widget-heading{
+
+        min-height:24px !important;
+
+        margin-bottom:6px !important;
+
+        align-items:center !important;
+    }
+
+
+    body[data-page='ao-vivo']
+    .live-widget .widget-heading .eyebrow{
+
+        margin:0 !important;
+    }
+
+
+    /* ======================================================
+       CAMADAS DECORATIVAS NAO CAPTURAM TOQUE
+       ====================================================== */
+
+    body .universal-header::before,
+    body .universal-header::after,
+    body .universal-nav::before,
+    body .universal-nav::after,
+    body .universal-nav a::before,
+    body .universal-nav a::after{
+
+        pointer-events:none !important;
+    }
+
+}
+
+
+@media (max-width:520px){
+
+    body .universal-header .menu-toggle{
+
+        width:86px !important;
+        min-width:86px !important;
+
+        height:38px !important;
+        min-height:38px !important;
+
+        font-size:10px !important;
+    }
+
+}
+
+
+/* FIM XLX026_MOBILE_MENU_V4 */
+
+
+/* ==========================================================
+   XLX026_MENU_POSITION_V41
+
+   SOMENTE POSICAO DO BOTAO MENU NO MOBILE
+
+   [ LOGO ] [ XLX026 Brasil ] [ MENU ]
+
+   Nenhum outro componente e alterado.
+   ========================================================== */
+
+@media (max-width:820px){
+
+    body .universal-header .menu-toggle{
+
+        /*
+         * Sai da terceira linha e volta para
+         * a primeira linha do header.
+         */
+        grid-column:3 !important;
+        grid-row:1 !important;
+
+        /*
+         * Alinha no lado direito da mesma linha
+         * onde aparece XLX026 Brasil.
+         */
+        justify-self:end !important;
+        align-self:center !important;
+
+        /*
+         * Remove a margem vertical usada
+         * quando o botao ficava abaixo.
+         */
+        margin:0 !important;
+
+        /*
+         * Mantemos dimensoes e visual atuais.
+         */
+        position:relative !important;
+        z-index:50 !important;
+    }
+
+}
+
+
+/*
+ * Celulares menores:
+ * apenas preserva o encaixe na mesma linha.
+ */
+@media (max-width:520px){
+
+    body .universal-header .menu-toggle{
+
+        grid-column:3 !important;
+        grid-row:1 !important;
+
+        justify-self:end !important;
+        align-self:center !important;
+
+        margin:0 !important;
+    }
+
+}
+
+
+/* FIM XLX026_MENU_POSITION_V41 */
+

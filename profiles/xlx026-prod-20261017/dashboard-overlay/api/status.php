@@ -1,0 +1,352 @@
+<?php
+
+declare(strict_types=1);
+
+require __DIR__ . '/common.php';
+
+header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+
+/* XLX026_AI_MONITOR_V1 */
+function xlx026_ai_monitor_public_status(): array
+{
+    $default = [
+        'available' => true,
+        'configured' => false,
+        'api_connected' => false,
+        'state' => 'ready',
+        'message' => 'Monitoramento local ativo',
+        'updated_at' => 0,
+        'last_action' => null,
+    ];
+
+    $path = '/run/xlx-ai-monitor/public.json';
+
+    if (!is_readable($path)) {
+        return $default;
+    }
+
+    clearstatcache(true, $path);
+    $size = @filesize($path);
+    if ($size === false || $size < 2 || $size > 4096) {
+        return $default;
+    }
+
+    $decoded = json_decode((string)@file_get_contents($path), true);
+    if (!is_array($decoded)) {
+        return $default;
+    }
+
+    $allowed = ['ready','monitoring','analyzing','recommendation','ai_applied','error'];
+    $state = (string)($decoded['state'] ?? 'ready');
+    if (!in_array($state, $allowed, true)) {
+        $state = 'ready';
+    }
+
+    $updatedAt = (int)($decoded['updated_at'] ?? 0);
+    $fresh = $updatedAt > 0 && (time() - $updatedAt) <= 1800;
+    $action = is_array($decoded['last_action'] ?? null)
+        ? [
+            'type' => substr((string)($decoded['last_action']['type'] ?? ''), 0, 32),
+            'message' => substr((string)($decoded['last_action']['message'] ?? ''), 0, 120),
+            'at' => (int)($decoded['last_action']['at'] ?? 0),
+          ]
+        : null;
+
+    return [
+        'available' => true,
+        'configured' => !empty($decoded['configured']),
+        'api_connected' => !empty($decoded['api_connected']) && $fresh,
+        'state' => $fresh ? $state : 'ready',
+        'message' => substr(trim((string)($decoded['message'] ?? 'Monitoramento local ativo')), 0, 120),
+        'updated_at' => $updatedAt,
+        'last_action' => $action,
+    ];
+}
+/* /XLX026_AI_MONITOR_V1 */
+
+$defaultHistoryLimit = (int)cfg()['history_limit'];
+$requestedHistoryLimit = isset($_GET['history'])
+    ? (int)$_GET['history']
+    : $defaultHistoryLimit;
+
+$requestedHistoryHours = isset($_GET['history_hours'])
+    ? (int)$_GET['history_hours']
+    : 0;
+
+$is24HourHistory = $requestedHistoryHours === 24;
+
+$historyLimit = $is24HourHistory
+    ? 5000
+    : (
+        in_array($requestedHistoryLimit, [30, 150], true)
+            ? $requestedHistoryLimit
+            : $defaultHistoryLimit
+    );
+
+$historySince = $is24HourHistory
+    ? time() - 86400
+    : null;
+
+$cacheVariant = $is24HourHistory
+    ? '-24h'
+    : (
+        $historyLimit === $defaultHistoryLimit
+            ? ''
+            : '-' . $historyLimit
+    );
+
+$cacheFile = '/var/cache/xlx026-dashboard/status' . $cacheVariant . '.json';
+$lockFile  = '/var/cache/xlx026-dashboard/status' . $cacheVariant . '.lock';
+$cacheTtl  = 3;
+
+function send_cached_status(
+    string $cacheFile,
+    int $cacheTtl,
+    bool $allowExpired = false
+): bool {
+    if (!is_readable($cacheFile)) {
+        return false;
+    }
+
+    clearstatcache(true, $cacheFile);
+    $mtime = filemtime($cacheFile);
+
+    if (
+        !$allowExpired &&
+        ($mtime === false || (time() - $mtime) > $cacheTtl)
+    ) {
+        return false;
+    }
+
+    $json = file_get_contents($cacheFile);
+
+    if ($json === false || $json === '') {
+        return false;
+    }
+
+    $decoded = json_decode($json, true);
+
+    if (!is_array($decoded) || empty($decoded['ok'])) {
+        return false;
+    }
+
+    header(
+        'X-XLX026-Cache: ' .
+        ($allowExpired ? 'stale-while-refresh' : 'fresh')
+    );
+
+    echo $json;
+    return true;
+}
+
+if (send_cached_status($cacheFile, $cacheTtl)) {
+    exit;
+}
+
+$lockHandle = fopen($lockFile, 'c');
+
+if ($lockHandle === false) {
+    http_response_code(503);
+    echo json_encode(
+        [
+            'ok' => false,
+            'error' => 'status_lock_unavailable',
+        ],
+        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+    );
+    exit;
+}
+
+try {
+    if (!flock($lockHandle, LOCK_EX | LOCK_NB)) {
+        /*
+         * Outro processo já está atualizando os dados.
+         * Entrega imediatamente o último cache válido, mesmo vencido,
+         * para não prender processos do Apache.
+         */
+        if (send_cached_status($cacheFile, $cacheTtl, true)) {
+            fclose($lockHandle);
+            exit;
+        }
+
+        fclose($lockHandle);
+
+        http_response_code(503);
+        echo json_encode(
+            [
+                'ok' => false,
+                'error' => 'status_refresh_in_progress',
+            ],
+            JSON_UNESCAPED_UNICODE |
+            JSON_UNESCAPED_SLASHES
+        );
+        exit;
+    }
+
+    /*
+     * Outro processo pode ter atualizado o cache enquanto este
+     * processo aguardava pelo bloqueio.
+     */
+    if (send_cached_status($cacheFile, $cacheTtl)) {
+        flock($lockHandle, LOCK_UN);
+        fclose($lockHandle);
+        exit;
+    }
+
+    $rawConnections = parse_xml_connections();
+    $connections = $rawConnections;
+
+    /*
+     * PROD XLX026 mantém um alias RadioID posterior ao parser XML.
+     * Canonicalizar depois dessa normalização evita que um indicativo antigo
+     * e o indicativo atual sejam exibidos como duas estações distintas.
+     */
+    require_once __DIR__ . '/radioid-current-alias.php';
+    foreach ($connections as &$row) {
+        xlx026_current_radioid_call($row);
+    }
+    unset($row);
+
+    $connections = public_connections(
+        $connections,
+        xlxd_self_addresses()
+    );
+    $tx = active_and_history(
+        $rawConnections,
+        $historyLimit,
+        $historySince
+    );
+    $online = online_index($connections);
+    $modules = [];
+
+    foreach (cfg()['modules'] as $letter => $meta) {
+        $moduleConnections = array_values(
+            array_filter(
+                $connections,
+                static fn(array $connection): bool =>
+                    $connection['module'] === $letter
+            )
+        );
+
+        $protocols = array_values(
+            array_unique(
+                array_filter(
+                    array_column($moduleConnections, 'protocol')
+                )
+            )
+        );
+
+        $lastTransmission = null;
+
+        foreach ($tx['history'] as $historyItem) {
+            if ($historyItem['module'] === $letter) {
+                $lastTransmission = $historyItem;
+                break;
+            }
+        }
+
+        $modules[$letter] = [
+            'module' => $letter,
+            'name' => $meta['name'],
+            'configured_protocol' => $meta['protocol'],
+            'access' => $meta['access'],
+            'connected_count' => count($moduleConnections),
+            'protocols' => $protocols,
+            'transmission' => $tx['active'][$letter] ?? null,
+            'last_transmission' => $lastTransmission,
+        ];
+    }
+
+    $history = array_map(
+        static function (array $historyItem) use ($online): array {
+            $historyItem['online'] =
+                !empty($online[$historyItem['callsign']]);
+
+            return $historyItem;
+        },
+        $tx['history']
+    );
+
+    $payload = [
+        'ok' => true,
+        'generated_at' => time(),
+        'server_name' => cfg()['server_name'],
+        'active_count' => count($tx['active']),
+        'connected_count' => count($connections),
+        'modules' => $modules,
+        'history' => $history,
+        'connections' => $connections,
+        'ai_monitor' => xlx026_ai_monitor_public_status(),
+        'sources' => [
+            'xml' => is_readable(cfg()['xml_path']),
+            'log' => is_readable(cfg()['log_path']),
+            'db' => is_readable(cfg()['users_db']),
+        ],
+    ];
+
+    foreach ($payload['history'] as &$row) xlx026_current_radioid_call($row);
+    unset($row);
+    foreach ($payload['modules'] as &$module) {
+        foreach (['transmission', 'last_transmission'] as $key) {
+            if (is_array($module[$key] ?? null)) xlx026_current_radioid_call($module[$key]);
+        }
+    }
+    unset($module);
+
+    $json = json_encode(
+        $payload,
+        JSON_UNESCAPED_UNICODE |
+        JSON_UNESCAPED_SLASHES |
+        JSON_INVALID_UTF8_SUBSTITUTE
+    );
+
+    if ($json === false) {
+        throw new RuntimeException('Falha ao gerar JSON.');
+    }
+
+    $temporaryFile = $cacheFile . '.' . getmypid() . '.tmp';
+
+    if (file_put_contents($temporaryFile, $json, LOCK_EX) === false) {
+        throw new RuntimeException('Falha ao gravar cache temporário.');
+    }
+
+    if (!rename($temporaryFile, $cacheFile)) {
+        @unlink($temporaryFile);
+        throw new RuntimeException('Falha ao publicar cache.');
+    }
+
+    echo $json;
+
+    flock($lockHandle, LOCK_UN);
+    fclose($lockHandle);
+} catch (Throwable $exception) {
+    if (is_resource($lockHandle)) {
+        flock($lockHandle, LOCK_UN);
+        fclose($lockHandle);
+    }
+
+    /*
+     * Em caso de falha durante uma atualização, tenta entregar
+     * o último cache válido, mesmo que esteja vencido.
+     */
+    if (is_readable($cacheFile)) {
+        $fallback = file_get_contents($cacheFile);
+
+        if ($fallback !== false && $fallback !== '') {
+            echo $fallback;
+            exit;
+        }
+    }
+
+    http_response_code(503);
+
+    echo json_encode(
+        [
+            'ok' => false,
+            'error' => 'status_temporarily_unavailable',
+        ],
+        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+    );
+}

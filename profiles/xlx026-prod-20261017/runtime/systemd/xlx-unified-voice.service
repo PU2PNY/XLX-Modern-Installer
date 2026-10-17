@@ -1,0 +1,24 @@
+[Unit]
+Description=XLX Unified Voice - Module A Experimental Transcoder
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/opt/xlx-unified-voice/bin/xuvd
+Restart=on-failure
+RestartSec=2
+DynamicUser=yes
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_INET AF_UNIX
+MemoryMax=256M
+CPUQuota=150%
+TasksMax=16
+
+[Install]
+WantedBy=multi-user.target

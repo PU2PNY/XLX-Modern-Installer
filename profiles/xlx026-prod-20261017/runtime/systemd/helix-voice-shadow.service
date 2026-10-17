@@ -1,0 +1,29 @@
+[Unit]
+Description=Helix Voice PCM observer for XLX shadow mode
+After=local-fs.target
+Before=xlx-unified-voice.service
+
+[Service]
+Type=simple
+User=helix-voice
+Group=helix-voice
+RuntimeDirectory=helix-voice
+RuntimeDirectoryMode=0750
+ExecStart=/opt/helix-voice/bin/helix-daemon --pcm-observe /run/helix-voice/observe.sock
+Restart=on-failure
+RestartSec=2
+TimeoutStopSec=3
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_UNIX
+MemoryMax=64M
+CPUQuota=15%
+TasksMax=4
+
+[Install]
+WantedBy=multi-user.target

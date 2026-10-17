@@ -1,0 +1,182 @@
+/* ==========================================================
+   XLX026 — GIF SCALE V8
+
+   SOMENTE TAMANHO DO AVATAR/GIF.
+
+   1 transmissão:
+   círculo 42px
+   GIF 29px
+
+   2 transmissões:
+   círculo 38px
+   GIF 27px
+
+   Posição existente preservada.
+   ========================================================== */
+
+
+/* ==========================================================
+   1 TRANSMISSÃO
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlx026-tx-stack-v5:only-child
+.tx-v30-person
+.operator-visual{
+
+    width:42px !important;
+    height:42px !important;
+
+    min-width:42px !important;
+    min-height:42px !important;
+
+    margin:0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlx026-tx-stack-v5:only-child
+.tx-v30-person
+.operator-visual img{
+
+    width:29px !important;
+    height:29px !important;
+
+    object-fit:contain !important;
+}
+
+
+/*
+ * Mantém espaço suficiente entre círculo e texto.
+ */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlx026-tx-stack-v5:only-child
+.tx-v30-person{
+
+    grid-template-columns:
+        50px
+        minmax(0,1fr) !important;
+
+    gap:8px !important;
+}
+
+
+/* ==========================================================
+   EXATAMENTE 2 TRANSMISSÕES
+   GIF PERMANECE À DIREITA
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
+.tx-v30-person
+.operator-visual,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
+~ .xlx026-tx-stack-v5
+.tx-v30-person
+.operator-visual{
+
+    width:38px !important;
+    height:38px !important;
+
+    min-width:38px !important;
+    min-height:38px !important;
+
+    margin:0 3px 0 0 !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
+.tx-v30-person
+.operator-visual img,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
+~ .xlx026-tx-stack-v5
+.tx-v30-person
+.operator-visual img{
+
+    width:27px !important;
+    height:27px !important;
+
+    object-fit:contain !important;
+}
+
+
+/*
+ * Aumenta a coluna reservada ao GIF,
+ * evitando qualquer contato com o nome.
+ */
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
+.tx-v30-person,
+
+html body[data-page="ao-vivo"]
+#moduleGrid
+> .xlx026-tx-stack-v5:first-child:nth-last-child(2)
+~ .xlx026-tx-stack-v5
+.tx-v30-person{
+
+    grid-template-columns:
+        minmax(0,1fr)
+        46px !important;
+
+    gap:7px !important;
+}
+
+
+/* ==========================================================
+   MOBILE
+
+   Não aumenta demais em telas pequenas.
+   ========================================================== */
+
+@media (max-width:720px){
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    > .xlx026-tx-stack-v5
+    .tx-v30-person
+    .operator-visual{
+
+        width:36px !important;
+        height:36px !important;
+
+        min-width:36px !important;
+        min-height:36px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    > .xlx026-tx-stack-v5
+    .tx-v30-person
+    .operator-visual img{
+
+        width:25px !important;
+        height:25px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    > .xlx026-tx-stack-v5
+    .tx-v30-person{
+
+        grid-template-columns:
+            42px
+            minmax(0,1fr) !important;
+    }
+}

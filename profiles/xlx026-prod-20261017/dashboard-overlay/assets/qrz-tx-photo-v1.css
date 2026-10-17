@@ -1,0 +1,195 @@
+/* XLX026 QRZ TX PHOTO DETERMINISTIC V7 */
+@keyframes xlx026QrzNeonPulse {
+  0%,100%{box-shadow:0 0 6px rgba(255,49,92,.70),0 0 12px rgba(255,49,92,.34);border-color:#ff315c}
+  50%{box-shadow:0 0 10px rgba(255,49,92,1),0 0 20px rgba(255,49,92,.68);border-color:#ff9aae}
+}
+html body[data-page="ao-vivo"] #moduleGrid .operator-visual.qrz-photo-active{
+  background:none !important;border:0 !important;outline:0 !important;box-shadow:none !important;padding:0 !important;overflow:visible !important;
+}
+html body[data-page="ao-vivo"] #moduleGrid .operator-visual.qrz-photo-active .signal-ring,
+html body[data-page="ao-vivo"] #moduleGrid .operator-visual.qrz-photo-active::before,
+html body[data-page="ao-vivo"] #moduleGrid .operator-visual.qrz-photo-active::after{
+  display:none !important;content:none !important;opacity:0 !important;border:0 !important;box-shadow:none !important;animation:none !important;
+}
+html body[data-page="ao-vivo"] #moduleGrid .operator-visual.qrz-photo-active img.is-qrz-photo{
+  display:block !important;width:100% !important;height:100% !important;min-width:100% !important;min-height:100% !important;max-width:100% !important;max-height:100% !important;
+  object-fit:cover !important;object-position:center center !important;border-radius:50% !important;border:3px solid #ff315c !important;box-sizing:border-box !important;
+  animation:xlx026QrzNeonPulse 1.15s ease-in-out infinite !important;
+}
+@media (min-width:721px){
+ html body[data-page="ao-vivo"] #moduleGrid .operator-visual.qrz-photo-active.qrz-size-1{width:336px !important;height:336px !important;min-width:336px !important;min-height:336px !important;max-width:336px !important;max-height:336px !important;}
+ html body[data-page="ao-vivo"] #moduleGrid .operator-visual.qrz-photo-active.qrz-size-2{width:248px !important;height:248px !important;min-width:248px !important;min-height:248px !important;max-width:248px !important;max-height:248px !important;}
+ html body[data-page="ao-vivo"] #moduleGrid .operator-visual.qrz-photo-active.qrz-size-3{width:188px !important;height:188px !important;min-width:188px !important;min-height:188px !important;max-width:188px !important;max-height:188px !important;}
+}
+@media (max-width:720px){
+ html body[data-page="ao-vivo"] #moduleGrid .operator-visual.qrz-photo-active{width:84px !important;height:84px !important;min-width:84px !important;min-height:84px !important;max-width:84px !important;max-height:84px !important;}
+}
+
+/* XLX026 QRZ TX PHOTO RED BALANCED V9 */
+@keyframes xlx026QrzNeonPulseRed {
+  0%,100%{box-shadow:0 0 6px rgba(255,49,92,.70),0 0 12px rgba(255,49,92,.34);border-color:#ff315c}
+  50%{box-shadow:0 0 10px rgba(255,49,92,1),0 0 20px rgba(255,49,92,.68);border-color:#ff9aae}
+}
+html body[data-page="ao-vivo"] #moduleGrid .operator-visual.qrz-photo-active img.is-qrz-photo{
+  border-color:#ff315c !important;
+  animation:xlx026QrzNeonPulseRed 1.15s ease-in-out infinite !important;
+}
+
+
+/* XLX026 QRZ TX PHOTO LEFT 1TX V10 */
+/* Desktop + uma unica transmissao:
+   foto -> identidade -> area tecnica. */
+@media (min-width:721px){
+  html body[data-page="ao-vivo"] #moduleGrid
+  .tx-v30-person:has(.operator-visual.qrz-photo-active.qrz-size-1){
+    display:grid !important;
+    grid-template-columns:132px minmax(0,1fr) !important;
+    align-items:center !important;
+    gap:18px !important;
+    width:100% !important;
+    position:relative !important;
+  }
+
+  html body[data-page="ao-vivo"] #moduleGrid
+  .tx-v30-person:has(.operator-visual.qrz-photo-active.qrz-size-1)
+  .operator-visual.qrz-photo-active.qrz-size-1{
+    position:relative !important;
+    top:auto !important;
+    right:auto !important;
+    bottom:auto !important;
+    left:auto !important;
+    transform:none !important;
+    justify-self:start !important;
+    align-self:center !important;
+    margin:0 !important;
+    width:120px !important;
+    height:120px !important;
+    min-width:120px !important;
+    min-height:120px !important;
+    max-width:120px !important;
+    max-height:120px !important;
+    z-index:3 !important;
+  }
+
+  html body[data-page="ao-vivo"] #moduleGrid
+  .tx-v30-person:has(.operator-visual.qrz-photo-active.qrz-size-1)
+  .tx-v30-person-data{
+    padding-right:0 !important;
+    margin:0 !important;
+    min-width:0 !important;
+    position:relative !important;
+    z-index:3 !important;
+  }
+}
+
+
+/* XLX026 QRZ TX 1TX CENTER V12 */
+/* Desktop, uma unica transmissao com foto QRZ:
+   aproxima operador e area tecnica do centro sem alterar 2/3 TX ou mobile. */
+@media (min-width:721px){
+  html body[data-page="ao-vivo"] #moduleGrid
+  .tx-card.live.tx-v30:has(.operator-visual.qrz-photo-active.qrz-size-1)
+  .tx-v30-content{
+    width:86% !important;
+    max-width:1280px !important;
+    margin-left:auto !important;
+    margin-right:auto !important;
+    grid-template-columns:minmax(360px,.92fr) minmax(500px,1.08fr) !important;
+    gap:44px !important;
+    align-items:center !important;
+  }
+
+  html body[data-page="ao-vivo"] #moduleGrid
+  .tx-card.live.tx-v30:has(.operator-visual.qrz-photo-active.qrz-size-1)
+  .tx-v30-person{
+    justify-self:start !important;
+    width:100% !important;
+  }
+
+  html body[data-page="ao-vivo"] #moduleGrid
+  .tx-card.live.tx-v30:has(.operator-visual.qrz-photo-active.qrz-size-1)
+  .xlx026-tech-v5{
+    justify-self:end !important;
+    width:100% !important;
+    max-width:560px !important;
+  }
+}
+
+
+/* XLX026_TX_MULTI_CALLSIGN_FIX_V1 — somente 2/3 TX simultâneos */
+@media (min-width:721px){
+  html body[data-page="ao-vivo"] #moduleGrid
+  .tx-card.live.tx-v30:has(.operator-visual.qrz-photo-active.qrz-size-2)
+  .tx-v30-person{
+    grid-template-columns:106px minmax(0,1fr) !important;
+    gap:10px !important;
+    align-items:center !important;
+  }
+
+  html body[data-page="ao-vivo"] #moduleGrid
+  .tx-card.live.tx-v30:has(.operator-visual.qrz-photo-active.qrz-size-2)
+  .operator-visual.qrz-photo-active.qrz-size-2{
+    width:84px !important;
+    height:84px !important;
+    min-width:84px !important;
+    min-height:84px !important;
+    max-width:84px !important;
+    max-height:84px !important;
+  }
+
+  html body[data-page="ao-vivo"] #moduleGrid
+  .tx-card.live.tx-v30:has(.operator-visual.qrz-photo-active.qrz-size-2)
+  .tx-v30-callsign{
+    font-size:22px !important;
+    line-height:1 !important;
+    white-space:nowrap !important;
+    overflow:visible !important;
+    text-overflow:clip !important;
+    max-width:none !important;
+  }
+
+  html body[data-page="ao-vivo"] #moduleGrid
+  .tx-card.live.tx-v30:has(.operator-visual.qrz-photo-active.qrz-size-2)
+  .tx-v30-person-data{
+    min-width:0 !important;
+    overflow:visible !important;
+  }
+
+  html body[data-page="ao-vivo"] #moduleGrid
+  .tx-card.live.tx-v30:has(.operator-visual.qrz-photo-active.qrz-size-3)
+  .tx-v30-person{
+    grid-template-columns:90px minmax(0,1fr) !important;
+    gap:8px !important;
+    align-items:center !important;
+  }
+
+  html body[data-page="ao-vivo"] #moduleGrid
+  .tx-card.live.tx-v30:has(.operator-visual.qrz-photo-active.qrz-size-3)
+  .operator-visual.qrz-photo-active.qrz-size-3{
+    width:72px !important;
+    height:72px !important;
+    min-width:72px !important;
+    min-height:72px !important;
+    max-width:72px !important;
+    max-height:72px !important;
+  }
+
+  html body[data-page="ao-vivo"] #moduleGrid
+  .tx-card.live.tx-v30:has(.operator-visual.qrz-photo-active.qrz-size-3)
+  .tx-v30-callsign{
+    font-size:20px !important;
+    line-height:1 !important;
+    white-space:nowrap !important;
+    overflow:visible !important;
+    text-overflow:clip !important;
+    max-width:none !important;
+  }
+
+  html body[data-page="ao-vivo"] #moduleGrid
+  .tx-card.live.tx-v30:has(.operator-visual.qrz-photo-active.qrz-size-3)
+  .tx-v30-person-data{
+    min-width:0 !important;
+    overflow:visible !important;
+  }
+}
+/* /XLX026_TX_MULTI_CALLSIGN_FIX_V1 */

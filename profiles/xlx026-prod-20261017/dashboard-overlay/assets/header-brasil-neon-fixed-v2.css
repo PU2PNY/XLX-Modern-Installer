@@ -1,0 +1,937 @@
+/* ================================================================
+   XLX026_HEADER_BRASIL_NEON_FIXED_V2
+
+   V2:
+   - header principal NÃO muda de tamanho durante scroll
+   - barra compacta é uma estrutura FIXED independente
+   - elimina feedback de layout / loop da V1
+   - identidade Brasil mais perceptível, porém elegante
+   ================================================================ */
+
+
+/* ================================================================
+   HEADER PRINCIPAL
+   ================================================================ */
+
+@media (min-width:821px){
+
+    /*
+     * A V1 colocava sticky no próprio header.
+     *
+     * Agora proibimos isso deliberadamente.
+     * O header grande participa normalmente do documento.
+     */
+    html body
+    section.universal-header{
+        position:relative !important;
+        top:auto !important;
+
+        z-index:2 !important;
+
+        isolation:isolate;
+
+        overflow:hidden;
+
+        box-shadow:
+            0 18px 45px rgba(0,0,0,.14),
+            0 1px 0 rgba(255,255,255,.02) inset !important;
+    }
+
+
+    /*
+     * Linha/feixe brasileiro extremamente fino.
+     */
+    html body
+    section.universal-header::before{
+        content:"";
+
+        position:absolute;
+
+        z-index:1;
+
+        left:4%;
+        right:4%;
+        bottom:0;
+
+        height:1px;
+
+        pointer-events:none;
+
+        background:
+            linear-gradient(
+                90deg,
+                transparent 0%,
+
+                rgba(0,156,59,.10) 5%,
+                rgba(0,156,59,.82) 23%,
+
+                rgba(255,223,0,.80) 50%,
+
+                rgba(0,39,118,.88) 77%,
+                rgba(0,216,255,.16) 95%,
+
+                transparent 100%
+            );
+
+        box-shadow:
+            0 0 8px rgba(0,156,59,.10),
+            0 0 10px rgba(255,223,0,.07),
+            0 0 10px rgba(0,82,180,.10);
+    }
+
+
+    /*
+     * Iluminação ambiente muito baixa.
+     */
+    html body
+    section.universal-header::after{
+        content:"";
+
+        position:absolute;
+
+        z-index:-1;
+
+        inset:0;
+
+        pointer-events:none;
+
+        background:
+            radial-gradient(
+                circle at 14% 34%,
+                rgba(0,156,59,.045),
+                transparent 24%
+            ),
+
+            radial-gradient(
+                circle at 50% 10%,
+                rgba(255,223,0,.025),
+                transparent 20%
+            ),
+
+            radial-gradient(
+                circle at 88% 32%,
+                rgba(0,64,160,.065),
+                transparent 27%
+            );
+    }
+
+
+    /*
+     * Título.
+     */
+    html body
+    section.universal-header
+    .xlx026-brasil-title{
+        position:relative;
+
+        display:inline-block;
+
+        isolation:isolate;
+
+        white-space:nowrap;
+
+        line-height:1.05;
+
+        letter-spacing:.01em;
+    }
+
+
+    html body
+    section.universal-header
+    .xlx026-title-code{
+        color:#e9fbff;
+
+        text-shadow:
+            0 0 5px rgba(0,216,255,.30),
+            0 0 17px rgba(0,216,255,.13);
+    }
+
+
+    /*
+     * Brasil realmente ganha identidade nacional.
+     *
+     * As cores são controladas e não afetam
+     * nenhuma cor funcional do painel.
+     */
+    html body
+    section.universal-header
+    .xlx026-title-country{
+        color:#f7fbff;
+
+        background:
+            linear-gradient(
+                90deg,
+                #25b85a 0%,
+                #50d36e 24%,
+                #f4d928 45%,
+                #ffe96a 57%,
+                #38a0e8 77%,
+                #326dcc 100%
+            );
+
+        -webkit-background-clip:text;
+        background-clip:text;
+
+        -webkit-text-fill-color:
+            transparent;
+
+        text-shadow:
+            none;
+
+        filter:
+            drop-shadow(
+                0 0 5px rgba(0,216,255,.10)
+            );
+    }
+
+
+    /*
+     * Lente luminosa andando pela palavra/título.
+     */
+    html body
+    section.universal-header
+    .xlx026-brasil-title::before{
+        content:"";
+
+        position:absolute;
+
+        z-index:4;
+
+        top:50%;
+        left:-4%;
+
+        width:28px;
+        height:150%;
+
+        pointer-events:none;
+
+        border-radius:50%;
+
+        transform:
+            translate(-50%,-50%);
+
+        opacity:0;
+
+        background:
+            radial-gradient(
+                ellipse at center,
+
+                rgba(255,255,255,.42) 0%,
+                rgba(255,244,165,.20) 18%,
+                rgba(56,212,111,.13) 36%,
+                rgba(49,131,220,.12) 55%,
+
+                transparent 75%
+            );
+
+        filter:
+            blur(2.6px);
+
+        animation:
+            xlx026BrasilLensV2
+            28s
+            ease-in-out
+            infinite;
+    }
+
+
+    /*
+     * Cópia somente do contorno luminoso.
+     *
+     * clip-path mantém uma faixa estreita,
+     * simulando o laser percorrendo as letras.
+     */
+    html body
+    section.universal-header
+    .xlx026-brasil-title::after{
+        content:
+            attr(data-title);
+
+        position:absolute;
+
+        z-index:3;
+
+        inset:0;
+
+        pointer-events:none;
+
+        white-space:nowrap;
+
+        color:transparent;
+
+        -webkit-text-stroke:
+            .7px rgba(255,255,255,.40);
+
+        background:
+            linear-gradient(
+                90deg,
+                #30d868 0%,
+                #86f19e 20%,
+                #ffe85c 46%,
+                #ffffff 55%,
+                #5fc5ff 73%,
+                #3a73de 100%
+            );
+
+        -webkit-background-clip:text;
+        background-clip:text;
+
+        -webkit-text-fill-color:
+            transparent;
+
+        filter:
+            drop-shadow(
+                0 0 4px rgba(255,255,255,.26)
+            );
+
+        clip-path:
+            inset(0 84% 0 0);
+
+        opacity:0;
+
+        animation:
+            xlx026BrasilSweepV2
+            28s
+            ease-in-out
+            infinite;
+    }
+
+
+    /*
+     * Barra dos protocolos:
+     * apenas acabamento, sem mudar seu conteúdo.
+     */
+    html body
+    section.universal-header
+    .access-strip{
+        position:relative;
+
+        box-shadow:
+            0 8px 20px rgba(0,0,0,.08);
+    }
+
+
+    html body
+    section.universal-header
+    .access-strip::after{
+        content:"";
+
+        position:absolute;
+
+        left:8%;
+        right:8%;
+        bottom:-1px;
+
+        height:1px;
+
+        pointer-events:none;
+
+        opacity:.55;
+
+        background:
+            linear-gradient(
+                90deg,
+                transparent,
+                rgba(0,156,59,.55),
+                rgba(255,223,0,.48),
+                rgba(0,76,170,.62),
+                transparent
+            );
+    }
+
+}
+
+
+/* ================================================================
+   LASER DO TÍTULO
+   ================================================================ */
+
+@keyframes xlx026BrasilSweepV2{
+
+    /*
+     * Pausa inicial.
+     */
+    0%,
+    15%{
+        clip-path:
+            inset(0 84% 0 0);
+
+        opacity:0;
+    }
+
+
+    /*
+     * Surge à esquerda.
+     */
+    18%{
+        clip-path:
+            inset(0 84% 0 0);
+
+        opacity:.64;
+    }
+
+
+    /*
+     * Vai para direita.
+     */
+    34%{
+        clip-path:
+            inset(0 0 0 84%);
+
+        opacity:.64;
+    }
+
+
+    /*
+     * Some e descansa.
+     */
+    37%,
+    59%{
+        clip-path:
+            inset(0 0 0 84%);
+
+        opacity:0;
+    }
+
+
+    /*
+     * Retorna da direita.
+     */
+    62%{
+        clip-path:
+            inset(0 0 0 84%);
+
+        opacity:.60;
+    }
+
+
+    /*
+     * Chega à esquerda.
+     */
+    78%{
+        clip-path:
+            inset(0 84% 0 0);
+
+        opacity:.60;
+    }
+
+
+    /*
+     * Nova pausa.
+     */
+    81%,
+    100%{
+        clip-path:
+            inset(0 84% 0 0);
+
+        opacity:0;
+    }
+}
+
+
+@keyframes xlx026BrasilLensV2{
+
+    0%,
+    15%{
+        left:-4%;
+        opacity:0;
+    }
+
+    18%{
+        left:-4%;
+        opacity:.22;
+    }
+
+    34%{
+        left:104%;
+        opacity:.22;
+    }
+
+    37%,
+    59%{
+        left:104%;
+        opacity:0;
+    }
+
+    62%{
+        left:104%;
+        opacity:.20;
+    }
+
+    78%{
+        left:-4%;
+        opacity:.20;
+    }
+
+    81%,
+    100%{
+        left:-4%;
+        opacity:0;
+    }
+}
+
+
+/* ================================================================
+   NOVO HEADER COMPACTO FIXO
+   ================================================================ */
+
+@media (min-width:821px){
+
+    html body
+    .xlx026-fixed-header-v2{
+        position:fixed;
+
+        z-index:5000;
+
+        top:0;
+        left:0;
+        right:0;
+
+        pointer-events:none;
+
+        opacity:0;
+
+        transform:
+            translate3d(0,-110%,0);
+
+        transition:
+            transform .22s ease,
+            opacity .18s ease;
+
+        will-change:
+            transform;
+
+        background:
+            rgba(4,18,28,.965);
+
+        border-bottom:
+            1px solid rgba(0,216,255,.19);
+
+        box-shadow:
+            0 10px 32px rgba(0,0,0,.35);
+
+        -webkit-backdrop-filter:
+            blur(12px);
+
+        backdrop-filter:
+            blur(12px);
+    }
+
+
+    html body
+    .xlx026-fixed-header-v2.is-visible{
+        pointer-events:auto;
+
+        opacity:1;
+
+        transform:
+            translate3d(0,0,0);
+    }
+
+
+    /*
+     * Linha Brasil no rodapé do compacto.
+     */
+    html body
+    .xlx026-fixed-header-v2::after{
+        content:"";
+
+        position:absolute;
+
+        left:0;
+        right:0;
+        bottom:0;
+
+        height:2px;
+
+        pointer-events:none;
+
+        opacity:.74;
+
+        background:
+            linear-gradient(
+                90deg,
+                transparent 2%,
+
+                #009c3b 19%,
+                rgba(0,156,59,.22) 34%,
+
+                #ffdf00 50%,
+
+                rgba(24,91,190,.32) 66%,
+                #1769c2 82%,
+
+                transparent 98%
+            );
+
+        box-shadow:
+            0 0 9px rgba(0,216,255,.10);
+    }
+
+
+    html body
+    .xlx026-fixed-inner-v2{
+        width:
+            min(1180px,calc(100% - 28px));
+
+        min-height:58px;
+
+        margin:
+            0 auto;
+
+        display:grid;
+
+        grid-template-columns:
+            max-content minmax(0,1fr);
+
+        align-items:center;
+
+        gap:18px;
+
+        padding:
+            7px 0 8px;
+    }
+
+
+    /*
+     * Marca do compacto.
+     */
+    html body
+    .xlx026-fixed-brand-v2{
+        display:flex;
+
+        align-items:center;
+
+        gap:7px;
+
+        text-decoration:none;
+
+        font-weight:900;
+
+        font-size:18px;
+
+        line-height:1;
+
+        letter-spacing:.01em;
+
+        white-space:nowrap;
+    }
+
+
+    html body
+    .xlx026-fixed-code-v2{
+        color:#eefcff;
+
+        text-shadow:
+            0 0 8px rgba(0,216,255,.24);
+    }
+
+
+    html body
+    .xlx026-fixed-country-v2{
+        background:
+            linear-gradient(
+                90deg,
+                #35c867,
+                #ffdf00 52%,
+                #3985dd
+            );
+
+        -webkit-background-clip:text;
+        background-clip:text;
+
+        -webkit-text-fill-color:
+            transparent;
+    }
+
+
+    /*
+     * MENU COMPACTO NOVO.
+     *
+     * Não depende visualmente do estilo antigo.
+     */
+    html body
+    .xlx026-fixed-nav-v2{
+        display:flex !important;
+
+        justify-content:flex-end;
+
+        align-items:center;
+
+        flex-wrap:nowrap;
+
+        gap:5px;
+
+        min-width:0;
+
+        margin:0 !important;
+
+        padding:0 !important;
+
+        border:0 !important;
+
+        background:none !important;
+
+        overflow-x:auto !important;
+        overflow-y:hidden !important;
+
+        scrollbar-width:none;
+    }
+
+
+    html body
+    .xlx026-fixed-nav-v2::-webkit-scrollbar{
+        display:none;
+    }
+
+
+    html body
+    .xlx026-fixed-nav-v2::before,
+
+    html body
+    .xlx026-fixed-nav-v2::after{
+        display:none !important;
+        content:none !important;
+    }
+
+
+    html body
+    .xlx026-fixed-nav-v2 a{
+        position:relative !important;
+
+        flex:
+            0 0 auto !important;
+
+        display:flex !important;
+
+        align-items:center;
+        justify-content:center;
+
+        min-height:34px;
+
+        margin:0 !important;
+
+        padding:
+            7px 10px !important;
+
+        border:
+            1px solid rgba(70,130,165,.38) !important;
+
+        border-radius:
+            9px !important;
+
+        background:
+            rgba(8,31,45,.68) !important;
+
+        box-shadow:
+            none !important;
+
+        color:
+            #cde3ee !important;
+
+        font-size:
+            12px !important;
+
+        font-weight:
+            800 !important;
+
+        line-height:
+            1 !important;
+
+        text-decoration:
+            none !important;
+
+        white-space:
+            nowrap !important;
+
+        transform:
+            none !important;
+
+        transition:
+            background .15s ease,
+            border-color .15s ease,
+            color .15s ease,
+            box-shadow .15s ease !important;
+    }
+
+
+    html body
+    .xlx026-fixed-nav-v2 a:hover{
+        color:#ffffff !important;
+
+        border-color:
+            rgba(0,216,255,.48) !important;
+
+        background:
+            rgba(8,46,65,.90) !important;
+
+        transform:
+            none !important;
+    }
+
+
+    /*
+     * Página ativa continua ciano,
+     * preservando a linguagem funcional do painel.
+     */
+    html body
+    .xlx026-fixed-nav-v2 a.active,
+
+    html body
+    .xlx026-fixed-nav-v2 a[aria-current="page"]{
+        color:#ffffff !important;
+
+        border-color:
+            #00d8ff !important;
+
+        background:
+            linear-gradient(
+                180deg,
+                rgba(0,126,158,.80),
+                rgba(0,71,92,.88)
+            ) !important;
+
+        box-shadow:
+            0 0 13px rgba(0,216,255,.20) !important;
+
+        transform:
+            none !important;
+    }
+
+
+    /*
+     * LED ciano pequeno somente no ativo.
+     */
+    html body
+    .xlx026-fixed-nav-v2 a.active::before,
+
+    html body
+    .xlx026-fixed-nav-v2 a[aria-current="page"]::before{
+        content:"";
+
+        display:block !important;
+
+        position:relative !important;
+
+        width:5px;
+        height:5px;
+
+        flex:
+            0 0 5px;
+
+        margin-right:
+            6px;
+
+        border-radius:
+            50%;
+
+        background:
+            #00eaff;
+
+        box-shadow:
+            0 0 8px #00d8ff;
+    }
+
+
+    html body
+    .xlx026-fixed-nav-v2 a::after{
+        content:none !important;
+        display:none !important;
+    }
+
+}
+
+
+/*
+ * Desktop um pouco mais estreito:
+ * preserva todo o menu com rolagem horizontal,
+ * sem quebrar em duas linhas.
+ */
+@media (min-width:821px) and (max-width:1120px){
+
+    html body
+    .xlx026-fixed-inner-v2{
+        width:
+            calc(100% - 20px);
+
+        gap:10px;
+    }
+
+
+    html body
+    .xlx026-fixed-brand-v2{
+        font-size:16px;
+    }
+
+
+    html body
+    .xlx026-fixed-nav-v2 a{
+        padding:
+            7px 8px !important;
+
+        font-size:
+            11px !important;
+    }
+
+}
+
+
+/* ================================================================
+   ACESSIBILIDADE
+   ================================================================ */
+
+@media (prefers-reduced-motion:reduce){
+
+    html body
+    section.universal-header
+    .xlx026-brasil-title::before,
+
+    html body
+    section.universal-header
+    .xlx026-brasil-title::after{
+        animation:none !important;
+        opacity:0 !important;
+    }
+
+
+    html body
+    .xlx026-fixed-header-v2{
+        transition:none !important;
+    }
+
+}
+
+
+/*
+ * Em alto contraste a decoração é removida.
+ */
+.high-contrast
+section.universal-header
+.xlx026-brasil-title::before,
+
+.high-contrast
+section.universal-header
+.xlx026-brasil-title::after{
+    display:none !important;
+}
+
+
+/* ================================================================
+   MOBILE
+   ================================================================ */
+
+/*
+ * A V2 não cria barra fixa no mobile.
+ * Layout mobile atual continua intocado.
+ */
+@media (max-width:820px){
+
+    html body
+    .xlx026-fixed-header-v2{
+        display:none !important;
+    }
+
+}
+
+
+/* /XLX026_HEADER_BRASIL_NEON_FIXED_V2 */

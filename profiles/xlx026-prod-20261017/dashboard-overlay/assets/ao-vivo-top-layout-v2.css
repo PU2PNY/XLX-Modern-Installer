@@ -1,0 +1,553 @@
+/* ==========================================================
+   XLX026 — AO VIVO TOP LAYOUT V2
+
+   Objetivos:
+
+   1 box  = 100%
+   2 boxes = 50% / 50%
+   3 boxes = 33.33% / 33.33% / 33.33%
+
+   Não interfere em:
+   - API
+   - polling
+   - MTR
+   - som
+   - histórico
+   - conectados
+   - ranking
+   ========================================================== */
+
+
+/* ==========================================================
+   ESTRUTURA DA PÁGINA
+   ========================================================== */
+
+html body[data-page="ao-vivo"] .dashboard-layout{
+
+    display:grid !important;
+
+    grid-template-columns:
+        minmax(0,1fr) !important;
+
+    align-items:start !important;
+
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+
+    gap:14px !important;
+
+    box-sizing:border-box !important;
+}
+
+
+/* Monitor primeiro */
+
+html body[data-page="ao-vivo"]
+.dashboard-layout > .live-widget{
+
+    grid-column:1 / -1 !important;
+    grid-row:1 !important;
+
+    order:1 !important;
+
+    position:static !important;
+
+    top:auto !important;
+    left:auto !important;
+    right:auto !important;
+
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+
+    margin:0 !important;
+
+    box-sizing:border-box !important;
+}
+
+
+/* Histórico depois */
+
+html body[data-page="ao-vivo"]
+.dashboard-layout > .dashboard-main{
+
+    grid-column:1 / -1 !important;
+    grid-row:2 !important;
+
+    order:2 !important;
+
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+
+    margin:0 !important;
+
+    box-sizing:border-box !important;
+}
+
+
+/* ==========================================================
+   MODULE GRID
+
+   grid-auto-flow:column faz a divisão automaticamente.
+
+   1 filho = 1 coluna  = 100%
+   2 filhos = 2 colunas = 50%
+   3 filhos = 3 colunas = 33.33%
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid.module-grid.widget-grid{
+
+    display:grid !important;
+
+    grid-template-columns:none !important;
+
+    grid-auto-flow:column !important;
+
+    grid-auto-columns:
+        minmax(0,1fr) !important;
+
+    align-items:stretch !important;
+
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+
+    gap:10px !important;
+
+    overflow:visible !important;
+
+    box-sizing:border-box !important;
+}
+
+
+/* ==========================================================
+   QUALQUER FILHO DIRETO
+
+   Funciona tanto:
+
+   antes do MTR:
+       moduleGrid > tx-card
+
+   quanto depois do MTR:
+       moduleGrid > wrapper > tx-card
+   ========================================================== */
+
+html body[data-page="ao-vivo"]
+#moduleGrid > *{
+
+    grid-column:auto !important;
+
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+
+    margin:0 !important;
+
+    box-sizing:border-box !important;
+
+    container-type:inline-size;
+}
+
+
+/* Proteção adicional */
+
+html body[data-page="ao-vivo"]
+#moduleGrid > * > *{
+
+    max-width:100%;
+
+    min-width:0;
+
+    box-sizing:border-box;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid .tx-card{
+
+    width:100% !important;
+
+    max-width:100% !important;
+
+    min-width:0 !important;
+
+    margin:0 !important;
+
+    box-sizing:border-box !important;
+}
+
+
+html body[data-page="ao-vivo"]
+#moduleGrid .mtr-mini{
+
+    width:100% !important;
+
+    max-width:100% !important;
+
+    min-width:0 !important;
+
+    box-sizing:border-box !important;
+}
+
+
+/* ==========================================================
+   CONTAINER MAIS ESTREITO
+
+   Usado automaticamente quando existem 2 ou 3 transmissões
+   ou quando a tela do visitante é menor.
+   ========================================================== */
+
+@container (max-width:420px){
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid .tx-card.live.tx-v30{
+
+        min-width:0 !important;
+
+        padding:9px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-content{
+
+        grid-template-columns:
+            minmax(0,1fr) !important;
+
+        gap:8px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-person{
+
+        grid-template-columns:
+            40px minmax(0,1fr) !important;
+
+        gap:7px !important;
+
+        min-width:0 !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .operator-visual{
+
+        width:38px !important;
+        height:38px !important;
+
+        min-width:38px !important;
+        min-height:38px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .operator-visual img{
+
+        width:26px !important;
+        height:26px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-callsign{
+
+        font-size:
+            clamp(13px,7cqw,19px) !important;
+
+        white-space:nowrap !important;
+
+        overflow:hidden !important;
+
+        text-overflow:ellipsis !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-name{
+
+        font-size:
+            clamp(9px,4cqw,13px) !important;
+
+        overflow:hidden !important;
+
+        text-overflow:ellipsis !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-location,
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-country{
+
+        font-size:
+            clamp(8px,3.2cqw,11px) !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-details{
+
+        grid-template-columns:
+            minmax(0,1fr) !important;
+
+        gap:5px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-details > div{
+
+        grid-column:auto !important;
+
+        width:100% !important;
+
+        min-width:0 !important;
+
+        min-height:0 !important;
+
+        height:auto !important;
+
+        padding:6px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-details small{
+
+        font-size:7px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-details strong{
+
+        font-size:
+            clamp(8px,3.2cqw,11px) !important;
+
+        overflow:hidden !important;
+
+        text-overflow:ellipsis !important;
+    }
+}
+
+
+/* ==========================================================
+   CONTAINER EXTREMAMENTE ESTREITO
+   Exemplo: 3 transmissões em celular.
+   ========================================================== */
+
+@container (max-width:230px){
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid .tx-card{
+
+        padding:6px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid .tx-top{
+
+        display:grid !important;
+
+        grid-template-columns:
+            minmax(0,1fr) !important;
+
+        gap:4px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-person{
+
+        grid-template-columns:
+            28px minmax(0,1fr) !important;
+
+        gap:4px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .operator-visual{
+
+        width:27px !important;
+        height:27px !important;
+
+        min-width:27px !important;
+        min-height:27px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .operator-visual img{
+
+        width:19px !important;
+        height:19px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .module-badge{
+
+        max-width:100% !important;
+
+        font-size:6px !important;
+
+        white-space:normal !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .on-air{
+
+        font-size:7px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-callsign{
+
+        font-size:
+            clamp(11px,8cqw,15px) !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-name{
+
+        font-size:8px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-location,
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid
+    .tx-card.live.tx-v30
+    .tx-v30-country{
+
+        font-size:7px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid .mtr-mini{
+
+        overflow:hidden !important;
+    }
+}
+
+
+/* ==========================================================
+   MOBILE
+
+   Mantém a MESMA regra solicitada:
+
+   1 = 100%
+   2 = 50%
+   3 = 33.33%
+
+   Não transforma o grid em display:block.
+   ========================================================== */
+
+@media (max-width:720px){
+
+    html body[data-page="ao-vivo"]
+    #moduleGrid.module-grid.widget-grid{
+
+        display:grid !important;
+
+        grid-template-columns:none !important;
+
+        grid-auto-flow:column !important;
+
+        grid-auto-columns:
+            minmax(0,1fr) !important;
+
+        gap:6px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    .dashboard-layout{
+
+        display:grid !important;
+
+        grid-template-columns:
+            minmax(0,1fr) !important;
+
+        gap:10px !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    .dashboard-layout > .live-widget{
+
+        grid-row:1 !important;
+
+        order:1 !important;
+    }
+
+
+    html body[data-page="ao-vivo"]
+    .dashboard-layout > .dashboard-main{
+
+        grid-row:2 !important;
+
+        order:2 !important;
+    }
+}
+
+
+/* Nunca gerar largura horizontal da página */
+
+html body[data-page="ao-vivo"]{
+
+    overflow-x:hidden;
+}

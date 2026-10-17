@@ -128,3 +128,7 @@ Antes de qualquer canário:
 9. somente então considerar canário PROD.
 
 Eventos `TXTURN` não devem conter indicativo, RadioID, IP ou payload. O monitor de IA é consultivo e executado por timer separado; a OpenAI recebe somente contadores agregados. Ausência de chave/API não muda o comportamento do guard. Nunca usar resposta da IA como autorização para abrir/fechar stream.
+
+## Recovery profile XLX026
+
+Use `--profile=xlx026-prod-20261017` somente para recuperação do XLX026. Não usar o perfil como default para instalações de terceiros. Antes de promover uma revisão do perfil, execute auditoria pública de segredos, teste específico, suíte geral e uma instalação limpa Debian 12 em ENV. A seleção do perfil nunca autoriza importar banco, logs, backups ou credenciais de produção para o Git.

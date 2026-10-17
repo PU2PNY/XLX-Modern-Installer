@@ -75,3 +75,5 @@ Evidência sanitizada reproduzível: [Helix PCM bridge ENV](docs/evidence/helix-
 
 ### Continuação final TX Turn Guard — 2026-10-04
 Código e13f4e1: CI3/3 PASS; ENV build/lifecycle/protocol classes/TOT/restore/WebSocket/UI PASS. Produção ativada21:36:13 UTC com PID655997; primeira sequência A/B/A/cooldown real, RF/interlink/soak e API real ainda PENDENTES. Evidência: [resultado](docs/evidence/tx-turn-guard-production-20261004.json). Falhas anteriores de timeout/verificação foram registradas; não são classificadas como PASS.
+
+| TEST-039 | REC-003 / SEC-001 / CORE-001 | Perfil de recuperação XLX026 contém snapshot não-secreto, hashes do runtime, Live Hub/V2 edge e hook explícito sem afetar instalação genérica | `tests/test-xlx026-recovery-profile.sh`; valida manifesto, arquivos críticos, rotas SSE/WebSocket, ausência de padrões/artefatos privados, opção `--profile` e módulo dedicado. Instalação limpa completa em WartyWallaby é gate ENV separado. | PENDENTE (SW/ENV até esta branch executar os gates) |

@@ -37,6 +37,7 @@ UI_LANG_EXPLICIT="no"
 CHECK_READY="yes"
 TUI_MODE="off"
 TUI_PYTHON=""
+RUNTIME_PROFILE=""
 
 # Resolve the installer/operator language before parsing options that may print
 # help or errors. Dashboard content language remains an independent setting.
@@ -91,6 +92,10 @@ Options:
       It preserves the XLXD core, creates a safety backup, and does not run a
       full reflector installation.
 
+  --profile=NAME
+      Applies an explicit recovery/runtime profile after the generic install.
+      Available recovery profile: xlx026-prod-20261017. Generic installs remain unchanged.
+
   --allow-remnants
       Allows continuing when only old installation remnants exist.
       It never deletes files automatically.
@@ -134,6 +139,10 @@ Opções:
       Preserva o núcleo XLXD, cria backup preventivo e não executa a instalação
       completa do refletor.
 
+  --profile=NAME
+      Aplica um perfil explícito de recuperação/runtime após a instalação genérica.
+      Perfil de recuperação disponível: xlx026-prod-20261017. Instalações genéricas não mudam.
+
   --allow-remnants
       Permite continuar quando existem apenas vestígios de instalação antiga.
       Não apaga arquivos automaticamente.
@@ -148,6 +157,7 @@ for arg in "$@"; do
     case "$arg" in
         --check|--dry-run) MODE="check" ;;
         --dashboard-only) DASHBOARD_ONLY="yes" ;;
+        --profile=*) RUNTIME_PROFILE="${arg#*=}" ;;
         --allow-remnants|--force-clean) ALLOW_REMNANTS="yes" ;;
         --lang=*) DASHBOARD_LANG="${arg#*=}" ;;
         --ui-lang=*) UI_LANG="${arg#*=}"; UI_LANG_EXPLICIT="yes" ;;
@@ -165,6 +175,11 @@ for arg in "$@"; do
             ;;
     esac
 done
+
+case "$RUNTIME_PROFILE" in
+    ""|xlx026-prod-20261017) ;;
+    *) printf "ERRO: perfil desconhecido: %s\n" "$RUNTIME_PROFILE" >&2; exit 2 ;;
+esac
 
 if [ "$UI_LANG_EXPLICIT" != "yes" ]; then
     case "$DASHBOARD_LANG" in
@@ -762,6 +777,10 @@ execute_dashboard_only() {
     else
         INSTALL_DIR="$dashboard_dest" XLX_UI_LANG="$UI_LANG" bash "$ROOT_DIR/modules/60-dashboard-modern.sh"
     fi
+    if [ -n "$RUNTIME_PROFILE" ]; then
+        XLX_RUNTIME_PROFILE="$RUNTIME_PROFILE" XLX_PROFILE_DASHBOARD_ONLY=1 XLX_DASHBOARD_DIR="$dashboard_dest" XLX_ADMIN_SLUG="${XLX_ADMIN_SLUG:-}" bash "$ROOT_DIR/modules/69-runtime-profile.sh"
+    fi
+
     for required_file in "$dashboard_dest/index.php" "$dashboard_dest/config/site.php" "$dashboard_dest/api/status.php" "$dashboard_dest/api/live.php"; do
         [ -s "$required_file" ] || fatal "$(msg "Arquivo obrigatório do painel ausente após atualização: $required_file" "Required dashboard file missing after update: $required_file")"
     done
@@ -822,6 +841,11 @@ execute_installer() {
     section "$(msg "PROVISIONANDO APRS/D-PRS NATIVO" "PROVISIONING NATIVE APRS/D-PRS")"
     XLX_DASHBOARD_DIR="$dashboard_dest" XLX_UI_LANG="$UI_LANG" bash "$ROOT_DIR/modules/67-aprs-dprs.sh" "--dashboard-dir=$dashboard_dest"
     XLX_DASHBOARD_DIR="$dashboard_dest" XLX_UI_LANG="$UI_LANG" bash "$ROOT_DIR/modules/71-observability.sh" "--dashboard-dir=$dashboard_dest"
+
+    if [ -n "$RUNTIME_PROFILE" ]; then
+        section "$(msg "APLICANDO PERFIL DE RECUPERAÇÃO" "APPLYING RECOVERY PROFILE")"
+        XLX_RUNTIME_PROFILE="$RUNTIME_PROFILE" XLX_DASHBOARD_DIR="$dashboard_dest" XLX_INSTALL_STATE_FILE="$state_file" XLX_ADMIN_SLUG="$XLX_ADMIN_SLUG" bash "$ROOT_DIR/modules/69-runtime-profile.sh"
+    fi
 
     section "$(msg "VALIDANDO O ESTADO FINAL DO PAINEL" "VALIDATING FINAL DASHBOARD STATE")"
     XLX_EXPECT_WEB_STACK=nginx XLX_DASHBOARD_DIR="$dashboard_dest" XLX_UI_LANG="$UI_LANG" bash "$ROOT_DIR/dashboard/install/fresh-install-parity.sh"

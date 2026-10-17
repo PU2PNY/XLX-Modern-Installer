@@ -1,0 +1,29 @@
+[Unit]
+Description=XLX Modern Passive Transmission Analyzer
+After=network-online.target xlxd.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+ExecStart=/usr/bin/python3 /opt/xlx-modern-transmission-analyzer/monitor.py
+Restart=on-failure
+RestartSec=3
+AmbientCapabilities=CAP_NET_RAW
+CapabilityBoundingSet=CAP_NET_RAW
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_UNIX
+ReadWritePaths=/var/lib/xlx-modern-transmission-analyzer /var/log/xlx-modern-transmission-analyzer
+MemoryMax=64M
+CPUQuota=10%
+TasksMax=4
+
+[Install]
+WantedBy=multi-user.target
