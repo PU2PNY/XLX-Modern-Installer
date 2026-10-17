@@ -4,6 +4,7 @@ ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 P="$ROOT/profiles/xlx026-prod-20261017"
 fail(){ echo "FAIL | $*" >&2; exit 1; }
 [ -s "$P/PRODUCTION_MANIFEST.json" ] || fail manifest
+[ -s "$P/REMOVE_GENERIC_PATHS.txt" ] || fail remove_manifest
 [ -s "$P/dashboard-overlay/assets/app.js" ] || fail app_overlay
 [ -s "$P/dashboard-overlay/assets/live-core-v2-client.js" ] || fail v2_client
 [ -s "$P/runtime/live-core-v2/src/main.rs" ] || fail live_core
@@ -33,5 +34,7 @@ grep -F 'location = /api/live-v2/ws' "$P/runtime/nginx/xlx026-live-runtime.conf"
 grep -F 'location = /api/live-stream' "$P/runtime/nginx/xlx026-live-runtime.conf" >/dev/null || fail sse_route
 grep -F 'location = /sw.js' "$P/runtime/nginx/xlx026-live-runtime.conf" >/dev/null || fail sw_cache
 grep -F "chr(10)" "$ROOT/modules/69-runtime-profile.sh" >/dev/null || fail nginx_patcher_newline
+if grep -Ev '^[A-Za-z0-9._/-]+$' "$P/REMOVE_GENERIC_PATHS.txt" | grep -q .; then fail removal_path_safety; fi
+if grep -E '(^/|\.\.)' "$P/REMOVE_GENERIC_PATHS.txt" | grep -q .; then fail removal_path_escape; fi
 bash -n "$ROOT/modules/69-runtime-profile.sh"
 echo 'xlx026_recovery_profile=PASS'

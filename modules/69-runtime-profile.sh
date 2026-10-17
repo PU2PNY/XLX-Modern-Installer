@@ -11,6 +11,14 @@ PROFILE="$ROOT/profiles/$PROFILE_NAME"
 # This is a recovery overlay, not a replacement for generic installation.
 # It intentionally contains no credentials, private keys, databases, logs or production backups.
 cp -a "$PROFILE/dashboard-overlay/." "$DASH/"
+# Remove only explicitly listed generic files that are absent from the captured XLX026 webroot.
+# No wildcard or recursive deletion is allowed here.
+while IFS= read -r rel; do
+  [ -n "$rel" ] || continue
+  case "$rel" in /*|*..*) echo "invalid recovery removal path: $rel" >&2; exit 23;; esac
+  rm -f -- "$DASH/$rel"
+done < "$PROFILE/REMOVE_GENERIC_PATHS.txt"
+rmdir "$DASH/i18n/locales" "$DASH/i18n" "$DASH/lib" 2>/dev/null || true
 if [ -n "${XLX_ADMIN_SLUG:-}" ] && [ -f "$PROFILE/control/index.php" ]; then
   install -d -m 0750 "$DASH/$XLX_ADMIN_SLUG"
   install -m 0640 "$PROFILE/control/index.php" "$DASH/$XLX_ADMIN_SLUG/index.php"

@@ -776,5 +776,27 @@
     "xuvd exact binary is identified by SHA-256 but is not committed until source/provenance can reproduce it safely",
     "Helix process remains disabled; production mode is shadow",
     "profile is XLX026-specific; generic installs do not select it automatically"
+  ],
+  "remove_generic_paths": [
+    "api/authorized-sync-v1.php",
+    "api/identity-safe.php",
+    "api/user-directory.php",
+    "assets/ao-vivo-authorized-sync-v1.js",
+    "assets/authorized-pages-v1.css",
+    "assets/project-link.js",
+    "assets/xlxmodern-accessibility-compact-v1.css",
+    "assets/xlxmodern-accessibility.css",
+    "assets/xlxmodern-accessibility.js",
+    "config/.gitignore",
+    "config/site.example.php",
+    "i18n/bootstrap.php",
+    "i18n/build.php",
+    "i18n/locales/de.php",
+    "i18n/locales/en.php",
+    "i18n/locales/es.php",
+    "i18n/locales/fr.php",
+    "i18n/locales/it.php",
+    "i18n/locales/pt-BR.php",
+    "lib/certificate-signature.php"
   ]
 }
