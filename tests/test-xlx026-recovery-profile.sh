@@ -32,5 +32,6 @@ grep -F 'modules/69-runtime-profile.sh' "$ROOT/install.sh" >/dev/null || fail pr
 grep -F 'location = /api/live-v2/ws' "$P/runtime/nginx/xlx026-live-runtime.conf" >/dev/null || fail ws_route
 grep -F 'location = /api/live-stream' "$P/runtime/nginx/xlx026-live-runtime.conf" >/dev/null || fail sse_route
 grep -F 'location = /sw.js' "$P/runtime/nginx/xlx026-live-runtime.conf" >/dev/null || fail sw_cache
+grep -F "chr(10)" "$ROOT/modules/69-runtime-profile.sh" >/dev/null || fail nginx_patcher_newline
 bash -n "$ROOT/modules/69-runtime-profile.sh"
 echo 'xlx026_recovery_profile=PASS'

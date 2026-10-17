@@ -33,8 +33,7 @@ if [ -f /etc/nginx/sites-available/xlx-modern.conf ]; then
 from pathlib import Path
 import sys
 p=Path(sys.argv[1]); s=p.read_text()
-inc='    include /etc/nginx/snippets/xlx026-live-runtime.conf;
-'
+inc='    include /etc/nginx/snippets/xlx026-live-runtime.conf;' + chr(10)
 if inc not in s:
     out=[]
     for line in s.splitlines(True):
