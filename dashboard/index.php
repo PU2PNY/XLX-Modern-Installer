@@ -351,4 +351,31 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}' . page_url($page);
 <script src="assets/xlxmodern-accessibility.js?v=1" defer></script>
 <?php if ($page === 'digital-lab'): ?><script src="assets/digital-lab.js?v=native"></script><script src="assets/digital-lab-operator.js?v=native"></script><?php endif; ?>
 <?php if ($page === 'certificado'): ?><script src="assets/vendor/qrcode.min.js"></script><script src="assets/certificado.js?v=native"></script><?php endif; ?>
+<?php
+// Optional, per-installation support link. Only XLX026 receives the project-specific default.
+$whatsappSupportUrl = trim((string)($site['support']['whatsapp_group_url'] ?? ('{{REFLECTOR_NAME}}' === 'XLX026' ? 'https://chat.whatsapp.com/CwW2nKDI8sb2LtHIvyr2Ow?s=cl&p=a&iam=0' : '')));
+$whatsappSupportHost = strtolower((string)parse_url($whatsappSupportUrl, PHP_URL_HOST));
+if ($whatsappSupportHost !== 'chat.whatsapp.com' || strtolower((string)parse_url($whatsappSupportUrl, PHP_URL_SCHEME)) !== 'https') $whatsappSupportUrl = '';
+?>
+<?php if ($whatsappSupportUrl !== ''): ?>
+<style>
+#xlx-whatsapp-support{position:fixed;right:clamp(12px,2vw,26px);bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:1100;display:flex;align-items:flex-start;gap:4px;font-family:inherit}
+#xlx-whatsapp-support .xlx-wa-link{display:flex;align-items:center;gap:10px;background:#128c47;color:#fff;text-decoration:none;border-radius:999px;padding:12px 18px 12px 13px;font-weight:700;font-size:15px;box-shadow:0 5px 18px #0005;line-height:1.25}
+#xlx-whatsapp-support .xlx-wa-link:hover,#xlx-whatsapp-support .xlx-wa-link:focus-visible{background:#0d733a}
+#xlx-whatsapp-support .xlx-wa-icon{width:25px;height:25px;fill:currentColor;flex:none}
+#xlx-whatsapp-support .xlx-wa-close{display:grid;place-items:center;width:29px;height:29px;border:1px solid #737b86;background:#fff;color:#17212b;border-radius:50%;cursor:pointer;font-size:20px;line-height:1;padding:0;box-shadow:0 2px 9px #0003}
+#xlx-whatsapp-support :focus-visible{outline:3px solid #ffd54f;outline-offset:3px}
+@media(max-width:600px){#xlx-whatsapp-support{right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px))}#xlx-whatsapp-support .xlx-wa-link{padding:10px 14px 10px 11px;font-size:14px}}
+</style>
+<div id="xlx-whatsapp-support" role="group" aria-label="Suporte via WhatsApp">
+ <a class="xlx-wa-link" href="<?=htmlspecialchars($whatsappSupportUrl, ENT_QUOTES, 'UTF-8')?>" target="_blank" rel="noopener noreferrer" aria-label="Suporte: entrar no grupo de WhatsApp">
+  <svg class="xlx-wa-icon" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M16 .8a15.12 15.12 0 0 0-13 22.86L.9 31l7.54-1.98A15.2 15.2 0 1 0 16 .8zm0 27.6a12.36 12.36 0 0 1-6.3-1.72l-.45-.27-4.47 1.17 1.2-4.36-.3-.46A12.42 12.42 0 1 1 16 28.4zm6.8-9.3c-.37-.18-2.2-1.08-2.54-1.2-.34-.12-.58-.18-.83.18-.24.37-.95 1.2-1.17 1.45-.21.24-.43.27-.8.09a10.1 10.1 0 0 1-3-1.86 11.2 11.2 0 0 1-2.07-2.58c-.22-.37-.02-.57.16-.75.17-.17.37-.43.55-.65.18-.21.24-.36.36-.61.12-.24.06-.46-.03-.65-.09-.18-.83-2-1.14-2.73-.3-.72-.61-.62-.83-.63h-.71c-.25 0-.65.09-.99.46-.34.37-1.3 1.27-1.3 3.09s1.33 3.58 1.52 3.83c.18.24 2.62 4 6.35 5.61.89.39 1.58.62 2.12.79.89.28 1.7.24 2.34.15.71-.11 2.2-.9 2.51-1.77.31-.88.31-1.63.22-1.78-.09-.15-.34-.24-.71-.43z"/></svg>
+  <span>Suporte</span>
+ </a>
+ <button class="xlx-wa-close" type="button" aria-label="Fechar suporte WhatsApp" title="Fechar">×</button>
+</div>
+<script>
+document.getElementById('xlx-whatsapp-support').querySelector('.xlx-wa-close').addEventListener('click',function(){document.getElementById('xlx-whatsapp-support').remove()});
+</script>
+<?php endif; ?>
 </body></html>
