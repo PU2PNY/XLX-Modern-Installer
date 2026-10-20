@@ -1,3 +1,11 @@
+## Unreleased — XLX026 WhatsApp support bubble
+
+- Adds a closable, keyboard-accessible floating WhatsApp Support link on dashboard pages.
+- The button reappears on each page load; closing it does not persist a preference.
+- XLX026 uses the requested group invitation by default; other reflectors do not inherit that group. A per-installation `site.php` value at `support.whatsapp_group_url` may supply another HTTPS `chat.whatsapp.com` group URL.
+- Frontend-only PHP/HTML/CSS/JS change; does not affect XLXD, TX/RX, transcoding, sockets or Nginx.
+- Deployment and browser validation are separate gates; this GitHub change alone is DOC, not PROD.
+
 ## Unreleased — TX Turn Guard V1
 
 - Versions the optional XLXD 2.5.3 per-module anti-ping-pong patch and advisory observer; off remains the default.
