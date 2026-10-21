@@ -1,0 +1,46 @@
+{
+  "date": "2026-10-21",
+  "code_commit": "d795040f8f90839dbd25886ff94b37943e476e0d",
+  "source": {
+    "filename": "Estacoes_Radioamador.csv",
+    "original_sha256": "cda67109c6307f87ff0e11979497909e4e7f49a4353ba473c32038460a4bbe98",
+    "minimized_csv_sha256": "c41b971186a30714db0f5fead7f099c2d5932c15bdca1d30f0b712b6fe254bc5",
+    "minimized_gzip_sha256": "b40821cc4c08f74b6ac35f9e6b7d9210d6847a0ac40bfd6c796bd25ab4669fbc"
+  },
+  "counts": {
+    "records": 71318,
+    "distinct_uppercase_nonempty_callsigns": 46654,
+    "missing_callsigns": 9
+  },
+  "ENV": {
+    "integrity_schema_counts": "PASS",
+    "case_accent_literal_wildcards_sql_injection_array_inputs": "PASS",
+    "filters_pagination_escaping": "PASS",
+    "six_locale_lint_render_canonical_filter_values": "PASS",
+    "isolated_file_replace_restore": "PASS",
+    "sample_initial_query_ms": 7.95,
+    "sample_peak_php_bytes": 2097152
+  },
+  "PROD": {
+    "lookup_http": 200,
+    "lookup_bytes": 24495,
+    "filter_SP_classC_fixed_records": 6860,
+    "lookup_search_filters_pagination_empty_and_malicious_queries": "PASS",
+    "existing_pages_live_health_http": 200,
+    "service_pids_unchanged": true,
+    "sqlite_outside_webroot": true,
+    "radio_changed": false,
+    "index_changed": false,
+    "backup_available": true
+  },
+  "pending": [
+    "Visual browser check: host access policy restriction",
+    "CI not declared passed",
+    "No concurrent load benchmark"
+  ],
+  "limitations": [
+    "Snapshot supplied by operator; not real-time license validation",
+    "Source holder state separate from station location",
+    "No registry data committed to Git"
+  ]
+}
