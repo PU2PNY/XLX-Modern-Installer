@@ -229,3 +229,12 @@ O bloqueio de conectividade de Warty às20:43 UTC foi superado após reconexão;
 
 ## Consulta de indicativo — 2026-10-21
 Candidato limitado ao menu/página oficial da Anatel. Base main 56a8591c9f3504805136be64bfcbf48e98fbeb46, VERSION 1.4.6. Produção diverge da base; aplicar somente patch ancorado, nunca substituir index completo. Visual/iframe externo pendentes por política do navegador.
+
+### Resultado da implantação limitada
+- Código funcional: 7a9570b4b93f95804be8691c791d4a89c915e0e1, PR #85.
+- ENV WartyWallaby: lint3/3, renderização PHP da rota, iframe único/link direto/sem widget Live, key parity6, navegação canônica, governança e dashboard-i18n PASS. Primeiro i18n excedeu60s; segunda execução terminou em158,71s.
+- PROD: /consulta-indicativo.php, ao-vivo, conectados, modulos, ranking, refletores, suporte, certificado, simulado-anatel/ e live-v2/health HTTP200. XLXD/xuvd/Nginx/PHP-FPM mantiveram PIDs. Não equivale a validação RF/áudio nem visual.
+- Backup root-only /opt/xlx026-backups/CONSULTA_INDICATIVO_20261021: index antes/candidato, manifest e rollback.py; cópia conferida byte a byte. Restore de serviço não foi necessário nem foi declarado testado.
+- Patch em index PROD: whitelist, page_url, item de menu, SEO/canonical, CSS e include da nova view. Três arquivos novos, sem modificar Nginx/serviços/JS/API.
+- Navegador bloqueou os hosts por política; visual mobile/desktop e incorporação funcional da Anatel permanecem PENDENTES. Leitura HTTP da Anatel pela VPS deu403; isso não prova bloqueio de iframe. Link direto oficial sempre disponível.
+- GitHub CI estava queued (sem runner atribuído) na implantação. Não registrar CI PASS.
