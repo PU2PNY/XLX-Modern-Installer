@@ -20,6 +20,7 @@ Atualizado em: 2026-10-21
 - Migração SQLite adiciona `birth_year` como coluna nullable. Contas legadas sem ano continuam válidas e a recuperação preserva o contrato anterior de dia/mês.
 - Dados brutos de aniversário não são incluídos no payload de auditoria.
 - Layout público: Mensagens APRS foi movido para a área superior; Estações/Mapa permanecem na sequência; Teste guiado/Comece aqui foi movido para imediatamente antes da área de explicações/perguntas.
+- Follow-up PROD 2026-10-21: o seletor da grade compacta foi restringido ao login, impedindo que o formulário de cadastro comprima Indicativo e Dia/Mês/Ano. Validação visual externa em viewport 1536×608 observou aproximadamente 650 px para Indicativo, 148 px para Dia, 287 px para Mês e 198 px para Ano; botão em linha própria e layout móvel em uma coluna.
 - PROD XLX026: backup em `/opt/xlx026-backups/APRS_BIRTHYEAR_LAYOUT_20261021_181831`; 10/10 contas existentes preservadas; banco íntegro; página e JS HTTP 200; XLXD, Nginx e `xlx-aprs-dprs.service` ativos; gateway `running`, módulo B `connected`, APRS-IS `verified`.
 - Nenhum restart de XLXD, Nginx ou gateway APRS foi necessário.
 - Limite de evidência: não foi criada conta fictícia no banco real; o próximo cadastro real de operador ainda precisa confirmar o fluxo PROD de ponta a ponta.
