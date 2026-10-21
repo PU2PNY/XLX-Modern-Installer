@@ -36,67 +36,6 @@
     </article>
   </section>
 
-  <section class="dlab-primary-grid">
-    <article class="dlab-test-card panel">
-      <div class="dlab-card-heading">
-        <div><p class="eyebrow">TESTE GUIADO</p><h2>Meu beacon chegou?</h2></div>
-        <span class="dlab-live-pill">MÓDULO B</span>
-      </div>
-      <p>Informe seu indicativo, conecte ao <strong>{{REFLECTOR_NAME}}-B</strong> e transmita com GPS/D-PRS ativado. A página confirma quando o beacon for recebido.</p>
-      <form id="dlabBeaconForm" class="dlab-call-form" novalidate>
-        <label for="dlabCallsign">Indicativo</label>
-        <div class="dlab-input-row">
-          <input id="dlabCallsign" name="callsign" type="text" inputmode="text" autocomplete="off" maxlength="11" placeholder="Ex.: PU2ABC" aria-describedby="dlabCallHelp">
-          <button class="dlab-btn dlab-btn-primary" type="submit">Iniciar teste</button>
-        </div>
-        <small id="dlabCallHelp">Nenhum cadastro é necessário para testar.</small>
-      </form>
-      <div class="dlab-test-state" id="dlabTestState" aria-live="polite">
-        <div class="dlab-radar" aria-hidden="true"><i></i><i></i><b></b></div>
-        <div><strong>Pronto para testar</strong><span>O monitor será ativado depois que você informar o indicativo.</span></div>
-      </div>
-      <button id="dlabCancelTest" class="dlab-btn dlab-btn-ghost" type="button" hidden>Cancelar teste</button>
-    </article>
-
-    <article class="dlab-learn-card panel">
-      <div class="dlab-card-heading"><div><p class="eyebrow">COMECE AQUI</p><h2>Primeiro D-PRS em 3 passos</h2></div></div>
-      <ol class="dlab-steps">
-        <li><span>1</span><div><strong>Conecte ao módulo B</strong><p>No hotspot ou rádio, selecione o {{REFLECTOR_NAME}} e o módulo <b>B</b>.</p></div></li>
-        <li><span>2</span><div><strong>Ative GPS / D-PRS</strong><p>Em D-STAR, prefira o modo GPS-A/D-PRS quando seu equipamento oferecer essa opção.</p></div></li>
-        <li><span>3</span><div><strong>Faça uma transmissão</strong><p>Pressione o PTT por alguns segundos e acompanhe a confirmação nesta página.</p></div></li>
-      </ol>
-      <div class="dlab-note"><strong>Seguro para o refletor:</strong> o laboratório escuta o módulo B como cliente independente e não altera o core do XLXD.</div>
-    </article>
-  </section>
-
-  <section class="dlab-data-grid">
-    <article class="dlab-stations-card panel">
-      <div class="dlab-card-heading">
-        <div><p class="eyebrow">D-PRS / APRS</p><h2>Estações recentes</h2></div>
-        <span id="dlabStationCount" class="dlab-counter">0</span>
-      </div>
-      <div class="dlab-station-list" id="dlabStations" aria-live="polite">
-        <div class="dlab-empty">Aguardando dados do gateway…</div>
-      </div>
-    </article>
-
-    <article class="dlab-map-card panel">
-      <div class="dlab-card-heading"><div><p class="eyebrow">LOCALIZAÇÃO</p><h2>Mapa da estação</h2></div></div>
-      <div class="dlab-map-placeholder" id="dlabMapPlaceholder">
-        <div class="dlab-map-cross" aria-hidden="true"></div>
-        <strong>Selecione uma estação</strong>
-        <span>O mapa só é carregado quando você solicitar, economizando recursos.</span>
-      </div>
-      <iframe id="dlabMapFrame" class="dlab-map-frame" title="Mapa da estação APRS/D-PRS" loading="lazy" referrerpolicy="no-referrer" hidden></iframe>
-      <div class="dlab-map-meta" id="dlabMapMeta" hidden>
-        <div><strong id="dlabMapCall">—</strong><span id="dlabMapCoords">—</span></div>
-        <a id="dlabAprsFiLink" href="#" target="_blank" rel="noopener noreferrer">Abrir no aprs.fi ↗</a>
-      </div>
-    </article>
-  </section>
-
-  <link rel="stylesheet" href="/assets/digital-lab-operator.css?v=1.2.3">
-
   <section class="dlab-message-card panel">
     <div class="dlab-card-heading">
       <div>
@@ -218,15 +157,15 @@
           <div class="dlab-register-body">
             <p>
               Para criar sua conta, informe seu indicativo e
-              <strong>dia e mês reais do aniversário</strong>.
-              Não pedimos o ano.
+              <strong>dia, mês e ano reais do aniversário</strong>.
             </p>
 
             <p>
-              O dia e o mês serão usados para
+              A data de nascimento será usada para
               <strong>auxiliar na recuperação da sua senha</strong>
-              caso você a perca e também poderão ser usados
+              caso você a perca e também poderá ser usada
               futuramente para recursos de aniversário no {{REFLECTOR_NAME}}.
+              O ano não será exibido publicamente.
             </p>
 
             <p>
@@ -252,16 +191,20 @@
                 <div>
                   <label for="dlabBirthDay">Dia</label>
                   <input id="dlabBirthDay"
-                         type="number"
-                         min="1"
-                         max="31"
+                         type="text"
+                         inputmode="numeric"
+                         pattern="[0-9]{1,2}"
+                         maxlength="2"
+                         autocomplete="bday-day"
                          placeholder="18"
                          required>
                 </div>
 
                 <div>
                   <label for="dlabBirthMonth">Mês</label>
-                  <select id="dlabBirthMonth" required>
+                  <select id="dlabBirthMonth"
+                          autocomplete="bday-month"
+                          required>
                     <option value="">Selecione</option>
                     <option value="1">Janeiro</option>
                     <option value="2">Fevereiro</option>
@@ -277,6 +220,18 @@
                     <option value="12">Dezembro</option>
                   </select>
                 </div>
+
+                <div>
+                  <label for="dlabBirthYear">Ano</label>
+                  <input id="dlabBirthYear"
+                         type="text"
+                         inputmode="numeric"
+                         pattern="[0-9]{4}"
+                         maxlength="4"
+                         autocomplete="bday-year"
+                         placeholder="1980"
+                         required>
+                </div>
               </div>
 
               <label class="dlab-check-row">
@@ -284,7 +239,7 @@
                        type="checkbox"
                        required>
                 <span>
-                  Confirmo que o dia e o mês informados são reais
+                  Confirmo que a data de nascimento informada é real
                   e autorizo o uso para recuperação de acesso e
                   recursos de aniversário.
                 </span>
@@ -305,8 +260,9 @@
         <p class="dlab-recovery-note">
           <strong>Esqueceu a senha?</strong>
           Informe ao administrador ou colaborador autorizado
-          seu indicativo e o dia/mês real do aniversário.
-          Será gerada uma nova senha; a antiga não é recuperada.
+          seu indicativo e sua data de nascimento.
+          Contas antigas sem ano continuam compatíveis com a recuperação
+          por dia e mês. Será gerada uma nova senha; a antiga não é recuperada.
         </p>
 
       </div>
@@ -496,7 +452,68 @@
     </div>
   </section>
 
-  <script src="/assets/digital-lab-operator.js?v=1.2.3" defer></script>
+  <section class="dlab-data-grid">
+    <article class="dlab-stations-card panel">
+      <div class="dlab-card-heading">
+        <div><p class="eyebrow">D-PRS / APRS</p><h2>Estações recentes</h2></div>
+        <span id="dlabStationCount" class="dlab-counter">0</span>
+      </div>
+      <div class="dlab-station-list" id="dlabStations" aria-live="polite">
+        <div class="dlab-empty">Aguardando dados do gateway…</div>
+      </div>
+    </article>
+
+    <article class="dlab-map-card panel">
+      <div class="dlab-card-heading"><div><p class="eyebrow">LOCALIZAÇÃO</p><h2>Mapa da estação</h2></div></div>
+      <div class="dlab-map-placeholder" id="dlabMapPlaceholder">
+        <div class="dlab-map-cross" aria-hidden="true"></div>
+        <strong>Selecione uma estação</strong>
+        <span>O mapa só é carregado quando você solicitar, economizando recursos.</span>
+      </div>
+      <iframe id="dlabMapFrame" class="dlab-map-frame" title="Mapa da estação APRS/D-PRS" loading="lazy" referrerpolicy="no-referrer" hidden></iframe>
+      <div class="dlab-map-meta" id="dlabMapMeta" hidden>
+        <div><strong id="dlabMapCall">—</strong><span id="dlabMapCoords">—</span></div>
+        <a id="dlabAprsFiLink" href="#" target="_blank" rel="noopener noreferrer">Abrir no aprs.fi ↗</a>
+      </div>
+    </article>
+  </section>
+
+  <link rel="stylesheet" href="/assets/digital-lab-operator.css?v=1.2.5">
+
+  <script src="/assets/digital-lab-operator.js?v=1.2.4" defer></script>
+
+  <section class="dlab-primary-grid">
+    <article class="dlab-test-card panel">
+      <div class="dlab-card-heading">
+        <div><p class="eyebrow">TESTE GUIADO</p><h2>Meu beacon chegou?</h2></div>
+        <span class="dlab-live-pill">MÓDULO B</span>
+      </div>
+      <p>Informe seu indicativo, conecte ao <strong>{{REFLECTOR_NAME}}-B</strong> e transmita com GPS/D-PRS ativado. A página confirma quando o beacon for recebido.</p>
+      <form id="dlabBeaconForm" class="dlab-call-form" novalidate>
+        <label for="dlabCallsign">Indicativo</label>
+        <div class="dlab-input-row">
+          <input id="dlabCallsign" name="callsign" type="text" inputmode="text" autocomplete="off" maxlength="11" placeholder="Ex.: PU2ABC" aria-describedby="dlabCallHelp">
+          <button class="dlab-btn dlab-btn-primary" type="submit">Iniciar teste</button>
+        </div>
+        <small id="dlabCallHelp">Nenhum cadastro é necessário para testar.</small>
+      </form>
+      <div class="dlab-test-state" id="dlabTestState" aria-live="polite">
+        <div class="dlab-radar" aria-hidden="true"><i></i><i></i><b></b></div>
+        <div><strong>Pronto para testar</strong><span>O monitor será ativado depois que você informar o indicativo.</span></div>
+      </div>
+      <button id="dlabCancelTest" class="dlab-btn dlab-btn-ghost" type="button" hidden>Cancelar teste</button>
+    </article>
+
+    <article class="dlab-learn-card panel">
+      <div class="dlab-card-heading"><div><p class="eyebrow">COMECE AQUI</p><h2>Primeiro D-PRS em 3 passos</h2></div></div>
+      <ol class="dlab-steps">
+        <li><span>1</span><div><strong>Conecte ao módulo B</strong><p>No hotspot ou rádio, selecione o {{REFLECTOR_NAME}} e o módulo <b>B</b>.</p></div></li>
+        <li><span>2</span><div><strong>Ative GPS / D-PRS</strong><p>Em D-STAR, prefira o modo GPS-A/D-PRS quando seu equipamento oferecer essa opção.</p></div></li>
+        <li><span>3</span><div><strong>Faça uma transmissão</strong><p>Pressione o PTT por alguns segundos e acompanhe a confirmação nesta página.</p></div></li>
+      </ol>
+      <div class="dlab-note"><strong>Seguro para o refletor:</strong> o laboratório escuta o módulo B como cliente independente e não altera o core do XLXD.</div>
+    </article>
+  </section>
 
   <section class="dlab-knowledge panel" aria-labelledby="dlabLearnTitle">
     <div class="dlab-card-heading"><div><p class="eyebrow">APRENDA SEM COMPLICAÇÃO</p><h2 id="dlabLearnTitle">Entenda o que está acontecendo</h2></div></div>

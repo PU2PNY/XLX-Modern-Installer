@@ -27,6 +27,7 @@ const registerForm=$('dlabRegisterForm');
 const registerCall=$('dlabRegisterCall');
 const birthDay=$('dlabBirthDay');
 const birthMonth=$('dlabBirthMonth');
+const birthYear=$('dlabBirthYear');
 const birthdayConsent=$('dlabBirthdayConsent');
 const registerResult=$('dlabRegisterResult');
 
@@ -86,6 +87,23 @@ function notify(text){
     toast.hidden=true;
   },5000);
 }
+
+function bindNumericText(input,maxLength){
+  if(!input)return;
+
+  input.type='text';
+  input.inputMode='numeric';
+  input.maxLength=maxLength;
+
+  input.addEventListener('input',()=>{
+    input.value=String(input.value||'')
+      .replace(/\D/g,'')
+      .slice(0,maxLength);
+  });
+}
+
+bindNumericText(birthDay,2);
+bindNumericText(birthYear,4);
 
 function cleanBaseCall(v){
   return String(v??'')
@@ -642,13 +660,13 @@ function createField(labelText,type='text'){
   return {wrap,input};
 }
 
-function createBirthFields(){
+function createBirthFields(includeYear=false){
   const row=document.createElement('div');
   row.className='dlab-birthday-grid';
 
-  const day=createField('Dia','number');
-  day.input.min='1';
-  day.input.max='31';
+  const day=createField('Dia');
+  bindNumericText(day.input,2);
+  day.input.autocomplete='bday-day';
 
   const monthWrap=document.createElement('label');
   monthWrap.className='dlab-dialog-field';
@@ -657,6 +675,7 @@ function createBirthFields(){
   monthLabel.textContent='Mês';
 
   const month=document.createElement('select');
+  month.autocomplete='bday-month';
 
   const blank=document.createElement('option');
   blank.value='';
@@ -673,10 +692,22 @@ function createBirthFields(){
   monthWrap.append(monthLabel,month);
   row.append(day.wrap,monthWrap);
 
+  let year=null;
+
+  if(includeYear){
+    const yearField=createField('Ano');
+    bindNumericText(yearField.input,4);
+    yearField.input.autocomplete='bday-year';
+    yearField.input.placeholder='1980';
+    year=yearField.input;
+    row.append(yearField.wrap);
+  }
+
   return {
     row,
     day:day.input,
-    month
+    month,
+    year
   };
 }
 
@@ -686,7 +717,7 @@ async function openReset(prefill=''){
   const intro=document.createElement('p');
   intro.className='dlab-dialog-text';
   intro.textContent=
-    'Peça ao operador o indicativo e o dia/mês real do aniversário. A senha antiga será invalidada e uma nova será gerada.';
+    'Informe o indicativo e a data de nascimento. Para contas antigas sem ano, dia e mês continuam suficientes.';
 
   const formEl=document.createElement('form');
   formEl.className='dlab-dialog-form';
@@ -695,7 +726,7 @@ async function openReset(prefill=''){
   call.input.value=cleanBaseCall(prefill);
   call.input.maxLength=8;
 
-  const birth=createBirthFields();
+  const birth=createBirthFields(true);
 
   const submit=document.createElement('button');
   submit.type='submit';
@@ -719,7 +750,10 @@ async function openReset(prefill=''){
         {
           callsign:c,
           birth_day:Number(birth.day.value),
-          birth_month:Number(birth.month.value)
+          birth_month:Number(birth.month.value),
+          birth_year:birth.year
+            ? Number(birth.year.value)
+            : 0
         }
       );
 
@@ -734,7 +768,7 @@ async function openReset(prefill=''){
 
       const labels={
         account_not_found:'Indicativo não cadastrado.',
-        birthday_mismatch:'Dia ou mês do aniversário não confere.',
+        birthday_mismatch:'A data de nascimento não confere.',
         forbidden:'Seu nível não permite redefinir esta conta.',
         admin_reset_denied:'A senha do ADMIN deve ser trocada pela própria conta.'
       };
@@ -890,7 +924,7 @@ async function openUsers(){
   const call=createField('Indicativo');
   call.input.maxLength=8;
 
-  const birth=createBirthFields();
+  const birth=createBirthFields(true);
 
   const roleWrap=document.createElement('label');
   roleWrap.className='dlab-dialog-field';
@@ -934,6 +968,9 @@ async function openUsers(){
           callsign:cleanBaseCall(call.input.value),
           birth_day:Number(birth.day.value),
           birth_month:Number(birth.month.value),
+          birth_year:birth.year
+            ? Number(birth.year.value)
+            : 0,
           role:role.value
         }
       );
@@ -1225,6 +1262,7 @@ registerForm?.addEventListener(
           callsign:call,
           birth_day:Number(birthDay.value),
           birth_month:Number(birthMonth.value),
+          birth_year:Number(birthYear.value),
           birthday_consent:Boolean(
             birthdayConsent.checked
           )
@@ -1246,9 +1284,9 @@ registerForm?.addEventListener(
         account_exists:
           'Este indicativo já possui cadastro.',
         invalid_birthday:
-          'Informe seu dia e mês reais corretamente.',
+          'Informe dia, mês e ano reais corretamente.',
         birthday_consent_required:
-          'Confirme a autorização de uso do dia e mês.',
+          'Confirme a autorização de uso da data de nascimento.',
         rate_limited:
           'Muitas tentativas de cadastro. Aguarde.'
       };

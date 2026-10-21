@@ -407,7 +407,7 @@
 
 .dlab-birthday-grid{
   display:grid;
-  grid-template-columns:1fr 1.4fr;
+  grid-template-columns:minmax(0,.7fr) minmax(0,1.35fr) minmax(0,1fr);
   gap:9px
 }
 
@@ -679,7 +679,7 @@
   margin-bottom:14px;
 }
 
-#dlabOperatorLocked .dlab-account-form{
+#dlabOperatorLoginForm{
   grid-template-columns:
     minmax(155px,.75fr)
     minmax(245px,1.35fr)
@@ -687,6 +687,33 @@
   column-gap:10px;
   row-gap:6px;
   align-items:end;
+}
+
+/* O cadastro não deve herdar a grade compacta do login. */
+#dlabRegisterForm{
+  grid-template-columns:minmax(0,1fr);
+  align-items:stretch;
+}
+
+#dlabRegisterForm > label,
+#dlabRegisterForm > input,
+#dlabRegisterForm > .dlab-birthday-grid,
+#dlabRegisterForm > .dlab-check-row,
+#dlabRegisterForm > button[type="submit"]{
+  grid-column:1;
+  grid-row:auto;
+}
+
+#dlabRegisterForm .dlab-birthday-grid{
+  grid-template-columns:
+    minmax(92px,.75fr)
+    minmax(180px,1.45fr)
+    minmax(120px,1fr);
+}
+
+#dlabRegisterForm .dlab-birthday-grid input,
+#dlabRegisterForm .dlab-birthday-grid select{
+  min-width:0;
 }
 
 #dlabOperatorLoginForm label[for="dlabLoginCall"]{
@@ -784,8 +811,13 @@
     max-width:100%;
   }
 
-  #dlabOperatorLocked .dlab-account-form{
+  #dlabOperatorLoginForm,
+  #dlabRegisterForm{
     display:grid;
+    grid-template-columns:1fr;
+  }
+
+  #dlabRegisterForm .dlab-birthday-grid{
     grid-template-columns:1fr;
   }
 
