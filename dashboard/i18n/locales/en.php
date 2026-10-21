@@ -2,6 +2,14 @@
 declare(strict_types=1);
 
 return [
+    'lookup.0' => 'Callsign lookup',
+    'lookup.1' => 'OFFICIAL SOURCE • ANATEL',
+    'lookup.2' => 'Look up amateur radio callsigns and stations on Anatel\'s official dashboard.',
+    'lookup.3' => 'Open Anatel ↗',
+    'lookup.4' => 'Use the dashboard filters below. If the content does not appear, open the lookup directly on Anatel using the button above.',
+    'lookup.5' => 'Amateur radio stations — official Anatel lookup',
+    'lookup.6' => 'Source: Anatel. Data and filters are provided by the official website.',
+
     'api.digital_lab.waiting' => 'Digital Lab is waiting for gateway activation.',
     'api.process.start_failed' => 'The process could not be started.',
     'mtr.waiting_route' => 'Waiting for route',

@@ -38,6 +38,7 @@ $excludedParts = [
 ];
 
 $routeSlugs = [
+    'consulta-indicativo',
     'ao-vivo',
     'modulos',
     'conectados',

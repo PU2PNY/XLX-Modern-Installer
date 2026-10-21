@@ -226,3 +226,6 @@ Classificação: `SW/ENV PASS` somente para a fundação estática/mock. `TEST-0
 - Evidência sanitizada [resultado](docs/evidence/tx-turn-guard-production-20261004.json) e [procedimento](experimental/tx-turn-guard/PRODUCTION-20261004.md).
 
 O bloqueio de conectividade de Warty às20:43 UTC foi superado após reconexão; o build antigo divergente não foi promovido. O timeout anterior permanece histórico, não resultado final.
+
+## Consulta de indicativo — 2026-10-21
+Candidato limitado ao menu/página oficial da Anatel. Base main 56a8591c9f3504805136be64bfcbf48e98fbeb46, VERSION 1.4.6. Produção diverge da base; aplicar somente patch ancorado, nunca substituir index completo. Visual/iframe externo pendentes por política do navegador.

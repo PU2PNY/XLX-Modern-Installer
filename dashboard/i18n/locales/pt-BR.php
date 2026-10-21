@@ -2,6 +2,14 @@
 declare(strict_types=1);
 
 return [
+    'lookup.0' => 'Consulta de indicativo',
+    'lookup.1' => 'FONTE OFICIAL • ANATEL',
+    'lookup.2' => 'Consulte os indicativos e as estações de radioamador no painel oficial da Anatel.',
+    'lookup.3' => 'Abrir na Anatel ↗',
+    'lookup.4' => 'Use os filtros do painel abaixo. Se o conteúdo não aparecer, abra a consulta diretamente na Anatel pelo botão acima.',
+    'lookup.5' => 'Estações de radioamador — consulta oficial da Anatel',
+    'lookup.6' => 'Fonte: Anatel. Os dados e os filtros são fornecidos pelo site oficial.',
+
     'api.digital_lab.waiting' => 'Digital Lab aguardando ativação do gateway.',
     'api.process.start_failed' => 'Não foi possível iniciar o processo.',
     'mtr.waiting_route' => 'Aguardando rota',

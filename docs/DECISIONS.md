@@ -77,3 +77,6 @@ A IA é observadora: recebe somente contadores técnicos agregados e pode sugeri
 
 ### Continuação 2026-10-04 — economia do observador
 Silêncio ou resumo idêntico não geram consulta. Mudança de avaliação não pode furar o limite de 15 minutos entre tentativas. A regra local permanece independente da API. Teste C++ deve exercitar a sequência completa admit/EOT, além dos casos de estado preparado.
+
+## DEC-2026-10-21-015 — Consulta oficial de indicativos
+Adicionar somente menu e página com iframe da URL Anatel fornecida pelo operador, fonte e saída direta sempre visível. Sem scraping, cache de cadastro, polling ou alteração de rádio/Live. Rota PHP dedicada usa o controlador existente e dispensa alteração Nginx. Incorporação externa não verificada visualmente: navegador recusou host por política; leitura HTTP da VPS retornou 403. Não alegar compatibilidade da Anatel.

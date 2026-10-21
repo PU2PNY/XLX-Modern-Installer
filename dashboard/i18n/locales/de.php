@@ -2,6 +2,14 @@
 declare(strict_types=1);
 
 return [
+    'lookup.0' => 'Rufzeichensuche',
+    'lookup.1' => 'OFFIZIELLE QUELLE • ANATEL',
+    'lookup.2' => 'Suchen Sie Amateurfunkrufzeichen und Stationen im offiziellen Dashboard von Anatel.',
+    'lookup.3' => 'Anatel öffnen ↗',
+    'lookup.4' => 'Verwenden Sie die Filter unten. Falls kein Inhalt erscheint, öffnen Sie die Suche mit der Schaltfläche oben direkt bei Anatel.',
+    'lookup.5' => 'Amateurfunkstationen — offizielle Anatel-Suche',
+    'lookup.6' => 'Quelle: Anatel. Daten und Filter werden von der offiziellen Website bereitgestellt.',
+
     'api.digital_lab.waiting' => 'Digital Lab wartet auf die Aktivierung des Gateways.',
     'api.process.start_failed' => 'Der Prozess konnte nicht gestartet werden.',
     'mtr.waiting_route' => 'Warte auf Route',
