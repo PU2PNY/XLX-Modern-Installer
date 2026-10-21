@@ -29,7 +29,7 @@ function ratefile():string{return STATE.'/login-'.hash('sha256',ip()).'.json';}
 function rate():array{$f=ratefile();$d=is_file($f)?json_decode((string)@file_get_contents($f),true):null;return is_array($d)?$d:['fails'=>0,'first'=>0,'locked'=>0];}
 function fail_login():void{$s=rate();$n=time();if(empty($s['first'])||$n-(int)$s['first']>900)$s=['fails'=>0,'first'=>$n,'locked'=>0];$s['fails']=(int)$s['fails']+1;if($s['fails']>=5)$s['locked']=$n+900;@file_put_contents(ratefile(),json_encode($s),LOCK_EX);}
 function runh(string $c,array $args=[]):array{
- $allowed=['status','listeners','logs','backups','restart','health-status','radioid-status','radioid-search','radioid-save','radioid-delete','radioid-refresh','radioid-check','access-status','access-add-white','access-delete-white','access-add-black','access-delete-black','access-interlink-add','access-interlink-delete'];
+ $allowed=['status','listeners','logs','backups','restart','health-status','radioid-status','radioid-search','radioid-save','radioid-profile-save','radioid-delete','radioid-refresh','radioid-check','access-status','access-add-white','access-delete-white','access-add-black','access-delete-black','access-interlink-add','access-interlink-delete'];
  if(!in_array($c,$allowed,true))return[false,'',64];
  $cmd='/usr/bin/sudo -n '.escapeshellarg(HELPER).' '.escapeshellarg($c);
  foreach($args as $a)$cmd.=' '.escapeshellarg((string)$a);
@@ -135,7 +135,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
      if(!$verified||count($found)>1){$msg='Não foi possível verificar duplicidade. Nada foi alterado.';$bad=true;}
      else{
       [$saved,$result,$detail]=jr('radioid-save',[$found?$id:'',$found?strtoupper((string)($found[0]['callsign']??'')):'',...$fields]);
-      if($saved){$msg='Dados oficiais adicionados e banco sincronizado com backup.';audit('radioid_api_import');}
+      if($saved){[$profileOk]=jr('radioid-profile-save',[$id,$call]);$msg=$profileOk?'Cadastro e 17 campos oficiais salvos nas bases locais.':'Cadastro principal salvo; metadados adicionais pendentes por falha da API.';audit($profileOk?'radioid_api_import_full':'radioid_api_import_partial');}
       else{$msg=helper_reason($detail,'Falha na importação; base anterior preservada.');$bad=true;}
      }
     }
