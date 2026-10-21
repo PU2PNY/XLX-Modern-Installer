@@ -50,6 +50,10 @@ case "${1:-}" in
     [[ "$#" -eq 10 ]] || exit 64
     exec "$RADIO_HELPER" "$@"
     ;;
+  radioid-profile-save)
+    [[ "$#" -eq 3 && "$2" =~ ^[0-9]{7}$ && "$3" =~ ^[A-Z0-9]{3,8}$ ]] || exit 64
+    exec /usr/bin/python3 /opt/xlx-dmr-meta-monitor/radioid_profiles.py --lookup "$2" "$3"
+    ;;
   radioid-delete)
     [[ "$#" -eq 3 ]] || exit 64
     exec "$RADIO_HELPER" "$@"
