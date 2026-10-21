@@ -321,3 +321,7 @@ Three additional controlled multi-TX repeats retained 40/40 frames per stream wi
 ## 2026-10-21 — Consulta de indicativo
 - Adiciona menu/página para consulta oficial Anatel com iframe e link direto permanente.
 - Permite quebra de linha no menu desktop para acomodar a entrada; não altera rádio/Live.
+
+## 2026-10-21 — Diretório local Anatel
+- Substitui iframe por pesquisa paginada no próprio painel, sem depender da disponibilidade do painel Anatel.
+- Base minimizada fora do webroot/Git, fonte oficial discreta e indicação de cópia estática.

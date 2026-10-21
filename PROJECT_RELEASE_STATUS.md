@@ -238,3 +238,6 @@ Candidato limitado ao menu/página oficial da Anatel. Base main 56a8591c9f350480
 - Patch em index PROD: whitelist, page_url, item de menu, SEO/canonical, CSS e include da nova view. Três arquivos novos, sem modificar Nginx/serviços/JS/API.
 - Navegador bloqueou os hosts por política; visual mobile/desktop e incorporação funcional da Anatel permanecem PENDENTES. Leitura HTTP da Anatel pela VPS deu403; isso não prova bloqueio de iframe. Link direto oficial sempre disponível.
 - GitHub CI estava queued (sem runner atribuído) na implantação. Não registrar CI PASS.
+
+## Consulta local Anatel — 2026-10-21
+Candidato sobre PR85/head40e9a453. Fonte fornecida pelo operador, membro Radioamador SHA256 cda67109c6307f87ff0e11979497909e4e7f49a4353ba473c32038460a4bbe98. 71.318 registros preservados; 46.654 indicativos não vazios após uppercase;9 sem indicativo. Nada de base real no Git. Validação pendente.

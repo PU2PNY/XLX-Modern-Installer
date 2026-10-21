@@ -51,7 +51,7 @@ $routeSlugs = [
 ];
 $routeProtection = [];
 $routeRestore = [];
-foreach ($routeSlugs as $routeIndex => $routeSlug) {
+foreach (array_merge($routeSlugs, ['Classe A','Classe B','Classe C','Fixa','Móvel','Repetidora','Terrena','Ativa','Vencida']) as $routeIndex => $routeSlug) {
     $sentinel = '__XLX_ROUTE_' . $routeIndex . '__';
     $routeProtection["'{$routeSlug}'"] = "'{$sentinel}'";
     $routeProtection['"' . $routeSlug . '"'] = '"' . $sentinel . '"';

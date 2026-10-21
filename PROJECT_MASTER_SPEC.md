@@ -135,3 +135,5 @@ Uma mudança só é aceita se:
 
 ### Consulta de indicativo
 - **UI-013** — Menu Consulta de indicativo e página isolada da Anatel, iframe com título acessível, link oficial permanente, CSS limitado, sem sobreposição do menu e sem mudar APIs/Live. Preservar seis idiomas; incorporação depende do site externo.
+
+- **UI-014** — Substitui o requisito de iframe UI-013 para esta consulta: renderização local com SQLite somente leitura, busca literal sem distinguir acentos, filtros UF do titular/COER/tipo, 25 registros por página, escaping e parâmetros SQL. Fonte oficial discreta, importação/data da cópia explícitas, preservação de registros sem identidade e distinção entre estações e indicativos. Base real fora de Git/webroot. Importador reproduzível e troca atômica com backup. Sem mudar menu/Live/rádio.
