@@ -5,6 +5,7 @@
 - Adds nullable `birth_year` migration so existing accounts remain valid without retroactive data changes; legacy recovery continues with day/month when no year exists.
 - Keeps raw birthday components out of audit detail payloads.
 - Moves **Mensagens APRS** to the upper workflow area and moves **Teste guiado / Comece aqui** to immediately before the explanatory/FAQ sections.
+- Separates the compact login grid from the registration grid so Indicativo and the Dia/Mês/Ano fields use the available width without clipping; mobile registration stacks safely into one column.
 - Adds a dedicated regression for schema migration, legacy-account preservation, date fields and page ordering.
 - WartyWallaby full suite: `failures=0`; XLX026 production deployment preserved all 10 existing accounts and required no service restart.
 
