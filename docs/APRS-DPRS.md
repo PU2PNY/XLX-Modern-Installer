@@ -12,6 +12,8 @@ Na versão **1.2.12**, APRS/D-PRS faz parte do XLX Modern Installer e é provisi
 - Indicadores de posição na atividade do painel podem abrir a visão de localização do próprio servidor.
 - Estado persistente em SQLite fora do webroot.
 - Conta por indicativo, senha gerada criptograficamente e armazenamento somente de hash.
+- Novos cadastros registram dia, mês e ano reais do aniversário; o ano fica fora das listas públicas e dos detalhes de auditoria.
+- Contas legadas sem ano permanecem válidas e recuperáveis pelo contrato anterior de dia/mês.
 - Recuperação autorizada com rotação da versão de autenticação e revogação de tokens lembrados.
 
 O indicativo do serviço APRS é derivado do indicativo do sysop com SSID `-10`. A configuração operacional é criada em `/etc/xlx-aprs-dprs/`, o estado fica em `/var/lib/xlx-aprs-dprs/` e o serviço é executado como `xlx-aprs-dprs.service`.
