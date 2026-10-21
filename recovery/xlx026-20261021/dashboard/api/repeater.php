@@ -37,7 +37,7 @@ if($cached!==null && ($now-(int)($cached['fetched_at']??0))<$ttl){
  * cadastro novo apareça no mesmo dia.
  */
 if(is_file($missFile) && ($now-(int)@filemtime($missFile))<$negativeTtl){
-    json_out(['ok'=>false,'error'=>'not_found','cache'=>'negative'],404);
+    json_out(['ok'=>false,'error'=>'not_found','cache'=>'negative'],200);
 }
 
 /*
@@ -59,7 +59,7 @@ if($lock!==false){
     if(is_file($missFile) && ($now-(int)@filemtime($missFile))<$negativeTtl){
         @flock($lock,LOCK_UN);
         @fclose($lock);
-        json_out(['ok'=>false,'error'=>'not_found','cache'=>'negative'],404);
+        json_out(['ok'=>false,'error'=>'not_found','cache'=>'negative'],200);
     }
 }
 
@@ -79,7 +79,12 @@ $ctx=stream_context_create([
 ]);
 $raw=@file_get_contents($url,false,$ctx);
 $data=is_string($raw)?json_decode($raw,true):null;
-$rows=is_array($data)&&is_array($data['results']??null)?$data['results']:[];
+if(!is_array($data)||!is_array($data['results']??null)){
+    if(is_resource($lock)){@flock($lock,LOCK_UN);@fclose($lock);}
+    if($cached!==null){$cached['cache']='stale';json_out(['ok'=>true,'repeater'=>$cached]);}
+    json_out(['ok'=>false,'error'=>'upstream_unavailable'],503);
+}
+$rows=$data['results'];
 $best=null;
 foreach($rows as $row){
     if(norm_call((string)($row['callsign']??''))===$call){$best=$row;break;}
@@ -101,7 +106,7 @@ if(!is_array($best)){
         @flock($lock,LOCK_UN);
         @fclose($lock);
     }
-    json_out(['ok'=>false,'error'=>'not_found','cache'=>'negative-new'],404);
+    json_out(['ok'=>false,'error'=>'not_found','cache'=>'negative-new'],200);
 }
 
 $rep=[
