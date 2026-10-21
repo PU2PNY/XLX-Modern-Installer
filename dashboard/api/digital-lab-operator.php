@@ -127,6 +127,19 @@ function validBirthday(int $day, int $month): bool
     return checkdate($month, $day, 2000);
 }
 
+function validBirthdayFull(
+    int $day,
+    int $month,
+    int $year
+): bool {
+    $currentYear = (int)gmdate('Y');
+
+    return
+        $year >= 1900 &&
+        $year <= $currentYear &&
+        checkdate($month, $day, $year);
+}
+
 function body(): array
 {
     $length = (int)($_SERVER['CONTENT_LENGTH'] ?? 0);
@@ -874,6 +887,7 @@ if ($action === 'register') {
 
     $day = (int)($data['birth_day'] ?? 0);
     $month = (int)($data['birth_month'] ?? 0);
+    $year = (int)($data['birth_year'] ?? 0);
 
     $consent = !empty($data['birthday_consent']);
 
@@ -884,7 +898,7 @@ if ($action === 'register') {
         );
     }
 
-    if (!validBirthday($day, $month)) {
+    if (!validBirthdayFull($day, $month, $year)) {
         respond(
             ['ok' => false, 'error' => 'invalid_birthday'],
             422
@@ -929,6 +943,7 @@ if ($action === 'register') {
             status,
             birth_day,
             birth_month,
+            birth_year,
             birthday_consent_at,
             auth_version,
             reset_count,
@@ -941,6 +956,7 @@ if ($action === 'register') {
             ?,
             "USER",
             "ACTIVE",
+            ?,
             ?,
             ?,
             ?,
@@ -959,6 +975,7 @@ if ($action === 'register') {
         passwordHash($password),
         $day,
         $month,
+        $year,
         $now,
         $now,
         $now,
@@ -1358,6 +1375,7 @@ if ($action === 'admin_create_user') {
 
     $day = (int)($data['birth_day'] ?? 0);
     $month = (int)($data['birth_month'] ?? 0);
+    $year = (int)($data['birth_year'] ?? 0);
 
     $role = strtoupper(
         (string)($data['role'] ?? 'USER')
@@ -1365,7 +1383,7 @@ if ($action === 'admin_create_user') {
 
     if (
         $call === '' ||
-        !validBirthday($day, $month) ||
+        !validBirthdayFull($day, $month, $year) ||
         !in_array(
             $role,
             ['USER', 'COLLABORATOR'],
@@ -1397,6 +1415,7 @@ if ($action === 'admin_create_user') {
             status,
             birth_day,
             birth_month,
+            birth_year,
             birthday_consent_at,
             auth_version,
             reset_count,
@@ -1405,7 +1424,7 @@ if ($action === 'admin_create_user') {
             password_changed_at,
             created_by
         ) VALUES(
-            ?,?,?, "ACTIVE",?,?,?,
+            ?,?,?, "ACTIVE",?,?,?,?,
             1,0,?,?,?,?
         )
         '
@@ -1417,6 +1436,7 @@ if ($action === 'admin_create_user') {
         $role,
         $day,
         $month,
+        $year,
         $now,
         $now,
         $now,
@@ -1432,8 +1452,7 @@ if ($action === 'admin_create_user') {
         $call,
         [
             'role' => $role,
-            'birth_day' => $day,
-            'birth_month' => $month,
+            'birthday_recorded' => true,
         ]
     );
 
@@ -1457,6 +1476,7 @@ if ($action === 'reset_password') {
 
     $day = (int)($data['birth_day'] ?? 0);
     $month = (int)($data['birth_month'] ?? 0);
+    $year = (int)($data['birth_year'] ?? 0);
 
     $target = $call !== ''
         ? userByCall($db, $call)
@@ -1471,7 +1491,11 @@ if ($action === 'reset_password') {
 
     if (
         (int)$target['birth_day'] !== $day ||
-        (int)$target['birth_month'] !== $month
+        (int)$target['birth_month'] !== $month ||
+        (
+            $target['birth_year'] !== null &&
+            (int)$target['birth_year'] !== $year
+        )
     ) {
         audit(
             $db,
