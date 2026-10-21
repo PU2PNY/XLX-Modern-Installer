@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS accounts (
     status TEXT NOT NULL CHECK (status IN ('ACTIVE','BLOCKED')),
     birth_day INTEGER,
     birth_month INTEGER,
+    birth_year INTEGER,
     birthday_consent_at TEXT,
     auth_version INTEGER NOT NULL DEFAULT 1,
     reset_count INTEGER NOT NULL DEFAULT 0,
@@ -88,6 +89,22 @@ CREATE TABLE IF NOT EXISTS audit_log (
 CREATE INDEX IF NOT EXISTS idx_audit_log_ts
 ON audit_log(ts DESC);
 SQL);
+
+$accountColumns = $pdo->query(
+    'PRAGMA table_info(accounts)'
+)->fetchAll();
+
+$accountColumnNames = array_map(
+    static fn(array $row): string =>
+        (string)($row['name'] ?? ''),
+    $accountColumns
+);
+
+if (!in_array('birth_year', $accountColumnNames, true)) {
+    $pdo->exec(
+        'ALTER TABLE accounts ADD COLUMN birth_year INTEGER'
+    );
+}
 
 if ($adminCall !== '') {
     $stmt = $pdo->prepare('SELECT id FROM accounts WHERE callsign=? LIMIT 1');
