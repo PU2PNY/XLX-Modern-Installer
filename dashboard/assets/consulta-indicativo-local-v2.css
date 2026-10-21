@@ -15,6 +15,13 @@
 .callsign-lookup .lookup-results-heading h2{font-size:16px;line-height:1.4;margin:0}
 .callsign-lookup .lookup-results-heading>span{font-size:12px;color:#afc4cf}
 .callsign-lookup .lookup-table-wrap{max-width:100%;overflow:auto;border:1px solid #28424f;border-radius:10px}
+/* The baseline has global mobile rules hiding table cells; opt out only here. */
+html body[data-page="consulta-indicativo"] .callsign-lookup table.lookup-table{display:table!important}
+html body[data-page="consulta-indicativo"] .callsign-lookup table.lookup-table thead{display:table-header-group!important}
+html body[data-page="consulta-indicativo"] .callsign-lookup table.lookup-table tbody{display:table-row-group!important}
+html body[data-page="consulta-indicativo"] .callsign-lookup table.lookup-table tr{display:table-row!important}
+html body[data-page="consulta-indicativo"] .callsign-lookup table.lookup-table th,html body[data-page="consulta-indicativo"] .callsign-lookup table.lookup-table td{display:table-cell!important;position:static!important;left:auto!important;float:none!important}
+html body[data-page="consulta-indicativo"] .callsign-lookup table.lookup-table td::before{display:none!important;content:none!important}
 .callsign-lookup table.lookup-table{width:100%;min-width:850px;border-collapse:collapse;table-layout:auto;font-size:13px}
 .callsign-lookup table.lookup-table th,.callsign-lookup table.lookup-table td{padding:13px 12px;text-align:left;vertical-align:top;border-bottom:1px solid #203947;white-space:normal;overflow-wrap:anywhere}
 .callsign-lookup table.lookup-table th{font-size:11px;letter-spacing:.035em;color:#b9d3df;background:#102936}
