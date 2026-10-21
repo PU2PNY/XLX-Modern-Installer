@@ -226,3 +226,26 @@ Classificação: `SW/ENV PASS` somente para a fundação estática/mock. `TEST-0
 - Evidência sanitizada [resultado](docs/evidence/tx-turn-guard-production-20261004.json) e [procedimento](experimental/tx-turn-guard/PRODUCTION-20261004.md).
 
 O bloqueio de conectividade de Warty às20:43 UTC foi superado após reconexão; o build antigo divergente não foi promovido. O timeout anterior permanece histórico, não resultado final.
+
+## Consulta de indicativo — 2026-10-21
+Candidato limitado ao menu/página oficial da Anatel. Base main 56a8591c9f3504805136be64bfcbf48e98fbeb46, VERSION 1.4.6. Produção diverge da base; aplicar somente patch ancorado, nunca substituir index completo. Visual/iframe externo pendentes por política do navegador.
+
+### Resultado da implantação limitada
+- Código funcional: 7a9570b4b93f95804be8691c791d4a89c915e0e1, PR #85.
+- ENV WartyWallaby: lint3/3, renderização PHP da rota, iframe único/link direto/sem widget Live, key parity6, navegação canônica, governança e dashboard-i18n PASS. Primeiro i18n excedeu60s; segunda execução terminou em158,71s.
+- PROD: /consulta-indicativo.php, ao-vivo, conectados, modulos, ranking, refletores, suporte, certificado, simulado-anatel/ e live-v2/health HTTP200. XLXD/xuvd/Nginx/PHP-FPM mantiveram PIDs. Não equivale a validação RF/áudio nem visual.
+- Backup root-only /opt/xlx026-backups/CONSULTA_INDICATIVO_20261021: index antes/candidato, manifest e rollback.py; cópia conferida byte a byte. Restore de serviço não foi necessário nem foi declarado testado.
+- Patch em index PROD: whitelist, page_url, item de menu, SEO/canonical, CSS e include da nova view. Três arquivos novos, sem modificar Nginx/serviços/JS/API.
+- Navegador bloqueou os hosts por política; visual mobile/desktop e incorporação funcional da Anatel permanecem PENDENTES. Leitura HTTP da Anatel pela VPS deu403; isso não prova bloqueio de iframe. Link direto oficial sempre disponível.
+- GitHub CI estava queued (sem runner atribuído) na implantação. Não registrar CI PASS.
+
+## Consulta local Anatel — 2026-10-21
+Candidato sobre PR85/head40e9a453. Fonte fornecida pelo operador, membro Radioamador SHA256 cda67109c6307f87ff0e11979497909e4e7f49a4353ba473c32038460a4bbe98. 71.318 registros preservados; 46.654 indicativos não vazios após uppercase;9 sem indicativo. Nada de base real no Git. Validação pendente.
+
+### Implantação local concluída
+- Código d795040f8f90839dbd25886ff94b37943e476e0d na PR85. Base real fora do Git/webroot, em SQLite root:www-data0640 e diretório0750; sem permissão de escrita para PHP. Conteúdo minimizado transferido com hash gzip b40821cc4c08f74b6ac35f9e6b7d9210d6847a0ac40bfd6c796bd25ab4669fbc validado na origem/destino.
+- 71.318 registros; 46.654 indicativos normalizados não vazios;9ausentes preservados. A contagem bruta46657 incluía placeholder e diferenças de caixa; não confundir com contagem validada.
+- ENV: integridade/schema/counts; busca lower/acento, filtros, escape HTML, SQL injection/literal%/underscore/arrays, paginação alta/sem dados PASS; render e filtros canônicos em6idiomas PASS; restore isolado byte a byte PASS. Consulta inicial7,95ms/peakPHP2MiB na amostra de laboratório, não benchmark de carga.
+- PROD: lookup HTTP200/24495bytes; busca PU2PNY e filtrosSP/ClasseC/Fixa6860registros; pagina2, vazio, %, SQL injection, CSS, ao-vivo/conectados/modulos/ranking/suporte e Livehealth HTTP200. PIDs rádio/transcoder/Nginx/PHP-FPM preservados. Latências HTTP amostrais lookup235,15ms/busca894,02ms/filtro691,81ms, sem alegar garantia ou teste de carga.
+- Regras legadas de app.css escondem células em mobile. O CSS novo repõe displaytable-cell somente em data-pageconsulta-indicativo, sem alterar tabelas existentes. Layout visual não validado em navegador por bloqueio de política de host.
+- Backup root-only /opt/xlx026-backups/CALLSIGN_LOCAL_20261021 contém view.before verificado, candidato, manifest, rollback.py e deploy-result.json. Sem alterar index/menu/Nginx/JS/API/rádio. Procedimento reproduzível em docs/CALLSIGN_LOCAL_REGISTRY.md. CI não alegado PASS.

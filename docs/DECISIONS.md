@@ -77,3 +77,9 @@ A IA é observadora: recebe somente contadores técnicos agregados e pode sugeri
 
 ### Continuação 2026-10-04 — economia do observador
 Silêncio ou resumo idêntico não geram consulta. Mudança de avaliação não pode furar o limite de 15 minutos entre tentativas. A regra local permanece independente da API. Teste C++ deve exercitar a sequência completa admit/EOT, além dos casos de estado preparado.
+
+## DEC-2026-10-21-015 — Consulta oficial de indicativos
+Adicionar somente menu e página com iframe da URL Anatel fornecida pelo operador, fonte e saída direta sempre visível. Sem scraping, cache de cadastro, polling ou alteração de rádio/Live. Rota PHP dedicada usa o controlador existente e dispensa alteração Nginx. Incorporação externa não verificada visualmente: navegador recusou host por política; leitura HTTP da VPS retornou 403. Não alegar compatibilidade da Anatel.
+
+## DEC-2026-10-21-016 — Consulta local de radioamadores
+A pedido do operador, substituir iframe por consulta SSR paginada usando somente Estacoes_Radioamador.csv do ZIP fornecido. UI-013 passa a priorizar base local quando instalada e link oficial discreto. Não extrair as demais bases grandes. CPF/CNPJ, Fistel, número de estação e frequências não entram no banco; a base real fica fora do webroot e do Git. Ausências N/I/N/A viram vazio exibido como travessão; uppercase consolida indicativos para contagem sem eliminar registros de estações. Status é o do arquivo, não certificação em tempo real. Sem polling/serviço novo ou mudança de Live/rádio.

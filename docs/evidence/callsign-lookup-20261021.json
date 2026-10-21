@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-21",
+  "functional_commit": "7a9570b4b93f95804be8691c791d4a89c915e0e1",
+  "base_commit": "56a8591c9f3504805136be64bfcbf48e98fbeb46",
+  "requirement": "UI-013",
+  "test": "TEST-039",
+  "ENV": {
+    "php_lint": "PASS (3 files)",
+    "php_render": "PASS",
+    "locale_key_parity": "PASS (6)",
+    "canonical_navigation": "PASS",
+    "governance": "PASS",
+    "dashboard_i18n": "PASS (158.71 s; first attempt timed out)"
+  },
+  "PROD": {
+    "http200": [
+      "/consulta-indicativo.php",
+      "/ao-vivo",
+      "/conectados",
+      "/modulos",
+      "/ranking",
+      "/refletores",
+      "/suporte",
+      "/certificado",
+      "/simulado-anatel/",
+      "/api/live-v2/health"
+    ],
+    "service_pids_unchanged": true,
+    "index_before_sha256": "042a91e0ca3a88ad1ca1efd853be423dab9cfb6725be79104b796f43470b3bd7",
+    "index_after_sha256": "169f3da878cc22669f934b937e40279d2343b842e2cee6b911f6d97e861c2215"
+  },
+  "pending": [
+    "visual desktop/mobile (browser host policy restriction)",
+    "external iframe functional rendering",
+    "CI result (queued at deploy)"
+  ],
+  "external_source": "https://informacoes.anatel.gov.br/paineis/outorga-e-licenciamento/estacoes-radioamador"
+}

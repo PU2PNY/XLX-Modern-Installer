@@ -317,3 +317,11 @@ Three additional controlled multi-TX repeats retained 40/40 frames per stream wi
 - Adds a dedicated low-frequency local telemetry monitor plus sparse OpenAI analysis of technical metrics only; no radio audio, voice content or callsigns are sent.
 - Adds `/api/helix-status.php` and a compact `HELIX • MONITORANDO` Live-box indicator.
 - Initial PROD streams observed 18/18, 108/108 and 72/72 Helix shadow frames with zero fallback and zero codec failures; 24 h soak remains pending.
+
+## 2026-10-21 — Consulta de indicativo
+- Adiciona menu/página para consulta oficial Anatel com iframe e link direto permanente.
+- Permite quebra de linha no menu desktop para acomodar a entrada; não altera rádio/Live.
+
+## 2026-10-21 — Diretório local Anatel
+- Substitui iframe por pesquisa paginada no próprio painel, sem depender da disponibilidade do painel Anatel.
+- Base minimizada fora do webroot/Git, fonte oficial discreta e indicação de cópia estática.

@@ -1,6 +1,6 @@
 <?php
 $page = $_GET['page'] ?? 'ao-vivo';
-$allowed = ['ao-vivo','modulos','conectados','ranking','refletores','digital-lab','certificado'];
+$allowed = ['ao-vivo','modulos','conectados','ranking','refletores','digital-lab','certificado','consulta-indicativo'];
 if (!in_array($page, $allowed, true)) $page = 'ao-vivo';
 $authorizedPage = in_array($page, ['ao-vivo','modulos','conectados','ranking'], true);
 $site = is_file(__DIR__ . '/config/site.php') ? require __DIR__ . '/config/site.php' : [];
@@ -8,6 +8,7 @@ $moduleCount = max(1, min(26, (int)($site['radio']['module_count'] ?? 5)));
 $moduleRange = 'A–' . chr(64 + $moduleCount);
 function nav_class(string $p, string $current): string { return $p === $current ? ' class="active"' : ''; }
 function page_url(string $p): string {
+  if ($p === 'consulta-indicativo') return '/consulta-indicativo.php';
   if ($p === 'digital-lab') return '/aprs-dprs';
   return '/' . rawurlencode($p);
 }
@@ -19,6 +20,7 @@ function render_nav(string $page): string {
     'digital-lab' => 'APRS / D-PRS',
     'certificado' => 'Certificado',
     'ranking' => 'Ranking',
+    'consulta-indicativo' => 'Consulta de indicativo',
     'refletores' => 'Lista de refletores XLX',
   ];
   $html = '';
@@ -29,6 +31,7 @@ function render_nav(string $page): string {
   return $html;
 }
 $seo = [
+ 'consulta-indicativo'=>['title'=>'Consulta de indicativo','description'=>'Consulte os indicativos e as estações de radioamador no painel oficial da Anatel.'],
  'ao-vivo'=>['title'=>'{{REFLECTOR_NAME}} — Painel ao vivo D-STAR, DMR e C4FM','description'=>'Acompanhe ao vivo transmissões, estações conectadas e módulos do refletor multiprotocolo {{REFLECTOR_NAME}}.'],
  'modulos'=>['title'=>'Módulos ' . $moduleRange . ' — {{REFLECTOR_NAME}}','description'=>'Consulte funções, protocolos e identificações de acesso dos módulos habilitados do refletor {{REFLECTOR_NAME}}.'],
  'conectados'=>['title'=>'Estações conectadas — {{REFLECTOR_NAME}}','description'=>'Veja em tempo real as estações conectadas ao {{REFLECTOR_NAME}}, com indicativo, protocolo, módulo e tempo de conexão.'],
@@ -167,6 +170,7 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}' . page_url($page);
 <link rel="stylesheet" href="assets/ao-vivo-gif-position-v9.css?v=1">
 <link rel="stylesheet" href="assets/ao-vivo-gif-anchor-v12.css?v=1">
 <?php endif; ?>
+<link rel="stylesheet" href="/assets/consulta-indicativo.css?v=20261021">
 </head>
 <body data-page="<?=htmlspecialchars($page, ENT_QUOTES, 'UTF-8')?>" data-reflector="{{REFLECTOR_NAME}}">
 <main>
@@ -212,6 +216,8 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}' . page_url($page);
   <div class="hamwx-skeleton">Carregando clima e propagação...</div>
  </section>
 <!-- /XLXMODERN HAM WEATHER WIDGET V1 -->
+<?php elseif ($page === 'consulta-indicativo'): ?>
+ <?php require __DIR__.'/consulta-indicativo-view.php'; ?>
 <?php elseif ($page === 'modulos'): ?>
  <section class="page-heading connected-modules-heading">
   <p class="eyebrow">ESTRUTURA DO REFLETOR</p>

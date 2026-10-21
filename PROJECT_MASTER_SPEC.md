@@ -132,3 +132,8 @@ Uma mudança só é aceita se:
 - **TURN-010** — Ao iniciar cooldown real, o box de TX deve informar todos os indicativos inelegíveis naquele módulo e exibir a contagem regressiva de até 7 s. O aviso usa estado autoritativo local, não resposta remota de IA; deve desaparecer na expiração ou terceira estação. Não apresentar espera como transmissão ativa.
 - **TURN-011** — A promoção deve preservar integralmente o TOT180 existente da PR #54 e a configuração efetiva. O binário conhecido-bom c0283b7f deve ser recuperado/reproduzido ou ter equivalência comprovada; código divergente em /usr/src não representa automaticamente o processo ativo.
 - **TURN-012** — Identidades do aviso permanecem somente no estado local/painel público de rádio; o observador externo recebe exclusivamente contadores agregados. Estado é limitado por módulo e temporário, sem logs de áudio ou consulta externa por PTT.
+
+### Consulta de indicativo
+- **UI-013** — Menu Consulta de indicativo e página isolada da Anatel, iframe com título acessível, link oficial permanente, CSS limitado, sem sobreposição do menu e sem mudar APIs/Live. Preservar seis idiomas; incorporação depende do site externo.
+
+- **UI-014** — Substitui o requisito de iframe UI-013 para esta consulta: renderização local com SQLite somente leitura, busca literal sem distinguir acentos, filtros UF do titular/COER/tipo, 25 registros por página, escaping e parâmetros SQL. Fonte oficial discreta, importação/data da cópia explícitas, preservação de registros sem identidade e distinção entre estações e indicativos. Base real fora de Git/webroot. Importador reproduzível e troca atômica com backup. Sem mudar menu/Live/rádio.
