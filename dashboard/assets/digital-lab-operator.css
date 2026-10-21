@@ -407,7 +407,7 @@
 
 .dlab-birthday-grid{
   display:grid;
-  grid-template-columns:1fr 1.4fr;
+  grid-template-columns:minmax(0,.7fr) minmax(0,1.35fr) minmax(0,1fr);
   gap:9px
 }
 
