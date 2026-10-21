@@ -39,6 +39,8 @@ echo "[route i18n]"
 php "$ROOT/tests/test-route-i18n.php" || failures=$((failures+1))
 echo "[https rate limit]"
 bash "$ROOT/tests/test-https-rate-limit.sh" || failures=$((failures+1))
+echo "[aprs registration birthday]"
+bash "$ROOT/tests/test-aprs-registration-birthday.sh" || failures=$((failures+1))
 echo "[callinghome contract]"
 bash "$ROOT/tests/test-callinghome-contract.sh" || failures=$((failures+1))
 echo "[control functional sandbox]"
