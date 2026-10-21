@@ -25,13 +25,13 @@ This directory preserves **selected production source/configuration files** verb
 - `/api/live.php`: HTTP 200.
 - `xlxd.service` and `xlx026-radioid-reconcile.timer`: active.
 - No XLXD restart or audio change required.
-- Observed official RadioID response for `PU2PNY` contained 17 named fields; the legacy `users.db` has a **seven-field CSV-derived schema**, so this implementation currently imports the canonical ID/callsign/first/last/city/state/country fields, NOT every API metadata field.
+- Observed official RadioID response contained 17 named fields. Core identity/location is stored via the legacy CSV/`users.db` schema, while all **17 observed, allowlisted public API fields** are stored in an isolated SQLite archive (`/var/lib/xlx026-identity/radioid-profiles.sqlite3`) when a verified import succeeds. The archive was tested with a verified real RadioID profile; its integrity check passed. No private unlisted API fields are retained.
 
 ## Pending release/test gates
 - Authenticated UI end-to-end import test including duplicate, update and failed upstream.
 - Long-lived tests for concurrency, network failure, new D-Star/YSF/DMR callsigns, negative cache and race with 03:00 database merge.
 - Integration into parameterized generic installer + `PROJECT_MASTER_SPEC.md` + test matrix and release status updates, followed by ENV clean install and rollback test.
-- Decide on separate versioned storage for extended RadioID API metadata, instead of silently changing `users.db` schema.
+- Add scheduled backup/restore testing for the separate public metadata archive and a safe read-only view in the Control panel; it is not part of the legacy `users.db`.
 - Confirm responsive/accessibility behavior of added control form.
 - Verify runtime identity/status over longer operation and avoid misrepresenting syntax/synthetic tests as full PROD correctness.
 
@@ -42,5 +42,7 @@ This directory preserves **selected production source/configuration files** verb
 - `/opt/xlx026-backups/MTR_INACTIVE_20261021_081746`
 - `/opt/xlx026-backups/REPEATER_EMPTY_RESPONSE_20261021_083030`
 - `/opt/xlx026-backups/REPEATER_CACHE_ONE_KEY_20261021_083207`
+- `/opt/xlx026-backups/RADIOID_FULL_PROFILE_IMPORT_20261021_083857`
+- `/opt/xlx026-backups/RADIOID_AUTO_PROFILES_20261021_083929`
 
 Use file-specific rollback, owner/group/mode restoration, service health checks and DB integrity verification; never blindly restore files across installations. Backups alone do not prove an executed restore test.
