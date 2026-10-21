@@ -51,3 +51,6 @@ Use file-specific rollback, owner/group/mode restoration, service health checks 
 
 ## Least-privilege path for extended profile metadata
 The PHP UI invokes only `radioid-profile-save ID CALLSIGN` on the same allowlisted root helper, with the dedicated sudoers entry captured under `security/`. The helper re-fetches and verifies the ID/callsign pair against the official RadioID API. The metadata SQLite remains outside the public webroot at `/var/lib/xlx026-identity/radioid-profiles.sqlite3` and is stored root-only. Its schema is independent of the legacy XLXD user database. The helper path was exercised as `www-data` and returned `stored_fields=17`; database integrity passed.
+
+## 2026-10-21 verification after Nginx cache reconciliation
+Eight remaining `/api/repeater.php` FastCGI cache objects with old `Status: 404 Not Found` were individually quarantined, not the full API cache. Snapshot: `/opt/xlx026-backups/REPEATER_NEGATIVE_EDGE_CACHE_20261021_084823`. Fresh requests for `PU2PNY`, `PU2MIZ` and `PY2UYY` returned HTTP 200; Control HTTP 200; both the legacy users database and supplemental metadata SQLite returned `PRAGMA integrity_check = ok`. XLXD and RadioID reconcile timer remained active.
