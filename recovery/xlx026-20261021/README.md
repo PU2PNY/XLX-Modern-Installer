@@ -28,10 +28,10 @@ This directory preserves **selected production source/configuration files** verb
 - Observed official RadioID response contained 17 named fields. Core identity/location is stored via the legacy CSV/`users.db` schema, while all **17 observed, allowlisted public API fields** are stored in an isolated SQLite archive (`/var/lib/xlx026-identity/radioid-profiles.sqlite3`) when a verified import succeeds. The archive was tested with a verified real RadioID profile; its integrity check passed. No private unlisted API fields are retained.
 
 ## Pending release/test gates
-- Authenticated UI end-to-end import test including duplicate, update and failed upstream.
+- Authenticated UI end-to-end import test including duplicate, update and failed upstream. The allowlisted helper route was tested successfully from the actual `www-data` user with an official real RadioID record.
 - Long-lived tests for concurrency, network failure, new D-Star/YSF/DMR callsigns, negative cache and race with 03:00 database merge.
 - Integration into parameterized generic installer + `PROJECT_MASTER_SPEC.md` + test matrix and release status updates, followed by ENV clean install and rollback test.
-- Add scheduled backup/restore testing for the separate public metadata archive and a safe read-only view in the Control panel; it is not part of the legacy `users.db`.
+- Add **recurring** backup scheduling for the separate public metadata archive and a safe read-only view in the Control panel; it is not part of the legacy `users.db`. An initial SQLite online backup plus isolated restore/integrity test PASSED, under `/opt/xlx026-backups/RADIOID_PROFILES_INITIAL_20261021_084302`.
 - Confirm responsive/accessibility behavior of added control form.
 - Verify runtime identity/status over longer operation and avoid misrepresenting syntax/synthetic tests as full PROD correctness.
 
@@ -44,5 +44,10 @@ This directory preserves **selected production source/configuration files** verb
 - `/opt/xlx026-backups/REPEATER_CACHE_ONE_KEY_20261021_083207`
 - `/opt/xlx026-backups/RADIOID_FULL_PROFILE_IMPORT_20261021_083857`
 - `/opt/xlx026-backups/RADIOID_AUTO_PROFILES_20261021_083929`
+- `/opt/xlx026-backups/RADIOID_PROFILE_SUDO_20261021_084424`
+- `/opt/xlx026-backups/RADIOID_PROFILES_INITIAL_20261021_084302` (snapshot, checksum and isolated restore test)
 
 Use file-specific rollback, owner/group/mode restoration, service health checks and DB integrity verification; never blindly restore files across installations. Backups alone do not prove an executed restore test.
+
+## Least-privilege path for extended profile metadata
+The PHP UI invokes only `radioid-profile-save ID CALLSIGN` on the same allowlisted root helper, with the dedicated sudoers entry captured under `security/`. The helper re-fetches and verifies the ID/callsign pair against the official RadioID API. The metadata SQLite remains outside the public webroot at `/var/lib/xlx026-identity/radioid-profiles.sqlite3` and is stored root-only. Its schema is independent of the legacy XLXD user database. The helper path was exercised as `www-data` and returned `stored_fields=17`; database integrity passed.
