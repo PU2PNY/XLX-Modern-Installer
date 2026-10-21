@@ -15,6 +15,9 @@ grep -F 'inputmode="numeric"' "$HTML" >/dev/null
 grep -F 'maxlength="2"' "$HTML" >/dev/null
 grep -F 'id="dlabBirthYear"' "$HTML" >/dev/null
 grep -F 'maxlength="4"' "$HTML" >/dev/null
+grep -F '#dlabOperatorLoginForm{' "$ROOT/dashboard/assets/digital-lab-operator.css" >/dev/null
+grep -F '#dlabRegisterForm{' "$ROOT/dashboard/assets/digital-lab-operator.css" >/dev/null
+grep -F 'minmax(180px,1.45fr)' "$ROOT/dashboard/assets/digital-lab-operator.css" >/dev/null
 grep -F "birth_year:Number(birthYear.value)" "$JS" >/dev/null
 grep -F "validBirthdayFull" "$API" >/dev/null
 grep -F "birth_year INTEGER" "$INIT" >/dev/null
