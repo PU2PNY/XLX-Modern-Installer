@@ -1,3 +1,13 @@
+## Unreleased — APRS/D-PRS registration and page flow
+
+- Fixes the registration day field so two-digit days such as 10–31 can be entered reliably across browser input implementations.
+- Requires day, month and year for newly created APRS/D-PRS accounts and validates the complete civil date server-side.
+- Adds nullable `birth_year` migration so existing accounts remain valid without retroactive data changes; legacy recovery continues with day/month when no year exists.
+- Keeps raw birthday components out of audit detail payloads.
+- Moves **Mensagens APRS** to the upper workflow area and moves **Teste guiado / Comece aqui** to immediately before the explanatory/FAQ sections.
+- Adds a dedicated regression for schema migration, legacy-account preservation, date fields and page ordering.
+- WartyWallaby full suite: `failures=0`; XLX026 production deployment preserved all 10 existing accounts and required no service restart.
+
 ## Unreleased — TX Turn Guard V1
 
 - Versions the optional XLXD 2.5.3 per-module anti-ping-pong patch and advisory observer; off remains the default.
