@@ -2,6 +2,7 @@
 """Bounded, evidence-based RadioID reconciliation outside the Live request path."""
 import csv, datetime as dt, fcntl, ipaddress, json, os, re, sqlite3, subprocess, sys, tempfile, time, urllib.parse, urllib.request
 from xml.etree import ElementTree as ET
+from radioid_profiles import store_profile
 META='/var/lib/xlx026-dmr-meta/metadata.json'
 XML='/var/log/xlxd.xml'
 CSV='/xlxd/users_db/users_base.csv'
@@ -97,6 +98,8 @@ def update_one(old,rid,aliases,dry=False):
     if not found:raise RuntimeError('new SQL entry not visible')
     aliases[old]={'id':rid,'callsign':current,'name':found[0],'location':found[1]}
     atomic(ALIAS,aliases)
+    try:store_profile(row)
+    except Exception as exc:print('CHECK RadioID profile: '+type(exc).__name__,file=sys.stderr,flush=True)
     return 'updated_'+old+'_to_'+current
 
 def load_result(raw):
@@ -140,6 +143,8 @@ def reconcile_new_calls(xml, now, state, dry=False):
                 with sqlite3.connect('file:'+DB+'?mode=ro',uri=True,timeout=3) as check:
                     if not check.execute('SELECT 1 FROM users WHERE callsign=? LIMIT 1',(call,)).fetchone():
                         raise RuntimeError('saved record not visible')
+                try:store_profile(row)
+                except Exception as exc:print('CHECK RadioID profile: '+type(exc).__name__,file=sys.stderr,flush=True)
                 return 'added_'+call
             except Exception as exc:
                 print('CHECK new RadioID '+call+': '+str(exc),file=sys.stderr,flush=True)
