@@ -1,6 +1,6 @@
 # PROJECT_RELEASE_STATUS — fotografia atual
 
-Atualizado em: 2026-10-02
+Atualizado em: 2026-10-21
 
 ## Repositório
 - Repositório: `PU2PNY/XLX-Modern-Installer`
@@ -12,6 +12,17 @@ Atualizado em: 2026-10-02
 - README: **Current release v1.4.6**
 - Última GitHub Release observada: **v1.2.14** (2026-09-10)
 - Estado: permanece divergência confirmada entre a versão declarada no branch e a última GitHub Release publicada.
+
+## APRS/D-PRS — cadastro e fluxo da página corrigidos em 2026-10-21
+- Branch: `fix/aprs-registration-birthyear-layout-20261021`; PR #86 aberta contra `main`.
+- SW/ENV: teste dedicado PASS; WartyWallaby executou `tests/run-all.sh` com `failures=0`.
+- O campo Dia passou a usar entrada numérica textual controlada de dois dígitos, mantendo validação autoritativa no servidor; novos cadastros exigem dia/mês/ano e usam validação civil completa.
+- Migração SQLite adiciona `birth_year` como coluna nullable. Contas legadas sem ano continuam válidas e a recuperação preserva o contrato anterior de dia/mês.
+- Dados brutos de aniversário não são incluídos no payload de auditoria.
+- Layout público: Mensagens APRS foi movido para a área superior; Estações/Mapa permanecem na sequência; Teste guiado/Comece aqui foi movido para imediatamente antes da área de explicações/perguntas.
+- PROD XLX026: backup em `/opt/xlx026-backups/APRS_BIRTHYEAR_LAYOUT_20261021_181831`; 10/10 contas existentes preservadas; banco íntegro; página e JS HTTP 200; XLXD, Nginx e `xlx-aprs-dprs.service` ativos; gateway `running`, módulo B `connected`, APRS-IS `verified`.
+- Nenhum restart de XLXD, Nginx ou gateway APRS foi necessário.
+- Limite de evidência: não foi criada conta fictícia no banco real; o próximo cadastro real de operador ainda precisa confirmar o fluxo PROD de ponta a ponta.
 
 ## Estado funcional documentado
 Evidência `DOC`:
