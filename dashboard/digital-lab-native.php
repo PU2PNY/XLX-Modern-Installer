@@ -478,7 +478,7 @@
     </article>
   </section>
 
-  <link rel="stylesheet" href="/assets/digital-lab-operator.css?v=1.2.4">
+  <link rel="stylesheet" href="/assets/digital-lab-operator.css?v=1.2.5">
 
   <script src="/assets/digital-lab-operator.js?v=1.2.4" defer></script>
 
