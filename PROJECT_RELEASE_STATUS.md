@@ -226,3 +226,6 @@ Classificação: `SW/ENV PASS` somente para a fundação estática/mock. `TEST-0
 - Evidência sanitizada [resultado](docs/evidence/tx-turn-guard-production-20261004.json) e [procedimento](experimental/tx-turn-guard/PRODUCTION-20261004.md).
 
 O bloqueio de conectividade de Warty às20:43 UTC foi superado após reconexão; o build antigo divergente não foi promovido. O timeout anterior permanece histórico, não resultado final.
+
+## Correção RadioID save/retry — 2026-10-21
+Base canônica main56a8591c9f3504805136be64bfcbf48e98fbeb46, VERSION1.4.6; runtime de reconciliação exportado separadamente, pois não estava no main. Código novo em observability/radioid-reconcile/. Causa PRODconfirmada: helper radioid-save excedeu40s em21:50:31local e tentativa ficou marcada para24h; o indicativo real dos logs é PY4WOC, enquanto PY4WOG não teve resultado oficial. Sem dados reais em fixtures/Git.11testes SW/ENV PASS; base sintética300mil com limit96MiB:3,722s/peak19356KiB. Promoção/CI ainda pendentes.

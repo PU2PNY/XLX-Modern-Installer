@@ -317,3 +317,8 @@ Three additional controlled multi-TX repeats retained 40/40 frames per stream wi
 - Adds a dedicated low-frequency local telemetry monitor plus sparse OpenAI analysis of technical metrics only; no radio audio, voice content or callsigns are sent.
 - Adds `/api/helix-status.php` and a compact `HELIX • MONITORANDO` Live-box indicator.
 - Initial PROD streams observed 18/18, 108/108 and 72/72 Helix shadow frames with zero fallback and zero codec failures; 24 h soak remains pending.
+
+## 2026-10-21 — RadioID: novos cadastros e retentativas
+- Atualiza um cadastro em cópias CSV/SQLite verificadas, sem rebuild integral para uma inclusão.
+- Falhas voltam à fila com backoff limitado; tentativas não significam cadastro concluído.
+- Inclui transmissões recentes STATION, mesmo após desconexão, e preserva consultas fora do Live/áudio.

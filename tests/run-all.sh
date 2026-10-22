@@ -61,6 +61,8 @@ echo "[stereotool lab foundation]"
 bash "$ROOT/tests/test-stereotool-foundation.sh" || failures=$((failures+1))
 echo "[tx turn guard]"
 bash "$ROOT/tests/test-tx-turn-guard.sh" || failures=$((failures+1))
+echo "[radioid save and retry]"
+python3 "$ROOT/observability/radioid-reconcile/test_radioid_reconcile.py" || failures=$((failures+1))
 echo "[project governance]"
 bash "$ROOT/tests/test-project-governance.sh" || failures=$((failures+1))
 echo "[release hardening]"
