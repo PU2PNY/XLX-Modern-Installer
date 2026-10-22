@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-21",
+  "functional_commit": "bb6c90e5421120c218408a0bec932df0238da015",
+  "sw": {
+    "synthetic_tests": 11,
+    "passed": 11
+  },
+  "env": {
+    "synthetic_rows": 300000,
+    "memory_limit_mib": 96,
+    "elapsed_seconds": 3.722,
+    "peak_rss_kib": 19356
+  },
+  "prod": {
+    "automatic_timer_save": true,
+    "profile_public_fields": 17,
+    "rows_before": 296819,
+    "rows_after": 296820,
+    "existing_rows_changed": 0,
+    "php_lookup_verified": true,
+    "http_200": [
+      "/?page=ao-vivo",
+      "/api/live.php",
+      "/api/status.php"
+    ],
+    "service_pids_preserved": true,
+    "backup_verified": true,
+    "rollback_available": true
+  },
+  "ci": {
+    "functional_commit_workflows": 3,
+    "passed": 3
+  },
+  "limits": [
+    "No RF or live transmission visual test",
+    "Reference runtime package is not automatically installed by installer",
+    "Official source absence does not permit fabricated identity"
+  ]
+}

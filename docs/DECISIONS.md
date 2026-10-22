@@ -77,3 +77,6 @@ A IA é observadora: recebe somente contadores técnicos agregados e pode sugeri
 
 ### Continuação 2026-10-04 — economia do observador
 Silêncio ou resumo idêntico não geram consulta. Mudança de avaliação não pode furar o limite de 15 minutos entre tentativas. A regra local permanece independente da API. Teste C++ deve exercitar a sequência completa admit/EOT, além dos casos de estado preparado.
+
+## DEC-2026-10-21-017 — RadioID: falha não é sucesso e gravação nova é incremental
+Incidente confirmado no runtime XLX026: consulta oficial encontrou identidade, mas helper integral excedeu40s; marcador de tentativa adiou a nova busca por24h. Para novos cadastros e reparo SQL, usar cópias validadas CSV/SQLite, atualização de uma linha, lock administrativo comum, backup/checksum e publicação por rename. Preservar caminho existente de alteração de alias já validado. Tentativas usam estado pending/resultado/next_retry: erros60s com backoff até900s; não encontrado3600s; ambíguo900s; incompleto300s. Consultas fora de PHP/Live/rádio, uma tentativa por execução e intervalo mínimo15s. Origens STATION do XML e NODE entram na fila, sem inferir identidade por IP. Zero resultados oficiais nunca autorizam inventar nome/local/ID nem esconder TX real.
