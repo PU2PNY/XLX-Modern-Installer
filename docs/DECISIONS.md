@@ -77,3 +77,6 @@ A IA é observadora: recebe somente contadores técnicos agregados e pode sugeri
 
 ### Continuação 2026-10-04 — economia do observador
 Silêncio ou resumo idêntico não geram consulta. Mudança de avaliação não pode furar o limite de 15 minutos entre tentativas. A regra local permanece independente da API. Teste C++ deve exercitar a sequência completa admit/EOT, além dos casos de estado preparado.
+
+## DEC-2026-10-23-015 — VW nativo e chave local
+Adicionar VW somente como transporte YSF nativo, preservando quadros completos e a admissão central. Não interpretar Voice FR como AMBE+2 nem prometer conversão multiprotocolo. Chave root-owned aplicada apenas a novos PTTs, sem polling/restart; padrão OFF. Preparação e testes em laboratório antes de produção.

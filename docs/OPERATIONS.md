@@ -128,3 +128,8 @@ Antes de qualquer canário:
 9. somente então considerar canário PROD.
 
 Eventos `TXTURN` não devem conter indicativo, RadioID, IP ou payload. O monitor de IA é consultivo e executado por timer separado; a OpenAI recebe somente contadores agregados. Ausência de chave/API não muda o comportamento do guard. Nunca usar resposta da IA como autorização para abrir/fechar stream.
+
+## Chave VW YSF
+Consulte `experimental/ysf-vw/README.md`. O padrão é desligado; `1` no arquivo root-owned `/etc/xlx-modern/ysf-vw.conf` admite novos PTTs VW, `0` recusa. Alterar pelo helper privado, sem restart. Ambos os rádios precisam aceitar VW; conversas com DN/DMR/D-Star usam DN. Confirmar o código/binário aprovado e concluir os gates ENV antes da primeira instalação do candidato.
+
+No XLX026, a chave fica em Controle → Início → YSF · Voz larga (VW). A integração requer somente as três regras exatas de `experimental/ysf-vw/sudoers.example`, validadas com visudo. O teste como www-data confirmou alteração OFF→ON sem mudar o PID; não ampliar para sudo arbitrário.

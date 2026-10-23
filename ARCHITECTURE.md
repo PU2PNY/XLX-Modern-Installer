@@ -121,3 +121,6 @@ Estado é separado por módulo e protegido por mutex. O relógio usa `std::chron
 O patch é `off` por padrão e a configuração V1 só é habilitada por ambiente explícito. Keepalive/Wires-X/conexão que não abrem stream DV permanecem fora do hook; comandos que eventualmente usem DV comum precisam de teste específico antes de produção.
 
 O observador `xlx-tx-turn-ai-monitor.py` é processo/timer separado. Ele lê somente eventos técnicos `TXTURN` sem identidade de estação, agrega contadores e pode solicitar análise consultiva à OpenAI. A resposta da IA nunca retorna ao caminho de admissão e não pode alterar timer, permitir ou negar transmissão. Falha de rede/API é operacionalmente irrelevante ao XLXD.
+
+## YSF VW nativo
+O candidato em `experimental/ysf-vw/` conserva o datagrama YSF Voice FR em um pacote interno explicitamente marcado. A admissão e o ciclo de vida continuam no XLXD; o roteador entrega esses pacotes somente ao protocolo YSF. O transmissor, peers e outros módulos são excluídos na saída. Não há transcodificação VW ou chamada externa. A chave persistente é lida somente na admissão do header e pode ser alterada pelo controle privado sem reiniciar ou cortar um PTT iniciado.

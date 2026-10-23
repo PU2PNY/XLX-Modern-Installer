@@ -75,3 +75,10 @@ Evidência sanitizada reproduzível: [Helix PCM bridge ENV](docs/evidence/helix-
 
 ### Continuação final TX Turn Guard — 2026-10-04
 Código e13f4e1: CI3/3 PASS; ENV build/lifecycle/protocol classes/TOT/restore/WebSocket/UI PASS. Produção ativada21:36:13 UTC com PID655997; primeira sequência A/B/A/cooldown real, RF/interlink/soak e API real ainda PENDENTES. Evidência: [resultado](docs/evidence/tx-turn-guard-production-20261004.json). Falhas anteriores de timeout/verificação foram registradas; não são classificadas como PASS.
+
+| TEST-039 | VW-001/002/004 | Chave, FICH/tamanho, clonagem, roteador real, UDP bit-idêntico, isolamento origem/módulo/peer, DN EOT e sem transcoder | WartyWallaby: C++/UDP isolado PASS, inclusive hot-disable e VW TOT. PROD: helper como www-data OFF→ON com PID preservado; PHP/helper/visudo PASS; navegador autenticado pendente | PASS (ENV/transporte e PROD controle backend); HW/visual pendentes |
+| TEST-040 | VW-003/005 | Baseline exato, guard/TOT e protocolos legados | Baseline 9dce4347 reproduzido; candidato 3991b040; C++ guard e DCS/YSF/DMR admit/EOT/timeout/TOT PASS. PROD: 13 listeners, HTTP200, reconexões e 2 ciclos de stream no canário; xuvd/Helix preservados | PASS (ENV sintético/PROD inicial); RF/soak pendentes |
+
+| TEST-041 | VW-005 / BACKUP-002 | Restore do núcleo e arquivos administrativos | ENV: baseline→candidato→restore, ELF exato e 13 listeners em cada serviço isolado. PROD: backup root-only e fixture restaurando 5 arquivos originais com hash exato; sem executar rollback real na produção | PASS (ENV lifecycle e fixture de arquivos); restore real PROD não executado |
+
+| TEST-042 | VW-002/004 | Diagnóstico distingue VW nativo habilitado de conversão multiprotocolo | PROD: função read-only e snapshot do monitor com VW nativo=true, suporte=true e crossmode VW=false; Python compile e serviço monitor active | PASS (PROD metadados); sem inferência RF |

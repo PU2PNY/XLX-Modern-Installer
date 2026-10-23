@@ -1,0 +1,70 @@
+{
+  "deployment": {
+    "production": "PASS startup/control/endpoints",
+    "binary_sha256": "3991b040573ff7522af69148c97f768d0b468b716212bf7b8e047fca1c6cc410",
+    "baseline_sha256": "9dce43475fed2fa464e8b76f1363167827b5cb80e33981523d2e701ea3d0b9f0",
+    "xlxd_pid": "1197741",
+    "udp_listeners": 13,
+    "vw_enabled": true,
+    "crossmode_vw": false,
+    "transcoder_pid_preserved": true,
+    "helix_pid_preserved": true,
+    "http": {
+      "/ao-vivo": 200,
+      "/controle/": 200,
+      "/api/live.php": 200
+    },
+    "raw_node_count": 41,
+    "active_count": 0,
+    "elapsed_seconds": 45.7,
+    "rf_audio": "PENDING operator test",
+    "backup": "/opt/xlx026-backups/VW_ENABLE_20261023"
+  },
+  "switch": {
+    "web_user_helper": "PASS status/off/on",
+    "pid_preserved_during_toggle": "1197741",
+    "vw_enabled": true,
+    "protocol_xml_records": {
+      "XLX": 1,
+      "YSF": 33,
+      "DExtra": 5,
+      "DCS": 13,
+      "DMRMmdvm": 47
+    },
+    "nrestarts": "0"
+  },
+  "canary_log_counters": {
+    "opening_streams": 2,
+    "closing_streams": 2,
+    "fatal_signatures": 0
+  },
+  "date": "2026-10-23",
+  "core_code_commit": "0703f0d2490813417db4bd651a4d34eb6ce35f6c",
+  "validation_limits": [
+    "Synthetic UDP transport does not prove RF/audio quality",
+    "Authenticated browser control UI requires login and was not visually validated",
+    "Initial canary is not long-duration soak"
+  ],
+  "env": {
+    "baseline_reproduced": true,
+    "native_vw_transport": "PASS",
+    "native_vw_tot": "PASS",
+    "legacy_protocol_guard_tot": "PASS",
+    "service_restore": "PASS baseline/candidate/restore, 13 listeners per stage",
+    "private_file_restore_fixture": "PASS 5 original files"
+  },
+  "harness_corrections": [
+    "Missing C++ include corrected before final build",
+    "Restore harness corrected from Type=simple to Type=forking",
+    "Initial production idle wait stopped before mutation to correct reconnect verifier; final gate uses refreshed XML",
+    "Web helper sudo access added as three exact rules after initial www-data permission test failed"
+  ],
+  "health": {
+    "native_vw_enabled": true,
+    "native_vw_supported": true,
+    "crossmode_vw": false,
+    "readonly_capability_test": "PASS",
+    "monitor_service": "active",
+    "xlxd_second_restart": false
+  }
+}

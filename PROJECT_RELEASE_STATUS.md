@@ -226,3 +226,16 @@ Classificação: `SW/ENV PASS` somente para a fundação estática/mock. `TEST-0
 - Evidência sanitizada [resultado](docs/evidence/tx-turn-guard-production-20261004.json) e [procedimento](experimental/tx-turn-guard/PRODUCTION-20261004.md).
 
 O bloqueio de conectividade de Warty às20:43 UTC foi superado após reconexão; o build antigo divergente não foi promovido. O timeout anterior permanece histórico, não resultado final.
+
+## YSF VW — ativo no XLX026 em 2026-10-23
+- PR #88, branch `feature/ysf-vw-native-lab-20261023`, base `56a8591c9f3504805136be64bfcbf48e98fbeb46`; VERSION continua 1.4.6.
+- Baseline ativo reproduzido bit-idêntico: `9dce43475fed2fa464e8b76f1363167827b5cb80e33981523d2e701ea3d0b9f0`. Candidato VW: `3991b040573ff7522af69148c97f768d0b468b716212bf7b8e047fca1c6cc410`.
+- ENV PASS: roteador real e UDP header/voz/EOT bit-idênticos; chave/arquivo inválido, hot-disable, origem/módulo/peer, DN EOT, VW TOT e ausência de transcoder; regressão guard e DCS/YSF/DMR admit/EOT/timeout/TOT.
+- ENV PASS: baseline → candidato → restauração em serviços com rede/arquivos temporários isolados, 13 listeners em cada estágio. A tentativa inicial do harness usou Type=simple; corrigida para Type=forking e repetida com sucesso.
+- CI do primeiro head `0703f0d2490813417db4bd651a4d34eb6ce35f6c`: Installer CI, Debian 12 runtime gate e Stream identity regression PASS. Atualizações documentais posteriores têm seus próprios checks.
+- PROD: instalação em janela sem TX, PID1197741, 13 listeners, rotas HTTP200, clientes reconectados e chave ON. Transcoder/Helix não reiniciados. Teste do helper como www-data OFF→ON preservou PID; três regras sudo exatas, sem terminal arbitrário. Duas aberturas/fechamentos observados e zero assinaturas fatais no canário inicial; NRestarts0.
+- Backup root-only `/opt/xlx026-backups/VW_ENABLE_20261023`, manifesto e rollback.py; fixture de restauração dos cinco arquivos privados originais PASS. Uma espera inicial foi interrompida antes de qualquer mutação para corrigir a verificação de reconexões: o snapshot Live não fornece connected_count; o gate usa o XML atualizado. Sem rollback de produção nesta implantação.
+- PENDENTE: escuta de áudio VW com rádios reais, validação visual autenticada do novo controle e soak prolongado. VW não é convertido para DN/DMR/D-Star; usar DN para conversas multiprotocolo.
+- Evidência sanitizada: [resultado](docs/evidence/ysf-vw-20261023.json). Nenhum segredo, áudio, backup ou sessão foi versionado.
+
+- Diagnóstico operacional atualizado para refletir o marcador do núcleo e a chave: `voice.vw_voice_fr=true`, `vw_supported=true`, `crossmode_safe.vw_voice_fr=false`. Função de leitura/sintaxe PASS; reiniciado somente o monitor de saúde para carregar essa correção, sem segundo restart do XLXD.

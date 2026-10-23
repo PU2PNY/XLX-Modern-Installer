@@ -1,0 +1,324 @@
+diff --git a/src/cdvframepacket.h b/src/cdvframepacket.h
+index d471a74..09e56c1 100644
+--- a/src/cdvframepacket.h
++++ b/src/cdvframepacket.h
+@@ -68,7 +68,7 @@ public:
+     
+     // identity
+     bool IsDvFrame(void) const              { return true; }
+-    bool HaveTranscodableAmbe(void) const   { return true; }
++    bool HaveTranscodableAmbe(void) const   { return !IsYsfVw(); }
+     
+     // get
+     const uint8 *GetAmbe(uint8) const;
+diff --git a/src/cpacket.h b/src/cpacket.h
+index b9aea64..bc2424b 100644
+--- a/src/cpacket.h
++++ b/src/cpacket.h
+@@ -25,6 +25,9 @@
+ #ifndef cpacket_h
+ #define cpacket_h
+ 
++#include <vector>
++#include "cip.h"
++
+ ////////////////////////////////////////////////////////////////////////////////////////
+ 
+ // Origin Id
+@@ -74,13 +77,22 @@ public:
+     uint8  GetModuleId(void) const                  { return m_uiModuleId; }
+     bool   IsLocalOrigin(void) const                { return (m_uiOriginId == ORIGIN_LOCAL); }
+     
++    // Native YSF VW wire frame. Empty for all legacy packets.
++    bool IsYsfVw(void) const { return m_YsfVwWire.size() == 155; }
++    const std::vector<uint8> &GetYsfVwWire(void) const { return m_YsfVwWire; }
++    const CIp &GetYsfVwOwner(void) const { return m_YsfVwOwner; }
++    void SetYsfVwWire(const uint8 *data, const CIp &owner) { m_YsfVwOwner = owner; m_YsfVwWire.assign(data, data + 155); }
++
+     // set
++    void SetStreamId(uint16 sid) { m_uiStreamId = sid; }
+     void UpdatePids(uint32);
+     void SetModuleId(uint8 uiId)                    { m_uiModuleId = uiId; }
+     void SetLocalOrigin(void)                       { m_uiOriginId = ORIGIN_LOCAL; }
+     void SetRemotePeerOrigin(void)                  { m_uiOriginId = ORIGIN_PEER; }
+     
+ protected:
++    std::vector<uint8> m_YsfVwWire;
++    CIp m_YsfVwOwner;
+     // common
+     uint16  m_uiStreamId;
+     uint8   m_uiModuleId;
+diff --git a/src/cpacketstream.cpp b/src/cpacketstream.cpp
+index fe1198d..4607d68 100644
+--- a/src/cpacketstream.cpp
++++ b/src/cpacketstream.cpp
+@@ -55,7 +55,7 @@ bool CPacketStream::Open(const CDvHeaderPacket &DvHeader, CClient *client)
+         m_OwnerClient = client;
+         m_OpenTime.Now();
+         m_LastPacketTime.Now();
+-        m_CodecStream = g_Transcoder.GetStream(this, client->GetCodec());
++        m_CodecStream = DvHeader.IsYsfVw() ? NULL : g_Transcoder.GetStream(this, client->GetCodec());
+         ok = true;
+     }
+     return ok;
+@@ -76,6 +76,9 @@ void CPacketStream::Close(void)
+ 
+ void CPacketStream::Push(CPacket *Packet)
+ {
++    if ( Packet->IsYsfVw() != m_DvHeader.IsYsfVw() )
++    { delete Packet; return; }
++
+     // update stream dependent packet data
+     m_LastPacketTime.Now();
+     Packet->UpdatePids(m_uiPacketCntr);
+diff --git a/src/cpacketstream.h b/src/cpacketstream.h
+index 089ccff..d02272d 100644
+--- a/src/cpacketstream.h
++++ b/src/cpacketstream.h
+@@ -66,6 +66,7 @@ public:
+     bool            IsMaxDurationReached(void) const { return (m_OpenTime.DurationSinceNow() >= STREAM_MAX_DURATION); }
+     bool            IsOpen(void) const              { return m_bOpen; }
+     uint16          GetStreamId(void) const         { return m_uiStreamId; }
++    bool IsYsfVw(void) const { return m_DvHeader.IsYsfVw(); }
+     const CCallsign &GetUserCallsign(void) const    { return m_DvHeader.GetMyCallsign(); }
+ 
+ protected:
+diff --git a/src/cprotocol.cpp b/src/cprotocol.cpp
+index bd66347..509032b 100755
+--- a/src/cprotocol.cpp
++++ b/src/cprotocol.cpp
+@@ -177,6 +177,9 @@ void CProtocol::OnDvLastFramePacketIn(CDvLastFramePacket *Frame, const CIp *Ip)
+     }
+     else
+     {
++        // A DN terminator cannot close a native VW stream.
++        if ( stream->IsYsfVw() != Frame->IsYsfVw() ) { delete Frame; return; }
++
+         // push
+         stream->Lock();
+         stream->Push(Frame);
+diff --git a/src/cprotocol.h b/src/cprotocol.h
+index 1b43371..72d7b94 100644
+--- a/src/cprotocol.h
++++ b/src/cprotocol.h
+@@ -83,6 +83,8 @@ public:
+     CPacketQueue *GetQueue(void)        { m_Queue.Lock(); return &m_Queue; }
+     void ReleaseQueue(void)             { m_Queue.Unlock(); }
+     
++    virtual bool AcceptsYsfVw(void) const { return false; }
++
+     // get
+     const CCallsign &GetReflectorCallsign(void)const { return m_ReflectorCallsign; }
+     
+diff --git a/src/creflector.cpp b/src/creflector.cpp
+index 46ec1ec..e9b2495 100644
+--- a/src/creflector.cpp
++++ b/src/creflector.cpp
+@@ -594,11 +594,9 @@ void CReflector::RouterThread(CReflector *This, CPacketStream *streamIn)
+             // iterate on all protocols
+             for ( int i = 0; i < This->m_Protocols.Size(); i++ )
+             {
+-                // duplicate packet
+-                CPacket *packetClone = packet->Duplicate();
+-
+-                // get protocol
+                 CProtocol *protocol = This->m_Protocols.GetProtocol(i);
++                if ( packet->IsYsfVw() && !protocol->AcceptsYsfVw() ) continue;
++                CPacket *packetClone = packet->Duplicate();
+ 
+                 // if packet is header, update RPT2 according to protocol
+                 if ( packetClone->IsDvHeader() )
+diff --git a/src/cysfprotocol.cpp b/src/cysfprotocol.cpp
+index c2ed19c..9f9f260 100644
+--- a/src/cysfprotocol.cpp
++++ b/src/cysfprotocol.cpp
+@@ -48,6 +48,10 @@ bool CYsfProtocol::Init(void)
+ {
+     bool ok;
+     
++    // Opt-in at service start; missing/malformed values fail closed.
++    m_VwEnabled = VwEnabledFromEnvironment();
++    std::cout << "YSF VW native-only " << (VwEnabledAtAdmission() ? "enabled" : "disabled") << std::endl;
++
+     // base class
+     ok = CProtocol::Init();
+     
+@@ -116,7 +120,11 @@ void CYsfProtocol::Task(void)
+         if ( IsValidDvPacket(Buffer, &Fich) )
+         {
+            //std::cout << "FN = " << (int)Fich.getFN() << "  FT = " << (int)Fich.getFT() << std::endl;
+-            if ( IsValidDvFramePacket(Ip, Fich, Buffer, Frames) )
++            if ( Fich.getDT() == YSF_DT_VOICE_FR_MODE && Fich.getFI() != YSF_FI_HEADER )
++            {
++                OnVwPacketIn(Buffer, Ip, Fich);
++            }
++            else if ( Fich.getDT() == YSF_DT_VD_MODE2 && IsValidDvFramePacket(Ip, Fich, Buffer, Frames) )
+             {
+                 //std::cout << "YSF DV frame"  << std::endl;
+                 
+@@ -132,10 +140,14 @@ void CYsfProtocol::Task(void)
+                 //std::cout << "YSF DV header:"  << std::endl << *Header << std::endl;
+                 //std::cout << "YSF DV header:"  << std::endl;
+                 
++                delete Frames[0]; delete Frames[1];
++                Frames[0] = Frames[1] = NULL;
+                 // node linked and callsign muted?
+                 if ( g_GateKeeper.MayTransmit(Header->GetMyCallsign(), Ip, PROTOCOL_YSF, Header->GetRpt2Module())  )
+                 {
+                     // handle it
++                    if ( Fich.getDT() == YSF_DT_VOICE_FR_MODE )
++                        Header->SetYsfVwWire(Buffer.data(), Ip);
+                     OnDvHeaderPacketIn(Header, Ip);
+                     //OnDvFramePacketIn(Frames[0], &Ip);
+                     //OnDvFramePacketIn(Frames[1], &Ip);
+@@ -145,7 +157,7 @@ void CYsfProtocol::Task(void)
+                     delete Header;
+                 }
+             }
+-            else if ( IsValidDvLastFramePacket(Ip, Fich, Buffer, Frames) )
++            else if ( Fich.getDT() == YSF_DT_VD_MODE2 && IsValidDvLastFramePacket(Ip, Fich, Buffer, Frames) )
+             {
+                 //std::cout << "YSF last DV frame"  << std::endl;
+ 
+@@ -239,6 +251,8 @@ void CYsfProtocol::Task(void)
+ bool CYsfProtocol::OnDvHeaderPacketIn(CDvHeaderPacket *Header, const CIp &Ip)
+ {
+     bool newstream = false;
++    CCallsign heardMy = Header->GetMyCallsign();
++    CCallsign heardRpt2 = Header->GetRpt2Callsign();
+     
+     // find the stream
+     CPacketStream *stream = GetStream(Header->GetStreamId());
+@@ -265,6 +279,7 @@ bool CYsfProtocol::OnDvHeaderPacketIn(CDvHeaderPacket *Header, const CIp &Ip)
+                 }
+             }
+ 
++            heardRpt2 = Header->GetRpt2Callsign();
+             // and try to open the stream
+             if ( (stream = g_Reflector.OpenStream(Header, client)) != NULL )
+             {
+@@ -277,9 +292,9 @@ bool CYsfProtocol::OnDvHeaderPacketIn(CDvHeaderPacket *Header, const CIp &Ip)
+         g_Reflector.ReleaseClients();
+         
+         // update last heard
+-        if ( g_Reflector.IsValidModule(Header->GetRpt2Module()) )
++        if ( g_Reflector.IsValidModule(heardRpt2.GetModule()) )
+         {
+-            g_Reflector.GetUsers()->Hearing(Header->GetMyCallsign(), via, Header->GetRpt2Callsign());
++            g_Reflector.GetUsers()->Hearing(heardMy, via, heardRpt2);
+             g_Reflector.ReleaseUsers();
+         }
+         
+@@ -321,6 +336,12 @@ void CYsfProtocol::HandleQueue(void)
+         // encode
+         CBuffer buffer;
+         
++        if ( packet->IsYsfVw() )
++        {
++            const auto &wire = packet->GetYsfVwWire();
++            buffer.Set(wire.data(), wire.size());
++        }
++        else // legacy encoder
+         // check if it's header
+         if ( packet->IsDvHeader() )
+         {
+@@ -364,7 +385,8 @@ void CYsfProtocol::HandleQueue(void)
+             while ( (client = clients->FindNextClient(PROTOCOL_YSF, &index)) != NULL )
+             {
+                 // is this client busy ?
+-                if ( !client->IsAMaster() && (client->GetReflectorModule() == packet->GetModuleId()) )
++                if ( !client->IsAMaster() && (client->GetReflectorModule() == packet->GetModuleId()) &&
++                     (!packet->IsYsfVw() || (!client->IsPeer() && !(client->GetIp() == packet->GetYsfVwOwner()))) )
+                 {
+                     // no, send the packet
+                     m_Socket.Send(buffer, client->GetIp());
+@@ -441,7 +463,9 @@ bool CYsfProtocol::IsValidDvPacket(const CBuffer &Buffer, CYSFFICH *Fich)
+         // decode YSH fich
+         if ( Fich->decode(&(Buffer.data()[40])) )
+         {
+-            valid = (Fich->getDT() == YSF_DT_VD_MODE2);
++            valid = (Fich->getDT() == YSF_DT_VD_MODE2) ||
++                    (Fich->getDT() == YSF_DT_VOICE_FR_MODE &&
++                     (Fich->getFI() != YSF_FI_HEADER || VwEnabledAtAdmission()));
+         }
+     }
+     return valid;
+@@ -1148,3 +1172,46 @@ bool CYsfProtocol::DebugDumpLastDvPacket(const CBuffer &Buffer)
+ 
+     return ok;
+ }
++
++//
++// Native VW is an opaque YSF wire path, not AMBE+2. Admission/ownership
++// remains in OpenStream. No late entry or peer forwarding in this version.
++void CYsfProtocol::OnVwPacketIn(const CBuffer &buffer, const CIp &ip, const CYSFFICH &fich)
++{
++    const uint16 sid = IpToStreamId(ip);
++    if ( fich.getFI() == YSF_FI_TERMINATOR && g_Reflector.IsTotBlocked(sid, &ip, false) )
++    { g_Reflector.ReleaseTotBlock(sid, &ip); return; }
++    CPacketStream *stream = GetStream(sid, &ip);
++    if ( stream == NULL ) return;
++    stream->Lock();
++    const bool active = stream->IsOpen() && 
++                        stream->IsYsfVw();
++    stream->Unlock();
++    if ( !active ) return;
++    const bool last = fich.getFI() == YSF_FI_TERMINATOR;
++    if ( !last && fich.getFI() != YSF_FI_COMMUNICATIONS ) return;
++    CDvFramePacket *frame = last ? static_cast<CDvFramePacket *>(new CDvLastFramePacket())
++                                : new CDvFramePacket();
++    frame->SetStreamId(sid);
++    frame->SetYsfVwWire(buffer.data(), ip);
++    if ( last )
++    {
++        OnDvLastFramePacketIn(static_cast<CDvLastFramePacket *>(frame), &ip);
++
++    }
++    else OnDvFramePacketIn(frame, &ip);
++}
++
++
++bool CYsfProtocol::VwEnabledAtAdmission(void) const
++{
++    // Root-owned persistent key, read only at VW header admission.
++    // Existing PTTs finish when the key changes. No polling or restart.
++    FILE *f = ::fopen("/etc/xlx-modern/ysf-vw.conf", "r");
++    if ( f == NULL ) return m_VwEnabled;
++    char value[4] = {0,0,0,0};
++    const size_t n = ::fread(value, 1, sizeof(value), f);
++    ::fclose(f);
++    return (n == 1 && value[0] == '1') ||
++           (n == 2 && value[0] == '1' && value[1] == '\n');
++}
+diff --git a/src/cysfprotocol.h b/src/cysfprotocol.h
+index 77725e9..593560e 100644
+--- a/src/cysfprotocol.h
++++ b/src/cysfprotocol.h
+@@ -25,6 +25,8 @@
+ 
+ #ifndef cysfprotocol_h
+ #define cysfprotocol_h
++#include <cstdlib>
++#include <cstring>
+ 
+ 
+ #include "ctimepoint.h"
+@@ -70,6 +72,9 @@ public:
+ class CYsfProtocol : public CProtocol
+ {
+ public:
++    static bool VwEnabledFromEnvironment(void) { const char *v = ::getenv("XLX_YSF_VW"); return v && ::strcmp(v, "1") == 0; }
++    bool VwEnabledAtAdmission(void) const;
++    bool AcceptsYsfVw(void) const { return true; }
+     // constructor
+     CYsfProtocol();
+     
+@@ -84,6 +89,9 @@ public:
+     void Task(void);
+     
+ protected:
++    bool m_VwEnabled = false;
++    void OnVwPacketIn(const CBuffer &, const CIp &, const CYSFFICH &);
++
+     // queue helper
+     void HandleQueue(void);
