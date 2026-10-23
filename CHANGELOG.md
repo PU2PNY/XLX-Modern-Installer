@@ -1,3 +1,10 @@
+## Unreleased — optional native YSF VW
+
+- Adds an opt-in Voice FR wire path isolated to native YSF clients of the same module, preserving the source datagrams without claiming cross-codec support.
+- Adds a root-owned admission key and limited, authenticated control-page integration; switching affects new PTTs without polling or service restart.
+- Preserves central TOT180/turn-guard admission and rejects mixed-mode terminators; adds real-router/UDP transport and legacy protocol regression gates.
+- Production promotion and RF audio validation are recorded separately; see experimental/ysf-vw/README.md.
+
 ## Unreleased — TX Turn Guard V1
 
 - Versions the optional XLXD 2.5.3 per-module anti-ping-pong patch and advisory observer; off remains the default.

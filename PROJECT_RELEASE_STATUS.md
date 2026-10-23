@@ -226,3 +226,6 @@ Classificação: `SW/ENV PASS` somente para a fundação estática/mock. `TEST-0
 - Evidência sanitizada [resultado](docs/evidence/tx-turn-guard-production-20261004.json) e [procedimento](experimental/tx-turn-guard/PRODUCTION-20261004.md).
 
 O bloqueio de conectividade de Warty às20:43 UTC foi superado após reconexão; o build antigo divergente não foi promovido. O timeout anterior permanece histórico, não resultado final.
+
+## YSF VW — 2026-10-23, candidato em validação
+Branch `feature/ysf-vw-native-lab-20261023`, baseada em `56a8591c9f3504805136be64bfcbf48e98fbeb46`; VERSION permanece 1.4.6. Baseline PP5PK e69f2dc + guard/TOT/configuração documentados recompila para o SHA ativo 9dce4347. Candidato VW 3991b040573ff7522af69148c97f768d0b468b716212bf7b8e047fca1c6cc410. Transporte C++/UDP isolado e regressão sintética DCS/YSF/DMR/guard/TOT PASS. Restauração, canário PROD e RF ainda pendentes neste registro; nenhuma inferência de qualidade de áudio.

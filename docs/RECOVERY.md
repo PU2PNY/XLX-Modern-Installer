@@ -86,3 +86,6 @@ Antes de um futuro canário do XLXD:
 Rollback de produção, se o canário vier a ser autorizado: parar somente o `xlxd` pelo procedimento operacional aprovado, restaurar o binário/unit/env anteriores, executar `daemon-reload` quando necessário, iniciar o serviço e revalidar DMR/YSF/D-Star, Live e interlinks. O monitor consultivo pode ser parado/retirado independentemente porque não participa do caminho de voz.
 
 Qualquer bloqueio indevido de terceira estação, comando legítimo, módulo independente ou regressão de EOT é critério de rollback imediato.
+
+## YSF VW
+Desativar a chave impede novos PTTs VW sem interromper o atual. Rollback do núcleo restaura o ELF anterior, configuração privada de hash e arquivos administrativos do backup root-only, seguido de restart apenas do XLXD em janela ociosa. Preservar transcoder/Helix. Testar em ENV baseline → candidato → restauração antes da promoção; não usar o fonte divergente como referência.

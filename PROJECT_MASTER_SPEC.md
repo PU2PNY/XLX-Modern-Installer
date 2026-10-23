@@ -132,3 +132,10 @@ Uma mudança só é aceita se:
 - **TURN-010** — Ao iniciar cooldown real, o box de TX deve informar todos os indicativos inelegíveis naquele módulo e exibir a contagem regressiva de até 7 s. O aviso usa estado autoritativo local, não resposta remota de IA; deve desaparecer na expiração ou terceira estação. Não apresentar espera como transmissão ativa.
 - **TURN-011** — A promoção deve preservar integralmente o TOT180 existente da PR #54 e a configuração efetiva. O binário conhecido-bom c0283b7f deve ser recuperado/reproduzido ou ter equivalência comprovada; código divergente em /usr/src não representa automaticamente o processo ativo.
 - **TURN-012** — Identidades do aviso permanecem somente no estado local/painel público de rádio; o observador externo recebe exclusivamente contadores agregados. Estado é limitado por módulo e temporário, sem logs de áudio ou consulta externa por PTT.
+
+### YSF VW NATIVO
+- **VW-001** — VW é opcional e OFF por padrão; configuração inválida deve recusar novos PTTs VW.
+- **VW-002** — Encaminhar o quadro YSF original somente a clientes YSF nativos do mesmo módulo; excluir origem, peers e outros protocolos/transcoder.
+- **VW-003** — Preservar DN, gatekeeper, admissão central, TOT180 e TX Turn Guard. Não converter Voice FR para outros codecs sem implementação validada.
+- **VW-004** — A chave administrativa exige sessão, CSRF, senha e helper limitado; alteração vale apenas para novos PTTs e não reinicia XLXD.
+- **VW-005** — Promoção exige baseline reproduzido, testes ENV, backup/restore e rollback. Transporte sintético não comprova áudio RF.
