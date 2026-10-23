@@ -38,3 +38,10 @@ Before deployment: test VW transport, legacy protocol admission/EOT/timeout/TOT,
 Install only during an idle window. Validate all 13 expected listeners, active ELF hash, public Live, control authentication and the unchanged transcoder.
 Rollback restores the previous files/configuration and restarts only XLXD; the local key alone disables new VW admissions without a restart.
 Do not commit private configuration, backup, session cookies, production logs or captured voice.
+
+## XLX026 activation — 2026-10-23
+
+Production startup/control/endpoints validated with the candidate SHA above, 13 listeners and unchanged transcoder/Helix processes. The key is ON. The limited helper was tested as www-data for status → OFF → ON with the same XLXD PID; install only the three exact sudo rules in `sudoers.example` and validate using visudo.
+The private page is `/controle/`, Home → YSF · Voz larga (VW). Authenticated browser visual testing remains pending because the selected browser requested login.
+Synthetic native VW transport/TOT, existing DCS/YSF/DMR/guard regression and isolated service restoration passed. Two regular stream open/close cycles were observed after activation with no fatal signature in that canary sample. This is not RF/audio validation or a long soak.
+See [sanitized evidence](../../docs/evidence/ysf-vw-20261023.json).

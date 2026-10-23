@@ -1,0 +1,3 @@
+www-data ALL=(root) NOPASSWD: /usr/local/sbin/xlx026-control-helper ysf-vw-status
+www-data ALL=(root) NOPASSWD: /usr/local/sbin/xlx026-control-helper ysf-vw-set 0
+www-data ALL=(root) NOPASSWD: /usr/local/sbin/xlx026-control-helper ysf-vw-set 1
