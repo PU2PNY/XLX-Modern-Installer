@@ -89,3 +89,5 @@ Qualquer bloqueio indevido de terceira estação, comando legítimo, módulo ind
 
 ## YSF VW
 Desativar a chave impede novos PTTs VW sem interromper o atual. Rollback do núcleo restaura o ELF anterior, configuração privada de hash e arquivos administrativos do backup root-only, seguido de restart apenas do XLXD em janela ociosa. Preservar transcoder/Helix. Testar em ENV baseline → candidato → restauração antes da promoção; não usar o fonte divergente como referência.
+
+A correção do diagnóstico adiciona o arquivo do monitor de saúde ao manifesto privado. Depois de restaurá-lo, reiniciar somente esse monitor para recarregar o código anterior; isso é independente do transcoder/Helix.

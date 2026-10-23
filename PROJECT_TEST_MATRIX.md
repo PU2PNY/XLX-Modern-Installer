@@ -80,3 +80,5 @@ Código e13f4e1: CI3/3 PASS; ENV build/lifecycle/protocol classes/TOT/restore/We
 | TEST-040 | VW-003/005 | Baseline exato, guard/TOT e protocolos legados | Baseline 9dce4347 reproduzido; candidato 3991b040; C++ guard e DCS/YSF/DMR admit/EOT/timeout/TOT PASS. PROD: 13 listeners, HTTP200, reconexões e 2 ciclos de stream no canário; xuvd/Helix preservados | PASS (ENV sintético/PROD inicial); RF/soak pendentes |
 
 | TEST-041 | VW-005 / BACKUP-002 | Restore do núcleo e arquivos administrativos | ENV: baseline→candidato→restore, ELF exato e 13 listeners em cada serviço isolado. PROD: backup root-only e fixture restaurando 5 arquivos originais com hash exato; sem executar rollback real na produção | PASS (ENV lifecycle e fixture de arquivos); restore real PROD não executado |
+
+| TEST-042 | VW-002/004 | Diagnóstico distingue VW nativo habilitado de conversão multiprotocolo | PROD: função read-only e snapshot do monitor com VW nativo=true, suporte=true e crossmode VW=false; Python compile e serviço monitor active | PASS (PROD metadados); sem inferência RF |

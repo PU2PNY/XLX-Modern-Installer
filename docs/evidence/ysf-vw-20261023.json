@@ -58,5 +58,13 @@
     "Restore harness corrected from Type=simple to Type=forking",
     "Initial production idle wait stopped before mutation to correct reconnect verifier; final gate uses refreshed XML",
     "Web helper sudo access added as three exact rules after initial www-data permission test failed"
-  ]
+  ],
+  "health": {
+    "native_vw_enabled": true,
+    "native_vw_supported": true,
+    "crossmode_vw": false,
+    "readonly_capability_test": "PASS",
+    "monitor_service": "active",
+    "xlxd_second_restart": false
+  }
 }

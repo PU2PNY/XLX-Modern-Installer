@@ -237,3 +237,5 @@ O bloqueio de conectividade de Warty às20:43 UTC foi superado após reconexão;
 - Backup root-only `/opt/xlx026-backups/VW_ENABLE_20261023`, manifesto e rollback.py; fixture de restauração dos cinco arquivos privados originais PASS. Uma espera inicial foi interrompida antes de qualquer mutação para corrigir a verificação de reconexões: o snapshot Live não fornece connected_count; o gate usa o XML atualizado. Sem rollback de produção nesta implantação.
 - PENDENTE: escuta de áudio VW com rádios reais, validação visual autenticada do novo controle e soak prolongado. VW não é convertido para DN/DMR/D-Star; usar DN para conversas multiprotocolo.
 - Evidência sanitizada: [resultado](docs/evidence/ysf-vw-20261023.json). Nenhum segredo, áudio, backup ou sessão foi versionado.
+
+- Diagnóstico operacional atualizado para refletir o marcador do núcleo e a chave: `voice.vw_voice_fr=true`, `vw_supported=true`, `crossmode_safe.vw_voice_fr=false`. Função de leitura/sintaxe PASS; reiniciado somente o monitor de saúde para carregar essa correção, sem segundo restart do XLXD.

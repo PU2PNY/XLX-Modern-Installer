@@ -45,3 +45,5 @@ Production startup/control/endpoints validated with the candidate SHA above, 13 
 The private page is `/controle/`, Home → YSF · Voz larga (VW). Authenticated browser visual testing remains pending because the selected browser requested login.
 Synthetic native VW transport/TOT, existing DCS/YSF/DMR/guard regression and isolated service restoration passed. Two regular stream open/close cycles were observed after activation with no fatal signature in that canary sample. This is not RF/audio validation or a long soak.
 See [sanitized evidence](../../docs/evidence/ysf-vw-20261023.json).
+
+`integrate-health.py STAGED_MONITOR.py` updates the existing capability reporter from the installed core marker plus the persistent key. Crossmode VW remains false. Validate Python syntax and the read-only capability function before replacing/restarting only the health monitor; it does not change radio traffic.
