@@ -7,6 +7,7 @@
 - Moves **Mensagens APRS** to the upper workflow area and moves **Teste guiado / Comece aqui** to immediately before the explanatory/FAQ sections.
 - Separates the compact login grid from the registration grid so Indicativo and the Dia/Mês/Ano fields use the available width without clipping; mobile registration stacks safely into one column.
 - Allows self-registration after a real reflector transmission ended within the previous 15 minutes, in addition to existing APRS/D-PRS evidence; reflector proof uses the transmission EOT (`ended_at`) instead of collector freshness.
+- Adds a guided pre-check before birthday/password fields: the operator enters the callsign, verifies recent activity, and only then continues. If no activity is found, the page explicitly asks the operator to connect to the reflector, transmit at least once, and verify again.
 - Keeps registration and password-recovery errors visible inside their form/dialog; an unknown callsign now explicitly says that no account exists to recover.
 - Adds a dedicated regression for schema migration, legacy-account preservation, date fields and page ordering.
 - WartyWallaby full suite: `failures=0`; XLX026 production deployment preserved all 10 existing accounts and required no service restart.
