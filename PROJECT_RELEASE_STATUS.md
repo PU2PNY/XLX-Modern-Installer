@@ -23,6 +23,11 @@ Atualizado em: 2026-10-21
 - Follow-up PROD 2026-10-21: o seletor da grade compacta foi restringido ao login, impedindo que o formulário de cadastro comprima Indicativo e Dia/Mês/Ano. Validação visual externa em viewport 1536×608 observou aproximadamente 650 px para Indicativo, 148 px para Dia, 287 px para Mês e 198 px para Ano; botão em linha própria e layout móvel em uma coluna.
 - PROD XLX026: backup em `/opt/xlx026-backups/APRS_BIRTHYEAR_LAYOUT_20261021_181831`; 10/10 contas existentes preservadas; banco íntegro; página e JS HTTP 200; XLXD, Nginx e `xlx-aprs-dprs.service` ativos; gateway `running`, módulo B `connected`, APRS-IS `verified`.
 - Nenhum restart de XLXD, Nginx ou gateway APRS foi necessário.
+- Follow-up PROD 2026-10-24: autocadastro passou a aceitar TX real no XLX026 encerrada nos últimos 15 min usando `ended_at`/EOT, além da evidência APRS/D-PRS já existente; `last_seen` do coletor não é usado como prova temporal.
+- Erros de cadastro e recuperação agora ficam inline no formulário/modal. Para conta inexistente, a recuperação informa explicitamente que não há senha a recuperar e orienta criar a conta.
+- Evidência PROD: `/aprs-dprs`, JS e CSS HTTP 200; histórico legível por `www-data` em modo read-only; XLXD, `xlx-aprs-dprs.service`, Nginx e PHP-FPM ativos; gateway `running`, módulo B `connected`, APRS-IS `verified`; sem restart.
+- Backup/rollback: `/opt/xlx026-backups/APRS_RECOVERY_REGISTER_UX_20261024_113257`.
+- O caso reportado no print usa `PU1TMR`; não havia conta cadastrada para `PU1TMR` nem `PY1MTR` no momento da inspeção. A última TX real encontrada de `PU1TMR` havia terminado ~3h30 antes, portanto estava fora da janela de 15 min.
 - Limite de evidência: não foi criada conta fictícia no banco real; o próximo cadastro real de operador ainda precisa confirmar o fluxo PROD de ponta a ponta.
 
 ## Estado funcional documentado
