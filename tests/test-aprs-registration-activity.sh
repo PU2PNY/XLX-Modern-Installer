@@ -13,6 +13,8 @@ GATEWAY="$TMP/gateway.sqlite"
 HISTORY="$TMP/history.sqlite"
 RATE="$TMP/rate.json"
 TEST_API="$TMP/operator.php"
+REFLECTOR_LOG="$TMP/xlx.log"
+TIMEZONE_FILE="$TMP/timezone"
 
 php "$INIT" "$ACCOUNTS" "" "" >/dev/null
 
@@ -55,8 +57,33 @@ $stmt=$h->prepare(
 );
 
 $stmt->execute(['PU2NEW',$now-60,$now]);
-$stmt->execute(['PU2OLD',$now-901,$now]);
+$stmt->execute(['PU2OLD',$now-1801,$now]);
 PHP
+
+printf '%s\n' 'America/Sao_Paulo' > "$TIMEZONE_FILE"
+
+python3 - "$REFLECTOR_LOG" <<'PY'
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from zoneinfo import ZoneInfo
+import sys
+
+p=Path(sys.argv[1])
+tz=ZoneInfo("America/Sao_Paulo")
+now=datetime.now(timezone.utc)
+
+def fmt(dt):
+    local=dt.astimezone(tz)
+    return local.strftime("%-d %b, %H:%M:%S")
+
+open_at=now-timedelta(seconds=70)
+close_at=now-timedelta(seconds=60)
+
+p.write_text(
+    f"{fmt(open_at)}: Opening stream on module C for client PU2LOG  B with sid 12345\n"
+    f"{fmt(close_at)}: Closing stream of module C\n"
+)
+PY
 
 cp "$API" "$TEST_API"
 
@@ -79,6 +106,12 @@ repls={
         f"const RATE_FILE =\n    '{rate}';",
     "file_get_contents('php://input')":
         "file_get_contents('php://stdin')",
+    "is_readable('/etc/timezone')":
+        "is_readable('__TIMEZONE_FILE__')",
+    "file_get_contents('/etc/timezone')":
+        "file_get_contents('__TIMEZONE_FILE__')",
+    "return '/var/log/xlx.log';":
+        "return '__REFLECTOR_LOG__';",
 }
 
 for old,new in repls.items():
@@ -87,6 +120,18 @@ for old,new in repls.items():
     s=s.replace(old,new,1)
 
 p.write_text(s)
+PY
+
+python3 - "$TEST_API" "$TIMEZONE_FILE" "$REFLECTOR_LOG" <<'PY'
+from pathlib import Path
+import sys
+api=Path(sys.argv[1])
+tz=sys.argv[2]
+log=sys.argv[3]
+s=api.read_text()
+s=s.replace("__TIMEZONE_FILE__",tz)
+s=s.replace("__REFLECTOR_LOG__",log)
+api.write_text(s)
 PY
 
 php -l "$TEST_API" >/dev/null
@@ -113,7 +158,7 @@ import json,sys
 d=json.loads(sys.argv[1])
 assert d.get("ok") is True,d
 assert d.get("recent") is True,d
-assert d.get("window_seconds")==900,d
+assert d.get("window_seconds")==1800,d
 print("precheck_recent=PASS")
 PY
 
@@ -125,6 +170,17 @@ d=json.loads(sys.argv[1])
 assert d.get("ok") is True,d
 assert d.get("recent") is False,d
 print("precheck_stale=PASS")
+PY
+
+CHECK_LOG="$(run_action registration_check PU2LOG)"
+
+python3 - "$CHECK_LOG" <<'PY'
+import json,sys
+d=json.loads(sys.argv[1])
+assert d.get("ok") is True,d
+assert d.get("recent") is True,d
+assert d.get("window_seconds")==1800,d
+print("precheck_timezone_correct_log=PASS")
 PY
 
 NEW_OUT="$(run_action register PU2NEW)"
@@ -155,6 +211,9 @@ print("stale_eot_rejected=PASS")
 PY
 
 grep -F "AND ended_at>=:cutoff" "$API" >/dev/null
+grep -F "reflectorLogTimezone" "$API" >/dev/null
+grep -F "recentlySeenOnReflectorLog" "$API" >/dev/null
+grep -F "rateAllowed('register', 6, 900)" "$API" >/dev/null
 
 if grep -A45 -F "function recentlySeenOnReflector" "$API" |
    grep -F "last_seen>=:cutoff" >/dev/null; then
