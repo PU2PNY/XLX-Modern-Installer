@@ -401,6 +401,86 @@
   line-height:1.55
 }
 
+.dlab-register-precheck{
+  margin-bottom:14px;
+  padding:13px 14px;
+  border:1px solid rgba(57,231,255,.16);
+  border-radius:12px;
+  background:rgba(57,231,255,.04);
+}
+
+.dlab-register-precheck>strong{
+  display:block;
+  margin-bottom:5px;
+  color:#e8fbff;
+  font-size:.86rem;
+}
+
+.dlab-register-precheck p,
+.dlab-register-precheck ol,
+.dlab-register-precheck small,
+.dlab-register-birthday-note{
+  color:var(--dlab-muted);
+  font-size:.72rem;
+  line-height:1.55;
+}
+
+.dlab-register-precheck p{
+  margin:0 0 8px;
+}
+
+.dlab-register-precheck ol{
+  margin:7px 0 8px;
+  padding-left:20px;
+}
+
+.dlab-register-precheck li+li{
+  margin-top:3px;
+}
+
+.dlab-register-precheck small{
+  display:block;
+}
+
+.dlab-register-check-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:9px;
+  align-items:stretch;
+}
+
+.dlab-register-check-row .dlab-btn{
+  margin-top:0;
+  min-height:43px;
+  white-space:nowrap;
+}
+
+#dlabRegisterDetails{
+  display:grid;
+  gap:10px;
+  padding-top:2px;
+}
+
+#dlabRegisterDetails[hidden]{
+  display:none;
+}
+
+.dlab-register-confirmed{
+  margin:0;
+  padding:9px 11px;
+  border:1px solid rgba(98,239,171,.25);
+  border-radius:10px;
+  background:rgba(98,239,171,.06);
+  color:#b9f8d7;
+  font-size:.73rem;
+  line-height:1.5;
+  font-weight:700;
+}
+
+.dlab-register-birthday-note{
+  margin:0;
+}
+
 .dlab-recovery-note{
   margin:14px 0 0
 }
@@ -943,5 +1023,12 @@
 
   .dlab-btn-logout{
     margin-left:0!important;
+  }
+}
+
+
+@media(max-width:640px){
+  .dlab-register-check-row{
+    grid-template-columns:1fr;
   }
 }
