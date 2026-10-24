@@ -19,6 +19,11 @@ grep -F '#dlabOperatorLoginForm{' "$ROOT/dashboard/assets/digital-lab-operator.c
 grep -F '#dlabRegisterForm{' "$ROOT/dashboard/assets/digital-lab-operator.css" >/dev/null
 grep -F 'minmax(180px,1.45fr)' "$ROOT/dashboard/assets/digital-lab-operator.css" >/dev/null
 grep -F 'id="dlabRegisterFeedback"' "$HTML" >/dev/null
+grep -F 'id="dlabRegisterCheck"' "$HTML" >/dev/null
+grep -F 'id="dlabRegisterDetails" hidden' "$HTML" >/dev/null
+grep -F 'Verificar transmissão' "$HTML" >/dev/null
+grep -F "action:'registration_check'" "$JS" >/dev/null
+grep -F "registrationVerifiedCall!==call" "$JS" >/dev/null
 grep -F '.dlab-form-feedback{' "$ROOT/dashboard/assets/digital-lab-operator.css" >/dev/null
 grep -F "setFormFeedback(registerFeedback" "$JS" >/dev/null
 grep -F "setFormFeedback(" "$JS" >/dev/null
