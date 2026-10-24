@@ -542,6 +542,28 @@
   gap:10px
 }
 
+.dlab-form-feedback{
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid rgba(255,195,84,.32);
+  background:rgba(255,195,84,.075);
+  color:#ffe0a6;
+  font-size:.75rem;
+  line-height:1.5;
+}
+
+.dlab-form-feedback[data-kind="error"]{
+  border-color:rgba(255,92,112,.38);
+  background:rgba(255,92,112,.08);
+  color:#ffd2d8;
+}
+
+.dlab-form-feedback[data-kind="info"]{
+  border-color:rgba(57,231,255,.25);
+  background:rgba(57,231,255,.055);
+  color:#c9f7ff;
+}
+
 .dlab-dialog-actions,
 .dlab-row-actions{
   display:flex;
