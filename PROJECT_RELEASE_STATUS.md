@@ -30,7 +30,11 @@ Atualizado em: 2026-10-21
 - Follow-up PROD 2026-10-24 (pré-check): antes de pedir Dia/Mês/Ano, o usuário informa o indicativo e usa **Verificar transmissão**. Sem atividade recente, a tela orienta conectar ao XLX026, fazer ao menos uma transmissão curta e verificar novamente em até 15 min; os campos de nascimento/senha permanecem ocultos até confirmação.
 - SW/ENV: pré-check recente/stale PASS; suíte WartyWallaby final `failures=0`.
 - PROD: backup `/opt/xlx026-backups/APRS_REGISTRATION_PRECHECK_20261024_131356`; página/JS/CSS/API publicados sem restart; pré-check negativo real PASS e não alterou a contagem de 11 contas; navegador externo confirmou fluxo inicial legível, sem campos comprimidos e com detalhes de cadastro ocultos antes da confirmação.
-- Limite de evidência: naquele instante não havia um indicativo recente ainda não cadastrado para validar o caminho positivo diretamente em PROD; esse caminho permanece comprovado em SW/ENV.
+- Follow-up PROD 2026-10-24 (timezone): o caso PU1TMR comprovou que o log XLXD estava correto (Opening 19:25:33 / Closing 19:25:43), mas o parser baseado em PHP/UTC deslocava o evento em 3 horas porque o servidor/log usa `America/Sao_Paulo`. O pré-check foi isolado do histórico incorreto: agora lê `/var/log/xlx.log`, usa `/etc/timezone`, exige stream completo Opening+Closing e considera 30 minutos.
+- O limite de cadastro foi ajustado de 3 tentativas/1h para 6 tentativas/15min, preservando rate limiting.
+- SW/ENV: teste específico de timezone PASS e WartyWallaby `tests/run-all.sh` = `failures=0`.
+- PROD: backup `/opt/xlx026-backups/APRS_TIMEZONE_FIX_20261024_195251`; página/JS/API HTTP/sintaxe válidos; pré-check negativo `PU1MTR` PASS e pré-check positivo real `PU2RWN` PASS; 11 contas antes/depois; XLXD, APRS/D-PRS, Nginx e PHP-FPM ativos; nenhum restart.
+- Observação operacional: o indicativo visto no XLXD é `PU1TMR`; `PU1MTR` é outro texto e não deve ser autocorrigido por segurança.
 - O caso reportado no print usa `PU1TMR`; não havia conta cadastrada para `PU1TMR` nem `PY1MTR` no momento da inspeção. A última TX real encontrada de `PU1TMR` havia terminado ~3h30 antes, portanto estava fora da janela de 15 min.
 - Limite de evidência: não foi criada conta fictícia no banco real; o próximo cadastro real de operador ainda precisa confirmar o fluxo PROD de ponta a ponta.
 
