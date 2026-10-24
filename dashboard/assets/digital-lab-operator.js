@@ -29,6 +29,7 @@ const birthDay=$('dlabBirthDay');
 const birthMonth=$('dlabBirthMonth');
 const birthYear=$('dlabBirthYear');
 const birthdayConsent=$('dlabBirthdayConsent');
+const registerFeedback=$('dlabRegisterFeedback');
 const registerResult=$('dlabRegisterResult');
 
 const accountTitle=$('dlabAccountTitle');
@@ -86,6 +87,18 @@ function notify(text){
   toastTimer=setTimeout(()=>{
     toast.hidden=true;
   },5000);
+}
+
+function setFormFeedback(
+  element,
+  text='',
+  kind='error'
+){
+  if(!element)return;
+
+  element.textContent=String(text||'');
+  element.dataset.kind=kind;
+  element.hidden=!text;
 }
 
 function bindNumericText(input,maxLength){
@@ -728,6 +741,12 @@ async function openReset(prefill=''){
 
   const birth=createBirthFields(true);
 
+  const feedback=document.createElement('div');
+  feedback.className='dlab-form-feedback';
+  feedback.setAttribute('role','alert');
+  feedback.setAttribute('aria-live','polite');
+  feedback.hidden=true;
+
   const submit=document.createElement('button');
   submit.type='submit';
   submit.className='dlab-btn dlab-btn-primary';
@@ -736,6 +755,7 @@ async function openReset(prefill=''){
   formEl.append(
     call.wrap,
     birth.row,
+    feedback,
     submit
   );
 
@@ -743,6 +763,8 @@ async function openReset(prefill=''){
     ev.preventDefault();
 
     const c=cleanBaseCall(call.input.value);
+
+    setFormFeedback(feedback);
 
     try{
       const data=await post(
@@ -767,15 +789,21 @@ async function openReset(prefill=''){
       const code=err?.data?.error;
 
       const labels={
-        account_not_found:'Indicativo não cadastrado.',
-        birthday_mismatch:'A data de nascimento não confere.',
-        forbidden:'Seu nível não permite redefinir esta conta.',
-        admin_reset_denied:'A senha do ADMIN deve ser trocada pela própria conta.'
+        account_not_found:
+          'Este indicativo ainda não possui conta no APRS / D-PRS. Não há senha para recuperar. Use Usuários para criar a conta ou peça ao operador para usar Criar meu acesso.',
+        birthday_mismatch:
+          'A data de nascimento não confere com o cadastro. Nenhuma senha foi alterada.',
+        forbidden:
+          'Seu nível não permite redefinir esta conta.',
+        admin_reset_denied:
+          'A senha do ADMIN deve ser trocada pela própria conta.'
       };
 
-      notify(
+      setFormFeedback(
+        feedback,
         labels[code]||
-        'Não foi possível gerar a nova senha.'
+          'Não foi possível gerar a nova senha.',
+        'error'
       );
     }
   });
@@ -1244,9 +1272,14 @@ registerForm?.addEventListener(
     );
 
     registerCall.value=call;
+    setFormFeedback(registerFeedback);
 
     if(!CALL.test(call)){
-      notify('Informe um indicativo válido.');
+      setFormFeedback(
+        registerFeedback,
+        'Informe um indicativo válido.',
+        'error'
+      );
       return;
     }
 
@@ -1280,7 +1313,7 @@ registerForm?.addEventListener(
 
       const labels={
         not_recently_seen:
-          'Indicativo ainda não foi identificado. Faça um beacon D-PRS no módulo B ou envie uma mensagem APRS para {{APRS_SERVICE_CALLSIGN}} e tente novamente.',
+          'Ainda não vimos uma atividade recente deste indicativo. Transmita no {{REFLECTOR_NAME}}, faça um beacon D-PRS no módulo B ou envie uma mensagem APRS para {{APRS_SERVICE_CALLSIGN}} e tente novamente em até 15 minutos.',
         account_exists:
           'Este indicativo já possui cadastro.',
         invalid_birthday:
@@ -1288,12 +1321,14 @@ registerForm?.addEventListener(
         birthday_consent_required:
           'Confirme a autorização de uso da data de nascimento.',
         rate_limited:
-          'Muitas tentativas de cadastro. Aguarde.'
+          'Muitas tentativas de cadastro foram feitas deste acesso. Aguarde alguns minutos e tente novamente.'
       };
 
-      notify(
+      setFormFeedback(
+        registerFeedback,
         labels[code]||
-        'Não foi possível criar o acesso.'
+          'Não foi possível criar o acesso.',
+        'error'
       );
     }
   }
