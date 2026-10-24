@@ -91,15 +91,43 @@ PY
 
 php -l "$TEST_API" >/dev/null
 
-run_register(){
-  local call="$1"
+run_action(){
+  local action="$1"
+  local call="$2"
   local body
-  body="$(printf '{"action":"register","callsign":"%s","birth_day":18,"birth_month":7,"birth_year":1980,"birthday_consent":true}' "$call")"
+
+  if [[ "$action" == "registration_check" ]]; then
+    body="$(printf '{"action":"registration_check","callsign":"%s"}' "$call")"
+  else
+    body="$(printf '{"action":"register","callsign":"%s","birth_day":18,"birth_month":7,"birth_year":1980,"birthday_consent":true}' "$call")"
+  fi
+
   printf '%s' "$body" |
     REQUEST_METHOD=POST     CONTENT_LENGTH="${#body}"     REMOTE_ADDR="127.0.0.1"     php "$TEST_API"
 }
 
-NEW_OUT="$(run_register PU2NEW)"
+CHECK_NEW="$(run_action registration_check PU2NEW)"
+
+python3 - "$CHECK_NEW" <<'PY'
+import json,sys
+d=json.loads(sys.argv[1])
+assert d.get("ok") is True,d
+assert d.get("recent") is True,d
+assert d.get("window_seconds")==900,d
+print("precheck_recent=PASS")
+PY
+
+CHECK_OLD="$(run_action registration_check PU2OLD)"
+
+python3 - "$CHECK_OLD" <<'PY'
+import json,sys
+d=json.loads(sys.argv[1])
+assert d.get("ok") is True,d
+assert d.get("recent") is False,d
+print("precheck_stale=PASS")
+PY
+
+NEW_OUT="$(run_action register PU2NEW)"
 
 python3 - "$NEW_OUT" "$ACCOUNTS" <<'PY'
 import json,sqlite3,sys
@@ -112,7 +140,7 @@ assert db.execute(
 print("recent_reflector_eot=PASS")
 PY
 
-OLD_OUT="$(run_register PU2OLD)"
+OLD_OUT="$(run_action register PU2OLD)"
 
 python3 - "$OLD_OUT" "$ACCOUNTS" <<'PY'
 import json,sqlite3,sys
