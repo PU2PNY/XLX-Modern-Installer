@@ -41,6 +41,8 @@ echo "[https rate limit]"
 bash "$ROOT/tests/test-https-rate-limit.sh" || failures=$((failures+1))
 echo "[aprs registration birthday]"
 bash "$ROOT/tests/test-aprs-registration-birthday.sh" || failures=$((failures+1))
+echo "[aprs registration activity]"
+bash "$ROOT/tests/test-aprs-registration-activity.sh" || failures=$((failures+1))
 echo "[callinghome contract]"
 bash "$ROOT/tests/test-callinghome-contract.sh" || failures=$((failures+1))
 echo "[control functional sandbox]"
