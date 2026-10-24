@@ -25,6 +25,9 @@ const remember=$('dlabRememberMe');
 
 const registerForm=$('dlabRegisterForm');
 const registerCall=$('dlabRegisterCall');
+const registerCheck=$('dlabRegisterCheck');
+const registerCheckFeedback=$('dlabRegisterCheckFeedback');
+const registerDetails=$('dlabRegisterDetails');
 const birthDay=$('dlabBirthDay');
 const birthMonth=$('dlabBirthMonth');
 const birthYear=$('dlabBirthYear');
@@ -72,6 +75,7 @@ let toastTimer=null;
 let audioCtx=null;
 let lastInboundId=null;
 let unread=0;
+let registrationVerifiedCall='';
 
 const CALL=/^(?=[A-Z0-9]*[0-9])[A-Z0-9]{3,8}$/;
 const APRS_CALL=/^[A-Z0-9]{3,8}(?:-[0-9]{1,2})?$/;
@@ -117,6 +121,26 @@ function bindNumericText(input,maxLength){
 
 bindNumericText(birthDay,2);
 bindNumericText(birthYear,4);
+
+function resetRegistrationVerification(message=''){
+  registrationVerifiedCall='';
+
+  if(registerDetails){
+    registerDetails.hidden=true;
+  }
+
+  setFormFeedback(registerFeedback,'');
+
+  if(message){
+    setFormFeedback(
+      registerCheckFeedback,
+      message,
+      'info'
+    );
+  }else{
+    setFormFeedback(registerCheckFeedback,'');
+  }
+}
 
 function cleanBaseCall(v){
   return String(v??'')
@@ -1262,6 +1286,102 @@ loginForm?.addEventListener('submit',async ev=>{
   }
 });
 
+registerCall?.addEventListener('input',()=>{
+  const call=cleanBaseCall(registerCall.value);
+
+  if(
+    registrationVerifiedCall &&
+    call!==registrationVerifiedCall
+  ){
+    resetRegistrationVerification(
+      'Indicativo alterado. Verifique a transmissão novamente.'
+    );
+  }
+});
+
+registerCheck?.addEventListener('click',async()=>{
+  const call=cleanBaseCall(registerCall.value);
+
+  registerCall.value=call;
+  resetRegistrationVerification();
+
+  if(!CALL.test(call)){
+    setFormFeedback(
+      registerCheckFeedback,
+      'Informe um indicativo válido para verificar a transmissão.',
+      'error'
+    );
+    registerCall.focus();
+    return;
+  }
+
+  registerCheck.disabled=true;
+  registerCheck.textContent='Verificando…';
+
+  try{
+    const data=await jsonFetch(api,{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'Accept':'application/json'
+      },
+      body:JSON.stringify({
+        action:'registration_check',
+        callsign:call
+      })
+    });
+
+    if(data.recent===true){
+      registrationVerifiedCall=call;
+
+      if(registerDetails){
+        registerDetails.hidden=false;
+      }
+
+      setFormFeedback(
+        registerCheckFeedback,
+        '✓ Transmissão recente confirmada. Continue o cadastro abaixo.',
+        'info'
+      );
+
+      window.setTimeout(()=>{
+        birthDay?.focus();
+      },120);
+
+      return;
+    }
+
+    setFormFeedback(
+      registerCheckFeedback,
+      'Ainda não encontramos uma transmissão recente de '+call+'. Conecte ao {{REFLECTOR_NAME}}, faça ao menos uma transmissão curta e clique em Verificar transmissão novamente dentro de 15 minutos.',
+      'error'
+    );
+
+  }catch(err){
+    const code=err?.data?.error;
+
+    const labels={
+      account_exists:
+        'Este indicativo já possui cadastro. Use Entrar; se perdeu a senha, peça a recuperação ao administrador ou colaborador.',
+      rate_limited:
+        'Foram feitas muitas verificações em pouco tempo. Aguarde alguns minutos e tente novamente.',
+      invalid_callsign:
+        'Informe um indicativo válido.'
+    };
+
+    setFormFeedback(
+      registerCheckFeedback,
+      labels[code]||
+        'Não foi possível verificar a transmissão agora.',
+      'error'
+    );
+
+  }finally{
+    registerCheck.disabled=false;
+    registerCheck.textContent='Verificar transmissão';
+  }
+});
+
 registerForm?.addEventListener(
   'submit',
   async ev=>{
@@ -1273,6 +1393,23 @@ registerForm?.addEventListener(
 
     registerCall.value=call;
     setFormFeedback(registerFeedback);
+
+    if(
+      registrationVerifiedCall!==call ||
+      !registerDetails ||
+      registerDetails.hidden
+    ){
+      setFormFeedback(
+        registerCheckFeedback,
+        'Antes de gerar a senha, confirme uma transmissão recente deste indicativo.',
+        'error'
+      );
+
+      if(registerDetails){
+        registerDetails.hidden=true;
+      }
+      return;
+    }
 
     if(!CALL.test(call)){
       setFormFeedback(
