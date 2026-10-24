@@ -9,6 +9,7 @@
 - Allows self-registration after a real reflector transmission ended within the previous 15 minutes, in addition to existing APRS/D-PRS evidence; reflector proof uses the transmission EOT (`ended_at`) instead of collector freshness.
 - Adds a guided pre-check before birthday/password fields: the operator enters the callsign, verifies recent activity, and only then continues. If no activity is found, the page explicitly asks the operator to connect to the reflector, transmit at least once, and verify again.
 - Production follow-up validated the pre-check UI without restart: birthday/password fields remain hidden until verification; negative pre-check is read-only and does not create an account.
+- Fixes a production timezone bug where XLXD log timestamps in the server local timezone were interpreted by PHP as UTC, making recent transmissions appear three hours old on XLX026. Registration now checks completed XLXD streams directly with the system timezone, uses a 30-minute verification window, and permits 6 registration attempts per 15 minutes.
 - Keeps registration and password-recovery errors visible inside their form/dialog; an unknown callsign now explicitly says that no account exists to recover.
 - Adds a dedicated regression for schema migration, legacy-account preservation, date fields and page ordering.
 - WartyWallaby full suite: `failures=0`; XLX026 production deployment preserved all 10 existing accounts and required no service restart.
