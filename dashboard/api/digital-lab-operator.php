@@ -949,6 +949,40 @@ $action = strtolower(
 
 $db = adb();
 
+if ($action === 'registration_check') {
+    if (!rateAllowed('registration_check', 30, 300)) {
+        respond(
+            ['ok' => false, 'error' => 'rate_limited'],
+            429
+        );
+    }
+
+    $call = normalizeCall(
+        (string)($data['callsign'] ?? '')
+    );
+
+    if ($call === '') {
+        respond(
+            ['ok' => false, 'error' => 'invalid_callsign'],
+            422
+        );
+    }
+
+    if (userByCall($db, $call)) {
+        respond(
+            ['ok' => false, 'error' => 'account_exists'],
+            409
+        );
+    }
+
+    respond([
+        'ok' => true,
+        'callsign' => $call,
+        'recent' => recentlySeen($call),
+        'window_seconds' => 15 * 60,
+    ]);
+}
+
 if ($action === 'register') {
     if (!rateAllowed('register', 3, 3600)) {
         respond(
@@ -1001,7 +1035,7 @@ if ($action === 'register') {
                 'ok' => false,
                 'error' => 'not_recently_seen',
                 'message' =>
-                    'Faça um beacon D-PRS no módulo B ou envie uma mensagem APRS para {{APRS_SERVICE_CALLSIGN}} e tente novamente em até 15 minutos.',
+                    'Conecte ao {{REFLECTOR_NAME}}, faça ao menos uma transmissão e tente novamente em até 15 minutos. Beacon D-PRS ou mensagem APRS para {{APRS_SERVICE_CALLSIGN}} também são aceitos.',
             ],
             409
         );
