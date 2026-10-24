@@ -519,6 +519,258 @@ function audit(
     ]);
 }
 
+function reflectorLogPath(): string
+{
+    $configPath = dirname(__DIR__) . '/config.php';
+
+    if (is_readable($configPath)) {
+        try {
+            $config = require $configPath;
+
+            if (is_array($config)) {
+                $path = trim(
+                    (string)($config['log_path'] ?? '')
+                );
+
+                if ($path !== '') {
+                    return $path;
+                }
+            }
+        } catch (Throwable $e) {
+        }
+    }
+
+    return '/var/log/xlx.log';
+}
+
+function reflectorLogTimezone(): DateTimeZone
+{
+    static $timezone = null;
+
+    if ($timezone instanceof DateTimeZone) {
+        return $timezone;
+    }
+
+    $name = '';
+
+    if (is_readable('/etc/timezone')) {
+        $raw = @file_get_contents('/etc/timezone');
+
+        if ($raw !== false) {
+            $name = trim($raw);
+        }
+    }
+
+    if ($name === '') {
+        $name = date_default_timezone_get();
+    }
+
+    try {
+        $timezone = new DateTimeZone($name);
+    } catch (Throwable $e) {
+        $timezone = new DateTimeZone('UTC');
+    }
+
+    return $timezone;
+}
+
+function reflectorLogTimestamp(string $line): int
+{
+    if (
+        !preg_match(
+            '/^(\d{1,2})\s+([A-Za-z]{3}),\s+' .
+            '(\d{2}:\d{2}:\d{2}):/',
+            $line,
+            $match
+        )
+    ) {
+        return 0;
+    }
+
+    $timezone = reflectorLogTimezone();
+    $now = new DateTimeImmutable(
+        'now',
+        $timezone
+    );
+
+    $value = sprintf(
+        '%s %s %d %s',
+        $match[1],
+        $match[2],
+        (int)$now->format('Y'),
+        $match[3]
+    );
+
+    $parsed = DateTimeImmutable::createFromFormat(
+        '!j M Y H:i:s',
+        $value,
+        $timezone
+    );
+
+    if (!$parsed instanceof DateTimeImmutable) {
+        return 0;
+    }
+
+    if (
+        $parsed->getTimestamp() >
+        $now->getTimestamp() + 86400
+    ) {
+        $parsed = $parsed->modify('-1 year');
+    }
+
+    return $parsed->getTimestamp();
+}
+
+function tailReflectorLog(
+    string $path,
+    int $bytes = 4194304
+): string {
+    if (!is_readable($path)) {
+        return '';
+    }
+
+    $handle = @fopen($path, 'rb');
+
+    if ($handle === false) {
+        return '';
+    }
+
+    try {
+        if (fseek($handle, 0, SEEK_END) !== 0) {
+            return '';
+        }
+
+        $size = ftell($handle);
+
+        if (!is_int($size)) {
+            return '';
+        }
+
+        $start = max(0, $size - $bytes);
+
+        if (fseek($handle, $start, SEEK_SET) !== 0) {
+            return '';
+        }
+
+        $data = stream_get_contents($handle);
+
+        if ($data === false) {
+            return '';
+        }
+
+        if ($start > 0) {
+            $newline = strpos($data, "\n");
+
+            if ($newline !== false) {
+                $data = substr(
+                    $data,
+                    $newline + 1
+                );
+            }
+        }
+
+        return $data;
+    } finally {
+        fclose($handle);
+    }
+}
+
+function recentlySeenOnReflectorLog(
+    string $call
+): bool {
+    $raw = tailReflectorLog(
+        reflectorLogPath()
+    );
+
+    if ($raw === '') {
+        return false;
+    }
+
+    $cutoff = time() - 30 * 60;
+    $active = [];
+
+    foreach (
+        preg_split('/\R/', $raw) ?: []
+        as $line
+    ) {
+        if (
+            stripos(
+                $line,
+                'Opening stream on module'
+            ) !== false
+            && preg_match(
+                '/Opening stream on module\s+([A-Z])\s+' .
+                'for\s+(?:client\s+)?' .
+                '([A-Z0-9\/\-]+)/i',
+                $line,
+                $match
+            )
+        ) {
+            $timestamp = reflectorLogTimestamp(
+                $line
+            );
+
+            if ($timestamp <= 0) {
+                continue;
+            }
+
+            $module = strtoupper(
+                (string)$match[1]
+            );
+
+            $active[$module] = [
+                'callsign' => normalizeCall(
+                    (string)$match[2]
+                ),
+                'started_at' => $timestamp,
+            ];
+
+            continue;
+        }
+
+        if (
+            stripos(
+                $line,
+                'Closing stream of module'
+            ) !== false
+            && preg_match(
+                '/Closing stream of module\s+([A-Z])/i',
+                $line,
+                $match
+            )
+        ) {
+            $module = strtoupper(
+                (string)$match[1]
+            );
+
+            if (!isset($active[$module])) {
+                continue;
+            }
+
+            $timestamp = reflectorLogTimestamp(
+                $line
+            );
+
+            $tx = $active[$module];
+            unset($active[$module]);
+
+            if (
+                $timestamp >= $cutoff
+                && $timestamp >=
+                    (int)$tx['started_at']
+                && hash_equals(
+                    $call,
+                    (string)$tx['callsign']
+                )
+            ) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 function recentlySeenOnReflector(string $call): bool
 {
     if (
@@ -636,6 +888,10 @@ function recentlySeen(string $call): bool
     ]);
 
     if ((bool)$stmt->fetchColumn()) {
+        return true;
+    }
+
+    if (recentlySeenOnReflectorLog($call)) {
         return true;
     }
 
@@ -979,12 +1235,12 @@ if ($action === 'registration_check') {
         'ok' => true,
         'callsign' => $call,
         'recent' => recentlySeen($call),
-        'window_seconds' => 15 * 60,
+        'window_seconds' => 30 * 60,
     ]);
 }
 
 if ($action === 'register') {
-    if (!rateAllowed('register', 3, 3600)) {
+    if (!rateAllowed('register', 6, 900)) {
         respond(
             ['ok' => false, 'error' => 'rate_limited'],
             429
@@ -1035,7 +1291,7 @@ if ($action === 'register') {
                 'ok' => false,
                 'error' => 'not_recently_seen',
                 'message' =>
-                    'Conecte ao {{REFLECTOR_NAME}}, faça ao menos uma transmissão e tente novamente em até 15 minutos. Beacon D-PRS ou mensagem APRS para {{APRS_SERVICE_CALLSIGN}} também são aceitos.',
+                    'Conecte ao {{REFLECTOR_NAME}}, faça ao menos uma transmissão e tente novamente em até 30 minutos. Beacon D-PRS ou mensagem APRS para {{APRS_SERVICE_CALLSIGN}} também são aceitos.',
             ],
             409
         );
