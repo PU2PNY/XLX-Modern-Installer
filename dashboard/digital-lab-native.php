@@ -155,38 +155,62 @@
           <summary>Criar meu acesso</summary>
 
           <div class="dlab-register-body">
-            <p>
-              Para criar sua conta, informe seu indicativo e
-              <strong>dia, mês e ano reais do aniversário</strong>.
-            </p>
-
-            <p>
-              A data de nascimento será usada para
-              <strong>auxiliar na recuperação da sua senha</strong>
-              caso você a perca e também poderá ser usada
-              futuramente para recursos de aniversário no {{REFLECTOR_NAME}}.
-              O ano não será exibido publicamente.
-            </p>
-
-            <p>
-              Antes do cadastro, faça uma transmissão normal no
-              <strong>{{REFLECTOR_NAME}}</strong>, um beacon D-PRS pelo módulo B
-              ou envie uma mensagem APRS para
-              <strong>{{APRS_SERVICE_CALLSIGN}}</strong>.
-              A atividade precisa ter ocorrido nos últimos 15 minutos.
-            </p>
+            <div class="dlab-register-precheck">
+              <strong>Antes de criar seu acesso</strong>
+              <p>
+                Primeiro confirme seu indicativo no {{REFLECTOR_NAME}}.
+                Se ainda não transmitiu, conecte seu rádio ou hotspot ao servidor,
+                faça <strong>pelo menos uma transmissão curta</strong> e volte aqui.
+              </p>
+              <ol>
+                <li>Conecte ao <strong>{{REFLECTOR_NAME}}</strong>.</li>
+                <li>Faça ao menos uma transmissão.</li>
+                <li>Em até 15 minutos, informe o indicativo abaixo e clique em <strong>Verificar transmissão</strong>.</li>
+              </ol>
+              <small>
+                Beacon D-PRS ou mensagem APRS para {{APRS_SERVICE_CALLSIGN}}
+                também podem confirmar sua atividade.
+              </small>
+            </div>
 
             <form id="dlabRegisterForm"
                   class="dlab-account-form"
                   novalidate>
 
               <label for="dlabRegisterCall">Indicativo</label>
-              <input id="dlabRegisterCall"
-                     type="text"
-                     maxlength="8"
-                     placeholder="Ex.: PU2ABC"
-                     autocomplete="off"
-                     required>
+
+              <div class="dlab-register-check-row">
+                <input id="dlabRegisterCall"
+                       type="text"
+                       maxlength="8"
+                       placeholder="Ex.: PU2ABC"
+                       autocomplete="off"
+                       required>
+
+                <button id="dlabRegisterCheck"
+                        class="dlab-btn dlab-btn-ghost"
+                        type="button">
+                  Verificar transmissão
+                </button>
+              </div>
+
+              <div id="dlabRegisterCheckFeedback"
+                   class="dlab-form-feedback"
+                   role="status"
+                   aria-live="polite"
+                   hidden></div>
+
+              <div id="dlabRegisterDetails" hidden>
+                <p class="dlab-register-confirmed">
+                  Atividade confirmada. Agora informe sua data de nascimento
+                  para gerar a senha de acesso.
+                </p>
+
+                <p class="dlab-register-birthday-note">
+                  A data de nascimento será usada para auxiliar na recuperação
+                  da senha e poderá ser usada futuramente em recursos de aniversário.
+                  O ano não será exibido publicamente.
+                </p>
 
               <div class="dlab-birthday-grid">
                 <div>
@@ -256,6 +280,7 @@
                       type="submit">
                 Gerar minha senha
               </button>
+              </div>
             </form>
 
             <div id="dlabRegisterResult"
@@ -485,9 +510,9 @@
     </article>
   </section>
 
-  <link rel="stylesheet" href="/assets/digital-lab-operator.css?v=1.2.6">
+  <link rel="stylesheet" href="/assets/digital-lab-operator.css?v=1.2.7">
 
-  <script src="/assets/digital-lab-operator.js?v=1.2.6" defer></script>
+  <script src="/assets/digital-lab-operator.js?v=1.2.7" defer></script>
 
   <section class="dlab-primary-grid">
     <article class="dlab-test-card panel">
