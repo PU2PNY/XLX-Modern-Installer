@@ -41,6 +41,7 @@ Fornecer um instalador público, reproduzível e seguro para refletor XLXD em De
 - **APRS-001** — APRS/D-PRS nativo deve preservar hash-only de senha e rotação/revogação no reset.
 - **APRS-002** — Dados sensíveis de recuperação não devem ser gravados em payloads de auditoria.
 - **APRS-003** — Novos cadastros APRS/D-PRS devem validar no servidor dia, mês e ano reais do aniversário; contas legadas sem ano devem continuar válidas e recuperáveis pelo contrato anterior de dia/mês. O ano não pode ser exposto em listas públicas nem em payloads de auditoria.
+- **APRS-004** — Autocadastro deve exigir prova recente do indicativo sem obrigar conhecimento prévio de APRS: é válida atividade APRS/D-PRS observada ou transmissão real no refletor encerrada nos últimos 15 minutos. Para histórico do refletor, usar o horário real de encerramento/EOT (`ended_at`), nunca o `last_seen` do coletor. Erros de cadastro e recuperação devem permanecer legíveis no formulário/modal até nova ação do usuário.
 - **CERT-001** — Certificados devem usar emissão persistida, HMAC versionado e verificação em tempo constante.
 - **CERT-002** — Segredo HMAC deve permanecer fora do webroot.
 
