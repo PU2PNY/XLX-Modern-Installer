@@ -169,7 +169,8 @@
             </p>
 
             <p>
-              Antes do cadastro, faça um beacon D-PRS pelo módulo B
+              Antes do cadastro, faça uma transmissão normal no
+              <strong>{{REFLECTOR_NAME}}</strong>, um beacon D-PRS pelo módulo B
               ou envie uma mensagem APRS para
               <strong>{{APRS_SERVICE_CALLSIGN}}</strong>.
               A atividade precisa ter ocorrido nos últimos 15 minutos.
@@ -244,6 +245,12 @@
                   recursos de aniversário.
                 </span>
               </label>
+
+              <div id="dlabRegisterFeedback"
+                   class="dlab-form-feedback"
+                   role="alert"
+                   aria-live="polite"
+                   hidden></div>
 
               <button class="dlab-btn dlab-btn-primary"
                       type="submit">
@@ -478,9 +485,9 @@
     </article>
   </section>
 
-  <link rel="stylesheet" href="/assets/digital-lab-operator.css?v=1.2.5">
+  <link rel="stylesheet" href="/assets/digital-lab-operator.css?v=1.2.6">
 
-  <script src="/assets/digital-lab-operator.js?v=1.2.4" defer></script>
+  <script src="/assets/digital-lab-operator.js?v=1.2.6" defer></script>
 
   <section class="dlab-primary-grid">
     <article class="dlab-test-card panel">
