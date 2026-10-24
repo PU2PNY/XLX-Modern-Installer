@@ -13,6 +13,9 @@ const ACCOUNTS_DB =
 const GATEWAY_DB =
     '/var/lib/xlx-aprs-dprs/digital-lab.sqlite';
 
+const HISTORY_DB =
+    '/var/lib/xlx-modern-history/history.sqlite';
+
 const SOCKET_FILE =
     '/var/lib/xlx-aprs-dprs/operator.sock';
 
@@ -516,6 +519,75 @@ function audit(
     ]);
 }
 
+function recentlySeenOnReflector(string $call): bool
+{
+    if (
+        !class_exists('SQLite3') ||
+        !is_readable(HISTORY_DB)
+    ) {
+        return false;
+    }
+
+    $db = null;
+
+    try {
+        $db = new SQLite3(
+            HISTORY_DB,
+            SQLITE3_OPEN_READONLY
+        );
+
+        $db->busyTimeout(1000);
+
+        $stmt = $db->prepare(
+            '
+            SELECT 1
+            FROM history
+            WHERE
+                callsign=:call
+                AND ended_at>=:cutoff
+            ORDER BY ended_at DESC
+            LIMIT 1
+            '
+        );
+
+        if ($stmt === false) {
+            return false;
+        }
+
+        $stmt->bindValue(
+            ':call',
+            $call,
+            SQLITE3_TEXT
+        );
+
+        $stmt->bindValue(
+            ':cutoff',
+            time() - 15 * 60,
+            SQLITE3_INTEGER
+        );
+
+        $result = $stmt->execute();
+
+        if ($result === false) {
+            return false;
+        }
+
+        $row = $result->fetchArray(
+            SQLITE3_NUM
+        );
+
+        $result->finalize();
+
+        return is_array($row);
+    } catch (Throwable $e) {
+        return false;
+    } finally {
+        if ($db instanceof SQLite3) {
+            $db->close();
+        }
+    }
+}
+
 function recentlySeen(string $call): bool
 {
     $db = gdb();
@@ -563,7 +635,11 @@ function recentlySeen(string $call): bool
         ':cutoff2' => $cutoff,
     ]);
 
-    return (bool)$stmt->fetchColumn();
+    if ((bool)$stmt->fetchColumn()) {
+        return true;
+    }
+
+    return recentlySeenOnReflector($call);
 }
 
 function rpc(array $payload): array
