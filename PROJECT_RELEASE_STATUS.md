@@ -27,6 +27,10 @@ Atualizado em: 2026-10-21
 - Erros de cadastro e recuperação agora ficam inline no formulário/modal. Para conta inexistente, a recuperação informa explicitamente que não há senha a recuperar e orienta criar a conta.
 - Evidência PROD: `/aprs-dprs`, JS e CSS HTTP 200; histórico legível por `www-data` em modo read-only; XLXD, `xlx-aprs-dprs.service`, Nginx e PHP-FPM ativos; gateway `running`, módulo B `connected`, APRS-IS `verified`; sem restart.
 - Backup/rollback: `/opt/xlx026-backups/APRS_RECOVERY_REGISTER_UX_20261024_113257`.
+- Follow-up PROD 2026-10-24 (pré-check): antes de pedir Dia/Mês/Ano, o usuário informa o indicativo e usa **Verificar transmissão**. Sem atividade recente, a tela orienta conectar ao XLX026, fazer ao menos uma transmissão curta e verificar novamente em até 15 min; os campos de nascimento/senha permanecem ocultos até confirmação.
+- SW/ENV: pré-check recente/stale PASS; suíte WartyWallaby final `failures=0`.
+- PROD: backup `/opt/xlx026-backups/APRS_REGISTRATION_PRECHECK_20261024_131356`; página/JS/CSS/API publicados sem restart; pré-check negativo real PASS e não alterou a contagem de 11 contas; navegador externo confirmou fluxo inicial legível, sem campos comprimidos e com detalhes de cadastro ocultos antes da confirmação.
+- Limite de evidência: naquele instante não havia um indicativo recente ainda não cadastrado para validar o caminho positivo diretamente em PROD; esse caminho permanece comprovado em SW/ENV.
 - O caso reportado no print usa `PU1TMR`; não havia conta cadastrada para `PU1TMR` nem `PY1MTR` no momento da inspeção. A última TX real encontrada de `PU1TMR` havia terminado ~3h30 antes, portanto estava fora da janela de 15 min.
 - Limite de evidência: não foi criada conta fictícia no banco real; o próximo cadastro real de operador ainda precisa confirmar o fluxo PROD de ponta a ponta.
 
