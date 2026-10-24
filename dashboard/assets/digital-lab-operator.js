@@ -1353,7 +1353,7 @@ registerCheck?.addEventListener('click',async()=>{
 
     setFormFeedback(
       registerCheckFeedback,
-      'Ainda não encontramos uma transmissão recente de '+call+'. Conecte ao {{REFLECTOR_NAME}}, faça ao menos uma transmissão curta e clique em Verificar transmissão novamente dentro de 15 minutos.',
+      'Ainda não encontramos uma transmissão recente de '+call+'. Conecte ao {{REFLECTOR_NAME}}, faça ao menos uma transmissão curta e clique em Verificar transmissão novamente dentro de 30 minutos.',
       'error'
     );
 
