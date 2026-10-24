@@ -14,6 +14,8 @@ Na versão **1.2.12**, APRS/D-PRS faz parte do XLX Modern Installer e é provisi
 - Conta por indicativo, senha gerada criptograficamente e armazenamento somente de hash.
 - Novos cadastros registram dia, mês e ano reais do aniversário; o ano fica fora das listas públicas e dos detalhes de auditoria.
 - Contas legadas sem ano permanecem válidas e recuperáveis pelo contrato anterior de dia/mês.
+- O autocadastro aceita como prova de presença uma atividade APRS/D-PRS recente ou uma transmissão real encerrada no refletor nos últimos 15 minutos; a prova do refletor usa `ended_at` (EOT), não `last_seen` do coletor.
+- Falhas de cadastro e recuperação são exibidas dentro do próprio formulário/modal e permanecem visíveis até a próxima ação do usuário.
 - Recuperação autorizada com rotação da versão de autenticação e revogação de tokens lembrados.
 
 O indicativo do serviço APRS é derivado do indicativo do sysop com SSID `-10`. A configuração operacional é criada em `/etc/xlx-aprs-dprs/`, o estado fica em `/var/lib/xlx-aprs-dprs/` e o serviço é executado como `xlx-aprs-dprs.service`.
