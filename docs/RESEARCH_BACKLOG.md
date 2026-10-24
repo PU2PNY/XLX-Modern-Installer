@@ -38,6 +38,11 @@ Backups são documentados, mas esta auditoria não encontrou evidência atual de
 ### B6. Validação independente em VPS Debian 12
 Há runtime gate e documentação de beta, mas uma nova instalação limpa da revisão atual deve ser registrada com commit, ambiente e evidência antes de promover mudanças críticas.
 
+### B6a. Normalizar timezone do histórico longo do XLX
+Em 2026-10-24 foi comprovado em produção que `/var/log/xlx.log` usa o fuso local do sistema (`America/Sao_Paulo`), enquanto o PHP estava em UTC. O parser geral `parse_any_time()` interpreta linhas como `24 Oct, 19:25:33` no timezone do PHP, deslocando o evento em 3 horas no `history.sqlite`.
+
+Ação: corrigir o parser geral em mudança separada, com regressão de virada de dia/ano, rotação de log, histórico de 24h/31d e comparação visual do painel. Não aproveitar a correção de onboarding APRS para regravar histórico existente. O pré-check APRS/D-PRS foi isolado para usar o log real com `/etc/timezone` e não depende dessa futura migração.
+
 ### B7. Stereo Tool — autorização/licenciamento para refletor multiusuário
 A documentação pública analisada não resolve com segurança se o modelo de uso do XLX026 — áudio de terceiros em refletor público, múltiplos contexts/streams e SDK em servidor — está coberto pela licença comum nem como “instance” é contada.
 
