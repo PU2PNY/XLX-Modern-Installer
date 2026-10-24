@@ -165,7 +165,7 @@
               <ol>
                 <li>Conecte ao <strong>{{REFLECTOR_NAME}}</strong>.</li>
                 <li>Faça ao menos uma transmissão.</li>
-                <li>Em até 15 minutos, informe o indicativo abaixo e clique em <strong>Verificar transmissão</strong>.</li>
+                <li>Em até 30 minutos, informe o indicativo abaixo e clique em <strong>Verificar transmissão</strong>.</li>
               </ol>
               <small>
                 Beacon D-PRS ou mensagem APRS para {{APRS_SERVICE_CALLSIGN}}
@@ -512,7 +512,7 @@
 
   <link rel="stylesheet" href="/assets/digital-lab-operator.css?v=1.2.7">
 
-  <script src="/assets/digital-lab-operator.js?v=1.2.7" defer></script>
+  <script src="/assets/digital-lab-operator.js?v=1.2.8" defer></script>
 
   <section class="dlab-primary-grid">
     <article class="dlab-test-card panel">
