@@ -534,6 +534,19 @@ class StateDB:
             return
         clean = re.sub(r"[\r\n\x00-\x1f]", " ", body).strip()[:200]
         with self.lock, self.conn:
+            # Repeated APRS-IS/RF delivery must not create another chat bubble.
+            # This deduplicates storage only; the caller still sends ACKs for
+            # repeated numbered frames. Do not dedupe outgoing sends.
+            if direction == "in" and msg_id:
+                duplicate = self.conn.execute(
+                    "SELECT 1 FROM messages WHERE direction='in' "
+                    "AND peer=? AND msg_id=? AND body=? "
+                    "AND julianday(ts) >= julianday('now', '-10 minutes') "
+                    "ORDER BY id DESC LIMIT 1",
+                    (call, msg_id[:8], clean),
+                ).fetchone()
+                if duplicate:
+                    return
             self.conn.execute(
                 "INSERT INTO messages(ts,direction,peer,body,msg_id,command,status) VALUES(?,?,?,?,?,?,?)",
                 (iso_utc(), direction[:8], call, clean, msg_id[:8], command[:16], status[:16]),
