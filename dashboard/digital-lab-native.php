@@ -434,8 +434,10 @@
              class="dlab-private-history">
 
           <div class="dlab-feed-title">
-            <strong>Mensagens do operador</strong>
-            <span>
+            <strong id="dlabMessageHistoryTitle">
+              Mensagens do operador
+            </strong>
+            <span id="dlabMessageHistoryScope">
               Conteúdo visível somente ao administrador.
             </span>
           </div>
@@ -512,7 +514,7 @@
 
   <link rel="stylesheet" href="/assets/digital-lab-operator.css?v=1.2.7">
 
-  <script src="/assets/digital-lab-operator.js?v=1.2.8" defer></script>
+  <script src="/assets/digital-lab-operator.js?v=1.2.9" defer></script>
 
   <section class="dlab-primary-grid">
     <article class="dlab-test-card panel">
