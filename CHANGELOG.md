@@ -11,6 +11,7 @@
 - Production follow-up validated the pre-check UI without restart: birthday/password fields remain hidden until verification; negative pre-check is read-only and does not create an account.
 - Fixes a production timezone bug where XLXD log timestamps in the server local timezone were interpreted by PHP as UTC, making recent transmissions appear three hours old on XLX026. Registration now checks completed XLXD streams directly with the system timezone, uses a 30-minute verification window, and permits 6 registration attempts per 15 minutes.
 - Keeps registration and password-recovery errors visible inside their form/dialog; an unknown callsign now explicitly says that no account exists to recover.
+- Separates the authenticated web account from the shared APRS-IS service identity: non-admin users see only their own outgoing message/ACK history, the UI labels the shared gateway explicitly, and self-destination to the gateway callsign is rejected instead of remaining indefinitely in awaiting-ACK.
 - Adds a dedicated regression for schema migration, legacy-account preservation, date fields and page ordering.
 - WartyWallaby full suite: `failures=0`; XLX026 production deployment preserved all 10 existing accounts and required no service restart.
 
