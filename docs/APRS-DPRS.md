@@ -22,6 +22,17 @@ Na versão **1.2.12**, APRS/D-PRS faz parte do XLX Modern Installer e é provisi
 
 O indicativo do serviço APRS é derivado do indicativo do sysop com SSID `-10`. A configuração operacional é criada em `/etc/xlx-aprs-dprs/`, o estado fica em `/var/lib/xlx-aprs-dprs/` e o serviço é executado como `xlx-aprs-dprs.service`.
 
+### Conta web x identidade APRS-IS
+
+A conta autenticada no painel e o indicativo usado pela conexão APRS-IS são identidades distintas. Exemplo: uma conta web `PU4CAO` pode usar o painel enquanto o transporte APRS-IS do servidor continua autenticado como `PU2PNY-10`.
+
+- o cabeçalho autenticado mostra o indicativo da conta web;
+- ADMIN vê o histórico global do gateway;
+- USER/COLLABORATOR vê apenas mensagens que a própria conta enviou pelo painel;
+- ACKs são associados ao envio correspondente;
+- o painel rejeita como destino o próprio indicativo do gateway, pois não existe uma estação remota diferente para confirmar esse envio;
+- mensagens antigas para o próprio gateway são rotuladas como **Próprio gateway — sem ACK**, em vez de parecerem pendências normais.
+
 ## Segurança e dados privados
 
 Credenciais, passcodes reais, bancos SQLite de produção, contas, tokens, sessões, chaves privadas, logs e backups de produção não são publicados no GitHub. Cada instalação cria e mantém seus próprios dados operacionais localmente.
