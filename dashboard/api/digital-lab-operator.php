@@ -519,6 +519,117 @@ function audit(
     ]);
 }
 
+function ownOperatorMessages(
+    string $actor,
+    int $limit = 20
+): array {
+    $limit = max(1, min(50, $limit));
+
+    $stmt = adb()->prepare(
+        '
+        SELECT ts,target_callsign,detail
+        FROM audit_log
+        WHERE actor_callsign=?
+          AND action="APRS_MESSAGE_SENT"
+        ORDER BY id DESC
+        LIMIT 80
+        '
+    );
+
+    $stmt->execute([$actor]);
+
+    $owned = [];
+
+    foreach ($stmt->fetchAll() as $row) {
+        $detail = json_decode(
+            (string)($row['detail'] ?? ''),
+            true
+        );
+
+        $msgId = preg_replace(
+            '/[^A-Za-z0-9]/',
+            '',
+            (string)($detail['msg_id'] ?? '')
+        ) ?? '';
+
+        $peer = strtoupper(
+            trim(
+                (string)($row['target_callsign'] ?? '')
+            )
+        );
+
+        if ($msgId === '' || $peer === '') {
+            continue;
+        }
+
+        $owned[$peer . '|' . $msgId][] =
+            (string)($row['ts'] ?? '');
+    }
+
+    if ($owned === []) {
+        return [];
+    }
+
+    $rows = gdb()->query(
+        '
+        SELECT
+            id,ts,direction,peer,body,
+            msg_id,command,status
+        FROM messages
+        WHERE direction="out"
+        ORDER BY id DESC
+        LIMIT 300
+        '
+    )->fetchAll();
+
+    $out = [];
+
+    foreach ($rows as $row) {
+        $key =
+            strtoupper((string)($row['peer'] ?? '')) .
+            '|' .
+            (string)($row['msg_id'] ?? '');
+
+        if (!isset($owned[$key])) {
+            continue;
+        }
+
+        $messageTs = strtotime(
+            (string)($row['ts'] ?? '')
+        );
+
+        if ($messageTs === false) {
+            continue;
+        }
+
+        $matched = false;
+
+        foreach ($owned[$key] as $auditTs) {
+            $auditEpoch = strtotime($auditTs);
+
+            if (
+                $auditEpoch !== false &&
+                abs($messageTs - $auditEpoch) <= 30
+            ) {
+                $matched = true;
+                break;
+            }
+        }
+
+        if (!$matched) {
+            continue;
+        }
+
+        $out[] = $row;
+
+        if (count($out) >= $limit) {
+            break;
+        }
+    }
+
+    return $out;
+}
+
 function reflectorLogPath(): string
 {
     $configPath = dirname(__DIR__) . '/config.php';
@@ -1075,14 +1186,24 @@ if ($method === 'GET') {
             ]);
 
             /*
-             * Contas comuns podem transmitir, mas nao recebem o
-             * historico global do indicativo de servico.
+             * ADMIN enxerga o histórico global do indicativo de
+             * serviço. Demais contas recebem somente mensagens
+             * que elas próprias enviaram pelo painel.
              */
-            if (
-                is_array($operator) &&
-                strtoupper((string)$user['role']) !== 'ADMIN'
-            ) {
-                unset($operator['messages']);
+            if (is_array($operator)) {
+                if (
+                    strtoupper((string)$user['role']) !== 'ADMIN'
+                ) {
+                    $operator['messages'] =
+                        ownOperatorMessages(
+                            (string)$user['callsign'],
+                            20
+                        );
+
+                    $operator['message_scope'] = 'own';
+                } else {
+                    $operator['message_scope'] = 'global';
+                }
             }
         }
 
@@ -1642,6 +1763,30 @@ if ($action === 'send') {
         (string)($data['message'] ?? '')
     );
 
+    $operatorStatus = rpc([
+        'action' => 'status',
+    ]);
+
+    $serviceCall = strtoupper(
+        trim(
+            (string)($operatorStatus['service'] ?? '')
+        )
+    );
+
+    if (
+        $serviceCall !== '' &&
+        hash_equals($serviceCall, $dest)
+    ) {
+        respond(
+            [
+                'ok' => false,
+                'error' => 'self_destination',
+                'service' => $serviceCall,
+            ],
+            409
+        );
+    }
+
     if (
         strlen($dest) > 9 ||
         !preg_match(
@@ -1729,6 +1874,8 @@ if ($action === 'send') {
         'msg_id' => $result['msg_id'] ?? '',
         'status' =>
             $result['status'] ?? 'awaiting_ack',
+        'service' => $serviceCall,
+        'actor' => $actor,
     ]);
 }
 
