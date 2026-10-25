@@ -21,6 +21,9 @@ Preferir mecanismos já existentes no projeto: health, status, logs, self-tests 
 - mudança de infraestrutura: plano + backup + janela + validação + rollback;
 - produção: somente após evidência compatível com risco.
 
+## APRS/D-PRS — publicação do gateway
+O unit de produção executa o gateway como usuário `www-data`. O arquivo `/opt/xlx-aprs-dprs/xlx_aprs_dprs.py` precisa permanecer legível/executável pelo serviço; no XLX026 o baseline validado é `root:root 0755`. Preflight de deploy deve executar `--check-config` como o mesmo usuário do systemd antes do restart. Nunca substituir o arquivo com `0750 root:root`, pois isso causa `Permission denied`.
+
 ## Pós-mudança
 Registrar:
 - commit;
