@@ -11,7 +11,7 @@ python3 -m py_compile "$GW"
 php -l "$API" >/dev/null
 node --check "$JS"
 
-grep -F "'actor' => $actor" "$API" >/dev/null
+grep -F "'actor' => \$actor" "$API" >/dev/null
 grep -F "'network_identity'" "$API" >/dev/null
 grep -F "identity_max_sessions" "$GW" >/dev/null
 grep -F "identity_idle_seconds" "$GW" >/dev/null
