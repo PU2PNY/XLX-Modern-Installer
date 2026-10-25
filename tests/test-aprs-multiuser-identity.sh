@@ -14,7 +14,7 @@ grep -F "'service' => \$serviceCall" "$API" >/dev/null
 grep -F "historyWrap.hidden=!canSend" "$JS" >/dev/null
 grep -F "Minhas mensagens APRS" "$JS" >/dev/null
 grep -F "self_destination:'Próprio gateway — sem ACK'" "$JS" >/dev/null
-grep -F "próprio indicativo do gateway" "$JS" >/dev/null
+grep -F "própria identidade APRS" "$JS" >/dev/null
 grep -F "dlabMessageHistoryScope" "$HTML" >/dev/null
 grep -F "digital-lab-operator.js?v=1.2.11" "$HTML" >/dev/null
 
