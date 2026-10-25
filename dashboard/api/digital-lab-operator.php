@@ -1200,6 +1200,32 @@ if ($method === 'GET') {
                             20
                         );
 
+                    $serviceCall = strtoupper(
+                        trim(
+                            (string)($operator['service'] ?? '')
+                        )
+                    );
+
+                    if ($serviceCall !== '') {
+                        foreach (
+                            $operator['messages']
+                            as &$messageRow
+                        ) {
+                            if (
+                                strtoupper(
+                                    (string)($messageRow['peer'] ?? '')
+                                ) === $serviceCall &&
+                                (string)($messageRow['status'] ?? '') ===
+                                    'awaiting_ack'
+                            ) {
+                                $messageRow['status'] =
+                                    'self_destination';
+                            }
+                        }
+
+                        unset($messageRow);
+                    }
+
                     $operator['message_scope'] = 'own';
                 } else {
                     $operator['message_scope'] = 'global';
