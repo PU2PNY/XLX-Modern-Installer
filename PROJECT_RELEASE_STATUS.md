@@ -40,6 +40,13 @@ Atualizado em: 2026-10-21
 - Destino igual ao próprio serviço `PU2PNY-10` passa a ser rejeitado antes do envio; 5 entradas antigas desse tipo para PU4CAO são exibidas como `self_destination` / “Próprio gateway — sem ACK”.
 - Backup inicial: `/opt/xlx026-backups/APRS_MULTIUSER_IDENTITY_20261025_125930`; follow-up/cache/label: `/opt/xlx026-backups/APRS_MULTIUSER_LABEL_20261025_130100`. Página/JS/API HTTP/sintaxe válidos; cache JS `v=1.2.10`; XLXD, APRS/D-PRS, Nginx e PHP-FPM ativos; nenhum restart.
 - Limite de evidência: WartyWallaby estava desativada em 2026-10-25, então a suíte completa `tests/run-all.sh` não foi repetida para este follow-up; foram executados teste estático dedicado, staging isolado e validação focal PROD.
+- Follow-up PROD 2026-10-25 (identidade APRS direta): gateway passou de V1.1.5 para V1.2.0 preservando o baseline de D-PRS automático A-E, símbolos APRS e filtro dinâmico. Cada conta usa identidade derivada no backend, normalmente `<CALL>-10`; `PU4CAO` resolve para `PU4CAO-10`; `PU2PNY` reutiliza a conexão principal `PU2PNY-10`.
+- APRS-IS externo confirmou `# logresp PU4CAO-10 verified` em teste somente de login, sem mensagem/beacon.
+- Pool: máximo 8 sessões dedicadas, idle 300 s; após deploy sem sessão individual ativa: 13/32 tasks e ~25.7 MB de 192 MB; `NRestarts=0` após 12 s.
+- Banco: migração aditiva `messages.local_identity`, integrity_check OK. ACK/REJ/inbound são vinculados à identidade local.
+- Primeiro deploy da V1.2.0 não iniciou devido a modo `0750 root:root` incompatível com o unit `User=www-data`; rollback automático restaurou V1.1.5. O problema foi diagnosticado como permissão, baseline foi restaurado/verified, preflight passou como `www-data`, e o segundo deploy com `root:root 0755` concluiu com APRS-IS verified e módulos A-E ativos.
+- Backup/rollback: `/opt/xlx026-backups/APRS_PER_USER_IDENTITY_20261025_131959` e `ROLLBACK_PER_USER_IDENTITY.sh`.
+- Limite: nenhum pacote APRS real foi originado em produção usando a identidade de outro operador sem ação dele; a prova de TX dedicado real deve ocorrer quando o próprio PU4CAO ou outro usuário enviar pelo painel.
 - O caso reportado no print usa `PU1TMR`; não havia conta cadastrada para `PU1TMR` nem `PY1MTR` no momento da inspeção. A última TX real encontrada de `PU1TMR` havia terminado ~3h30 antes, portanto estava fora da janela de 15 min.
 - Limite de evidência: não foi criada conta fictícia no banco real; o próximo cadastro real de operador ainda precisa confirmar o fluxo PROD de ponta a ponta.
 
