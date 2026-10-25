@@ -521,9 +521,70 @@ function audit(
 
 function ownOperatorMessages(
     string $actor,
+    string $networkIdentity,
     int $limit = 20
 ): array {
     $limit = max(1, min(50, $limit));
+    $networkIdentity = strtoupper(
+        trim($networkIdentity)
+    );
+
+    if ($networkIdentity !== '') {
+        try {
+            $columns = gdb()->query(
+                'PRAGMA table_info(messages)'
+            )->fetchAll();
+
+            $hasIdentity = false;
+
+            foreach ($columns as $column) {
+                if (
+                    (string)($column['name'] ?? '') ===
+                    'local_identity'
+                ) {
+                    $hasIdentity = true;
+                    break;
+                }
+            }
+
+            if ($hasIdentity) {
+                $stmt = gdb()->prepare(
+                    '
+                    SELECT
+                        id,ts,direction,peer,body,
+                        msg_id,command,status,local_identity
+                    FROM messages
+                    WHERE local_identity=?
+                    ORDER BY id DESC
+                    LIMIT ?
+                    '
+                );
+
+                $stmt->bindValue(
+                    1,
+                    $networkIdentity,
+                    PDO::PARAM_STR
+                );
+                $stmt->bindValue(
+                    2,
+                    $limit,
+                    PDO::PARAM_INT
+                );
+                $stmt->execute();
+
+                $rows = $stmt->fetchAll();
+
+                if ($rows !== []) {
+                    return $rows;
+                }
+            }
+        } catch (Throwable $e) {
+            /*
+             * Compatibilidade: se o gateway antigo ainda estiver
+             * sem a coluna, cai no mapeamento legado por auditoria.
+             */
+        }
+    }
 
     $stmt = adb()->prepare(
         '
@@ -1183,6 +1244,7 @@ if ($method === 'GET') {
         if ($perm['send_aprs']) {
             $operator = rpc([
                 'action' => 'status',
+                'actor' => (string)$user['callsign'],
             ]);
 
             /*
@@ -1197,6 +1259,9 @@ if ($method === 'GET') {
                     $operator['messages'] =
                         ownOperatorMessages(
                             (string)$user['callsign'],
+                            (string)(
+                                $operator['network_identity'] ?? ''
+                            ),
                             20
                         );
 
@@ -1216,7 +1281,12 @@ if ($method === 'GET') {
                                     (string)($messageRow['peer'] ?? '')
                                 ) === $serviceCall &&
                                 (string)($messageRow['status'] ?? '') ===
-                                    'awaiting_ack'
+                                    'awaiting_ack' &&
+                                trim(
+                                    (string)(
+                                        $messageRow['local_identity'] ?? ''
+                                    )
+                                ) === ''
                             ) {
                                 $messageRow['status'] =
                                     'self_destination';
@@ -1791,6 +1861,7 @@ if ($action === 'send') {
 
     $operatorStatus = rpc([
         'action' => 'status',
+        'actor' => $actor,
     ]);
 
     $serviceCall = strtoupper(
@@ -1799,15 +1870,24 @@ if ($action === 'send') {
         )
     );
 
+    $networkIdentity = strtoupper(
+        trim(
+            (string)(
+                $operatorStatus['network_identity'] ?? ''
+            )
+        )
+    );
+
     if (
-        $serviceCall !== '' &&
-        hash_equals($serviceCall, $dest)
+        $networkIdentity !== '' &&
+        hash_equals($networkIdentity, $dest)
     ) {
         respond(
             [
                 'ok' => false,
                 'error' => 'self_destination',
                 'service' => $serviceCall,
+                'network_identity' => $networkIdentity,
             ],
             409
         );
@@ -1865,6 +1945,7 @@ if ($action === 'send') {
 
     $result = rpc([
         'action' => 'send',
+        'actor' => $actor,
         'dest' => $dest,
         'message' => $message,
     ]);
@@ -1891,6 +1972,8 @@ if ($action === 'send') {
         $dest,
         [
             'msg_id' => $result['msg_id'] ?? '',
+            'network_identity' =>
+                $result['source'] ?? $networkIdentity,
         ]
     );
 
@@ -1902,6 +1985,10 @@ if ($action === 'send') {
             $result['status'] ?? 'awaiting_ack',
         'service' => $serviceCall,
         'actor' => $actor,
+        'network_identity' =>
+            $result['source'] ?? $networkIdentity,
+        'identity_mode' =>
+            $result['identity_mode'] ?? '',
     ]);
 }
 
