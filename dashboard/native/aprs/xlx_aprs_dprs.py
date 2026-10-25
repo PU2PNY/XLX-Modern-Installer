@@ -25,10 +25,11 @@ import socket
 import sqlite3
 import threading
 import time
+import urllib.request
 from pathlib import Path
 from typing import Any, Callable, Iterable, Optional
 
-VERSION = "1.1.1"
+VERSION = "1.1.5"
 SOFTWARE = "XLX-APRS-DPRS"
 
 SCRAMBLER = (0x70, 0x4F, 0x93)
@@ -163,19 +164,21 @@ def parse_aprs_position(info: str) -> Optional[dict[str, Any]]:
     if payload[0] not in "!=":
         return None
     # !DDMM.mmN/DDDMM.mmWsymbol...
-    if len(payload) < 19:
+    if len(payload) < 20:
         return None
     lat_raw = payload[1:8]
     lat_hemi = payload[8:9]
+    symbol_table = payload[9:10]
     lon_raw = payload[10:18]
     lon_hemi = payload[18:19]
+    symbol_code = payload[19:20]
     if not (re.fullmatch(r"\d{4}\.\d{2}", lat_raw) and re.fullmatch(r"\d{5}\.\d{2}", lon_raw)):
         return None
     lat = nmea_coord(lat_raw, lat_hemi, False)
     lon = nmea_coord(lon_raw, lon_hemi, True)
     if lat is None or lon is None:
         return None
-    return {"lat": lat, "lon": lon}
+    return {"lat": lat, "lon": lon, "symbol_table": symbol_table, "symbol_code": symbol_code}
 
 
 def parse_tnc2(line: str) -> Optional[dict[str, Any]]:
@@ -442,6 +445,8 @@ class StateDB:
                     format TEXT,
                     speed_knots REAL,
                     course REAL,
+                    symbol_table TEXT,
+                    symbol_code TEXT,
                     last_seen TEXT NOT NULL,
                     raw_hash TEXT
                 );
@@ -469,6 +474,11 @@ class StateDB:
                 CREATE INDEX IF NOT EXISTS idx_messages_ts ON messages(ts DESC);
                 """
             )
+            cols = {str(r[1]) for r in self.conn.execute("PRAGMA table_info(stations)").fetchall()}
+            if "symbol_table" not in cols:
+                self.conn.execute("ALTER TABLE stations ADD COLUMN symbol_table TEXT")
+            if "symbol_code" not in cols:
+                self.conn.execute("ALTER TABLE stations ADD COLUMN symbol_code TEXT")
         self.set_status("gateway", "starting")
 
     def close(self) -> None:
@@ -498,20 +508,23 @@ class StateDB:
 
     def update_station(self, callsign: str, lat: float, lon: float, source: str, protocol: str,
                        module: str = "", fmt: str = "", speed_knots: Optional[float] = None,
-                       course: Optional[float] = None, raw_hash: str = "") -> None:
+                       course: Optional[float] = None, raw_hash: str = "",
+                       symbol_table: str = "", symbol_code: str = "") -> None:
         call = safe_callsign(callsign)
         if not call or not (-90 <= lat <= 90) or not (-180 <= lon <= 180):
             return
         now = iso_utc()
         with self.lock, self.conn:
             self.conn.execute(
-                """INSERT INTO stations(callsign,lat,lon,source,protocol,module,format,speed_knots,course,last_seen,raw_hash)
-                   VALUES(?,?,?,?,?,?,?,?,?,?,?)
+                """INSERT INTO stations(callsign,lat,lon,source,protocol,module,format,speed_knots,course,symbol_table,symbol_code,last_seen,raw_hash)
+                   VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)
                    ON CONFLICT(callsign) DO UPDATE SET
                    lat=excluded.lat,lon=excluded.lon,source=excluded.source,protocol=excluded.protocol,
                    module=excluded.module,format=excluded.format,speed_knots=excluded.speed_knots,
-                   course=excluded.course,last_seen=excluded.last_seen,raw_hash=excluded.raw_hash""",
-                (call, float(lat), float(lon), source[:32], protocol[:16], module[:1], fmt[:16], speed_knots, course, now, raw_hash[:64]),
+                   course=excluded.course,symbol_table=excluded.symbol_table,symbol_code=excluded.symbol_code,
+                   last_seen=excluded.last_seen,raw_hash=excluded.raw_hash""",
+                (call, float(lat), float(lon), source[:32], protocol[:16], module[:1], fmt[:16], speed_knots, course,
+                 str(symbol_table or "")[:1], str(symbol_code or "")[:1], now, raw_hash[:64]),
             )
             self.conn.execute(
                 "INSERT INTO events(ts,kind,callsign,source,module,detail) VALUES(?,?,?,?,?,?)",
@@ -612,7 +625,7 @@ class StateDB:
         with self.lock:
             status_rows = self.conn.execute("SELECT key,value,updated_at FROM status").fetchall()
             stations = self.conn.execute(
-                "SELECT callsign,lat,lon,source,protocol,module,format,speed_knots,course,last_seen FROM stations ORDER BY last_seen DESC LIMIT 60"
+                "SELECT callsign,lat,lon,source,protocol,module,format,speed_knots,course,symbol_table,symbol_code,last_seen FROM stations ORDER BY last_seen DESC LIMIT 60"
             ).fetchall()
             events = self.conn.execute(
                 "SELECT ts,kind,callsign,source,module,detail FROM events WHERE kind IN ('beacon','text','command','connect','disconnect') ORDER BY id DESC LIMIT 50"
@@ -666,7 +679,8 @@ class DExtraModuleClient(threading.Thread):
     daemon = True
 
     def __init__(self, config: dict[str, Any], db: StateDB, stop: threading.Event) -> None:
-        super().__init__(name="dextra-b")
+        module_name = str(config.get("module", "B"))[:1].lower() or "b"
+        super().__init__(name=f"dextra-{module_name}")
         self.cfg = config
         self.site_name = str(config.get("site_name", "XLX")).strip().upper()[:12] or "XLX"
         self.db = db
@@ -685,7 +699,8 @@ class DExtraModuleClient(threading.Thread):
         )
 
     def _set_status(self, state: str, detail: str = "") -> None:
-        self.db.set_status("module_b", {"state": state, "detail": detail, "module": str(self.cfg.get("module", "B"))[:1]})
+        module = str(self.cfg.get("module", "B"))[:1].upper() or "B"
+        self.db.set_status(f"module_{module.lower()}", {"state": state, "detail": detail, "module": module})
 
     def run(self) -> None:
         if not self.cfg.get("enabled", False):
@@ -791,22 +806,114 @@ class DExtraModuleClient(threading.Thread):
             self.streams.pop(sid, None)
 
     def _handle_slow_event(self, hdr: dict[str, Any], ev: SlowEvent) -> None:
-        module = str(self.cfg.get("module", "B"))[:1]
+        module = str(self.cfg.get("module", "B"))[:1].upper() or "B"
+        dprs_source = f"DPRS_MODULE_{module}"
         header_call = safe_callsign(str(hdr.get("mycall", "")))
         if ev.kind == "dprs":
             data = ev.data
             call = safe_callsign(str(data.get("source", ""))) or header_call
             if "lat" in data and "lon" in data and call:
-                self.db.update_station(call, float(data["lat"]), float(data["lon"]), "DPRS_MODULE_B", "DSTAR", module, str(data.get("format", "GPS-A")), raw_hash=hashlib.sha256(str(data.get("packet", "")).encode()).hexdigest())
+                self.db.update_station(call, float(data["lat"]), float(data["lon"]), dprs_source, "DSTAR", module, str(data.get("format", "GPS-A")), raw_hash=hashlib.sha256(str(data.get("packet", "")).encode()).hexdigest(), symbol_table=str(data.get("symbol_table", "")), symbol_code=str(data.get("symbol_code", "")))
             elif call:
-                self.db.add_event("dprs", call, "DPRS_MODULE_B", module, "GPS-A validado sem posição decodificada")
+                self.db.add_event("dprs", call, dprs_source, module, "GPS-A validado sem posição decodificada")
         elif ev.kind == "position":
             data = ev.data
             if header_call:
-                self.db.update_station(header_call, float(data["lat"]), float(data["lon"]), "DPRS_MODULE_B", "DSTAR", module, str(data.get("format", "NMEA")), data.get("speed_knots"), data.get("course"))
+                self.db.update_station(header_call, float(data["lat"]), float(data["lon"]), dprs_source, "DSTAR", module, str(data.get("format", "NMEA")), data.get("speed_knots"), data.get("course"))
         elif ev.kind == "text" and header_call:
             # Do not expose arbitrary text content in the public snapshot.
             self.db.add_event("text", header_call, "DSTAR_SLOW_DATA", module, "Texto DV recebido")
+
+
+class DExtraAutoManager(threading.Thread):
+    """Keep one passive DExtra D-PRS collector attached to every module exposed by XLX status."""
+    daemon = True
+
+    def __init__(self, base_config: dict[str, Any], db: StateDB, stop: threading.Event,
+                 status_url: str = "https://xlx026.net/api/runtime.php", interval: float = 20.0) -> None:
+        super().__init__(name="dextra-auto")
+        self.base_config = dict(base_config)
+        self.db = db
+        self.stop = stop
+        self.status_url = status_url
+        self.interval = max(10.0, float(interval))
+        self.clients: dict[str, tuple[threading.Event, DExtraModuleClient]] = {}
+
+    @staticmethod
+    def _client_module(module: str) -> str:
+        # Keep service identities deterministic and away from the common B/C/D radio suffixes.
+        letters = "GHIJKLMNOPQRSTUVWXYZ"
+        idx = ord(module) - ord("A")
+        return letters[idx] if 0 <= idx < len(letters) else module
+
+    def _discover_modules(self) -> list[str]:
+        req = urllib.request.Request(self.status_url, headers={"Accept": "application/json"})
+        with urllib.request.urlopen(req, timeout=4) as resp:
+            data = json.loads(resp.read().decode("utf-8", "replace"))
+        mods = data.get("modules") if isinstance(data, dict) else None
+        if not isinstance(mods, dict):
+            return []
+        out=[]
+        for key in mods.keys():
+            mod=str(key).strip().upper()[:1]
+            if re.fullmatch(r"[A-Z]", mod) and mod not in out:
+                out.append(mod)
+        return sorted(out)
+
+    def _start_module(self, module: str) -> None:
+        if module in self.clients:
+            return
+        child_stop = threading.Event()
+        ccfg = dict(self.base_config)
+        ccfg["enabled"] = True
+        ccfg["module"] = module
+        ccfg["client_module"] = self._client_module(module)
+        client = DExtraModuleClient(ccfg, self.db, child_stop)
+        self.clients[module] = (child_stop, client)
+        client.start()
+        logging.info("D-PRS auto collector started for module %s as client suffix %s", module, ccfg["client_module"])
+
+    def _stop_module(self, module: str) -> None:
+        item = self.clients.pop(module, None)
+        if not item:
+            return
+        ev, client = item
+        ev.set()
+        client.join(timeout=3.0)
+        self.db.set_status(f"module_{module.lower()}", {"state": "disabled", "detail": "Módulo não publicado", "module": module})
+        logging.info("D-PRS auto collector stopped for module %s", module)
+
+    def _publish_status(self, desired: list[str]) -> None:
+        running = sorted(m for m, (_ev, c) in self.clients.items() if c.is_alive())
+        self.db.set_status("dprs_auto_modules", {
+            "state": "active",
+            "desired": desired,
+            "running": running,
+            "count": len(running),
+            "refresh_seconds": int(self.interval),
+        })
+
+    def run(self) -> None:
+        while not self.stop.is_set():
+            try:
+                desired = self._discover_modules()
+                if not desired:
+                    raise RuntimeError("status API returned no modules")
+                for module in desired:
+                    item=self.clients.get(module)
+                    if item and not item[1].is_alive():
+                        self.clients.pop(module, None)
+                    self._start_module(module)
+                for module in list(self.clients):
+                    if module not in desired:
+                        self._stop_module(module)
+                self._publish_status(desired)
+            except Exception as exc:
+                logging.warning("D-PRS auto module discovery failed: %s", exc)
+                self.db.set_status("dprs_auto_modules", {"state": "degraded", "detail": str(exc)[:120], "running": sorted(self.clients)})
+            self.stop.wait(self.interval)
+        for module in list(self.clients):
+            self._stop_module(module)
 
 
 class APRSISClient(threading.Thread):
@@ -824,9 +931,64 @@ class APRSISClient(threading.Thread):
         self.send_lock = threading.Lock()
         self.last_auto_reply = 0.0
         self.auto_reply_by_peer: dict[str, float] = {}
+        self.dynamic_filter_thread: Optional[threading.Thread] = None
+        self.dynamic_filter_stop = threading.Event()
+        self.dynamic_filter_last = ""
 
     def _set_status(self, state: str, detail: str = "") -> None:
         self.db.set_status("aprs_is", {"state": state, "detail": detail, "tx_enabled": bool(self.cfg.get("tx_enabled", False) and self.verified)})
+
+    def _dynamic_watch_filter(self) -> tuple[str, int, int]:
+        req = urllib.request.Request(
+            "https://xlx026.net/api/runtime.php",
+            headers={"Accept": "application/json", "User-Agent": SOFTWARE + "/" + VERSION},
+        )
+        with urllib.request.urlopen(req, timeout=3) as resp:
+            data = json.loads(resp.read(1048576).decode("utf-8", "replace"))
+        rows = data.get("connections") if isinstance(data, dict) else []
+        candidates = []
+        seen = set()
+        if isinstance(rows, list):
+            for row in rows:
+                if not isinstance(row, dict) or str(row.get("protocol", "")).upper() != "DMR":
+                    continue
+                call = base_callsign(str(row.get("callsign", "")))
+                if not call or call in seen:
+                    continue
+                seen.add(call)
+                candidates.append(call + "*")
+        selected = []
+        current = "b/"
+        for pat in candidates:
+            add = ("" if current == "b/" else "/") + pat
+            if len(current) + len(add) > 430:
+                break
+            current += add
+            selected.append(pat)
+        return (current if selected else "", len(selected), len(candidates))
+
+    def _send_control_line(self, line: str) -> bool:
+        clean = line.replace("\r", "").replace("\n", "")[:500]
+        with self.send_lock:
+            if not self.sock:
+                return False
+            try:
+                self.sock.sendall((clean + "\r\n").encode("ascii", "ignore"))
+                return True
+            except OSError:
+                return False
+
+    def _dynamic_filter_loop(self) -> None:
+        while not self.stop.is_set() and not self.dynamic_filter_stop.wait(20.0):
+            if not self.verified or not self.sock:
+                continue
+            try:
+                filt, tracked, total = self._dynamic_watch_filter()
+                if filt and filt != self.dynamic_filter_last and self._send_control_line("#filter " + filt):
+                    self.dynamic_filter_last = filt
+                self.db.set_status("aprs_watch", {"state": "active" if filt else "idle", "tracked": tracked, "total_dmr": total, "filter": filt})
+            except Exception as exc:
+                self.db.set_status("aprs_watch", {"state": "error", "detail": str(exc)[:120]})
 
     def run(self) -> None:
         if not self.cfg.get("enabled", False):
@@ -844,6 +1006,8 @@ class APRSISClient(threading.Thread):
                 self._set_status("reconnecting", str(exc)[:100])
             finally:
                 self.verified = False
+                self.dynamic_filter_stop.set()
+                self.dynamic_filter_last = ""
                 if self.file:
                     with contextlib.suppress(Exception):
                         self.file.close()
@@ -887,6 +1051,17 @@ class APRSISClient(threading.Thread):
                     tx_ok = bool(self.cfg.get("tx_enabled", False) and self.verified)
                     self._set_status("connected", "verified" if self.verified else "receive-only")
                     self.db.set_status("aprs_tx", {"enabled": tx_ok})
+                    if self.verified and (self.dynamic_filter_thread is None or not self.dynamic_filter_thread.is_alive()):
+                        self.dynamic_filter_stop.clear()
+                        try:
+                            filt_now, tracked_now, total_now = self._dynamic_watch_filter()
+                            if filt_now and self._send_control_line("#filter " + filt_now):
+                                self.dynamic_filter_last = filt_now
+                            self.db.set_status("aprs_watch", {"state": "active" if filt_now else "idle", "tracked": tracked_now, "total_dmr": total_now, "filter": filt_now})
+                        except Exception as exc:
+                            self.db.set_status("aprs_watch", {"state": "error", "detail": str(exc)[:120]})
+                        self.dynamic_filter_thread = threading.Thread(target=self._dynamic_filter_loop, name="aprs-watch-filter", daemon=True)
+                        self.dynamic_filter_thread.start()
                 continue
             self._handle_packet(line, login)
         if time.monotonic() - last_rx > 40:
@@ -995,7 +1170,7 @@ class APRSISClient(threading.Thread):
         source = packet["source"]
         pos = parse_aprs_position(packet["info"])
         if pos:
-            self.db.update_station(source, pos["lat"], pos["lon"], "APRS_IS", "APRS", "", "APRS")
+            self.db.update_station(source, pos["lat"], pos["lon"], "APRS_IS", "APRS", "", "APRS", symbol_table=str(pos.get("symbol_table", "")), symbol_code=str(pos.get("symbol_code", "")))
         msg = parse_aprs_message(packet["info"])
         if not msg:
             return
@@ -1407,6 +1582,14 @@ def run_service(config_path: Path) -> int:
         stop,
     )
 
+    dextra_manager = DExtraAutoManager(
+        cfg.get("reflector", {}),
+        db,
+        stop,
+        str(cfg.get("dprs_auto_status_url", "https://xlx026.net/api/runtime.php")),
+        float(cfg.get("dprs_auto_refresh_seconds", 20)),
+    )
+
     threads: list[threading.Thread] = [
         SnapshotPublisher(
             db,
@@ -1414,11 +1597,7 @@ def run_service(config_path: Path) -> int:
             stop,
             float(cfg.get("snapshot_interval", 2)),
         ),
-        DExtraModuleClient(
-            cfg.get("reflector", {}),
-            db,
-            stop,
-        ),
+        dextra_manager,
         aprs_client,
         operator_ipc,
         Housekeeper(db, stop),
@@ -1431,7 +1610,7 @@ def run_service(config_path: Path) -> int:
         while not stop.wait(1.0):
             # Core watchdog: a dead worker is visible, not silently ignored.
             for t in threads:
-                if not t.is_alive() and t.name in ("snapshot", "cleanup", "operator-ipc"):
+                if not t.is_alive() and t.name in ("snapshot", "cleanup", "operator-ipc", "dextra-auto"):
                     logging.error("critical worker stopped: %s", t.name)
                     stop.set()
                     break
