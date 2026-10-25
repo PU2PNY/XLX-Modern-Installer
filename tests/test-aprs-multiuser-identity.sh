@@ -17,7 +17,7 @@ grep -F "próprio indicativo do gateway" "$JS" >/dev/null
 grep -F "dlabMessageHistoryScope" "$HTML" >/dev/null
 grep -F "digital-lab-operator.js?v=1.2.9" "$HTML" >/dev/null
 
-if grep -F "unset($operator['messages'])" "$API" >/dev/null; then
+if grep -F "unset(\$operator['messages'])" "$API" >/dev/null; then
   echo "FAIL | non-admin messages are still removed instead of filtered"
   exit 1
 fi
