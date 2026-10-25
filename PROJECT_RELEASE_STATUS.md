@@ -35,6 +35,11 @@ Atualizado em: 2026-10-21
 - SW/ENV: teste específico de timezone PASS e WartyWallaby `tests/run-all.sh` = `failures=0`.
 - PROD: backup `/opt/xlx026-backups/APRS_TIMEZONE_FIX_20261024_195251`; página/JS/API HTTP/sintaxe válidos; pré-check negativo `PU1MTR` PASS e pré-check positivo real `PU2RWN` PASS; 11 contas antes/depois; XLXD, APRS/D-PRS, Nginx e PHP-FPM ativos; nenhum restart.
 - Observação operacional: o indicativo visto no XLXD é `PU1TMR`; `PU1MTR` é outro texto e não deve ser autocorrigido por segurança.
+- Follow-up PROD 2026-10-25 (multiusuário APRS): confirmado que PU4CAO autenticava corretamente como `COLLABORATOR`, mas o transporte APRS-IS é compartilhado e autenticado como `PU2PNY-10`. A UI/API agora separam explicitamente as duas identidades.
+- USER/COLLABORATOR recebe somente o próprio histórico de envios/ACKs; ADMIN mantém histórico global. No teste PROD da conta real PU4CAO, os envios `PKTQSO` com msg_id 49/50 apareceram como `acked`.
+- Destino igual ao próprio serviço `PU2PNY-10` passa a ser rejeitado antes do envio; 5 entradas antigas desse tipo para PU4CAO são exibidas como `self_destination` / “Próprio gateway — sem ACK”.
+- Backup inicial: `/opt/xlx026-backups/APRS_MULTIUSER_IDENTITY_20261025_125930`; follow-up/cache/label: `/opt/xlx026-backups/APRS_MULTIUSER_LABEL_20261025_130100`. Página/JS/API HTTP/sintaxe válidos; cache JS `v=1.2.10`; XLXD, APRS/D-PRS, Nginx e PHP-FPM ativos; nenhum restart.
+- Limite de evidência: WartyWallaby estava desativada em 2026-10-25, então a suíte completa `tests/run-all.sh` não foi repetida para este follow-up; foram executados teste estático dedicado, staging isolado e validação focal PROD.
 - O caso reportado no print usa `PU1TMR`; não havia conta cadastrada para `PU1TMR` nem `PY1MTR` no momento da inspeção. A última TX real encontrada de `PU1TMR` havia terminado ~3h30 antes, portanto estava fora da janela de 15 min.
 - Limite de evidência: não foi criada conta fictícia no banco real; o próximo cadastro real de operador ainda precisa confirmar o fluxo PROD de ponta a ponta.
 
