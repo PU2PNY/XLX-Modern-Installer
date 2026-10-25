@@ -23,6 +23,9 @@ Rollback é parte da mudança, não reação improvisada depois da falha.
 - **TLS**: preservar material válido; nunca versionar chaves privadas.
 - **XLXD core**: manter binário/configuração anterior disponíveis antes de upgrade.
 
+## APRS/D-PRS
+Rollback do gateway deve preservar proprietário e modo do arquivo Python, preferencialmente com `cp -a` do backup conhecido. No XLX026, `xlx-aprs-dprs.service` roda como `www-data` e o gateway validado usa `root:root 0755`. A migração `messages.local_identity` da V1.2.0 é aditiva e compatível com o código V1.1.5; em rollback imediato não remover a coluna nem restaurar um banco antigo se isso puder descartar mensagens novas.
+
 ## Critério de parada
 Se a recuperação não puder ser provada, a mudança de alto risco não deve ser promovida para produção.
 
