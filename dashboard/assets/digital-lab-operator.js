@@ -172,6 +172,7 @@ function statusName(v){
     awaiting_ack:'Aguardando ACK',
     acked:'ACK recebido',
     rejected:'Rejeitada',
+    self_destination:'Próprio gateway — sem ACK',
     received:'Recebida',
     sent:'Enviada'
   })[v]||String(v||'—');
