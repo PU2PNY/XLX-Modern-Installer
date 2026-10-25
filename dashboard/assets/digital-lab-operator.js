@@ -511,9 +511,9 @@ function applyPermissions(){
 
   form.hidden=!canSend;
   historyWrap.hidden=!canSend;
-  soundToggle.hidden=!canViewPrivate;
+  soundToggle.hidden=!canSend;
   unreadBadge.hidden=
-    !canViewPrivate || unread<1;
+    !canSend || unread<1;
 
   userNotice.hidden=
     role==='ADMIN';
@@ -572,22 +572,37 @@ async function refresh(){
             ? 'Colaborador'
             : 'Usuário';
 
+      const serviceCall=
+        String(op.service||'{{APRS_SERVICE_CALLSIGN}}')
+          .toUpperCase();
+
+      const networkIdentity=
+        String(
+          op.network_identity||
+          account.callsign||
+          ''
+        ).toUpperCase();
+
+      const identityConnected=
+        Boolean(op.identity_connected);
+
       state.textContent=connected
         ? (
             tx
-              ? `${roleLabel} • APRS-IS verificado • TX habilitado`
+              ? `${roleLabel} • na rede: ${networkIdentity} • APRS-IS pronto`
               : `${roleLabel} • APRS-IS verificado • TX bloqueado`
           )
         : `${roleLabel} • APRS-IS não está pronto`;
 
       send.disabled=!(connected&&tx);
 
-      const serviceCall=
-        String(op.service||'{{APRS_SERVICE_CALLSIGN}}')
-          .toUpperCase();
-
       if(roleName==='ADMIN'){
-        userNotice.hidden=true;
+        userNotice.hidden=false;
+        userNotice.textContent=
+          'Na rede APRS suas mensagens usam '+
+          networkIdentity+
+          '. O serviço principal do XLX026 continua em '+
+          serviceCall+'.';
 
         if(historyTitle){
           historyTitle.textContent=
@@ -605,24 +620,28 @@ async function refresh(){
       }else{
         userNotice.hidden=false;
         userNotice.textContent=
-          account.callsign+
-          ' está conectado ao painel. As mensagens APRS saem pela identidade de serviço '+
-          serviceCall+
-          '; abaixo aparecem somente as mensagens enviadas por esta conta.';
+          'Conta '+account.callsign+
+          ' autenticada. Na rede APRS você aparece como '+
+          networkIdentity+
+          '. A sessão é aberta sob demanda e o serviço do XLX026 permanece em '+
+          serviceCall+'.';
 
         if(historyTitle){
           historyTitle.textContent=
-            'Minhas mensagens enviadas';
+            'Minhas mensagens APRS';
         }
 
         if(historyScope){
           historyScope.textContent=
-            'Somente envios feitos por '+
-            account.callsign+
-            ' nesta conta.';
+            'Identidade de rede: '+networkIdentity+
+            (identityConnected
+              ? ' • sessão APRS ativa.'
+              : ' • sessão abre ao enviar.');
         }
 
-        renderMessages(op.messages||[]);
+        const rows=op.messages||[];
+        inspectIncoming(rows);
+        renderMessages(rows);
       }
     }
 
@@ -1572,11 +1591,15 @@ form?.addEventListener('submit',async ev=>{
     message.value='';
     count.textContent='0';
 
-    const serviceCall=
-      String(data.service||'{{APRS_SERVICE_CALLSIGN}}');
+    const networkIdentity=
+      String(
+        data.network_identity||
+        account?.callsign||
+        ''
+      );
 
     notify(
-      `${account?.callsign||'Conta'} enviou via ${serviceCall} para ${to}. ID ${data.msg_id} — aguardando ACK.`
+      `${networkIdentity} → ${to}. ID ${data.msg_id} — aguardando ACK.`
     );
 
     await refresh();
@@ -1588,8 +1611,12 @@ form?.addEventListener('submit',async ev=>{
       code==='rate_limited'
         ? 'Aguarde antes de enviar outra mensagem.'
         : code==='self_destination'
-          ? 'Esse é o próprio indicativo do gateway do painel. Para testar ACK, envie para outra estação ou serviço APRS.'
-          : 'Não foi possível enviar a mensagem.'
+          ? 'Esse destinatário é a sua própria identidade APRS. Escolha outra estação.'
+          : code==='identity_connecting'
+            ? 'Sua identidade APRS está conectando. Tente enviar novamente em alguns segundos.'
+            : code==='identity_capacity'
+              ? 'Há muitas identidades APRS ativas agora. Aguarde alguns minutos e tente novamente.'
+              : 'Não foi possível enviar a mensagem.'
     );
 
     await refresh();
