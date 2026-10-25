@@ -490,8 +490,6 @@ class StateDB:
                     local_identity TEXT NOT NULL DEFAULT ''
                 );
                 CREATE INDEX IF NOT EXISTS idx_messages_ts ON messages(ts DESC);
-                CREATE INDEX IF NOT EXISTS idx_messages_identity_ts
-                    ON messages(local_identity, ts DESC);
                 """
             )
             cols = {str(r[1]) for r in self.conn.execute("PRAGMA table_info(stations)").fetchall()}
