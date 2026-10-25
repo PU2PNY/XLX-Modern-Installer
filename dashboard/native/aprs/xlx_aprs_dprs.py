@@ -29,7 +29,7 @@ import urllib.request
 from pathlib import Path
 from typing import Any, Callable, Iterable, Optional
 
-VERSION = "1.1.5"
+VERSION = "1.2.0"
 SOFTWARE = "XLX-APRS-DPRS"
 
 SCRAMBLER = (0x70, 0x4F, 0x93)
@@ -60,6 +60,23 @@ def safe_callsign(value: str) -> str:
 
 def base_callsign(value: str) -> str:
     return safe_callsign(value).split("-", 1)[0]
+
+
+def aprs_network_callsign(value: str) -> str:
+    """Return a callsign-SSID that fits the APRS-IS 9-character limit."""
+    call = safe_callsign(value)
+    return call if call and len(call) <= 9 else ""
+
+
+def operator_aprs_identity(value: str, preferred_ssid: str = "10") -> str:
+    """Derive the network identity from the authenticated base callsign."""
+    base = base_callsign(value)
+    if not base:
+        return ""
+    candidate = f"{base}-{preferred_ssid}"
+    if aprs_network_callsign(candidate):
+        return candidate
+    return aprs_network_callsign(base)
 
 
 def atomic_json_write(path: Path, payload: dict[str, Any]) -> None:
@@ -224,8 +241,8 @@ def aprs_passcode(callsign: str) -> int:
 
 
 def build_aprs_message(source: str, dest: str, text: str, msg_id: str = "") -> str:
-    source = safe_callsign(source)
-    dest = safe_callsign(dest)
+    source = aprs_network_callsign(source)
+    dest = aprs_network_callsign(dest)
     if not source or not dest:
         raise ValueError("invalid APRS callsign")
     clean = re.sub(r"[\r\n\x00-\x1f]", " ", text).strip()[:67]
@@ -469,9 +486,12 @@ class StateDB:
                     body TEXT NOT NULL,
                     msg_id TEXT,
                     command TEXT,
-                    status TEXT NOT NULL
+                    status TEXT NOT NULL,
+                    local_identity TEXT NOT NULL DEFAULT ''
                 );
                 CREATE INDEX IF NOT EXISTS idx_messages_ts ON messages(ts DESC);
+                CREATE INDEX IF NOT EXISTS idx_messages_identity_ts
+                    ON messages(local_identity, ts DESC);
                 """
             )
             cols = {str(r[1]) for r in self.conn.execute("PRAGMA table_info(stations)").fetchall()}
@@ -479,6 +499,21 @@ class StateDB:
                 self.conn.execute("ALTER TABLE stations ADD COLUMN symbol_table TEXT")
             if "symbol_code" not in cols:
                 self.conn.execute("ALTER TABLE stations ADD COLUMN symbol_code TEXT")
+            msg_cols = {
+                str(r[1])
+                for r in self.conn.execute(
+                    "PRAGMA table_info(messages)"
+                ).fetchall()
+            }
+            if "local_identity" not in msg_cols:
+                self.conn.execute(
+                    "ALTER TABLE messages "
+                    "ADD COLUMN local_identity TEXT NOT NULL DEFAULT ''"
+                )
+            self.conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_messages_identity_ts "
+                "ON messages(local_identity, ts DESC)"
+            )
         self.set_status("gateway", "starting")
 
     def close(self) -> None:
@@ -541,34 +576,63 @@ class StateDB:
             ).fetchone()
         return dict(row) if row else None
 
-    def add_message(self, direction: str, peer: str, body: str, msg_id: str = "", command: str = "", status: str = "seen") -> None:
-        call = safe_callsign(peer)
+    def add_message(
+        self,
+        direction: str,
+        peer: str,
+        body: str,
+        msg_id: str = "",
+        command: str = "",
+        status: str = "seen",
+        local_identity: str = "",
+    ) -> None:
+        call = aprs_network_callsign(peer)
+        identity = aprs_network_callsign(local_identity)
         if not call:
             return
         clean = re.sub(r"[\r\n\x00-\x1f]", " ", body).strip()[:200]
         with self.lock, self.conn:
             self.conn.execute(
-                "INSERT INTO messages(ts,direction,peer,body,msg_id,command,status) VALUES(?,?,?,?,?,?,?)",
-                (iso_utc(), direction[:8], call, clean, msg_id[:8], command[:16], status[:16]),
+                "INSERT INTO messages("
+                "ts,direction,peer,body,msg_id,command,status,local_identity"
+                ") VALUES(?,?,?,?,?,?,?,?)",
+                (
+                    iso_utc(),
+                    direction[:8],
+                    call,
+                    clean,
+                    msg_id[:8],
+                    command[:16],
+                    status[:24],
+                    identity,
+                ),
             )
 
-    def update_outgoing_status(self, peer: str, msg_id: str, status: str) -> bool:
-        call = safe_callsign(peer)
+    def update_outgoing_status(
+        self,
+        local_identity: str,
+        peer: str,
+        msg_id: str,
+        status: str,
+    ) -> bool:
+        identity = aprs_network_callsign(local_identity)
+        call = aprs_network_callsign(peer)
         mid = re.sub(r"[^A-Za-z0-9]", "", str(msg_id))[:8]
-        if not call or not mid:
+        if not identity or not call or not mid:
             return False
         with self.lock, self.conn:
             row = self.conn.execute(
                 "SELECT id FROM messages "
-                "WHERE direction='out' AND peer=? AND msg_id=? "
+                "WHERE direction='out' "
+                "AND local_identity=? AND peer=? AND msg_id=? "
                 "ORDER BY id DESC LIMIT 1",
-                (call, mid),
+                (identity, call, mid),
             ).fetchone()
             if not row:
                 return False
             self.conn.execute(
                 "UPDATE messages SET status=? WHERE id=?",
-                (status[:16], row["id"]),
+                (status[:24], row["id"]),
             )
         return True
 
@@ -609,7 +673,7 @@ class StateDB:
         limit = max(1, min(int(limit), 50))
         with self.lock:
             rows = self.conn.execute(
-                "SELECT id,ts,direction,peer,body,msg_id,command,status "
+                "SELECT id,ts,direction,peer,body,msg_id,command,status,local_identity "
                 "FROM messages ORDER BY id DESC LIMIT ?",
                 (limit,),
             ).fetchall()
@@ -1091,7 +1155,15 @@ class APRSISClient(threading.Thread):
             return False
         ok = self._send_line(line)
         if ok:
-            self.db.add_message("out", dest, text, mid, self._command_name(text), "sent")
+            self.db.add_message(
+                "out",
+                dest,
+                text,
+                mid,
+                self._command_name(text),
+                "sent",
+                source,
+            )
         return ok
 
     def send_operator_message(self, dest: str, text: str) -> dict[str, Any]:
@@ -1119,10 +1191,13 @@ class APRSISClient(threading.Thread):
             return {"ok": False, "error": "tx_disabled"}
 
         mid = self._next_id()
+        login = aprs_network_callsign(
+            str(self.cfg.get("login", ""))
+        )
 
         try:
             line = build_aprs_message(
-                safe_callsign(str(self.cfg.get("login", ""))),
+                login,
                 target,
                 clean,
                 mid,
@@ -1140,6 +1215,7 @@ class APRSISClient(threading.Thread):
             mid,
             self._command_name(clean),
             "awaiting_ack",
+            login,
         )
 
         return {
@@ -1147,6 +1223,7 @@ class APRSISClient(threading.Thread):
             "peer": target,
             "msg_id": mid,
             "status": "awaiting_ack",
+            "source": login,
         }
 
     @staticmethod
@@ -1185,6 +1262,7 @@ class APRSISClient(threading.Thread):
         )
         if ack_match:
             self.db.update_outgoing_status(
+                login,
                 source,
                 ack_match.group(1),
                 "acked",
@@ -1197,6 +1275,7 @@ class APRSISClient(threading.Thread):
         )
         if rej_match:
             self.db.update_outgoing_status(
+                login,
                 source,
                 rej_match.group(1),
                 "rejected",
@@ -1212,6 +1291,7 @@ class APRSISClient(threading.Thread):
             msg["msg_id"],
             command,
             "received",
+            login,
         )
         if msg["msg_id"] and self.verified and self.cfg.get("tx_enabled", False):
             ack = build_aprs_message(login, source, "ack" + msg["msg_id"])
@@ -1303,7 +1383,386 @@ class APRSISClient(threading.Thread):
         return ""
 
 
-# DIGITAL LAB V1.1 OPERATOR IPC
+class APRSIdentityClient(APRSISClient):
+    """Direct APRS-IS session for one authenticated web-account identity."""
+    daemon = True
+
+    def __init__(
+        self,
+        identity: str,
+        config: dict[str, Any],
+        db: StateDB,
+        stop: threading.Event,
+    ) -> None:
+        cfg = dict(config)
+        cfg["enabled"] = True
+        cfg["login"] = identity
+        cfg["passcode"] = "auto"
+        cfg["filter"] = ""
+        super().__init__(cfg, db, stop)
+        self.name = "aprs-user-" + identity.lower()
+        self.identity = identity
+        self.ready = threading.Event()
+        self.state = "starting"
+        self.last_used = time.monotonic()
+
+    def touch(self) -> None:
+        self.last_used = time.monotonic()
+
+    def _set_status(self, state: str, detail: str = "") -> None:
+        self.state = state
+        if state == "connected" and self.verified:
+            self.ready.set()
+        elif state in ("error", "disabled"):
+            self.ready.clear()
+
+    def _session(self, login: str) -> None:
+        host = str(self.cfg.get("host", "rotate.aprs2.net"))
+        port = int(self.cfg.get("port", 14580))
+        passcode = str(aprs_passcode(login))
+
+        self._set_status("connecting", f"{host}:{port}")
+
+        sock = socket.create_connection(
+            (host, port),
+            timeout=5,
+        )
+        sock.setsockopt(
+            socket.IPPROTO_TCP,
+            socket.TCP_NODELAY,
+            1,
+        )
+        sock.settimeout(30)
+        self.sock = sock
+
+        login_line = (
+            f"user {login} pass {passcode} "
+            f"vers {SOFTWARE} {VERSION}"
+        )
+        sock.sendall(
+            (login_line + "\r\n").encode("ascii", "ignore")
+        )
+
+        f = sock.makefile(
+            "r",
+            encoding="utf-8",
+            errors="replace",
+            newline="\n",
+        )
+        self.file = f
+        last_rx = time.monotonic()
+
+        for line in f:
+            if self.stop.is_set():
+                break
+
+            last_rx = time.monotonic()
+            line = line.rstrip("\r\n")
+
+            if not line:
+                continue
+
+            if line.startswith("#"):
+                low = line.lower()
+
+                if "logresp" in low:
+                    self.verified = (
+                        "verified" in low
+                        and "unverified" not in low
+                    )
+
+                    self._set_status(
+                        "connected" if self.verified else "error",
+                        "verified" if self.verified else "unverified",
+                    )
+
+                continue
+
+            self._handle_packet(line, login)
+
+        if time.monotonic() - last_rx > 40:
+            raise TimeoutError("APRS-IS sem dados")
+
+        raise ConnectionError("APRS-IS desconectou")
+
+    def _handle_packet(self, line: str, login: str) -> None:
+        packet = parse_tnc2(line)
+
+        if not packet:
+            return
+
+        source = aprs_network_callsign(packet["source"])
+        msg = parse_aprs_message(packet["info"])
+
+        if not source or not msg:
+            return
+
+        if (
+            aprs_network_callsign(msg["addressee"])
+            != aprs_network_callsign(login)
+        ):
+            return
+
+        self.touch()
+        body = msg["body"].strip()
+
+        ack_match = re.fullmatch(
+            r"(?i:ack)([A-Za-z0-9]{1,5})",
+            body,
+        )
+
+        if ack_match:
+            self.db.update_outgoing_status(
+                login,
+                source,
+                ack_match.group(1),
+                "acked",
+            )
+            return
+
+        rej_match = re.fullmatch(
+            r"(?i:rej)([A-Za-z0-9]{1,5})",
+            body,
+        )
+
+        if rej_match:
+            self.db.update_outgoing_status(
+                login,
+                source,
+                rej_match.group(1),
+                "rejected",
+            )
+            return
+
+        self.db.add_message(
+            "in",
+            source,
+            body,
+            msg["msg_id"],
+            "",
+            "received",
+            login,
+        )
+
+        if (
+            msg["msg_id"]
+            and self.verified
+            and self.cfg.get("tx_enabled", False)
+        ):
+            ack = build_aprs_message(
+                login,
+                source,
+                "ack" + msg["msg_id"],
+            )
+            self._send_line(ack)
+
+    def send_operator_message(
+        self,
+        dest: str,
+        text: str,
+    ) -> dict[str, Any]:
+        self.touch()
+        return super().send_operator_message(dest, text)
+
+    def shutdown(self) -> None:
+        self.stop.set()
+
+        if self.sock:
+            with contextlib.suppress(Exception):
+                self.sock.shutdown(socket.SHUT_RDWR)
+            with contextlib.suppress(Exception):
+                self.sock.close()
+
+
+class APRSIdentitySessionManager(threading.Thread):
+    """Bounded on-demand pool of direct APRS-IS identities."""
+    daemon = True
+
+    def __init__(
+        self,
+        config: dict[str, Any],
+        db: StateDB,
+        stop: threading.Event,
+        service_client: APRSISClient,
+    ) -> None:
+        super().__init__(name="aprs-identities")
+        self.cfg = dict(config)
+        self.db = db
+        self.stop = stop
+        self.service_client = service_client
+        self.max_sessions = max(
+            1,
+            min(
+                int(self.cfg.get("identity_max_sessions", 8)),
+                12,
+            ),
+        )
+        self.idle_seconds = max(
+            60,
+            min(
+                int(self.cfg.get("identity_idle_seconds", 300)),
+                1800,
+            ),
+        )
+        self.lock = threading.RLock()
+        self.sessions: dict[
+            str,
+            tuple[threading.Event, APRSIdentityClient],
+        ] = {}
+
+    def identity_for(self, actor: str) -> str:
+        return operator_aprs_identity(actor)
+
+    def _service_login(self) -> str:
+        return aprs_network_callsign(
+            str(self.service_client.cfg.get("login", ""))
+        )
+
+    def _close_locked(self, identity: str) -> None:
+        item = self.sessions.pop(identity, None)
+
+        if not item:
+            return
+
+        _child_stop, client = item
+        client.shutdown()
+
+    def _cleanup_locked(self) -> None:
+        now = time.monotonic()
+
+        for identity, (_ev, client) in list(
+            self.sessions.items()
+        ):
+            if (
+                not client.is_alive()
+                or now - client.last_used >= self.idle_seconds
+            ):
+                self._close_locked(identity)
+
+    def status(self, actor: str) -> dict[str, Any]:
+        identity = self.identity_for(actor)
+        service = self._service_login()
+
+        if not identity:
+            return {
+                "network_identity": "",
+                "identity_connected": False,
+                "identity_mode": "invalid",
+            }
+
+        if identity == service:
+            return {
+                "network_identity": identity,
+                "identity_connected": bool(
+                    self.service_client.sock is not None
+                    and self.service_client.verified
+                ),
+                "identity_mode": "service",
+            }
+
+        with self.lock:
+            self._cleanup_locked()
+            item = self.sessions.get(identity)
+            connected = bool(
+                item
+                and item[1].is_alive()
+                and item[1].verified
+            )
+
+        return {
+            "network_identity": identity,
+            "identity_connected": connected,
+            "identity_mode": "dedicated",
+        }
+
+    def _ensure_session(
+        self,
+        identity: str,
+    ) -> Optional[APRSIdentityClient]:
+        with self.lock:
+            self._cleanup_locked()
+            item = self.sessions.get(identity)
+
+            if item and item[1].is_alive():
+                item[1].touch()
+                return item[1]
+
+            if len(self.sessions) >= self.max_sessions:
+                return None
+
+            child_stop = threading.Event()
+            client = APRSIdentityClient(
+                identity,
+                self.cfg,
+                self.db,
+                child_stop,
+            )
+            self.sessions[identity] = (
+                child_stop,
+                client,
+            )
+            client.start()
+            return client
+
+    def send(
+        self,
+        actor: str,
+        dest: str,
+        text: str,
+    ) -> dict[str, Any]:
+        identity = self.identity_for(actor)
+
+        if not identity:
+            return {
+                "ok": False,
+                "error": "invalid_network_identity",
+            }
+
+        if identity == self._service_login():
+            result = self.service_client.send_operator_message(
+                dest,
+                text,
+            )
+            result["source"] = identity
+            result["identity_mode"] = "service"
+            return result
+
+        client = self._ensure_session(identity)
+
+        if client is None:
+            return {
+                "ok": False,
+                "error": "identity_capacity",
+                "source": identity,
+            }
+
+        if not client.ready.wait(2.2):
+            return {
+                "ok": False,
+                "error": "identity_connecting",
+                "source": identity,
+            }
+
+        result = client.send_operator_message(dest, text)
+        result["source"] = identity
+        result["identity_mode"] = "dedicated"
+        return result
+
+    def run(self) -> None:
+        while not self.stop.wait(15.0):
+            with self.lock:
+                self._cleanup_locked()
+
+        with self.lock:
+            items = list(self.sessions.items())
+            self.sessions.clear()
+
+        for _identity, (_ev, client) in items:
+            client.shutdown()
+            client.join(timeout=2.0)
+
+
+# DIGITAL LAB V1.2 OPERATOR IPC
 class OperatorSocketServer(threading.Thread):
     daemon = True
 
@@ -1311,12 +1770,14 @@ class OperatorSocketServer(threading.Thread):
         self,
         path: Path,
         aprs: APRSISClient,
+        identities: APRSIdentitySessionManager,
         db: StateDB,
         stop: threading.Event,
     ) -> None:
         super().__init__(name="operator-ipc")
         self.path = path
         self.aprs = aprs
+        self.identities = identities
         self.db = db
         self.stop = stop
         self.server: Optional[socket.socket] = None
@@ -1337,7 +1798,12 @@ class OperatorSocketServer(threading.Thread):
     def _process(self, req: dict[str, Any]) -> dict[str, Any]:
         action = str(req.get("action", "")).strip().lower()
 
+        actor = base_callsign(
+            str(req.get("actor", ""))
+        )
+
         if action == "status":
+            identity = self.identities.status(actor)
             return {
                 "ok": True,
                 "connected": bool(
@@ -1348,14 +1814,27 @@ class OperatorSocketServer(threading.Thread):
                     self.aprs.cfg.get("tx_enabled", False)
                     and self.aprs.verified
                 ),
-                "service": safe_callsign(
+                "service": aprs_network_callsign(
                     str(self.aprs.cfg.get("login", ""))
                 ),
+                **identity,
+                "identity_sessions": len(
+                    self.identities.sessions
+                ),
+                "identity_capacity":
+                    self.identities.max_sessions,
                 "messages": self.db.operator_messages(30),
             }
 
         if action == "send":
-            return self.aprs.send_operator_message(
+            if not actor:
+                return {
+                    "ok": False,
+                    "error": "invalid_actor",
+                }
+
+            return self.identities.send(
+                actor,
                 str(req.get("dest", "")),
                 str(req.get("message", "")),
             )
@@ -1477,7 +1956,9 @@ def default_config() -> dict[str, Any]:
             "login": "",
             "passcode": "-1",
             "filter": "",
-            "tx_enabled": False
+            "tx_enabled": False,
+            "identity_max_sessions": 8,
+            "identity_idle_seconds": 300
         },
         "site": {
             "title": "XLX APRS/D-PRS",
@@ -1524,7 +2005,7 @@ def validate_config(cfg: dict[str, Any]) -> list[str]:
         except Exception:
             errors.append("reflector.port inválido")
     if a.get("enabled"):
-        if not safe_callsign(str(a.get("login", ""))):
+        if not aprs_network_callsign(str(a.get("login", ""))):
             errors.append("aprs.login inválido")
         try:
             p = int(a.get("port", 0))
@@ -1568,6 +2049,13 @@ def run_service(config_path: Path) -> int:
         stop,
     )
 
+    identity_manager = APRSIdentitySessionManager(
+        aprs_cfg,
+        db,
+        stop,
+        aprs_client,
+    )
+
     operator_ipc = OperatorSocketServer(
         Path(
             str(
@@ -1578,6 +2066,7 @@ def run_service(config_path: Path) -> int:
             )
         ),
         aprs_client,
+        identity_manager,
         db,
         stop,
     )
@@ -1599,6 +2088,7 @@ def run_service(config_path: Path) -> int:
         ),
         dextra_manager,
         aprs_client,
+        identity_manager,
         operator_ipc,
         Housekeeper(db, stop),
     ]
@@ -1610,7 +2100,7 @@ def run_service(config_path: Path) -> int:
         while not stop.wait(1.0):
             # Core watchdog: a dead worker is visible, not silently ignored.
             for t in threads:
-                if not t.is_alive() and t.name in ("snapshot", "cleanup", "operator-ipc", "dextra-auto"):
+                if not t.is_alive() and t.name in ("snapshot", "cleanup", "operator-ipc", "dextra-auto", "aprs-identities"):
                     logging.error("critical worker stopped: %s", t.name)
                     stop.set()
                     break
