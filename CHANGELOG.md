@@ -12,6 +12,10 @@
 - Fixes a production timezone bug where XLXD log timestamps in the server local timezone were interpreted by PHP as UTC, making recent transmissions appear three hours old on XLX026. Registration now checks completed XLXD streams directly with the system timezone, uses a 30-minute verification window, and permits 6 registration attempts per 15 minutes.
 - Keeps registration and password-recovery errors visible inside their form/dialog; an unknown callsign now explicitly says that no account exists to recover.
 - Separates the authenticated web account from the shared APRS-IS service identity: non-admin users see only their own outgoing message/ACK history, the UI labels the shared gateway explicitly, and self-destination to the gateway callsign is rejected instead of remaining indefinitely in awaiting-ACK.
+- APRS/D-PRS gateway V1.2.0 now originates web-panel traffic with the authenticated operator's own APRS network identity, normally `<CALL>-10` (for example `PU4CAO-10`), using a verified direct APRS-IS session rather than rewriting the source behind the shared service login.
+- Adds bounded on-demand identity sessions (max 8, 300-second idle expiry), per-identity ACK/REJ/inbound isolation via `messages.local_identity`, sysop reuse of the main service connection, and a 9-character APRS-IS identity limit.
+- Production deployment preserved the v1.1.5 D-PRS multi-module/symbol/filter improvements by first syncing the exact known-good production source into Git before applying V1.2.0.
+- A first deployment attempt correctly rolled back after a file-mode regression (`0750 root:root` blocked the `www-data` service). The corrected deployment preserves `root:root 0755`, added a service-user preflight, and completed with APRS-IS verified and modules A–E active.
 - Adds a dedicated regression for schema migration, legacy-account preservation, date fields and page ordering.
 - WartyWallaby full suite: `failures=0`; XLX026 production deployment preserved all 10 existing accounts and required no service restart.
 
