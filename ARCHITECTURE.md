@@ -35,6 +35,7 @@ O arquivo legado `modules/70-apache.sh` ainda existe no repositório, mas não �
 
 - `vendor/pp5pk-installer/` — base técnica revisada/pinada para XLXD.
 - `dashboard/` — painel público, APIs e componentes nativos.
+- **APRS identity pool** — o gateway mantém `PU2PNY-10`/indicativo configurado como identidade principal do serviço e cria conexões APRS-IS diretas, verificadas e sob demanda para contas web autenticadas. A origem de rede é derivada no backend (`<CALL>-10` quando válido), nunca fornecida pelo navegador. O pool é limitado e expira sessões ociosas; ACK/inbound são indexados pela identidade local.
 - `control/` — Administração privada, builders e helpers.
 - `modules/` — estágios controlados de instalação.
 - `observability/` — Health, DMR data/meta, YSF data, analisador passivo de integridade de transmissão, histórico e self-test.
