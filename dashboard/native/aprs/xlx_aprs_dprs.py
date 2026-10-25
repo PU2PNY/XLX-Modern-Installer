@@ -1413,7 +1413,7 @@ class APRSIdentityClient(APRSISClient):
         self.state = state
         if state == "connected" and self.verified:
             self.ready.set()
-        elif state in ("error", "disabled"):
+        else:
             self.ready.clear()
 
     def _session(self, login: str) -> None:
