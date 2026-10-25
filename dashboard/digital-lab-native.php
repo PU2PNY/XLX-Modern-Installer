@@ -514,7 +514,7 @@
 
   <link rel="stylesheet" href="/assets/digital-lab-operator.css?v=1.2.7">
 
-  <script src="/assets/digital-lab-operator.js?v=1.2.9" defer></script>
+  <script src="/assets/digital-lab-operator.js?v=1.2.10" defer></script>
 
   <section class="dlab-primary-grid">
     <article class="dlab-test-card panel">
