@@ -66,7 +66,10 @@ def fake_server():
 
     sent=f.readline().strip()
     observed["sent"]=sent
-    assert sent.startswith("PU4CAO-10>APDLAB,TCPIP*::PKTQSO  :join{"),sent
+    assert re.match(
+        r"^PU4CAO-10>APDLAB,TCPIP\*::PKTQSO\s{3}:join\{[A-Za-z0-9]+$",
+        sent,
+    ),sent
     mid=sent.rsplit("{",1)[1]
     observed["mid"]=mid
 
@@ -82,8 +85,9 @@ def fake_server():
 
     ack_back=f.readline().strip()
     observed["ack_back"]=ack_back
-    assert ack_back.startswith(
-        "PU4CAO-10>APDLAB,TCPIP*::PKTQSO  :ack77"
+    assert re.match(
+        r"^PU4CAO-10>APDLAB,TCPIP\*::PKTQSO\s{3}:ack77$",
+        ack_back,
     ),ack_back
 
     server_done.set()
