@@ -59,6 +59,8 @@ const count=$('dlabMessageCount');
 const send=$('dlabMessageSend');
 const historyWrap=$('dlabPrivateHistory');
 const history=$('dlabOperatorMessages');
+const historyTitle=$('dlabMessageHistoryTitle');
+const historyScope=$('dlabMessageHistoryScope');
 
 const dialog=$('dlabAccountDialog');
 const dialogTitle=$('dlabDialogTitle');
@@ -507,7 +509,7 @@ function applyPermissions(){
     role==='ADMIN';
 
   form.hidden=!canSend;
-  historyWrap.hidden=!canViewPrivate;
+  historyWrap.hidden=!canSend;
   soundToggle.hidden=!canViewPrivate;
   unreadBadge.hidden=
     !canViewPrivate || unread<1;
@@ -579,10 +581,47 @@ async function refresh(){
 
       send.disabled=!(connected&&tx);
 
+      const serviceCall=
+        String(op.service||'{{APRS_SERVICE_CALLSIGN}}')
+          .toUpperCase();
+
       if(roleName==='ADMIN'){
+        userNotice.hidden=true;
+
+        if(historyTitle){
+          historyTitle.textContent=
+            'Mensagens do operador';
+        }
+
+        if(historyScope){
+          historyScope.textContent=
+            'Histórico global do gateway '+serviceCall+'.';
+        }
+
         const rows=op.messages||[];
         inspectIncoming(rows);
         renderMessages(rows);
+      }else{
+        userNotice.hidden=false;
+        userNotice.textContent=
+          account.callsign+
+          ' está conectado ao painel. As mensagens APRS saem pela identidade de serviço '+
+          serviceCall+
+          '; abaixo aparecem somente as mensagens enviadas por esta conta.';
+
+        if(historyTitle){
+          historyTitle.textContent=
+            'Minhas mensagens enviadas';
+        }
+
+        if(historyScope){
+          historyScope.textContent=
+            'Somente envios feitos por '+
+            account.callsign+
+            ' nesta conta.';
+        }
+
+        renderMessages(op.messages||[]);
       }
     }
 
@@ -1532,17 +1571,24 @@ form?.addEventListener('submit',async ev=>{
     message.value='';
     count.textContent='0';
 
+    const serviceCall=
+      String(data.service||'{{APRS_SERVICE_CALLSIGN}}');
+
     notify(
-      `Mensagem enviada para ${to}. ID ${data.msg_id} — aguardando ACK.`
+      `${account?.callsign||'Conta'} enviou via ${serviceCall} para ${to}. ID ${data.msg_id} — aguardando ACK.`
     );
 
     await refresh();
 
   }catch(err){
+    const code=String(err?.data?.error||'');
+
     notify(
-      err?.data?.error==='rate_limited'
+      code==='rate_limited'
         ? 'Aguarde antes de enviar outra mensagem.'
-        : 'Não foi possível enviar a mensagem.'
+        : code==='self_destination'
+          ? 'Esse é o próprio indicativo do gateway do painel. Para testar ACK, envie para outra estação ou serviço APRS.'
+          : 'Não foi possível enviar a mensagem.'
     );
 
     await refresh();
