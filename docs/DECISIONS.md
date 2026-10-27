@@ -84,3 +84,7 @@ Adicionar VW somente como transporte YSF nativo, preservando quadros completos e
 ## DEC-2026-10-27-016 — Supervisão técnica e recuperação auxiliar limitada
 
 A solicitação do operador autoriza supervisão contínua. Conectividade OpenAI não equivale a análise. Timeout de 8s foi reproduzido entre respostas HTTP200 com a mesma chave. Implementar diagnóstico sanitizado, repetição transitória limitada, recuperação rápida sem consultas saudáveis extras e supervisão agregada fora do áudio. IA produz recomendações; somente política local fixa pode iniciar três auxiliares em failed por duas amostras, com cooldown/limites. Proibido executar texto remoto. Rádio, codecs, TOT e segurança permanecem fora dessa política. Recurso opt-in, nomes específicos XLX026; documentação em observability/ai-supervisor/README.md.
+
+## DEC-2026-10-27-017 — Figura de leitura IA leve e decorativa
+
+Substituir a barra segmentada por SVG inline (IA lendo documento) e varredura CSS. A causa da barra imóvel era transform:... !important vencendo transform dos keyframes. O novo desenho anima apenas estados monitoring/analyzing, pausa nos demais e respeita reduced-motion. A figura é decorativa: não comprova chamada remota; rótulos e telemetria seguem independentes. Sem GIF externo, requests adicionais, polling, timers JS ou mudanças no servidor de rádio.

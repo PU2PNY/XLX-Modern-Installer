@@ -1,0 +1,81 @@
+/* XLXMODERN AI MONITOR V5 — decorative AI document reader */
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor{
+ gap:6px !important;
+ padding-right:7px !important;
+}
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor > b{
+ flex:0 0 auto !important;
+ letter-spacing:.055em !important;
+}
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor > span{
+ flex:0 1 auto !important;
+ font-size:clamp(10px,.9vw,12px) !important;
+ font-weight:800 !important;
+ color:#dffbff !important;
+}
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor > em.tx-ai-scan{
+ display:block !important;
+ position:relative !important;
+ flex:0 0 55px !important;
+ width:55px !important;
+ min-width:55px !important;
+ height:24px !important;
+ opacity:1 !important;
+ overflow:hidden !important;
+ color:#67e8f9 !important;
+ contain:paint;
+}
+.tx-ai-scan .tx-ai-reader{display:block;width:100%;height:100%;overflow:hidden}
+.tx-ai-scan .ai-reader-beam{opacity:.8;transform:translateY(4px)}
+.tx-ai-scan .ai-reader-node{opacity:.7}
+.tx-ai-monitor:is(.is-monitoring,.is-analyzing) .ai-reader-beam{
+ animation:xlxAiReadDocument 1.8s ease-in-out infinite;
+}
+.tx-ai-monitor:is(.is-monitoring,.is-analyzing) .ai-reader-node{
+ animation:xlxAiReadSignal 1.8s ease-in-out infinite;
+}
+.tx-ai-monitor:is(.is-monitoring,.is-analyzing) .ai-reader-node:nth-of-type(2){animation-delay:.3s}
+.tx-ai-monitor:is(.is-monitoring,.is-analyzing) .ai-reader-node:nth-of-type(3){animation-delay:.6s}
+.tx-ai-monitor.is-analyzing .tx-ai-scan{color:#d8b4fe !important}
+.tx-ai-monitor.is-error .tx-ai-scan,.tx-ai-monitor.is-ready .tx-ai-scan{opacity:.4 !important}
+.tx-ai-monitor.is-error .tx-ai-scan{color:#fca5a5 !important}
+@keyframes xlxAiReadDocument{
+ 0%,100%{transform:translateY(0);opacity:.55}
+ 50%{transform:translateY(15px);opacity:1}
+}
+@keyframes xlxAiReadSignal{
+ 0%,100%{opacity:.25}
+ 45%,65%{opacity:1}
+}
+@container (max-width:700px){
+ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor{
+  gap:3px !important;padding:3px 5px !important;font-size:7.2px !important;
+ }
+ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor > b{
+  max-width:62px !important;font-size:7.2px !important;letter-spacing:.035em !important;
+ }
+ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor > span{
+  max-width:58px !important;font-size:7.2px !important;
+ }
+ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor > em.tx-ai-scan{
+  flex-basis:35px !important;width:35px !important;min-width:35px !important;height:20px !important;
+ }
+}
+@container (max-width:430px){
+ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor{
+  gap:2px !important;padding-left:4px !important;padding-right:4px !important;
+ }
+ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor > b{
+  max-width:48px !important;font-size:6.8px !important;
+ }
+ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor > span{
+  max-width:46px !important;font-size:6.8px !important;
+ }
+ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 .tx-ai-monitor > em.tx-ai-scan{
+  flex-basis:31px !important;width:31px !important;min-width:31px !important;height:19px !important;
+ }
+}
+@media (prefers-reduced-motion:reduce){
+ .tx-ai-monitor .ai-reader-beam,.tx-ai-monitor .ai-reader-node{animation:none !important}
+ .tx-ai-monitor .ai-reader-beam{transform:translateY(7px);opacity:.8}
+}
