@@ -1,6 +1,7 @@
 {
   "date": "2026-10-27",
   "base": "9a55d5701348312dcdd170ec911065b9d2e68941",
+  "code_commit": "78365759bfafc89fc8a09f6cb65f4d1069d5862a",
   "version": "1.4.6",
   "diagnosis": {
     "key_valid_http": 200,
@@ -14,10 +15,30 @@
     "php_lint_copy": "PASS",
     "node_syntax_copy": "PASS",
     "systemd_verify": "PASS",
-    "real_remote_analysis_staging": "completed"
+    "real_remote_analysis_staging": "completed",
+    "ci": [
+      "validate:success",
+      "regression:success",
+      "debian12-runtime:success",
+      "supervision:success"
+    ]
   },
   "production": {
-    "deployed": false,
+    "deployed": true,
+    "connectivity": true,
+    "ai_analysis_completed_at": 1793137747,
+    "monitored_services": 8,
+    "services_all_active": true,
+    "automatic_recovery_events": 0,
+    "second_cycle_cached_remote_timestamps": true,
+    "status_http": 200,
+    "js_http": 200,
+    "browser": "Chrome screenshot: IA supervisionando during real C4FM/YSF TX; 95 connected; history populated",
+    "radio_pid_before_after": 1197741,
+    "transcoder_pid_before_after": 3946342,
+    "backup_restore_fixture_files": 3,
+    "backup_restore_fixture": "hashes_match",
+    "real_service_rollback": "not_executed",
     "real_incident_recovery": "not_tested",
     "soak": "pending"
   }

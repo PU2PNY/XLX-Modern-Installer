@@ -247,3 +247,13 @@ Base canônica main 9a55d5701348312dcdd170ec911065b9d2e68941, VERSION1.4.6. Chec
 Diagnóstico PROD: xlx-ai-monitor falhas intermitentes e timeout de leitura de 8s reproduzido, intercalado com HTTP200 usando a mesma chave; sem prova de chave inválida. Monitor existente testa /models, não analisa servidor. Monitores Helix/Turn Guard consultivos são separados.
 
 Candidato: observability/ai-supervisor, instalação opt-in. 7 testes SW/ENV isolado PASS, PHP/Node em cópia PASS, Python compile/systemd verify PASS. Análise real em staging retornou texto completo sobre serviços/recursos agregados. Não houve mutação dos serviços monitorados durante esse teste. Ações sintéticas não são incidentes reais. Deploy/soak serão registrados separadamente.
+
+### Ativação PROD — 2026-10-27 18:49 BRT
+
+- Backup root-only: `/opt/xlx026-backups/AI_SUPERVISION_20261027_184844`; os 3 arquivos anteriores foram restaurados em fixture e hashes conferidos. Novos paths ausentes registrados; rollback.py privado restaura arquivos e remove novos componentes, sem restart do rádio. Restore real de serviço em PROD não executado.
+- Monitor corrigido API HTTP200, error_code vazio; supervisor concluiu análise remota real e publicou ai_last_analysis_at=1793137747. Oito serviços active, eventos de recuperação vazios.
+- Timers ativos, ambas execuções Result=success/ExecMainStatus=0. Ciclo seguinte atualizou telemetria sem repetir probe saudável ou análise externa; timestamps remotos preservados.
+- Endpoint público /api/status.php HTTP200 expôs supervisor sanitizado; JS HTTP200 incluiu integração e removeu rótulo enganoso reconectando.
+- Chrome: screenshot durante TX real PU2PNY em C4FM/YSF confirmou indicador IA supervisionando, 95 conectados, Helix monitorando e histórico preenchido. Isso comprova apresentação/atividade observada, não qualidade RF/áudio.
+- XLXD PID1197741 e xuvd PID3946342 preservados antes/depois. Nenhuma ação de recuperação foi necessária; recuperação de incidente real e soak longo permanecem pendentes.
+- CI no código 78365759: validate, regression, debian12-runtime e duas execuções supervision concluídas success. Níveis SW/CI, ENV isolado e PROD específicos permanecem separados.
