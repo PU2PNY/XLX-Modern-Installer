@@ -82,3 +82,5 @@ Código e13f4e1: CI3/3 PASS; ENV build/lifecycle/protocol classes/TOT/restore/We
 | TEST-041 | VW-005 / BACKUP-002 | Restore do núcleo e arquivos administrativos | ENV: baseline→candidato→restore, ELF exato e 13 listeners em cada serviço isolado. PROD: backup root-only e fixture restaurando 5 arquivos originais com hash exato; sem executar rollback real na produção | PASS (ENV lifecycle e fixture de arquivos); restore real PROD não executado |
 
 | TEST-042 | VW-002/004 | Diagnóstico distingue VW nativo habilitado de conversão multiprotocolo | PROD: função read-only e snapshot do monitor com VW nativo=true, suporte=true e crossmode VW=false; Python compile e serviço monitor active | PASS (PROD metadados); sem inferência RF |
+
+| TEST-043 | AI-001/002/003/004/005 | Timeout/retry/auth/429/cache e recuperação com limites; texto remoto não executado | 2026-10-27: 7 testes SW locais e ENV isolado no host XLX026 PASS; cópia de PHP/JS lint PASS, Python compile/systemd verify PASS; análise remota de estados agregados completa em staging PASS. Deploy/soak/recuperação de incidente real pendentes até registro posterior. | PASS (SW/ENV isolado); PROD pendente |

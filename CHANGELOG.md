@@ -324,3 +324,10 @@ Three additional controlled multi-TX repeats retained 40/40 frames per stream wi
 - Adds a dedicated low-frequency local telemetry monitor plus sparse OpenAI analysis of technical metrics only; no radio audio, voice content or callsigns are sent.
 - Adds `/api/helix-status.php` and a compact `HELIX • MONITORANDO` Live-box indicator.
 - Initial PROD streams observed 18/18, 108/108 and 72/72 Helix shadow frames with zero fallback and zero codec failures; 24 h soak remains pending.
+
+## Unreleased — bounded AI supervision and connectivity recovery
+
+- Distinguish OpenAI connectivity from completed technical analysis; retry transient connectivity errors once, preserve honest failure state, respect rate-limit backoff and cache healthy probes.
+- Add opt-in minute-level technical supervision with hourly healthy summaries, absolute 15-minute remote minimum and no station identity/audio/logs.
+- Add deterministic START-only recovery for three failed auxiliary daemons with two-sample confirmation, 30-minute cooldown and three daily attempts; model output is never executed.
+- Include bounded state/audit, dashboard integration patch, hardening, regression tests and independent rollback. No radio/transcoder restart or protocol/audio change.

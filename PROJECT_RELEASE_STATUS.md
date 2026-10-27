@@ -239,3 +239,11 @@ O bloqueio de conectividade de Warty às20:43 UTC foi superado após reconexão;
 - Evidência sanitizada: [resultado](docs/evidence/ysf-vw-20261023.json). Nenhum segredo, áudio, backup ou sessão foi versionado.
 
 - Diagnóstico operacional atualizado para refletir o marcador do núcleo e a chave: `voice.vw_voice_fr=true`, `vw_supported=true`, `crossmode_safe.vw_voice_fr=false`. Função de leitura/sintaxe PASS; reiniciado somente o monitor de saúde para carregar essa correção, sem segundo restart do XLXD.
+
+## 2026-10-27 — Supervisão IA limitada, candidato
+
+Base canônica main 9a55d5701348312dcdd170ec911065b9d2e68941, VERSION1.4.6. Checkout legado /usr/src/XLX-Modern-Installer está detached em 454bd431 e não representa automaticamente o runtime. Não atualizar nem promover esse checkout.
+
+Diagnóstico PROD: xlx-ai-monitor falhas intermitentes e timeout de leitura de 8s reproduzido, intercalado com HTTP200 usando a mesma chave; sem prova de chave inválida. Monitor existente testa /models, não analisa servidor. Monitores Helix/Turn Guard consultivos são separados.
+
+Candidato: observability/ai-supervisor, instalação opt-in. 7 testes SW/ENV isolado PASS, PHP/Node em cópia PASS, Python compile/systemd verify PASS. Análise real em staging retornou texto completo sobre serviços/recursos agregados. Não houve mutação dos serviços monitorados durante esse teste. Ações sintéticas não são incidentes reais. Deploy/soak serão registrados separadamente.

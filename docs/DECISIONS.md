@@ -80,3 +80,7 @@ Silêncio ou resumo idêntico não geram consulta. Mudança de avaliação não 
 
 ## DEC-2026-10-23-015 — VW nativo e chave local
 Adicionar VW somente como transporte YSF nativo, preservando quadros completos e a admissão central. Não interpretar Voice FR como AMBE+2 nem prometer conversão multiprotocolo. Chave root-owned aplicada apenas a novos PTTs, sem polling/restart; padrão OFF. Preparação e testes em laboratório antes de produção.
+
+## DEC-2026-10-27-016 — Supervisão técnica e recuperação auxiliar limitada
+
+A solicitação do operador autoriza supervisão contínua. Conectividade OpenAI não equivale a análise. Timeout de 8s foi reproduzido entre respostas HTTP200 com a mesma chave. Implementar diagnóstico sanitizado, repetição transitória limitada, recuperação rápida sem consultas saudáveis extras e supervisão agregada fora do áudio. IA produz recomendações; somente política local fixa pode iniciar três auxiliares em failed por duas amostras, com cooldown/limites. Proibido executar texto remoto. Rádio, codecs, TOT e segurança permanecem fora dessa política. Recurso opt-in, nomes específicos XLX026; documentação em observability/ai-supervisor/README.md.

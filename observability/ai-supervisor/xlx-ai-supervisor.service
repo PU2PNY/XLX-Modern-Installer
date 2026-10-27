@@ -1,0 +1,32 @@
+[Unit]
+Description=XLX technical AI supervision and bounded auxiliary recovery
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=-/etc/xlx-ai-monitor.env
+ExecStart=/usr/bin/python3 /usr/local/lib/xlx-modern/xlx-ai-supervisor.py
+RuntimeDirectory=xlx-ai-supervisor
+RuntimeDirectoryPreserve=yes
+StateDirectory=xlx-ai-supervisor
+StateDirectoryMode=0700
+UMask=0022
+TimeoutStartSec=60
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+CapabilityBoundingSet=
+MemoryMax=64M
+CPUQuota=15%
+TasksMax=12
+
