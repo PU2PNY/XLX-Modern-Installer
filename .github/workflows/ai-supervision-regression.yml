@@ -1,0 +1,13 @@
+name: AI supervision regression
+on:
+  pull_request:
+    paths: ['observability/ai-supervisor/**', 'tests/test-ai-supervisor.py', '.github/workflows/ai-supervision-regression.yml']
+  push:
+    branches: ['fix/ai-supervision-20261027']
+jobs:
+  supervision:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tests/test-ai-supervisor.py
+      - run: python3 -m py_compile observability/ai-supervisor/*.py

@@ -139,3 +139,10 @@ Uma mudança só é aceita se:
 - **VW-003** — Preservar DN, gatekeeper, admissão central, TOT180 e TX Turn Guard. Não converter Voice FR para outros codecs sem implementação validada.
 - **VW-004** — A chave administrativa exige sessão, CSRF, senha e helper limitado; alteração vale apenas para novos PTTs e não reinicia XLXD.
 - **VW-005** — Promoção exige baseline reproduzido, testes ENV, backup/restore e rollback. Transporte sintético não comprova áudio RF.
+
+### AI SUPERVISION
+- **AI-001** — Separar conectividade, supervisão local, análise remota completa e recuperação executada. Timestamp de análise só após resposta completa real.
+- **AI-002** — Probe saudável mínimo 900s; retry transitório máximo duas tentativas de 12s, sem retry imediato 401/403/429. Falha mantém estado desconectado; retomada local em ~1–2min, respeitando backoff.
+- **AI-003** — Supervisão local por minuto; chamadas remotas mínimo absoluto 900s, rotina saudável horária, só serviços/recursos agregados, sem identidade/áudio/logs/segredos.
+- **AI-004** — Recuperação local somente START de live-core-v2, live-hub e health-monitor em failed por duas amostras, 30min entre tentativas, máximo 3/dia UTC por serviço. Nunca executar texto da IA nem iniciar inactive/unknown/active. Não alterar núcleo, rádio, áudio, TOT, rede ou segurança.
+- **AI-005** — Estado privado persistente limitado, auditoria de tentativas, instalação opt-in, backup/restore conferido e rollback independente do rádio.

@@ -1,0 +1,11 @@
+[Unit]
+Description=Check XLX technical health every minute
+
+[Timer]
+OnBootSec=120
+OnUnitInactiveSec=60
+RandomizedDelaySec=10
+Unit=xlx-ai-supervisor.service
+
+[Install]
+WantedBy=timers.target
