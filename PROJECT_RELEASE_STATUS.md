@@ -257,3 +257,7 @@ Candidato: observability/ai-supervisor, instalação opt-in. 7 testes SW/ENV iso
 - Chrome: screenshot durante TX real PU2PNY em C4FM/YSF confirmou indicador IA supervisionando, 95 conectados, Helix monitorando e histórico preenchido. Isso comprova apresentação/atividade observada, não qualidade RF/áudio.
 - XLXD PID1197741 e xuvd PID3946342 preservados antes/depois. Nenhuma ação de recuperação foi necessária; recuperação de incidente real e soak longo permanecem pendentes.
 - CI no código 78365759: validate, regression, debian12-runtime e duas execuções supervision concluídas success. Níveis SW/CI, ENV isolado e PROD específicos permanecem separados.
+
+## 2026-10-27 — Ícone de leitura do indicador IA
+
+Base main 6b8ee70da82665db572f54c031abf5e6b299fc24, VERSION1.4.6. Troca cirúrgica de barra por SVG/CSS, sem mudança de status/IA/protocolo. Código em observability/ai-supervisor/integrate-reading-icon.py e ai-reading-icon.css. Backup root-only /opt/xlx026-backups/AI_READING_ICON_20261027_190122: originais/cópias restauradas e hashes conferidos; restaurar somente assets/app.js e assets/ai-monitor-v1.css, sem restart. Node syntax/Python compile PASS; PIDs XLXD1197741/xuvd3946342 preservados. Browser em /ao-vivo confirmou página/histórico e console sem erro, mas esteve em standby na primeira amostra, sem ícone TX visível. Visual/movimento real e mobile permanecem pendentes até observados.

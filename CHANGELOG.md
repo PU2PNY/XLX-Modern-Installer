@@ -331,3 +331,9 @@ Three additional controlled multi-TX repeats retained 40/40 frames per stream wi
 - Add opt-in minute-level technical supervision with hourly healthy summaries, absolute 15-minute remote minimum and no station identity/audio/logs.
 - Add deterministic START-only recovery for three failed auxiliary daemons with two-sample confirmation, 30-minute cooldown and three daily attempts; model output is never executed.
 - Include bounded state/audit, dashboard integration patch, hardening, regression tests and independent rollback. No radio/transcoder restart or protocol/audio change.
+
+## Unreleased — animated AI reading figure
+
+- Replace the decorative segmented bar with an inline SVG AI/document reader and visible scanning beam.
+- Remove a static !important transform that overrode animation keyframes. Animate only monitoring/analyzing states; respect reduced motion and preserve status text/accessibility.
+- Keep animation in CSS with no extra requests, JavaScript timers, dependencies or radio-path changes. Provide an exact-contract integration patch and asset rollback.

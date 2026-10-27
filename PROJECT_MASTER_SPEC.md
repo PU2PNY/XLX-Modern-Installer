@@ -146,3 +146,5 @@ Uma mudança só é aceita se:
 - **AI-003** — Supervisão local por minuto; chamadas remotas mínimo absoluto 900s, rotina saudável horária, só serviços/recursos agregados, sem identidade/áudio/logs/segredos.
 - **AI-004** — Recuperação local somente START de live-core-v2, live-hub e health-monitor em failed por duas amostras, 30min entre tentativas, máximo 3/dia UTC por serviço. Nunca executar texto da IA nem iniciar inactive/unknown/active. Não alterar núcleo, rádio, áudio, TOT, rede ou segurança.
 - **AI-005** — Estado privado persistente limitado, auditoria de tentativas, instalação opt-in, backup/restore conferido e rollback independente do rádio.
+
+- **UI-AI-001** — Indicador de IA deve mostrar figura leve de leitura animada nos estados monitoring/analyzing, sem transformar animação em evidência de análise remota; aria-hidden, foco desativado e prefers-reduced-motion devem ser preservados. Manter layout responsivo, sem chamadas externas/timers de animação JS.
