@@ -90,3 +90,14 @@ Read-only measurements on PROD, without reboot, restart, synthetic radio injecti
 ### Production validation guardrails
 Use only read-only checks and real voluntarily occurring RF streams. Never play synthetic packets into public XLXD/codec sockets, switch an active transcoder, restart services or change EQ solely for test metrics. Keep the pre-switch archive for immediate rollback upon operator-reported audio degradation. Radio intelligibility requires operator observations in both directions of each intended crossmode flow and cannot be inferred from server logs.
 
+## Current operational state (rollback, 2026-11-03)
+The operator rejected the SoftAMBE D-STAR to DMR and DMR to D-STAR audio quality. The approved rollback was executed in production. This section supersedes the earlier SoftAMBE-active snapshot in this file.
+
+- SoftAMBE: inactive and disabled; retained on disk for audit only.
+- Previous xuvd: active and enabled for subsequent reboots; SHA256 d3ea28efb76ff61f615a5613bc5475b08b9a94a3085f638d470e70a8d21e1884.
+- Helix shadow: active, observation only.
+- XLXD: active, unchanged PID 1298; SHA256 3991b040573ff7522af69148c97f768d0b468b716212bf7b8e047fca1c6cc410.
+- Pre-switch private backup checksum and restore script checks PASS; restored xuvd and Helix by executing the rollback script.
+- The pre-switch snapshot had xuvd disabled at boot; after restoration, the service was explicitly enabled to ensure future restarts preserve transcoding.
+- Real post-rollback AMBE+2-to-D-STAR stream: 201 frames, zero reported xuvd failures. Web home, Live and Modules all HTTP200. Subjective acoustic quality after restoration remains to be confirmed by operator listening.
+- Do not reactivate SoftAMBE without a new technical decision and audio validation.
