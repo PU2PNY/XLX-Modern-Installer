@@ -67,3 +67,6 @@ Third-party and upstream attribution is intentionally centralized in this docume
 ### SoftAMBE — atualização de uso operacional em 2026-11-03
 Por autorização específica, o XLX026 compilou e instalou em sua VPS o \`ambed\` do patch PP5PK/SofAMBE a partir de revisões fixadas do upstream. O repositório \`XLX-Modern-Installer\` **continua sem redistribuir binário ou código do vocoder**; o conteúdo terceiro está apenas no host e não deve ser publicado em backups/GitHub. São aplicáveis os respectivos avisos GPL/ISC de componentes e eventual avaliação de patentes de codec, que o uso local não dispensa. Histórico: \`experimental/softambe/PRODUCTION-20261103.md\`.
 
+## szechyjs/mbelib — upstream reference and existing OP25-compatible usage (2026-11-03)
+Upstream \`https://github.com/szechyjs/mbelib\`, commit \`9a04ed5c78176a9965f3d43f7aa1b1f5330e771f\`, declares version 1.3.0. The source \`COPYRIGHT\` is ISC (retain attribution/notice), while the README warns that codec algorithms may be subject to patent restrictions. The XLX026 xuvd already contains related \`mbe_*\` symbols and includes \`mbelib.h\` via OP25-compatible sources; **exact identity and third-party provenance require separate proof**, and OP25's licenses are independent. This analysis redistributes no upstream mbelib code or new binary. Source audit: \`experimental/mbelib/README.md\`.
+
