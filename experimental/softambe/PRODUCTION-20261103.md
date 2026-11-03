@@ -70,3 +70,23 @@ The script verifies SHA256 first, stops/disables \`xlx-softambe.service\`, resto
 - [PP5PK installer](https://github.com/PP5PK/XLX-SoftAMBE_Installer)
 - [Original ambed.conf template](https://github.com/PP5PK/XLX-SoftAMBE_Installer/blob/master/templates/ambed.conf)
 - [Current xuvd interface contract](https://github.com/PU2PNY/XLX-Modern-Installer/blob/main/experimental/helix-bridge/xuvd.cpp)
+
+## Production-only validation follow-up — 2026-11-03
+The operator explicitly reiterated: **all remaining tests will be performed on XLX026 PROD, not WartyWallaby**. This is a scope constraint, not a representation that ENV/HW tests have been done.
+
+Read-only measurements on PROD, without reboot, restart, synthetic radio injection or new process deployment:
+- Both \`xlxd.service\` and \`xlx-softambe.service\` were active/enabled, initial PIDs 1298 and 7092 **unchanged**; xuvd and Helix remained inactive/disabled.
+- Since SoftAMBE activation at 16:24:33 -03, journals contained 23 AMBED stream open events and 23 SoftAMBE pair open and close events.
+- 23 closed-stream statistics included 22 internally consistent entries: **4 timeouts out of 10,389 packets** in those entries (about 0.0385%). There was **one anomalous counter \`2 of 1 packets timed out\`**, which cannot legitimately contribute to a loss ratio without separate source-code analysis. Do not hide or silently normalize it.
+- The highest reported per-stream latency was 103.0 ms (maximum, not p95, not steady-state latency).
+- No error/failure strings were present in the SoftAMBE journal in that measured window and no transcoder keepalive timeout was detected in the XLXD journal.
+- Four public routes, \`/\`, \`/ao-vivo\`, \`/modulos\`, \`/consulta-indicativo.php\`, all returned HTTP200 with probe response times ~0.04..0.18s. HTTP200 does not prove real-time UI functionality.
+- RSS: \`ambed\` about 6.6 MB, \`xlxd\` about 66.0 MB, point-in-time CPU columns ~7.5% and 7.2%; memory available ~1,245 MB. These are point samples, not full-load benchmarks.
+- Backup \`snapshot.tar.gz\` SHA256 verification still PASS. Production port 127.0.0.1:10100 bound by ambed PID7092; XLXD listened at the configured public IP 10100.
+- No actual hardware listening / audio quality observation, prolonged soak, DMR↔YSF EQ changes, full RF protocol regression or disaster recovery test can be claimed yet.
+
+**IMPORTANT:** A result of \`2 of 1\` in codec statistics is logically inconsistent as a packet-loss fraction. Investigate the XLXD log counter semantics and stream termination before interpreting this as dropped audio. It is not evidence on its own to raise mic gain or modify EQ.
+
+### Production validation guardrails
+Use only read-only checks and real voluntarily occurring RF streams. Never play synthetic packets into public XLXD/codec sockets, switch an active transcoder, restart services or change EQ solely for test metrics. Keep the pre-switch archive for immediate rollback upon operator-reported audio degradation. Radio intelligibility requires operator observations in both directions of each intended crossmode flow and cannot be inferred from server logs.
+
