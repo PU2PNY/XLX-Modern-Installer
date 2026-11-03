@@ -156,3 +156,8 @@ Uma mudança só é aceita se:
 - **SOFT-004** — A avaliação de laboratório não deve instalar pacotes, alterar arquivos de serviço, executar o novo binário, expor sockets nem reiniciar serviços. Qualquer integração runtime exige aprovação posterior, isolamento, fail-open, rollback restaurado e medições SW/ENV/HW.
 - **SOFT-005** — Promoção exige testes A/B separados de D-STAR→DMR, DMR→D-STAR, D-STAR→YSF DN, YSF DN→D-STAR e da rota DMR↔YSF DN inalterada, com latência, CPU, áudio, múltiplos streams, interlinks, VW nativo, TOT180 e regressão do Live. Não considerar \`CI PASS\` como autorização de PROD.
 
+### SOFTAMBE / AUTHORIZED PRODUCTION OVERRIDE (2026-11-03)
+- **SOFT-006** — Após autorização expressa do operador para intervenção direta sem VPS de teste, registrar a exceção a CORE-004/SOFT-004, sem reclassificar testes no próprio servidor como ENV ou HW. Alterar somente o transcoder externo, nunca instalar o sistema completo de PP5PK sobre o XLXD e painel personalizados.
+- **SOFT-007** — O backend alternativo utiliza fonte e patch pinados com hashes verificados, SoftAMBE executável isolado, valores upstream de ganho/EQ/gate, serviço systemd hardened, conflito exclusivo com xuvd na porta 10100, retirada reversível do Helix e recuperação de falha com rollback. Preservar arquivo de backup privado, logar estado anterior e guardar evidência de restauração real.
+- **SOFT-008** — DMR↔YSF DN continua sem DSP exclusivo; não afirmar que a troca de AMBE D-STAR↔AMBE+2 melhora essa direção. A aceitação de áudio com rádio real, estudo de carga e soak são gates adicionais não satisfeitos pelo deploy técnico.
+
