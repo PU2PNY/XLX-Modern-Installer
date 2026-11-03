@@ -261,3 +261,12 @@ Candidato: observability/ai-supervisor, instalação opt-in. 7 testes SW/ENV iso
 ## 2026-10-27 — Ícone de leitura do indicador IA
 
 Base main 6b8ee70da82665db572f54c031abf5e6b299fc24, VERSION1.4.6. Troca cirúrgica de barra por SVG/CSS, sem mudança de status/IA/protocolo. Código em observability/ai-supervisor/integrate-reading-icon.py e ai-reading-icon.css. Backup root-only /opt/xlx026-backups/AI_READING_ICON_20261027_190122: originais/cópias restauradas e hashes conferidos; restaurar somente assets/app.js e assets/ai-monitor-v1.css, sem restart. Node syntax/Python compile PASS; PIDs XLXD1197741/xuvd3946342 preservados. Browser em /ao-vivo confirmou página/histórico e console sem erro, mas esteve em standby na primeira amostra, sem ícone TX visível. Visual/movimento real e mobile permanecem pendentes até observados.
+
+## SoftAMBE PP5PK — compatibilidade LAB, 2026-11-03
+**DOC:** analisado PP5PK/XLX-SoftAMBE_Installer@eff7972 e PP5PK/xlxd@f10f91b: patch de 65 arquivos/~14.892 linhas adicionadas para D-STAR↔DMR/YSF, não DSP direto de DMR↔YSF DN; controle ambed e xuvd compartilham UDP 10100; upstream usa Apache, enquanto este instalador usa Nginx/PHP-FPM. Issue #92 e branch research/softambe-compat-lab-20261103 documentam decisão.
+**SW:** teste local offline de contrato test-softambe-lab-only.sh executado com PASS; CI da PR e build remoto ainda não confirmados.
+**ENV:** não houve build/execução no laboratório; WartyWallaby SentinelX indisponível.
+**HW:** rádio real não testado.
+**PROD:** nenhum XLXD/xuvd/Helix/serviço alterado para este estudo. Consulta pontual do agente SentinelX do XLX026 retornou connection_lost, sem prova de parada de serviços; não realizar operação insegura.
+Sem tag/release nova, sem inclusão no instalador principal e sem autorização de runtime.
+
