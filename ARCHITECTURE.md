@@ -124,3 +124,12 @@ O observador `xlx-tx-turn-ai-monitor.py` é processo/timer separado. Ele lê som
 
 ## YSF VW nativo
 O candidato em `experimental/ysf-vw/` conserva o datagrama YSF Voice FR em um pacote interno explicitamente marcado. A admissão e o ciclo de vida continuam no XLXD; o roteador entrega esses pacotes somente ao protocolo YSF. O transmissor, peers e outros módulos são excluídos na saída. Não há transcodificação VW ou chamada externa. A chave persistente é lida somente na admissão do header e pode ser alterada pelo controle privado sem reiniciar ou cortar um PTT iniciado.
+
+## Estado transitório autorizado — SoftAMBE (PROD 2026-11-03)
+Além da fronteira experimental Helix descrita acima, o runtime XLX026 foi excepcionalmente migrado para o vocoder de PP5PK, **sem recompilar ou substituir XLXD**:
+\`\`\`
+  D-STAR AMBE ⇄ XLXD (binário original) ⇄ SoftAMBE AMBE ↔ AMBE+2 ⇄ DMR/YSF DN
+                                             (127.0.0.1:10100)
+\`\`\`
+DMR ⇄ YSF DN passa por reempacotamento AMBE+2 próprio do XLXD; não é igualização PCM dentro do SoftAMBE. O backend anterior \`xuvd\` e Helix permanecem arquivados/serviços parados para rollback. O novo serviço \`xlx-softambe\` impede coexecução com xuvd; configuração upstream mantida em \`/opt/xlx-softambe/ambed.conf\`, não no instalador principal. Fonte/prova e rollback no documento \`experimental/softambe/PRODUCTION-20261103.md\`. A descrição antiga de Helix continua válida historicamente e para rollback, não como estado corrente ativo.
+
