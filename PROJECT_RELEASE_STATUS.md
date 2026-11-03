@@ -261,3 +261,23 @@ Candidato: observability/ai-supervisor, instalação opt-in. 7 testes SW/ENV iso
 ## 2026-10-27 — Ícone de leitura do indicador IA
 
 Base main 6b8ee70da82665db572f54c031abf5e6b299fc24, VERSION1.4.6. Troca cirúrgica de barra por SVG/CSS, sem mudança de status/IA/protocolo. Código em observability/ai-supervisor/integrate-reading-icon.py e ai-reading-icon.css. Backup root-only /opt/xlx026-backups/AI_READING_ICON_20261027_190122: originais/cópias restauradas e hashes conferidos; restaurar somente assets/app.js e assets/ai-monitor-v1.css, sem restart. Node syntax/Python compile PASS; PIDs XLXD1197741/xuvd3946342 preservados. Browser em /ao-vivo confirmou página/histórico e console sem erro, mas esteve em standby na primeira amostra, sem ícone TX visível. Visual/movimento real e mobile permanecem pendentes até observados.
+
+## SoftAMBE PP5PK — compatibilidade LAB, 2026-11-03
+**DOC:** analisado PP5PK/XLX-SoftAMBE_Installer@eff7972 e PP5PK/xlxd@f10f91b: patch de 65 arquivos/~14.892 linhas adicionadas para D-STAR↔DMR/YSF, não DSP direto de DMR↔YSF DN; controle ambed e xuvd compartilham UDP 10100; upstream usa Apache, enquanto este instalador usa Nginx/PHP-FPM. Issue #92 e branch research/softambe-compat-lab-20261103 documentam decisão.
+**SW:** teste local offline de contrato test-softambe-lab-only.sh executado com PASS; CI da PR e build remoto ainda não confirmados.
+**ENV:** não houve build/execução no laboratório; WartyWallaby SentinelX indisponível.
+**HW:** rádio real não testado.
+**PROD:** nenhum XLXD/xuvd/Helix/serviço alterado para este estudo. Consulta pontual do agente SentinelX do XLX026 retornou connection_lost, sem prova de parada de serviços; não realizar operação insegura.
+Sem tag/release nova, sem inclusão no instalador principal e sem autorização de runtime.
+
+## SoftAMBE PP5PK — PROD técnico ativado em 2026-11-03 (substitui o estado LAB anterior)
+- Decisão OPERATOR: migração in-place em produção sem WartyWallaby, com aceitação de interrupção e rollback. Autorização não converte testes SW no host em ENV/HW.
+- Fontes pinadas eff7972/f10f91b, patch blob dca3f9, build isolado SW PASS em host PROD, binário implantado SHA256 59cbb5, config PP5PK com 3 pares, EQ=0 (OFF).
+- Backup \`/opt/xlx026-backups/SOFTAMBE_PRE_SWITCH_20261103_191457Z\`, SHA256 c694c402..., extração/compare PASS; rollback executado de fato após primeiro start falho por permissões, restaurou xuvd e Helix sem reiniciar XLXD; correção 0755 e segunda ativação PASS.
+- PROD: SoftAMBE PID7092 active/enabled, xuvd inactive/disabled, Helix shadow e monitor timer inactive/disabled, XLXD PID1298 preservado, UDP 127.0.0.1:10100 e AMBEDPONG PASS, streams reais e 0 timeouts em amostras de 211/221/96/90 quadros, 3 endpoints web HTTP200. Registros técnicos, não certificado de áudio HW.
+- **PENDENTE:** escuta RF, qualidade de áudio, regressão de chamadas de vários protocolos, soak prolongado e teste de desastre global. O efeito em DMR↔YSF DN **não é comprovado e não decorre diretamente do SoftAMBE**. Veja \`experimental/softambe/PRODUCTION-20261103.md\`.
+- Sem atualização de \`main\`, tag/release ou habilitação do SoftAMBE no \`install.sh\` por esta observação; a evidência inicial foi feita em branch e PR de mudança controlada.
+
+### Continuação — testes no XLX026 PROD sem laboratório (2026-11-03)
+OPERATOR reiterou que os testes restantes são **exclusivamente na produção XLX026**. Observação passiva posterior: 23 aberturas e 23 fechamentos de vocoder; 22 registros de contador internamente consistentes com 4 eventos de timeout em 10.389 frames enviados; um registro reportou 2/1 e foi excluído do quociente. Esses contadores não são taxa comprovada de perda de áudio: o código-fonte disponível no host descreve sinais informativos de resposta lenta; paridade do fonte antigo com o ELF atual não comprovada; maior máximo de latência reportada 103ms. Sem erros no log do SoftAMBE nem timeout de keepalive do transcoder na janela amostrada. Quatro URLs públicas HTTP200; serviços XLXD/SoftAMBE e PIDs preservados, xuvd/Helix desativados, backup SHA íntegro. Classificar como PROD técnico limitado, não aprovação RF/acústica. A/B com rádios, investigação do contador anômalo e soak continuam pendentes; não projetar testes em WartyWallaby nesta rodada.
+

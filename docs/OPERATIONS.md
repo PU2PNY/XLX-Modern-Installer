@@ -133,3 +133,14 @@ Eventos `TXTURN` não devem conter indicativo, RadioID, IP ou payload. O monitor
 Consulte `experimental/ysf-vw/README.md`. O padrão é desligado; `1` no arquivo root-owned `/etc/xlx-modern/ysf-vw.conf` admite novos PTTs VW, `0` recusa. Alterar pelo helper privado, sem restart. Ambos os rádios precisam aceitar VW; conversas com DN/DMR/D-Star usam DN. Confirmar o código/binário aprovado e concluir os gates ENV antes da primeira instalação do candidato.
 
 No XLX026, a chave fica em Controle → Início → YSF · Voz larga (VW). A integração requer somente as três regras exatas de `experimental/ysf-vw/sudoers.example`, validadas com visudo. O teste como www-data confirmou alteração OFF→ON sem mudar o PID; não ampliar para sudo arbitrário.
+
+## SoftAMBE PP5PK — avaliação somente LAB (issue #92)
+O script experimental/softambe/lab-verify.sh admite --plan (sem rede, somente inventário) e --build (compilação temporária sem privilégios, proibida em host com rádio ativo). Nunca executar installer.sh externo no XLX026. Não iniciar ambed.service com xuvd porque ambos disputam UDP 10100; o modo --build não executa nenhum servidor. Após recuperar WartyWallaby, testar fonte/patch/compilação e comparar com xuvd em serviço isolado. Evidência SW não substitui ENV/HW/PROD.
+
+## SoftAMBE — PROD autorizada em 2026-11-03
+O usuário autorizou exceção ao LAB-first. Operação atual observada: \`xlx-softambe.service\` active/enabled, xuvd e Helix disabled/inactive; XLXD/binário e web sem alterações. A configuração copiada do PP5PK está em \`/opt/xlx-softambe/ambed.conf\`; os ganhos -20/+19 dB, EQ=0/0, gate=0/-50 e 3 pares são valores originais/mínima adaptação. Valores de EQ não nulos alteram D-STAR↔DMR/YSF, não DMR↔YSF DN. Não iniciar simultaneamente xuvd e ambed (UDP 10100).
+Na próxima manutenção: verificar \`systemctl status xlx-softambe xlxd\`, \`journalctl -u xlx-softambe -n 40\`, health de rede, chamadas com áudio real e CPU/RAM; mudanças de configuração exigem backup, reinício somente de SoftAMBE e verificação. **Não rodar upstream installer.sh**: ele troca XLXD, dashboard e Apache. Procedimento e restore: \`experimental/softambe/PRODUCTION-20261103.md\`.
+
+### Verificações após migração SoftAMBE — produção apenas
+A pedido do operador, todos os testes novos ocorrem no XLX026 PROD. Preferir leitura de \`systemctl show\`, \`journalctl\`, \`ss\`, \`ps\`, hash do backup e HTTP. Não injetar pacotes sintéticos em sockets públicos nem reiniciar serviços para testar o monitoramento. Em 2026-11-03 foram observados registros AMBED com timeout pequeno, incluindo um contador inconsistente \`2 of 1\`; manter o dado separado e não alterar áudio por inferência. A qualidade RF depende de teste auditivo e decisão do operador. Se ruim, restaurar o snapshot anterior com o ROLLBACK.sh validado.
+

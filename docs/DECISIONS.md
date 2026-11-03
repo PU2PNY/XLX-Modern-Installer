@@ -88,3 +88,12 @@ A solicitação do operador autoriza supervisão contínua. Conectividade OpenAI
 ## DEC-2026-10-27-017 — Figura de leitura IA leve e decorativa
 
 Substituir a barra segmentada por SVG inline (IA lendo documento) e varredura CSS. A causa da barra imóvel era transform:... !important vencendo transform dos keyframes. O novo desenho anima apenas estados monitoring/analyzing, pausa nos demais e respeita reduced-motion. A figura é decorativa: não comprova chamada remota; rótulos e telemetria seguem independentes. Sem GIF externo, requests adicionais, polling, timers JS ou mudanças no servidor de rádio.
+
+## DEC-2026-11-03-018 — SoftAMBE PP5PK começa como avaliação LAB isolada
+O patch SoftAMBE adiciona vocoder por software para D-STAR AMBE ↔ DMR/YSF AMBE+2, **não** processamento específico para DMR↔YSF DN. O XLX026 já usa xuvd com software transcoding e Helix shadow. Ambed e xuvd compartilham UDP 10100; o installer externo usa Apache e modifica core, dashboard e serviços, contrariando os invariantes do nosso instalador Nginx/PHP-FPM. É proibido executá-lo diretamente na VPS de produção.
+Apenas o checkout de fontes pinadas, hash Git da patch e compilação temporária não privilegiada são permitidos nesta primeira etapa; sem instalar, iniciar serviços ou redistribuir vocoder. Avaliar licenças de terceiros/patentes separadamente. Implantação posterior exige ENV/HW A/B, backup/restore comprovado, contrato exclusivo/fallback e regressões do XLXD, VW, DMR, YSF e Live. Ver issue #92, SOFT-001..005, TEST-046..048 e experimental/softambe/README.md.
+
+## DEC-2026-11-03-019 — Autorização expressa de migração in-place para SoftAMBE (exceção de ENV)
+Após DEC-018, o operador solicitou explicitamente abandonar Helix/xuvd no runtime, usar as configurações PP5PK de SoftAMBE em produção sem WartyWallaby, aceitar interrupção e exigir retorno ao ponto anterior. A opção foi executada apenas no backend do transcoder, não no instalador completo, core customizado, webstack, dashboard ou dados reais. A exceção ao laboratório deve ser registrada sem classificar SW no host PROD como ENV ou inferir áudio RF aprovado.
+Backup privado completo dos componentes afetados, integridade verificada, rollback executado em PROD na falha inicial, serviço SoftAMBE isolado/conflict com xuvd e proteção OnFailure, configurações PP5PK originais, Helix parado/desabilitado mas preservado para retorno. Evidência e limites em experimental/softambe/PRODUCTION-20261103.md; TEST-049..052; PR #93; issue #92. Não declarar problema original DMR↔YSF DN resolvido por isso.
+
