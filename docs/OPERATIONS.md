@@ -137,3 +137,7 @@ No XLX026, a chave fica em Controle → Início → YSF · Voz larga (VW). A int
 ## SoftAMBE PP5PK — avaliação somente LAB (issue #92)
 O script experimental/softambe/lab-verify.sh admite --plan (sem rede, somente inventário) e --build (compilação temporária sem privilégios, proibida em host com rádio ativo). Nunca executar installer.sh externo no XLX026. Não iniciar ambed.service com xuvd porque ambos disputam UDP 10100; o modo --build não executa nenhum servidor. Após recuperar WartyWallaby, testar fonte/patch/compilação e comparar com xuvd em serviço isolado. Evidência SW não substitui ENV/HW/PROD.
 
+## SoftAMBE — PROD autorizada em 2026-11-03
+O usuário autorizou exceção ao LAB-first. Operação atual observada: \`xlx-softambe.service\` active/enabled, xuvd e Helix disabled/inactive; XLXD/binário e web sem alterações. A configuração copiada do PP5PK está em \`/opt/xlx-softambe/ambed.conf\`; os ganhos -20/+19 dB, EQ=0/0, gate=0/-50 e 3 pares são valores originais/mínima adaptação. Valores de EQ não nulos alteram D-STAR↔DMR/YSF, não DMR↔YSF DN. Não iniciar simultaneamente xuvd e ambed (UDP 10100).
+Na próxima manutenção: verificar \`systemctl status xlx-softambe xlxd\`, \`journalctl -u xlx-softambe -n 40\`, health de rede, chamadas com áudio real e CPU/RAM; mudanças de configuração exigem backup, reinício somente de SoftAMBE e verificação. **Não rodar upstream installer.sh**: ele troca XLXD, dashboard e Apache. Procedimento e restore: \`experimental/softambe/PRODUCTION-20261103.md\`.
+
