@@ -95,3 +95,7 @@ A correção do diagnóstico adiciona o arquivo do monitor de saúde ao manifest
 ## SoftAMBE opcional LAB (issue #92)
 O avaliador atual não instala serviço: toda construção acontece em diretório temporário que é eliminado no término, sem rollback de produção nessa fase. Qualquer candidato futuro necessita backup privado do xuvd/XLXD/units/configuração, teste efetivo de restauração em ENV, fallback para o transcoder conhecido-bom e verificação de exclusividade UDP 10100. Nunca reiniciar o XLXD só para testar SoftAMBE.
 
+## SoftAMBE em PROD — rollback comprovado 2026-11-03
+Sob autorização explícita, o transcoder SoftAMBE foi promovido sem usar WartyWallaby. Ponto de retorno root-only: \`/opt/xlx026-backups/SOFTAMBE_PRE_SWITCH_20261103_191457Z\`. Verificar antes: \`sudo /opt/xlx026-backups/SOFTAMBE_PRE_SWITCH_20261103_191457Z/ROLLBACK.sh --check\`. Se o operador rejeitar o áudio: \`sudo /opt/xlx026-backups/SOFTAMBE_PRE_SWITCH_20261103_191457Z/ROLLBACK.sh --apply\`.
+O script valida a integridade do tar, para/desabilita o novo transcoder, restaura os binários/units/drop-ins xuvd e Helix, habilita Helix/monitor e inicia xuvd; **não reinicia XLXD**. A primeira tentativa de ativação falhou por permissão de pasta, e a restauração de serviços funcionou diretamente em PROD. Isto é teste de retorno do transcoder, não restore completo da VPS em desastre. Não remover a cópia privada nem arquivos legados antes do aceite HW e soak. Conferir \`xlxd\`, \`xlx-unified-voice\`, \`helix-voice-shadow\` e porta 10100 após restore.
+
