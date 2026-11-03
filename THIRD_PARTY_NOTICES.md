@@ -64,3 +64,6 @@ Third-party and upstream attribution is intentionally centralized in this docume
 - O XLX Modern Installer somente documenta e oferece avaliador que obtém fontes pinadas em laboratório. Não copia nem redistribui patch, fontes de vocoder ou binários de terceiros.
 - A inclusão desta pesquisa não autoriza instalação nem redistribuição do SoftAMBE.
 
+### SoftAMBE — atualização de uso operacional em 2026-11-03
+Por autorização específica, o XLX026 compilou e instalou em sua VPS o \`ambed\` do patch PP5PK/SofAMBE a partir de revisões fixadas do upstream. O repositório \`XLX-Modern-Installer\` **continua sem redistribuir binário ou código do vocoder**; o conteúdo terceiro está apenas no host e não deve ser publicado em backups/GitHub. São aplicáveis os respectivos avisos GPL/ISC de componentes e eventual avaliação de patentes de codec, que o uso local não dispensa. Histórico: \`experimental/softambe/PRODUCTION-20261103.md\`.
+
