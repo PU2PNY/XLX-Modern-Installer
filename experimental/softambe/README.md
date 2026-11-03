@@ -1,6 +1,6 @@
 # SoftAMBE PP5PK — LAB-only compatibility study
 
-**Status: research/build in isolated lab only. NOT installed, NOT enabled.**
+**Status of this script: LAB-only, no installation. PROD state changed independently by explicit operator authorization on 2026-11-03; see [PRODUCTION-20261103.md](PRODUCTION-20261103.md).**
 Source decision: [Issue #92](https://github.com/PU2PNY/XLX-Modern-Installer/issues/92).
 The authoritative installer remains start.sh / install.sh. Nothing in this directory changes XLXD, xuvd, Helix, Nginx, PHP-FPM, the dashboard, APRS, CallHome or any running systemd service.
 
@@ -68,7 +68,7 @@ A successful build would prove **only compilation in that environment**, not aud
 - Before any production proposal: verified backups **and actual restore test**, HW audio check, controlled canary, explicit acceptance and rollback.
 - Do not interpret the 2026-11-03 SentinelX connection loss for the WartyWallaby or production agent as proof of service failure.
 
-**Evidence on 2026-11-03:** DOC inspection and isolated local SW script contract; remote clone/build, ENV, RF/HW and PROD all PENDING.
+**Evidence on 2026-11-03:** initial DOC/SW LAB study followed by a separately authorized production switch, verified backup and real transcoder rollback, isolated software build and short PROD health check. ENV on WartyWallaby and RF/HW A/B remain pending. See PRODUCTION-20261103.md for exact evidence; CI is not HW or PROD validation.
 
 ## Source references
 
