@@ -278,3 +278,6 @@ Sem tag/release nova, sem inclusão no instalador principal e sem autorização 
 - **PENDENTE:** escuta RF, qualidade de áudio, regressão de chamadas de vários protocolos, soak prolongado e teste de desastre global. O efeito em DMR↔YSF DN **não é comprovado e não decorre diretamente do SoftAMBE**. Veja \`experimental/softambe/PRODUCTION-20261103.md\`.
 - Sem atualização de \`main\`, tag/release ou habilitação do SoftAMBE no \`install.sh\` por esta observação; a evidência inicial foi feita em branch e PR de mudança controlada.
 
+### Continuação — testes no XLX026 PROD sem laboratório (2026-11-03)
+OPERATOR reiterou que os testes restantes são **exclusivamente na produção XLX026**. Observação passiva posterior: 23 aberturas e 23 fechamentos de vocoder; 22 registros de contador internamente consistentes com 4/10.389 timeouts, um registro anomalamente indica 2/1 e não foi usado para inferir taxa; maior máximo de latência reportada 103ms. Sem erros no log do SoftAMBE nem timeout de keepalive do transcoder na janela amostrada. Quatro URLs públicas HTTP200; serviços XLXD/SoftAMBE e PIDs preservados, xuvd/Helix desativados, backup SHA íntegro. Classificar como PROD técnico limitado, não aprovação RF/acústica. A/B com rádios, investigação do contador anômalo e soak continuam pendentes; não projetar testes em WartyWallaby nesta rodada.
+
