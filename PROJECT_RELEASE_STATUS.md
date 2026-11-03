@@ -270,3 +270,11 @@ Base main 6b8ee70da82665db572f54c031abf5e6b299fc24, VERSION1.4.6. Troca cirúrgi
 **PROD:** nenhum XLXD/xuvd/Helix/serviço alterado para este estudo. Consulta pontual do agente SentinelX do XLX026 retornou connection_lost, sem prova de parada de serviços; não realizar operação insegura.
 Sem tag/release nova, sem inclusão no instalador principal e sem autorização de runtime.
 
+## SoftAMBE PP5PK — PROD técnico ativado em 2026-11-03 (substitui o estado LAB anterior)
+- Decisão OPERATOR: migração in-place em produção sem WartyWallaby, com aceitação de interrupção e rollback. Autorização não converte testes SW no host em ENV/HW.
+- Fontes pinadas eff7972/f10f91b, patch blob dca3f9, build isolado SW PASS em host PROD, binário implantado SHA256 59cbb5, config PP5PK com 3 pares, EQ=0 (OFF).
+- Backup \`/opt/xlx026-backups/SOFTAMBE_PRE_SWITCH_20261103_191457Z\`, SHA256 c694c402..., extração/compare PASS; rollback executado de fato após primeiro start falho por permissões, restaurou xuvd e Helix sem reiniciar XLXD; correção 0755 e segunda ativação PASS.
+- PROD: SoftAMBE PID7092 active/enabled, xuvd inactive/disabled, Helix shadow e monitor timer inactive/disabled, XLXD PID1298 preservado, UDP 127.0.0.1:10100 e AMBEDPONG PASS, streams reais e 0 timeouts em amostras de 211/221/96/90 quadros, 3 endpoints web HTTP200. Registros técnicos, não certificado de áudio HW.
+- **PENDENTE:** escuta RF, qualidade de áudio, regressão de chamadas de vários protocolos, soak prolongado e teste de desastre global. O efeito em DMR↔YSF DN **não é comprovado e não decorre diretamente do SoftAMBE**. Veja \`experimental/softambe/PRODUCTION-20261103.md\`.
+- Sem atualização de \`main\`, tag/release ou habilitação do SoftAMBE no \`install.sh\` por esta observação; a evidência inicial foi feita em branch e PR de mudança controlada.
+
