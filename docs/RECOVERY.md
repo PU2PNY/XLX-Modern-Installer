@@ -91,3 +91,7 @@ Qualquer bloqueio indevido de terceira estação, comando legítimo, módulo ind
 Desativar a chave impede novos PTTs VW sem interromper o atual. Rollback do núcleo restaura o ELF anterior, configuração privada de hash e arquivos administrativos do backup root-only, seguido de restart apenas do XLXD em janela ociosa. Preservar transcoder/Helix. Testar em ENV baseline → candidato → restauração antes da promoção; não usar o fonte divergente como referência.
 
 A correção do diagnóstico adiciona o arquivo do monitor de saúde ao manifesto privado. Depois de restaurá-lo, reiniciar somente esse monitor para recarregar o código anterior; isso é independente do transcoder/Helix.
+
+## SoftAMBE opcional LAB (issue #92)
+O avaliador atual não instala serviço: toda construção acontece em diretório temporário que é eliminado no término, sem rollback de produção nessa fase. Qualquer candidato futuro necessita backup privado do xuvd/XLXD/units/configuração, teste efetivo de restauração em ENV, fallback para o transcoder conhecido-bom e verificação de exclusividade UDP 10100. Nunca reiniciar o XLXD só para testar SoftAMBE.
+
