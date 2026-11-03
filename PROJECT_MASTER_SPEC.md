@@ -165,3 +165,8 @@ Uma mudança só é aceita se:
 - **SOFT-009** — Se o operador rejeitar qualidade do codec substituto em tráfego real, efetuar rollback comprovado para o transcoder conhecido-bom; não ajustar por tentativa em PROD após avaliação negativa. Desabilitar SoftAMBE, restaurar xuvd + Helix em shadow, validar hash/processos/soak e manter XLXD sem restart.
 - **SOFT-010** — O serviço restaurado precisa sobreviver a reboot; quando o script de rollback restaurar operação mas deixar xuvd disabled, habilitar o serviço somente após conferir a exclusividade da UDP 10100, documentando o desvio frente ao estado antes da migração.
 
+### MBELIB — provenance and non-duplicating integration (2026-11-03)
+- **MBELIB-001** — O xuvd utiliza funções mbelib compatíveis com implementações OP25 embutidas no executável. Não introduzir outra instalação de libmbe1/libmbe.so ou alterar a cadeia de áudio somente para “adicionar” o repositório szechyjs/mbelib sem evidência de lacuna real.
+- **MBELIB-002** — Fixar proveniência/compromissos da biblioteca de referência, distinguir ISC de licenças de derivados OP25 e de eventuais direitos de patente. Não afirmar identidade bit-a-bit entre upstream e símbolos já embutidos sem confronto de fontes/build.
+- **MBELIB-003** — Qualquer alteração futura de vocoder/decoder só avança mediante corpus comparável, correção mensurável, teste de áudio RF, backup com restore, regressão e rollback; preservar o xuvd restaurado após a rejeição OPERATOR do SoftAMBE.
+

@@ -1,3 +1,9 @@
+## Unreleased — mbelib upstream audit; no production codec change (2026-11-03)
+
+- Compared szechyjs/mbelib 1.3.0 (2019, ISC + patent notice) with XLX026's already embedded mbelib/OP25-compatible codec functions.
+- Verified read-only in PROD that xuvd contains relevant mbe_* symbols and does not dynamically link libmbe.so; the upstream library is not a drop-in replacement for the existing extended codec/encoder pair.
+- Recorded decision MBELIB-001..003 / TEST-055, provenance and issue #95. No new dependency, binary, daemon, service, live audio processing or deployment.
+
 
 
 ## Unreleased — restore previous transcoder after SoftAMBE audio rejection (2026-11-03)

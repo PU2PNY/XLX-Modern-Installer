@@ -290,3 +290,8 @@ OPERATOR reiterou que os testes restantes são **exclusivamente na produção XL
 - PROD: UDP 127.0.0.1:10100 no xuvd. Log mostrou 1 stream real \`codec=2→1\`, 201 frames, zero \`failures\`; 3 páginas HTTP200. Sem prova de audiofilia pós-rollback, que depende de escuta OPERATOR.
 - Não reinstalar SoftAMBE nem mesclar sua execução no instalador sem nova decisão, hipótese técnica comprovada e aceite de áudio. Preservar fontes, PR #93 histórico, Issue #92 e backup root-only para auditoria; SoftAMBE runtime desabilitado.
 
+## mbelib upstream — auditoria sem alteração de runtime (2026-11-03)
+**DOC:** upstream szechyjs/mbelib 1.3.0 @9a04ed5 (último commit 2019-05-29), licença ISC e aviso sobre patente; a interface pública inclui decodificação e síntese mas não equivale ao encoder/OP25 estendido usado no xuvd.
+**PROD somente leitura:** XLXD e xuvd ativos; SoftAMBE desativado. Executável xuvd SHA d3ea28ef... contém símbolos \`mbe_initMbeParms\`, \`mbe_dequantizeAmbe2400Parms\`, \`mbe_synthesizeSpeech\` e relacionados; \`readelf\` não mostra libmbe.so como biblioteca dinâmica. Isso não comprova igualdade bit-a-bit com upstream.
+**SW/HW:** sem build novo, comparação de amostras nem intervenção em áudio. Nenhum serviço ou arquivo da VPS alterado por esta auditoria. Decisão DEC-2026-11-03-021, requisito MBELIB-001..003, TEST-055 e issue #95. Preservado transcoder restaurado.
+
