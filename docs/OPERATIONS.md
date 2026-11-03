@@ -133,3 +133,7 @@ Eventos `TXTURN` não devem conter indicativo, RadioID, IP ou payload. O monitor
 Consulte `experimental/ysf-vw/README.md`. O padrão é desligado; `1` no arquivo root-owned `/etc/xlx-modern/ysf-vw.conf` admite novos PTTs VW, `0` recusa. Alterar pelo helper privado, sem restart. Ambos os rádios precisam aceitar VW; conversas com DN/DMR/D-Star usam DN. Confirmar o código/binário aprovado e concluir os gates ENV antes da primeira instalação do candidato.
 
 No XLX026, a chave fica em Controle → Início → YSF · Voz larga (VW). A integração requer somente as três regras exatas de `experimental/ysf-vw/sudoers.example`, validadas com visudo. O teste como www-data confirmou alteração OFF→ON sem mudar o PID; não ampliar para sudo arbitrário.
+
+## SoftAMBE PP5PK — avaliação somente LAB (issue #92)
+O script experimental/softambe/lab-verify.sh admite --plan (sem rede, somente inventário) e --build (compilação temporária sem privilégios, proibida em host com rádio ativo). Nunca executar installer.sh externo no XLX026. Não iniciar ambed.service com xuvd porque ambos disputam UDP 10100; o modo --build não executa nenhum servidor. Após recuperar WartyWallaby, testar fonte/patch/compilação e comparar com xuvd em serviço isolado. Evidência SW não substitui ENV/HW/PROD.
+
