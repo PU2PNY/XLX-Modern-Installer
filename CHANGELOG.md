@@ -1,3 +1,12 @@
+
+
+## Unreleased — restore previous transcoder after SoftAMBE audio rejection (2026-11-03)
+
+- Operator rejected actual D-STAR↔DMR audio produced by SoftAMBE. The previously agreed production rollback was executed; root-only backup hash verified, xuvd/Helix shadow restored, SoftAMBE inactive/disabled and XLXD unchanged.
+- Enabled \`xlx-unified-voice.service\` to persist after future reboot (the old rollback script started it but left it disabled); no changes to its binary, DSP, Helix mode, XLXD core or web dashboard.
+- PROD verification: xuvd SHA d3ea28ef..., XLXD SHA 3991b040..., same XLXD PID, an observed real 201-frame AMBE+2→D-STAR xuvd stream with no reported failures, three HTTP200 routes.
+- SoftAMBE remains only as archived optional candidate. No real-radio acoustic approval is claimed for the restored backend until operator listens.
+
 ## Unreleased — Authorized SoftAMBE PROD runtime (2026-11-03)
 
 - Installed PP5PK-pinned SoftAMBE as exclusive alternative transcoder to xuvd; no XLXD binary/core, web stack or dashboard replacement; reused 3 pairs and original gain/EQ/gate defaults, with EQ off in both directions.
