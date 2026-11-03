@@ -1,3 +1,10 @@
+## Unreleased — Authorized SoftAMBE PROD runtime (2026-11-03)
+
+- Installed PP5PK-pinned SoftAMBE as exclusive alternative transcoder to xuvd; no XLXD binary/core, web stack or dashboard replacement; reused 3 pairs and original gain/EQ/gate defaults, with EQ off in both directions.
+- Captured 22.2MB root-only backup, verified SHA and staged restores; first systemd start failed on a too-private directory and **real rollback** restored xuvd/Helix while XLXD PID stayed fixed. Corrected directory permissions and promoted a functioning restricted service.
+- PROD control keepalive, 4 logged AMBED transcoded streams with 0 observed timeouts, 3 public HTTP endpoints 200 and no XLXD restart; xuvd/Helix disabled but preserved for rollback.
+- Records exact SHA256, service paths, evidence levels and restore command in experimental/softambe/PRODUCTION-20261103.md; audio hardware/soak and DMR↔YSF DN issue remain not proven.
+
 ## Unreleased — SoftAMBE optional LAB evaluation (2026-11-03)
 
 - Audits PP5PK/XLX-SoftAMBE_Installer and its 65-file patch against the XLX026 xuvd/Helix architecture, UDP 10100, Nginx, YSF VW, turn guard and independent codec paths.
