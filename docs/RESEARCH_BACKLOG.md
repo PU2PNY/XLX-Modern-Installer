@@ -71,3 +71,12 @@ Superado: documento antigo estava obsoleto e contradizia o instalador/release at
 ## Regra
 Antes de tirar qualquer item deste backlog:
 **evidência local → requisito → teste → backup/rollback → laboratório → resultado → decisão registrada → somente então produção.**
+
+## E — SoftAMBE PP5PK (2026-11-03, issue #92): LAB apenas
+- Origem pinada: PP5PK/XLX-SoftAMBE_Installer@eff797298744f3b2e1db7bb5b9424db18a03827b, PP5PK/xlxd@f10f91bdc5c19ad5b435d96a6595f945403e093a.
+- Patch de 65 arquivos / ~14.892 linhas, contendo vocoder com licenças externas a auditar (GPL/ISC/IMBE) e risco de patente AMBE/AMBE+2 a verificar.
+- Recurso: AMBE D-STAR ↔ AMBE+2 DMR/YSF; **não** equaliza diretamente DMR↔YSF DN.
+- Bloqueios: mesmo UDP 10100 usado por xuvd; serviço ambed upstream root/BindsTo; Apache versus Nginx; núcleo XLXD personalizado com VW, TOT e turn guard.
+- Estado: script opt-in com --plan e --build em ambiente isolado, testes SW específicos; WartyWallaby offline. Nenhum serviço alterado.
+- Próximos gates: check de patch/compilação em laboratório, DSP/áudio A/B com rádios, desempenho, licenças, backup e restore efetivo.
+
