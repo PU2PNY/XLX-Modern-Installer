@@ -80,3 +80,6 @@ Antes de tirar qualquer item deste backlog:
 - Estado: script opt-in com --plan e --build em ambiente isolado, testes SW específicos; WartyWallaby offline. Nenhum serviço alterado.
 - Próximos gates: check de patch/compilação em laboratório, DSP/áudio A/B com rádios, desempenho, licenças, backup e restore efetivo.
 
+### E — atualização factual posterior, PROD 2026-11-03
+O operador autorizou a execução direta em produção sem laboratório, registrando exceção aos gates. **Migração de backend aplicada** com snapshot privado SHA verificado, rollback real de xuvd/Helix após falha inicial, build SoftAMBE e health/canais/streams/HTTP validados no PROD. Ver \`experimental/softambe/PRODUCTION-20261103.md\`. Permanecem pendentes: áudio RF, soak, aceitação subjetiva e impacto no tema separado DMR↔YSF DN #91. Os riscos arquiteturais da avaliação inicial continuam válidos como advertência contra a execução do instalador completo.
+
