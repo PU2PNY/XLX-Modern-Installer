@@ -148,3 +148,11 @@ Uma mudança só é aceita se:
 - **AI-005** — Estado privado persistente limitado, auditoria de tentativas, instalação opt-in, backup/restore conferido e rollback independente do rádio.
 
 - **UI-AI-001** — Indicador de IA deve mostrar figura leve de leitura animada nos estados monitoring/analyzing, sem transformar animação em evidência de análise remota; aria-hidden, foco desativado e prefers-reduced-motion devem ser preservados. Manter layout responsivo, sem chamadas externas/timers de animação JS.
+
+### SOFTAMBE / OPTIONAL LAB EVALUATION
+- **SOFT-001** — Avaliar SoftAMBE de PP5PK exclusivamente como alternativa de transcoder D-STAR AMBE ↔ DMR/YSF DN AMBE+2. Não representar esta função como melhoria ou equalização direta DMR ↔ YSF DN, nem como suporte VW crossmode.
+- **SOFT-002** — Preservar sem alterações o XLXD, \`xuvd\`, Helix, Nginx/PHP-FPM, dashboard e portas de produção. O \`ambed\` candidato e o \`xuvd\` usam o controle UDP 10100 e nunca podem ser iniciados simultaneamente no mesmo endereço/porta. Feature OFF por padrão.
+- **SOFT-003** — Congelar a proveniência (commits do installer/base e blob SHA do patch), verificar compatibilidade do patch, compilar somente em laboratório não privilegiado e manter dependências e licenças de terceiros fora do pacote público até auditoria.
+- **SOFT-004** — A avaliação de laboratório não deve instalar pacotes, alterar arquivos de serviço, executar o novo binário, expor sockets nem reiniciar serviços. Qualquer integração runtime exige aprovação posterior, isolamento, fail-open, rollback restaurado e medições SW/ENV/HW.
+- **SOFT-005** — Promoção exige testes A/B separados de D-STAR→DMR, DMR→D-STAR, D-STAR→YSF DN, YSF DN→D-STAR e da rota DMR↔YSF DN inalterada, com latência, CPU, áudio, múltiplos streams, interlinks, VW nativo, TOT180 e regressão do Live. Não considerar \`CI PASS\` como autorização de PROD.
+
