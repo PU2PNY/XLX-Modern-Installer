@@ -56,3 +56,11 @@ Quando um componente de terceiro estiver incluído, referenciado ou baixado dura
 # English summary
 
 Third-party and upstream attribution is intentionally centralized in this documentation and in the relevant source files instead of being presented as visual credits in the modern dashboard or normal installer UI. Third-party components keep their original copyright and license terms. The root MIT license applies only to original XLX Modern Installer material that is not otherwise covered. XLXD remains subject to its upstream GPL licensing, and referenced projects such as PP5PK/XLX_Installer and XLXEcho retain their own terms.
+
+## PP5PK SoftAMBE — somente referência de laboratório (2026-11-03)
+- Fonte: https://github.com/PP5PK/XLX-SoftAMBE_Installer, commit eff797298744f3b2e1db7bb5b9424db18a03827b.
+- Fonte XLXD: https://github.com/PP5PK/xlxd, commit f10f91bdc5c19ad5b435d96a6595f945403e093a.
+- O instalador upstream usa Unlicense na raiz, mas seu patch traz código DroidStar/mbelib/OP25/IMBE com avisos e licenças próprias, inclusive GPL. Unlicense não substitui esses termos; questões de patente AMBE/AMBE+2 exigem avaliação independente.
+- O XLX Modern Installer somente documenta e oferece avaliador que obtém fontes pinadas em laboratório. Não copia nem redistribui patch, fontes de vocoder ou binários de terceiros.
+- A inclusão desta pesquisa não autoriza instalação nem redistribuição do SoftAMBE.
+
