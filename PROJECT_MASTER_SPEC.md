@@ -161,3 +161,7 @@ Uma mudança só é aceita se:
 - **SOFT-007** — O backend alternativo utiliza fonte e patch pinados com hashes verificados, SoftAMBE executável isolado, valores upstream de ganho/EQ/gate, serviço systemd hardened, conflito exclusivo com xuvd na porta 10100, retirada reversível do Helix e recuperação de falha com rollback. Preservar arquivo de backup privado, logar estado anterior e guardar evidência de restauração real.
 - **SOFT-008** — DMR↔YSF DN continua sem DSP exclusivo; não afirmar que a troca de AMBE D-STAR↔AMBE+2 melhora essa direção. A aceitação de áudio com rádio real, estudo de carga e soak são gates adicionais não satisfeitos pelo deploy técnico.
 
+### SOFTAMBE / OPERATOR REJECTION AND RESTORE (2026-11-03)
+- **SOFT-009** — Se o operador rejeitar qualidade do codec substituto em tráfego real, efetuar rollback comprovado para o transcoder conhecido-bom; não ajustar por tentativa em PROD após avaliação negativa. Desabilitar SoftAMBE, restaurar xuvd + Helix em shadow, validar hash/processos/soak e manter XLXD sem restart.
+- **SOFT-010** — O serviço restaurado precisa sobreviver a reboot; quando o script de rollback restaurar operação mas deixar xuvd disabled, habilitar o serviço somente após conferir a exclusividade da UDP 10100, documentando o desvio frente ao estado antes da migração.
+
