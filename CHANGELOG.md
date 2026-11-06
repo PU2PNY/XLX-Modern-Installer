@@ -1,3 +1,8 @@
+## Unreleased — 3-second multi-participant TX turn guard candidate (2026-11-05)
+- Adds an **opt-in, LAB-only** XLXD turn-guard policy to enforce 3 s after EOT for any QSO participant, exempt first arrivals and assign 7 s individual penalty on an early attempt without extending it on retry.
+- Reproduced exact production XLXD VW baseline SHA before changing sources, built and tested in WartyWallaby; DCS/YSF/DMR synthetic protocol gates, legacy V1 and TOT180 PASS. Tracks UI multi-offender parity, RF/HW, rollback and production rollout as outstanding.
+- Recovered old OpenAI and Helix status monitors in PROD by starting oneshots and rearming timers; no XLXD/xuvd/Helix audio restart or code replacement. See issue #98 and experimental/tx-turn-guard/MULTIPARTICIPANTS-20261105.md.
+
 ## Unreleased — mbelib upstream audit; no production codec change (2026-11-03)
 
 - Compared szechyjs/mbelib 1.3.0 (2019, ISC + patent notice) with XLX026's already embedded mbelib/OP25-compatible codec functions.
