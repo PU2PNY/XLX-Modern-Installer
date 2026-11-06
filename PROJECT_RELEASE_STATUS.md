@@ -1,3 +1,6 @@
+## PROD 2026-11-05 — Recuperação do monitor OpenAI e Helix (sem alteração do rádio)
+O painel mostrava `OPENAI não configurada` e `HELIX indisponível` por estados ausente e antigo dos monitores. Supervisor local e Helix em shadow estavam ativos. Os timers oneshot ficaram sem próximo disparo após período de funcionamento; drop-ins somente de timer agora rearmam por `OnUnitInactiveSec` 60/30s. Monitores reiniciados sem tocar em XLXD, transcoder ou DSP. /api/status.php retornou `configured=true,api_connected=true,state=monitoring,supervisor.local_supervision=true`. Core manteve PID1298. Backup/rollback em `/opt/xlx026-backups/AI_MONITOR_TIMER_RECURRENCE_20261105`. Teste pós-reboot permanece pendente. Evidência: TEST-059, observability/ai-supervisor/TIMER_RECURRENCE_20261105.md.
+
 # PROJECT_RELEASE_STATUS — fotografia atual
 
 Atualizado em: 2026-10-02

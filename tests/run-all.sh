@@ -63,6 +63,8 @@ echo "[tx turn guard]"
 bash "$ROOT/tests/test-tx-turn-guard.sh" || failures=$((failures+1))
 echo "[softambe lab-only contract]"
 bash "$ROOT/tests/test-softambe-lab-only.sh" || failures=$((failures+1))
+echo "[AI/Helix monitor timer recurrence]"
+bash "$ROOT/tests/test-ai-monitor-timer-recurrence.sh" || failures=$((failures+1))
 echo "[project governance]"
 bash "$ROOT/tests/test-project-governance.sh" || failures=$((failures+1))
 echo "[release hardening]"
