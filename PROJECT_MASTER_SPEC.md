@@ -133,6 +133,13 @@ Uma mudança só é aceita se:
 - **TURN-011** — A promoção deve preservar integralmente o TOT180 existente da PR #54 e a configuração efetiva. O binário conhecido-bom c0283b7f deve ser recuperado/reproduzido ou ter equivalência comprovada; código divergente em /usr/src não representa automaticamente o processo ativo.
 - **TURN-012** — Identidades do aviso permanecem somente no estado local/painel público de rádio; o observador externo recebe exclusivamente contadores agregados. Estado é limitado por módulo e temporário, sem logs de áudio ou consulta externa por PTT.
 
+### TX TURN GUARD V2 — ALL PARTICIPANTS (3s, opt-in, 2026-11-05)
+- **TURN-013** — In each module, QSO participants are identities with a successfully closed DV stream (EOT) in the current QSO. Merely connecting does not count. A previously unseen station can enter without waiting, including immediately after EOT; after its first completed TX it becomes a participant.
+- **TURN-014** — For any participant, a new DV stream starting strictly before 3,000 ms from the previous real EOT in the same module is refused. At elapsed >= 3,000 ms, a participant without an active penalty is admitted. The deadline uses `steady_clock`, never external AI.
+- **TURN-015** — An early attempt starts one individual 7,000 ms penalty from the attempted admission. Repeated refusals do not extend it. The penalty for one station never blocks a newcomer, another eligible participant, or another module. Participant identity uses the existing `MY`/DMR fallback logic.
+- **TURN-016** — QSO membership and penalties reset after >60,000 ms with no EOT on that module; bounded to 128 identities per module (oldest membership evicted beyond the cap), and only temporary memory. Respect link/unlink, Wires-X controls, keepalive, TOT180, YSF VW, all legacy protocols and crossmode. Use explicit `XLX_TX_TURN_POLICY=participants`; absent value preserves legacy V1.
+- **TURN-017** — The operator-facing Live notice must accurately distinguish each ineligible participant and their own deadline; the candidate currently emits only the latest offender in the existing two-indicative UI contract. This UI parity remains a promotion gate. Remote AI receives only aggregate event counts; never station identities, audio or packet payload. Require exact baseline reconstruction, isolated DMR/YSF/D-Star regression, restoration, hardware review and rollback before PROD.
+
 ### YSF VW NATIVO
 - **VW-001** — VW é opcional e OFF por padrão; configuração inválida deve recusar novos PTTs VW.
 - **VW-002** — Encaminhar o quadro YSF original somente a clientes YSF nativos do mesmo módulo; excluir origem, peers e outros protocolos/transcoder.
