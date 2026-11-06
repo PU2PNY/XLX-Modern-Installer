@@ -1,3 +1,10 @@
+## Situação adicional — 2026-11-05 — IA e regra de espaço de câmbio (V2 3s LAB)
+- PROD: OpenAI/Helix apareciam indevidamente como indisponíveis no painel; o monitor antigo OpenAI não tinha arquivo em /run e o monitor Helix estava stale após 2026-11-03. Somente monitores oneshot/timers foram iniciados/rearmados; API conectividade OpenAI=true e Helix shadow=true, candidato hash=true, sem anomalia; XLXD PID1298 e SHA `3991b040573ff7522af69148c97f768d0b468b716212bf7b8e047fca1c6cc410` preservados.
+- PROD V1: XLX_TX_TURN_GUARD=1, trigger3000, cooldown7000, reset60000. Essa regra ainda só detecta A→B→A; **V2 não está em produção**.
+- ENV WartyWallaby: código base do XLXD VW encontrado com o mesmo SHA do binário PROD. Patch C++ opcional `XLX_TX_TURN_POLICY=participants` acrescenta 3 segundos mínimos a qualquer integrante do QSO, isenta primeira entrada e penaliza 7 segundos individualmente após infração. Compilação total PASS, V1 regression PASS, C++ com 12 participantes PASS e handlers DCS/YSF/DMR sintéticos PASS. Replay do patch reproduz fontes idênticas.
+- Gates: atualizar UI para múltiplas penalidades com deadlines próprios, confirmar áudio/RF/controle/multi-TX, restaurar baseline em sandbox, validar CI/PR e rollback, só então avaliar canário. DOC/SW/ENV não são HW/PROD.
+- Rastreio: issue #98, feature/tx-turn-multiparty-3s-20261105, experimental/tx-turn-guard/MULTIPARTICIPANTS-20261105.md, TEST-056..058.
+
 # PROJECT_RELEASE_STATUS — fotografia atual
 
 Atualizado em: 2026-10-02
