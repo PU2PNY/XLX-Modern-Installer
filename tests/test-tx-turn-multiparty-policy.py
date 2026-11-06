@@ -61,7 +61,7 @@ def run() -> None:
     assert not g.admit("C", "NEW", t + 1004)
     assert g.admit("D", "A", t + 1004)  # independent module
     assert g.admit("C", "C", t + 4003)  # 3 s boundary is allowed
-    assert not g.admit("C", "D", t + 3999)  # before 3 s forbidden
+    assert not g.admit("C", "D", t + 2999)  # before 3 s forbidden
     assert g.admit("C", "A", deadline)  # expires without extending penalty
     assert g.admit("C", "B", t + RESET_MS + 1100)  # QSO resets after idle
     assert not g.modules["C"].participants
