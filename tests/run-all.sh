@@ -61,6 +61,8 @@ echo "[stereotool lab foundation]"
 bash "$ROOT/tests/test-stereotool-foundation.sh" || failures=$((failures+1))
 echo "[tx turn guard]"
 bash "$ROOT/tests/test-tx-turn-guard.sh" || failures=$((failures+1))
+echo "[tx turn guard — 3s multi-party candidate]"
+bash "$ROOT/tests/test-tx-turn-multiparty.sh" || failures=$((failures+1))
 echo "[softambe lab-only contract]"
 bash "$ROOT/tests/test-softambe-lab-only.sh" || failures=$((failures+1))
 echo "[project governance]"

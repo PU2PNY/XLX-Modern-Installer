@@ -1,0 +1,166 @@
+--- a/src/creflector.h
++++ b/src/creflector.h
+@@ -33,6 +33,8 @@
+ #include "cnotificationqueue.h"
+ #include <string>
+ #include <chrono>
++#include <map>
++#include <vector>
+ 
+ 
+ ////////////////////////////////////////////////////////////////////////////////////////
+@@ -132,6 +134,18 @@
+     static std::string TxTurnGuardIdentity(const CCallsign &);
+     static long TxTurnGuardEnvMs(const char *, long, long, long);
+     
++    // Multi-participant policy: independent opt-in. Legacy A/B policy is unchanged
++    // unless XLX_TX_TURN_POLICY=participants is explicitly selected.
++    struct STxTurnParticipantsState
++    {
++        bool haveLastClose = false;
++        std::chrono::steady_clock::time_point lastCloseAt;
++        std::vector<std::string> participants;  // successful EOT identities, capped
++        std::map<std::string, std::chrono::steady_clock::time_point> penaltyUntil;
++    };
++    bool TxTurnMultiAdmit(const CDvHeaderPacket *);
++    void TxTurnMultiClosed(CPacketStream *);
++
+     // xml helpers
+     void WriteXmlFile(std::ofstream &);
+     
+@@ -172,6 +186,7 @@
+     // per-module anti ping-pong state; protected because protocol handlers run concurrently
+     std::mutex m_TxTurnGuardMutex;
+     std::array<STxTurnGuardState, NB_OF_MODULES> m_TxTurnGuard;
++    std::array<STxTurnParticipantsState, NB_OF_MODULES> m_TxTurnParticipants;
+     
+     // threads
+     bool            m_bStopThreads;
+--- a/src/creflector.cpp
++++ b/src/creflector.cpp
+@@ -244,11 +244,112 @@
+     if (out && (::chmod(temp.c_str(), 0644) == 0)) ::rename(temp.c_str(), path.c_str());
+ }
+ 
++bool CReflector::TxTurnMultiAdmit(const CDvHeaderPacket *header)
++{
++    if (header == NULL) return true;
++    const char module = header->GetRpt2Module();
++    const int index = GetModuleIndex(module);
++    if (index < 0) return true;
++    const std::string user = TxTurnGuardIdentity(header->GetMyCallsign());
++    if (user.empty()) return true;  // fail open if identity is unknown
++
++    const long gapLimitMs = TxTurnGuardEnvMs("XLX_TX_TURN_TRIGGER_MS", 3000, 250, 10000);
++    const long penaltyMs = TxTurnGuardEnvMs("XLX_TX_TURN_COOLDOWN_MS", 7000, 1000, 30000);
++    const long resetConfiguredMs = TxTurnGuardEnvMs("XLX_TX_TURN_RESET_MS", 60000, 10000, 600000);
++    const long resetMs = std::max(resetConfiguredMs, penaltyMs);
++    const auto now = std::chrono::steady_clock::now();
++
++    std::lock_guard<std::mutex> lock(m_TxTurnGuardMutex);
++    STxTurnParticipantsState &state = m_TxTurnParticipants[index];
++
++    if (state.haveLastClose &&
++        std::chrono::duration_cast<std::chrono::milliseconds>(now - state.lastCloseAt).count() > resetMs)
++    {
++        state = STxTurnParticipantsState();  // QSO ended; old operators are newcomers again
++    }
++    // Remove expired penalties without ever extending an existing one.
++    for (auto it = state.penaltyUntil.begin(); it != state.penaltyUntil.end(); )
++    {
++        if (now >= it->second) it = state.penaltyUntil.erase(it);
++        else ++it;
++    }
++
++    const auto penalty = state.penaltyUntil.find(user);
++    if (penalty != state.penaltyUntil.end())
++    {
++        const auto remaining = std::chrono::duration_cast<std::chrono::milliseconds>(penalty->second - now).count();
++        std::cout << "TXTURN event=blocked module=" << module << " remaining_ms=" << remaining << std::endl;
++        return false;
++    }
++
++    const bool known = std::find(state.participants.begin(), state.participants.end(), user)
++                       != state.participants.end();
++    if (known && state.haveLastClose)
++    {
++        const auto gap = std::chrono::duration_cast<std::chrono::milliseconds>(now - state.lastCloseAt).count();
++        if (gap >= 0 && gap < gapLimitMs)
++        {
++            const auto until = now + std::chrono::milliseconds(penaltyMs);
++            state.penaltyUntil[user] = until;
++            // Reuse the existing one-deadline UI contract for this offender.
++            // Other penalties are still enforced locally even if not shown simultaneously.
++            STxTurnGuardState published;
++            published.pairActive = true;
++            published.pairA = user;
++            published.cooldownUntil = until;
++            TxTurnGuardPublish(module, published);
++            std::cout << "TXTURN event=violation_detected module=" << module
++                      << " gap_ms=" << gap << " trigger_ms=" << gapLimitMs << std::endl;
++            std::cout << "TXTURN event=cooldown_started module=" << module
++                      << " cooldown_ms=" << penaltyMs << std::endl;
++            std::cout << "TXTURN event=blocked module=" << module
++                      << " remaining_ms=" << penaltyMs << std::endl;
++            return false;
++        }
++    }
++    // Every new identity may join during the gap, with no penalty.
++    return true;
++}
++
++void CReflector::TxTurnMultiClosed(CPacketStream *stream)
++{
++    if (stream == NULL) return;
++    const char module = GetStreamModule(stream);
++    const int index = GetModuleIndex(module);
++    if (index < 0) return;
++    const std::string user = TxTurnGuardIdentity(stream->GetUserCallsign());
++    if (user.empty()) return;
++    const auto now = std::chrono::steady_clock::now();
++    std::lock_guard<std::mutex> lock(m_TxTurnGuardMutex);
++    STxTurnParticipantsState &state = m_TxTurnParticipants[index];
++    const long resetConfiguredMs = TxTurnGuardEnvMs("XLX_TX_TURN_RESET_MS", 60000, 10000, 600000);
++    const long penaltyMs = TxTurnGuardEnvMs("XLX_TX_TURN_COOLDOWN_MS", 7000, 1000, 30000);
++    const long resetMs = std::max(resetConfiguredMs, penaltyMs);
++    if (state.haveLastClose &&
++        std::chrono::duration_cast<std::chrono::milliseconds>(now - state.lastCloseAt).count() > resetMs)
++        state = STxTurnParticipantsState();
++
++    if (std::find(state.participants.begin(), state.participants.end(), user) == state.participants.end())
++    {
++        if (state.participants.size() >= 128)
++        {
++            state.penaltyUntil.erase(state.participants.front());
++            state.participants.erase(state.participants.begin());
++        }
++        state.participants.push_back(user);
++    }
++    state.haveLastClose = true;
++    state.lastCloseAt = now;
++}
++
+ bool CReflector::TxTurnGuardAdmit(const CDvHeaderPacket *header)
+ {
+     const char *enabled = ::getenv("XLX_TX_TURN_GUARD");
+     if ((enabled == NULL) || (::strcmp(enabled, "1") != 0))
+         return true;
++    const char *policy = ::getenv("XLX_TX_TURN_POLICY");
++    if ((policy != NULL) && (::strcmp(policy, "participants") == 0))
++        return TxTurnMultiAdmit(header);
+ 
+     const int moduleIndex = GetModuleIndex(header->GetRpt2Module());
+     if (moduleIndex < 0)
+@@ -343,6 +444,12 @@
+     const char *enabled = ::getenv("XLX_TX_TURN_GUARD");
+     if ((enabled == NULL) || (::strcmp(enabled, "1") != 0) || (stream == NULL))
+         return;
++    const char *policy = ::getenv("XLX_TX_TURN_POLICY");
++    if ((policy != NULL) && (::strcmp(policy, "participants") == 0))
++    {
++        TxTurnMultiClosed(stream);
++        return;
++    }
+ 
+     const char module = GetStreamModule(stream);
+     const int moduleIndex = GetModuleIndex(module);

@@ -1,5 +1,7 @@
 # TX Turn Guard / Anti-Ping-Pong V1
 
+**V2 opt-in de 3 s para todos os participantes:** veja [MULTIPARTICIPANTS-20261105.md](MULTIPARTICIPANTS-20261105.md). Em 2026-11-05 permanece LAB; a política V1 de produção não foi substituída.
+
 Status: feature opcional, OFF por padrão no instalador. Ativada explicitamente no XLX026 por autorização do operador em 2026-10-04; veja [evidência e limites](PRODUCTION-20261004.md).
 
 ## Objetivo
