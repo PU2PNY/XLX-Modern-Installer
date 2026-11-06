@@ -1,3 +1,7 @@
+## Unreleased — recurring OpenAI / Helix monitors (2026-11-05)
+- Repaired auxiliary oneshot timer recurrence in XLX026 PROD with `OnUnitInactiveSec` 60s/30s after finding missing/stale public monitor files and elapsed timers.
+- OpenAI public monitor returned configured/connected, Helix shadow active; XLXD untouched. Private backup and rollback preserved. Full reboot validation pending; templates versioned separately from radio core.
+
 ## Unreleased — mbelib upstream audit; no production codec change (2026-11-03)
 
 - Compared szechyjs/mbelib 1.3.0 (2019, ISC + patent notice) with XLX026's already embedded mbelib/OP25-compatible codec functions.
