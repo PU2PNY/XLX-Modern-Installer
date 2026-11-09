@@ -25,7 +25,7 @@
     const raw = String(stationIdentity ? ((x && x.gateway) || '') : ((x && x.network_callsign) || (x && x.callsign) || '')).trim();
     const normalized = raw.toUpperCase();
     const gatewayCall = xlxmodernBaseCall(raw);
-    const unknown = !raw || normalized === 'NÃO IDENTIFICADO' || normalized === 'GATEWAY NÃO IDENTIFICADO' || normalized === 'HOTSPOT / REPETIDORA NÃO IDENTIFICADO';
+    const unknown = !raw || normalized === 'NÃO IDENTIFICADO' || normalized === 'GATEWAY NÃO IDENTIFICADO' || normalized === 'HOTSPOT / REPETIDORA NÃO IDENTIFICADO' || normalized === String('Não identificado').toUpperCase() || normalized === 'GATEWAY ' + String('Não identificado').toUpperCase();
     if (unknown) return '<span class="hotspot-repeater-empty">—</span>';
     const different = callsign !== '' && gatewayCall !== '' && gatewayCall !== callsign;
     const neon = different ? '<span class="gateway-neon" role="img" aria-label="Usando hotspot ou repetidora diferente do indicativo" title="Usando hotspot ou repetidora diferente do indicativo"></span>' : '';

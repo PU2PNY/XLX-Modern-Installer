@@ -35,6 +35,9 @@ Fornecer um instalador público, reproduzível e seguro para refletor XLXD em De
 - **UI-010** — Ranking deve preservar estatísticas persistentes entre viradas de dia/mês, oferecer períodos Hoje, 7 dias, mês corrente e ano corrente, e evitar aparência de painel vazio na virada da meia-noite quando houver histórico recente.
 - **UI-011** — A página e os contadores de Conectados não podem contar múltiplos `NODE` do XLXD como estações diferentes quando representam a mesma identidade, sufixo, protocolo e módulo. A sessão pública canônica é a de atividade mais recente; a lista bruta deve permanecer disponível internamente para correlação de TX/endpoint.
 - **UI-012** — Nós DExtra internos do próprio XLXD não são estações de usuário e não podem aparecer nem inflar os contadores públicos de Conectados. A exclusão exige evidência local: protocolo DExtra, endpoint igual ao endereço do próprio XLXD e ausência de `Via`/`Peer`; conexões remotas ou de outros protocolos permanecem visíveis.
+- **UI-013** — Em builds não-portugueses (en/es/fr/de/it), as páginas centrais (Ao vivo, Conectados, Módulos, Refletores, Ranking, acessibilidade, clima e MTR) não podem exibir frases em português nem fragmentos mistos gerados por substituição parcial; frases visíveis são catalogadas inteiras. `data-label` é texto visível (legenda móvel) e é traduzido; rotas/IDs/APIs seguem UI-008.
+- **UI-014** — Sentinelas internas de identidade desconhecida (“Não identificado” e derivados) devem ser reconhecidas em todos os idiomas e sem depender de `strtoupper` ASCII; um gateway desconhecido nunca é exibido como indicativo nem recebe o marcador de gateway diferente.
+- **UI-015** — Recursos exclusivos do XLX026 não aparecem em instalações genéricas: locução de conectados usa o nome do refletor configurado e o idioma do painel; o selo Helix só aparece quando o monitor Helix opcional existe.
 
 ### DATA / APRS / CERTIFICATES
 - **DATA-001** — Correções locais de callsign devem sobreviver a refresh do diretório upstream.
@@ -59,6 +62,7 @@ Fornecer um instalador público, reproduzível e seguro para refletor XLXD em De
 - **PERF-001** — Evitar polling, loops, gravações, consultas e chamadas externas desnecessárias.
 - **PERF-002** — Não sacrificar estabilidade do Live por efeitos visuais ou coleta excessiva.
 - **PERF-003** — Mudanças de performance exigem comparação contra baseline.
+- **PERF-004** — Observadores de DOM não podem reescrever o próprio subtree observado sem guarda de mudança (risco de laço contínuo de CPU no navegador); polling de recursos opcionais pausa com a aba oculta e reduz frequência quando o recurso não está instalado.
 
 ### HELIX / LEGACY RADIO COMPATIBILITY
 - **HELIX-001** — Helix é opcional. A ausência, falha ou incompatibilidade do Helix não pode impedir um rádio legado compatível de usar o caminho DMR/YSF/D-Star já funcional.

@@ -510,7 +510,8 @@ function hotspotRepeaterMarkup(x){
   !raw
   || normalized==='NÃO IDENTIFICADO'
   || normalized==='GATEWAY NÃO IDENTIFICADO'
-  || normalized==='GATEWAY / REPETIDORA NÃO IDENTIFICADO';
+  || normalized==='GATEWAY / REPETIDORA NÃO IDENTIFICADO'
+  || xlxmodernIsUnknownLabel(normalized);
 
  if(unknown){
   return `<span class="hotspot-repeater-empty">—</span>`;
@@ -572,7 +573,8 @@ function historyStatusMarkup(x){
   gateway!=='' &&
   !/NÃO\s+IDENTIFICADO/i.test(
    gatewayRaw
-  );
+  ) &&
+  !xlxmodernIsUnknownLabel(gatewayRaw);
 
  const stationConfirmed=
   source.indexOf(
@@ -804,6 +806,16 @@ function toggleHistoryGroup(callKey,button){
 }
 const xlxNatoModules=['Alfa','Bravo','Charlie','Delta','Echo','Foxtrot','Golf','Hotel','India','Juliett','Kilo','Lima','Mike','November','Oscar','Papa','Quebec','Romeo','Sierra','Tango','Uniform','Victor','Whiskey','X-Ray','Yankee','Zulu'];
 const xlxReflectorName='{{REFLECTOR_NAME}}';
+/*
+ * The API emits 'Não identificado' already translated to the dashboard
+ * language at build time. Compare against that same literal (translated by
+ * the i18n builder) so unknown gateways never render as a callsign.
+ */
+const XLXMODERN_UNKNOWN_LABEL=String('Não identificado').toUpperCase();
+function xlxmodernIsUnknownLabel(value){
+ const v=String(value||'').trim().toUpperCase();
+ return v!==''&&(v===XLXMODERN_UNKNOWN_LABEL||v==='GATEWAY '+XLXMODERN_UNKNOWN_LABEL||/N[ÃA]O\s+IDENTIFICAD[OA]/.test(v));
+}
 const xlxReflectorNumber='{{REFLECTOR_NUMBER}}';
 const xlxReflectorShort='{{REFLECTOR_SHORT_NUMBER}}';
 const xlxYsfId='{{YSF_ID}}';
@@ -864,10 +876,10 @@ function renderConnectedTable(d){
 
  const label=$('#connectedLabel');
  if(label){
-  const base=`${total} estação${total===1?'':'ões'} conectada${total===1?'':'s'}`;
+  const base=`${total} ${total===1?'estação conectada':'estações conectadas'}`;
   label.textContent=visible===total
    ?base
-   :`${base} • ${visible} exibida${visible===1?'':'s'}`;
+   :`${base} • ${visible} ${visible===1?'exibida':'exibidas'}`;
  }
 
  $('#connectedRows').innerHTML=
@@ -882,7 +894,7 @@ function renderConnected(d){
 
 function rankList(items,valueLabel){return items.length?items.map((x,i)=>`<div class="rank-item"><span class="rank-pos">${i+1}</span><div><b>${esc(x.label)}</b><small>${esc(x.sub||'')}</small></div><strong>${esc(valueLabel(x.value))}</strong></div>`).join(''):'<div class="rank-empty">Dados insuficientes no histórico disponível.</div>'}
 function aggregate(arr,keyFn,valFn=()=>1){const m=new Map();arr.forEach(x=>{const k=keyFn(x);if(!k)return;const old=m.get(k)||{label:k,value:0,sub:''};old.value+=valFn(x);m.set(k,old)});return [...m.values()].sort((a,b)=>b.value-a.value)}
-function renderRanking(d){const h=d.history||[],c=d.connections||[];const tx=aggregate(h,x=>x.callsign);tx.forEach(x=>{const y=h.find(z=>z.callsign===x.label);x.sub=y?.name||''});const air=aggregate(h,x=>x.callsign,x=>Number(x.duration||0));air.forEach(x=>{const y=h.find(z=>z.callsign===x.label);x.sub=y?.name||''});const con=[...c].sort((a,b)=>a.connected_at-b.connected_at).slice(0,10).map(x=>({label:x.callsign,sub:x.name,value:Math.max(0,Math.floor(Date.now()/1000-x.connected_at))}));const hrs=aggregate(h,x=>String(new Date(x.started_at*1000).getHours()).padStart(2,'0')+':00');const prot=aggregate(h,x=>x.protocol);const mods=aggregate(h,x=>'Módulo '+x.module);$('#rankTx').innerHTML=rankList(tx.slice(0,10),v=>v+' TX');$('#rankAirtime').innerHTML=rankList(air.slice(0,10),v=>duration(v));$('#rankConnected').innerHTML=rankList(con,v=>elapsed(Math.floor(Date.now()/1000-v)));$('#rankHours').innerHTML=rankList(hrs.slice(0,8),v=>v+' TX');$('#rankProtocols').innerHTML=rankList(prot.slice(0,8),v=>v+' TX');$('#rankModules').innerHTML=rankList(mods.slice(0,8),v=>v+' TX');const topTx=tx[0],topAir=air[0],topHour=hrs[0];$('#rankingHighlights').innerHTML=`<article><small>Mais transmissões</small><b>${esc(topTx?.label||'—')}</b><span>${topTx?topTx.value+' transmissões':'Sem dados'}</span></article><article><small>Maior tempo no ar</small><b>${esc(topAir?.label||'—')}</b><span>${topAir?duration(topAir.value):'Sem dados'}</span></article><article><small>Horário mais ativo</small><b>${esc(topHour?.label||'—')}</b><span>${topHour?topHour.value+' transmissões':'Sem dados'}</span></article><article><small>Conectados agora</small><b>${d.connected_count}</b><span>${d.active_count} transmissão${d.active_count===1?'':'ões'} ativa${d.active_count===1?'':'s'}</span></article>`}
+function renderRanking(d){const h=d.history||[],c=d.connections||[];const tx=aggregate(h,x=>x.callsign);tx.forEach(x=>{const y=h.find(z=>z.callsign===x.label);x.sub=y?.name||''});const air=aggregate(h,x=>x.callsign,x=>Number(x.duration||0));air.forEach(x=>{const y=h.find(z=>z.callsign===x.label);x.sub=y?.name||''});const con=[...c].sort((a,b)=>a.connected_at-b.connected_at).slice(0,10).map(x=>({label:x.callsign,sub:x.name,value:Math.max(0,Math.floor(Date.now()/1000-x.connected_at))}));const hrs=aggregate(h,x=>String(new Date(x.started_at*1000).getHours()).padStart(2,'0')+':00');const prot=aggregate(h,x=>x.protocol);const mods=aggregate(h,x=>'Módulo '+x.module);$('#rankTx').innerHTML=rankList(tx.slice(0,10),v=>v+' TX');$('#rankAirtime').innerHTML=rankList(air.slice(0,10),v=>duration(v));$('#rankConnected').innerHTML=rankList(con,v=>elapsed(Math.floor(Date.now()/1000-v)));$('#rankHours').innerHTML=rankList(hrs.slice(0,8),v=>v+' TX');$('#rankProtocols').innerHTML=rankList(prot.slice(0,8),v=>v+' TX');$('#rankModules').innerHTML=rankList(mods.slice(0,8),v=>v+' TX');const topTx=tx[0],topAir=air[0],topHour=hrs[0];$('#rankingHighlights').innerHTML=`<article><small>Mais transmissões</small><b>${esc(topTx?.label||'—')}</b><span>${topTx?topTx.value+' TX':'Sem dados'}</span></article><article><small>Maior tempo no ar</small><b>${esc(topAir?.label||'—')}</b><span>${topAir?duration(topAir.value):'Sem dados'}</span></article><article><small>Horário mais ativo</small><b>${esc(topHour?.label||'—')}</b><span>${topHour?topHour.value+' TX':'Sem dados'}</span></article><article><small>Conectados agora</small><b>${d.connected_count}</b><span>${d.active_count} ${d.active_count===1?'transmissão ativa':'transmissões ativas'}</span></article>`}
 /* XLXMODERN_REFLETORES_COMPLETO_V2B */
 let reflectorAllRows=[];
 let reflectorSort={key:'name',dir:'asc'};
@@ -1178,22 +1190,41 @@ function clearConnectedVoiceEventTimer(){
 }
 
 
+function xlxmodernVoiceLang(){
+ return String(document.documentElement.lang||'pt-BR');
+}
+
+/*
+ * Speaks the configured reflector name instead of a fixed callsign:
+ * XLX026 -> "XLX 0 26" (a pt-BR voice reads it as zero, twenty-six).
+ */
+function xlxmodernSpokenReflectorName(){
+ const m=/^([A-Za-z]+)(\d+)$/.exec(String(xlxReflectorName||'').trim());
+ if(!m)return String(xlxReflectorName||'XLX');
+ const zeros=(m[2].match(/^0+/)||[''])[0];
+ const rest=m[2].slice(zeros.length);
+ return [m[1],zeros.split('').join(' '),rest].filter(Boolean).join(' ');
+}
+
 function chooseConnectedVoice(){
  try{
   const voices=
    window.speechSynthesis.getVoices()||[];
+  const lang=xlxmodernVoiceLang().toLowerCase();
+  const short=lang.slice(0,2);
 
   return (
    voices.find(
     voice=>
      String(voice.lang||'')
-      .toLowerCase()==='pt-br'
+      .toLowerCase()
+      .replace('_','-')===lang
    )||
    voices.find(
     voice=>
      String(voice.lang||'')
       .toLowerCase()
-      .startsWith('pt')
+      .startsWith(short)
    )||
    null
   );
@@ -1315,10 +1346,10 @@ function speakConnectedCount(total,reason='event'){
 
   const utterance=
    new SpeechSynthesisUtterance(
-    `XLX zero vinte e seis com ${value} estações conectados.`
+    `${xlxmodernSpokenReflectorName()} com ${value} estações conectadas.`
    );
 
-  utterance.lang='pt-BR';
+  utterance.lang=xlxmodernVoiceLang();
 
   /*
    * Rapida e mais animada.
@@ -2446,6 +2477,11 @@ toggle?.addEventListener('click',()=>{if(!nav)return;const open=nav.classList.to
     const isTargetTable = table => {
         const title = getPanelTitle(table);
 
+        // Structural match first: headings are translated in non-pt builds.
+        if (table.matches('table.home-history, table.connected-table')) {
+            return true;
+        }
+
         return (
             title.includes('estacoes conectadas')
             || title.includes('estacao conectada')
@@ -2546,6 +2582,7 @@ toggle?.addEventListener('click',()=>{if(!nav)return;const open=nav.classList.to
         );
 
         const countryIndex = findColumn(headers, [
+            'País',
             'país',
             'pais',
             'country',
@@ -2553,6 +2590,7 @@ toggle?.addEventListener('click',()=>{if(!nav)return;const open=nav.classList.to
         ]);
 
         const callsignIndex = findColumn(headers, [
+            'Indicativo',
             'indicativo',
             'callsign',
             'call sign',
@@ -2561,6 +2599,7 @@ toggle?.addEventListener('click',()=>{if(!nav)return;const open=nav.classList.to
         ]);
 
         const nameIndex = findColumn(headers, [
+            'Nome',
             'nome',
             'operador',
             'operator',
@@ -2568,6 +2607,7 @@ toggle?.addEventListener('click',()=>{if(!nav)return;const open=nav.classList.to
         ]);
 
         let locationIndex = findColumn(headers, [
+            'Localização',
             'localização',
             'localizacao',
             'localidade',
@@ -2576,6 +2616,7 @@ toggle?.addEventListener('click',()=>{if(!nav)return;const open=nav.classList.to
 
         if (locationIndex < 0) {
             locationIndex = findColumn(headers, [
+                'Cidade',
                 'cidade',
                 'city',
                 'município',

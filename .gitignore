@@ -14,3 +14,5 @@ backups/
 releases/
 dashboard/*.zip
 dashboard/**/*.zip
+__pycache__/
+*.pyc

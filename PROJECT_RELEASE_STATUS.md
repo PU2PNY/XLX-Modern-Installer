@@ -295,3 +295,8 @@ OPERATOR reiterou que os testes restantes são **exclusivamente na produção XL
 **PROD somente leitura:** XLXD e xuvd ativos; SoftAMBE desativado. Executável xuvd SHA d3ea28ef... contém símbolos \`mbe_initMbeParms\`, \`mbe_dequantizeAmbe2400Parms\`, \`mbe_synthesizeSpeech\` e relacionados; \`readelf\` não mostra libmbe.so como biblioteca dinâmica. Isso não comprova igualdade bit-a-bit com upstream.
 **SW/HW:** sem build novo, comparação de amostras nem intervenção em áudio. Nenhum serviço ou arquivo da VPS alterado por esta auditoria. Decisão DEC-2026-11-03-021, requisito MBELIB-001..003, TEST-055 e issue #95. Preservado transcoder restaurado.
 
+## Painel — idiomas, gateway desconhecido e selo Helix (2026-11-09)
+- Escopo restrito a `dashboard/` (JS/PHP do painel, catálogos i18n e builder) e testes; nenhum componente de XLXD, áudio, rede ou systemd foi alterado.
+- Evidência `SW`: TEST-056 e TEST-057 PASS localmente; `tests/run-all.sh` sem novas falhas (as duas falhas locais restantes — `rsync` e `sqlite3` ausentes no ambiente de análise — ocorrem igualmente no `main`).
+- Pendente: CI no PR, validação visual ENV/PROD em navegador real (desktop e celular) em cada idioma, medição de CPU durante TX com o selo Helix.
+
