@@ -66,7 +66,8 @@ $protectTechnical = static function (string $text, array &$restore): string {
     };
 
     $text = preg_replace_callback(
-        "~\\b(?:class|id|name|for|type|value|href|src|action|data-[a-z0-9_-]+)=(\"[^\"]*\"|'[^']*')~iu",
+        // data-label is visible text (mobile table cell captions); translate it.
+        "~\\b(?:class|id|name|for|type|value|href|src|action|data-(?!label=)[a-z0-9_-]+)=(\"[^\"]*\"|'[^']*')~iu",
         static function (array $m) use ($protect): string {
             $eq = strpos($m[0], '=');
             return substr($m[0], 0, $eq + 1) . $protect(substr($m[0], $eq + 1));

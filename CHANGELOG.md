@@ -1,3 +1,13 @@
+## Unreleased — painel: idiomas completos, gateway desconhecido e laço do Helix (2026-11-09)
+
+- Páginas centrais traduzidas por frase inteira em en/es/fr/de/it (Ao vivo, Conectados, Módulos, Refletores, Ranking, MTR, diálogo RadioID, selo Helix); acaba com textos mistos como “Waiting for a próxima transmissão” e “All os países”. Builder passa a traduzir `data-label` (legendas da tabela no celular).
+- Widget de clima/propagação ganha textos em espanhol, francês, alemão e italiano (antes só pt/en).
+- Tabelas móveis (V39) detectadas por estrutura, não pelo título em português — o layout móvel volta a funcionar fora do pt-BR.
+- Gateway “Não identificado”: `live.php` usa `mb_strtoupper` (o `strtoupper` ASCII nunca casava “NÃO”), e o JS reconhece o rótulo traduzido; o painel deixa de mostrar “UNIDENTIFIED”/“GATEWAY” como indicativo com marcador de gateway diferente.
+- Locução de conectados usa o nome do refletor configurado e o idioma do painel, em vez de “XLX zero vinte e seis” fixo em pt-BR.
+- Selo Helix: corrige laço do MutationObserver (reescrita incondicional do subtree observado consumia CPU durante TX), oculta o selo onde o monitor Helix não existe, pausa com a aba oculta e consulta a cada 5 min quando não instalado.
+- UI-013..015, PERF-004, TEST-056/057; novo `tests/test-dashboard-core-i18n.sh` em `run-all.sh`. Sem mudança em XLXD, protocolos, áudio, systemd ou Nginx.
+
 ## Unreleased — mbelib upstream audit; no production codec change (2026-11-03)
 
 - Compared szechyjs/mbelib 1.3.0 (2019, ISC + patent notice) with XLX026's already embedded mbelib/OP25-compatible codec functions.

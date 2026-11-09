@@ -405,14 +405,22 @@ $xlxmodernGatewayPartsV12 = static function (
 ) use (
     $xlxmodernBaseCallV12
 ): array {
-    $raw = strtoupper(
-        trim((string)$value)
-    );
+    // mb_strtoupper: strtoupper() is ASCII-only and turns "Não" into
+    // "NãO", so the Portuguese sentinels below never matched before.
+    $upper = static fn(string $text): string => function_exists('mb_strtoupper')
+        ? mb_strtoupper($text, 'UTF-8')
+        : strtoupper($text);
+    $raw = $upper(trim((string)$value));
+    // 'Não identificado' is translated at build time together with
+    // api/common.php, so this also matches non-Portuguese builds.
+    $unknownLabel = $upper('Não identificado');
 
     if (
         $raw === ''
         || $raw === 'NÃO IDENTIFICADO'
         || $raw === 'GATEWAY NÃO IDENTIFICADO'
+        || $raw === $unknownLabel
+        || $raw === 'GATEWAY ' . $unknownLabel
     ) {
         return ['', ''];
     }

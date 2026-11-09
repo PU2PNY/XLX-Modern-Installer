@@ -113,9 +113,7 @@
                         ${escapeHtml(gateway)}
                     </strong>
 
-                    <span class="mtr-update">
-                        atualizando
-                    </span>
+                    <span class="mtr-update">atualizando</span>
 
                     <span class="mtr-info-wrap">
                         <button
@@ -132,23 +130,15 @@
                         >
                             <strong>Como interpretar</strong>
 
-                            <b>LAT</b>: tempo de resposta.
-                            Quanto menor, melhor.
+                            <b>LAT</b>: tempo de resposta. Quanto menor, melhor.
 
-                            <b>PER</b>: perda de pacotes.
-                            O ideal é 0%.
+                            <b>PER</b>: perda de pacotes. O ideal é 0%.
 
-                            <b>JIT</b>: variação do tempo
-                            de resposta. Quanto menor,
-                            mais estável.
+                            <b>JIT</b>: variação do tempo de resposta. Quanto menor, mais estável.
 
-                            <b>Rota parcial</b>: o equipamento
-                            final bloqueou o teste. Os números
-                            foram obtidos até o último ponto da
-                            internet que respondeu.
+                            <b>Rota parcial</b>: o equipamento final bloqueou o teste. Os números foram obtidos até o último ponto da internet que respondeu.
 
-                            Verde é normal, amarelo exige
-                            atenção e vermelho indica problema.
+                            Verde é normal, amarelo exige atenção e vermelho indica problema.
                         </span>
                     </span>
                 </div>
