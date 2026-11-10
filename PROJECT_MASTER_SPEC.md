@@ -174,3 +174,9 @@ Uma mudança só é aceita se:
 - **MBELIB-002** — Fixar proveniência/compromissos da biblioteca de referência, distinguir ISC de licenças de derivados OP25 e de eventuais direitos de patente. Não afirmar identidade bit-a-bit entre upstream e símbolos já embutidos sem confronto de fontes/build.
 - **MBELIB-003** — Qualquer alteração futura de vocoder/decoder só avança mediante corpus comparável, correção mensurável, teste de áudio RF, backup com restore, regressão e rollback; preservar o xuvd restaurado após a rejeição OPERATOR do SoftAMBE.
 
+
+
+### UI-PRISMATIC-PRO-001 — React Bits Pro como background opcional
+- Requisito **candidato, não aprovado para produção**: instalar o componente React Bits Pro `Prismatic Slats` por registro oficial autenticado, apenas em projeto React isolado, sem converter dashboard PHP ou alterar UI-001/002, APIs, TX/RX, áudio ou serviços.
+- A exibição proposta ocupa o **fundo global da página**, não só o cabeçalho, com `pointer-events: none`, opt-in e opções de fallback, `prefers-reduced-motion` e limites de custo de GPU.
+- Não instalar a registry Pro sem licença legítima; proibir publicar seu código-fonte, `.env.local` ou chave no GitHub público. Testar build, acessibilidade, dispositivos móveis, TX ativo, performance, backup e restore antes de promover.
