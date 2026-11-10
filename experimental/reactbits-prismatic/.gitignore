@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+# React Bits Pro downloaded source stays private; never commit.
+src/components/
+src/lib/
+src/hooks/
+src/styles/
