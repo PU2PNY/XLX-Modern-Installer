@@ -110,3 +110,5 @@ Código e13f4e1: CI3/3 PASS; ENV build/lifecycle/protocol classes/TOT/restore/We
 
 | TEST-PRISMATIC-PRO-001 | UI-PRISMATIC-PRO-001 | Registries autenticadas com placeholder, nenhum segredo no Git, pacote React isolado | WartyWallaby 2026-11-10: clone da branch e `node scripts/verify-registry.mjs` = PASS; script protegido sem chave termina exit 2 = PASS. Não houve download do componente proprietário. | PARCIAL (SW/ENV estático) |
 | TEST-PRISMATIC-PRO-002 | UI-PRISMATIC-PRO-001 / PERF-002 | Componente real instalado, compila, aparece atrás de todo o painel sem afetar Live e pode ser revertido | Chave de licença ausente; aguardando instalação oficial e teste de integração visual/performance/rollback. | PENDENTE |
+
+| TEST-PRISMATIC-PRO-003 | UI-PRISMATIC-PRO-001 | Scaffold React/Tailwind compila sem componente Pro | WartyWallaby, branch experimental (2026-11-10): `npm install --ignore-scripts --no-audit --no-fund` returncode 0 (85 pacotes); `npm run build` returncode 0, Vite 7.3.8, bundle LAB 227477 bytes. **Componente original ausente.** | PASS (ENV somente scaffold) |
