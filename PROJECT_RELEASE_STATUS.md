@@ -307,3 +307,5 @@ OPERATOR reiterou que os testes restantes são **exclusivamente na produção XL
 - Status do componente original: **NÃO INSTALADO**. Registro de licença `REACTBITS_LICENSE_KEY` ausente nos processos consultados em LAB e PROD. Não houveram mudanças nesta rodada ao XLX026 de produção.
 - Existem apenas infraestrutura React, `components.json` autenticável e testes estáticos; fonte proprietária e chaves não entram no Git público.
 - Aprovação PROD bloqueada por licença, instalação oficial, integração no fundo global, teste CPU/GPU e rollback.
+
+- Gate adicional ENV (WartyWallaby 2026-11-10): instalação de 85 dependências NPM em ambiente temporário e `npm run build` com código React placeholder passaram. **Não é build/instalação do componente Prismatic Slats**, nem autorização para o uso do bundle no painel. Nenhum deploy efetuado.
