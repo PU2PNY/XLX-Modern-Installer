@@ -167,6 +167,7 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}' . page_url($page);
 <link rel="stylesheet" href="assets/ao-vivo-gif-position-v9.css?v=1">
 <link rel="stylesheet" href="assets/ao-vivo-gif-anchor-v12.css?v=1">
 <?php endif; ?>
+<?php if (($_GET['prismatic'] ?? '') === '1'): ?><link rel="stylesheet" href="/assets/prismatic-preview-v1.css?v=20261110a"><?php endif; ?>
 </head>
 <body data-page="<?=htmlspecialchars($page, ENT_QUOTES, 'UTF-8')?>" data-reflector="{{REFLECTOR_NAME}}">
 <main>
