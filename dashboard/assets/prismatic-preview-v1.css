@@ -1,0 +1,49 @@
+/*
+ * XLX026 - PRISMATIC PREVIEW V1 - 2026-11-10
+ * Efeito CSS autoral inspirado em luz prismatica / slats; NAO e o React Bits Pro.
+ * Carregado SOMENTE se ?prismatic=1. Sem JS, WebGL, fontes ou requisicoes externas.
+ * Reversao: remover o link condicional em index.php (ou executar ROLLBACK.sh).
+ */
+html body[data-page] section.hero.universal-header {
+  background-color: #061321 !important;
+  background-image:
+    linear-gradient(90deg, rgba(3,13,23,.78) 0%, rgba(3,13,24,.30) 44%, rgba(3,14,25,.80) 100%),
+    repeating-linear-gradient(97deg,
+      rgba(237,253,255,.080) 0,
+      rgba(237,253,255,.026) 2px,
+      rgba(1,11,22,.19) 9px,
+      rgba(68,191,237,.095) 15px,
+      rgba(1,11,22,.12) 22px,
+      transparent 29px),
+    radial-gradient(ellipse 53% 110% at 12% 36%, rgba(0,206,237,.66), transparent 76%),
+    radial-gradient(ellipse 44% 105% at 59% 74%, rgba(107,63,208,.57), transparent 73%),
+    radial-gradient(ellipse 39% 110% at 94% 22%, rgba(0,122,238,.56), transparent 73%),
+    linear-gradient(116deg, #03101a 0%, #0b3a51 39%, #171c47 67%, #03111b 100%) !important;
+  background-size: 100% 100%, 100% 100%, 125% 125%, 130% 130%, 120% 120%, 100% 100% !important;
+  background-position: center, center, 0% 38%, 52% 48%, 100% 30%, center !important;
+  background-repeat: no-repeat !important;
+}
+@media (min-width: 821px) and (prefers-reduced-motion: no-preference) {
+  html body[data-page] section.hero.universal-header {
+    animation: xlx026-prism-drift-v1 34s ease-in-out infinite alternate !important;
+  }
+}
+@keyframes xlx026-prism-drift-v1 {
+  from {
+    background-position: center, center, 0% 38%, 52% 48%, 100% 30%, center;
+  }
+  to {
+    background-position: center, center, 12% 54%, 66% 33%, 87% 57%, center;
+  }
+}
+@media (max-width: 820px) {
+  html body[data-page] section.hero.universal-header {
+    background-position: center, center, 0% 38%, 52% 48%, 100% 30%, center !important;
+    animation: none !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html body[data-page] section.hero.universal-header {
+    animation: none !important;
+  }
+}
