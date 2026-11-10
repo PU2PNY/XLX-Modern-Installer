@@ -300,3 +300,10 @@ OPERATOR reiterou que os testes restantes são **exclusivamente na produção XL
 - Evidência `SW`: TEST-056 e TEST-057 PASS localmente; `tests/run-all.sh` sem novas falhas (as duas falhas locais restantes — `rsync` e `sqlite3` ausentes no ambiente de análise — ocorrem igualmente no `main`).
 - Pendente: CI no PR, validação visual ENV/PROD em navegador real (desktop e celular) em cada idioma, medição de CPU durante TX com o selo Helix.
 
+
+
+## React Bits Pro Prismatic Slats — preparação LAB, 2026-11-10
+- Branch experimental isolada: `feature/reactbits-pro-prismatic-island-20261110` (base `main` `ee9f6670bc41d3d024793e758f72cccc29855c9c`).
+- Status do componente original: **NÃO INSTALADO**. Registro de licença `REACTBITS_LICENSE_KEY` ausente nos processos consultados em LAB e PROD. Não houveram mudanças nesta rodada ao XLX026 de produção.
+- Existem apenas infraestrutura React, `components.json` autenticável e testes estáticos; fonte proprietária e chaves não entram no Git público.
+- Aprovação PROD bloqueada por licença, instalação oficial, integração no fundo global, teste CPU/GPU e rollback.
