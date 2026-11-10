@@ -20,7 +20,7 @@ html body[data-page] section.hero.universal-header {
     radial-gradient(ellipse 39% 110% at 94% 22%, rgba(0,122,238,.56), transparent 73%),
     linear-gradient(116deg, #03101a 0%, #0b3a51 39%, #171c47 67%, #03111b 100%) !important;
   background-size: 100% 100%, 100% 100%, 125% 125%, 130% 130%, 120% 120%, 100% 100% !important;
-  background-position: center, center, 0% 38%, 52% 48%, 100% 30%, center !important;
+  background-position: center, center, 0% 38%, 52% 48%, 100% 30%, center;
   background-repeat: no-repeat !important;
 }
 @media (min-width: 821px) and (prefers-reduced-motion: no-preference) {
