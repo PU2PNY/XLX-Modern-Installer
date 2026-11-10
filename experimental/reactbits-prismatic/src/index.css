@@ -1,0 +1,9 @@
+@import 'tailwindcss';
+@theme {
+  --color-xlx-bg: #050c12;
+  --color-xlx-cyan: #00d8ff;
+  --color-xlx-panel: #0b1a25;
+}
+:root { font-family: Inter, 'Segoe UI', system-ui, sans-serif; color: #d4eaf5; background: var(--color-xlx-bg); }
+html, body, #root { min-height: 100%; margin: 0; }
+.lab-pending { padding: 2rem; color: #88a9b9; font-size: .9rem; }
