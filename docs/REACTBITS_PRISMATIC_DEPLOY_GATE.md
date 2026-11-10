@@ -19,3 +19,9 @@
 - PROD: não modificado nesta fase; instalação de Prismatic Slats Pro pendente.
 
 Fonte oficial licença: https://pro.reactbits.dev/license
+
+## Build de scaffold comprovado (WartyWallaby, 2026-11-10)
+- Clone temporário da branch experimental: PASS.
+- `npm install --ignore-scripts --no-audit --no-fund`: PASS, 85 pacotes instalados em pasta temporária.
+- `npm run build` (`tsc --noEmit && vite build`): PASS, Vite 7.3.8; bundle LAB 227477 bytes (antes do componente proprietário).
+- Nenhum componente React Bits Pro instalado, nenhuma chave fornecida ou vazada, nenhum arquivo desta execução implantado em produção.
