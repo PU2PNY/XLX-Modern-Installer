@@ -1,3 +1,8 @@
+
+## Unreleased — React Bits Pro, scaffold opcional não funcional (2026-11-10)
+- Preparado `experimental/reactbits-prismatic` como island React com registries Pro oficiais sem chave e guard de instalação; preservado PHP/Nginx e painel ativo.
+- **Não foi instalado o componente proprietário** nem ativado seu fundo em produção; próxima etapa depende da licença e dos testes de laboratório. Código privado permanece fora do repositório.
+
 ## Unreleased — painel: idiomas completos, gateway desconhecido e laço do Helix (2026-11-09)
 
 - Páginas centrais traduzidas por frase inteira em en/es/fr/de/it (Ao vivo, Conectados, Módulos, Refletores, Ranking, MTR, diálogo RadioID, selo Helix); acaba com textos mistos como “Waiting for a próxima transmissão” e “All os países”. Builder passa a traduzir `data-label` (legendas da tabela no celular).
