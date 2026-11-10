@@ -19,7 +19,9 @@ O efeito é **CSS original inspirado no conceito visual de prismas/slats**, e **
 - PHP lint sobre a modificação no runtime: PASS.
 - Verificação PROD: `/ao-vivo` e `/ao-vivo?prismatic=1` HTTP 200, stylesheet HTTP 200; `/api/live.php`, `/modulos`, `/conectados` HTTP 200, Nginx/XLXD ativos.
 - O link `/` redireciona para `/ao-vivo` descartando parâmetros. Para teste usar **/ao-vivo?prismatic=1**, não **/?prismatic=1**.
-- Inspeção visual e benchmark GPU/mobile são gates separados; não inferir PASS por HTTP 200.
+- Inspeção visual no navegador (2026-11-10, leitura pública): desktop 1366px e mobile 390px comparados com o original. O cabeçalho prismático é visivelmente diferente, sem mudança medida de geometria do título, navegação, caixa TX em standby ou tabela de histórico; CSS adicional carregado HTTP 200, sem novos erros de console. Evidência: https://xlx026.net/ao-vivo?prismatic=1.
+- Limites do teste visual: overlay de instalação do próprio site cobriu as capturas; menu mobile não foi expandido, estado TX ativo não foi observado, layout de logo escondido em ambas as variantes e overflow global mobile de 416px já existente nas duas. Sem medição de CPU/GPU e sem teste multiusuário. **Não** declarar esses casos como aprovados.
+- Após a conferência inicial, foi corrigida a declaração CSS de posição para permitir a animação desktop; cache-buster atual `20261110b`. Novo smoke PROD: `/ao-vivo` sem o CSS, `/ao-vivo?prismatic=1` com o CSS atualizado, rota CSS e API Live HTTP 200, XLXD/Nginx ativos.
 
 ## Rollback
 - Desligamento imediato por visitante: navegar para `/ao-vivo` sem `?prismatic=1` (tema original, nenhum CSS adicional).
