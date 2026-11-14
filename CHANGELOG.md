@@ -1,3 +1,9 @@
+## Unreleased — prevent partial connected-station snapshots (2026-11-14)
+
+- Reject incomplete XLXD report sections while its in-place writer is updating the file, preventing transient prefixes from replacing the connected list with a false low/zero count.
+- Share one validated XML snapshot for NODE/STATION per request, retry at most four times with 75ms total programmed wait, and preserve the existing last-status fallback. A complete genuinely empty list remains valid.
+- Adds UI-016, DEC-022 and TEST-058 with interrupted-write, recovery and stale-cache regressions. Production patch preserves local identity changes and does not restart or change radio/audio services.
+
 ## Unreleased — painel: idiomas completos, gateway desconhecido e laço do Helix (2026-11-09)
 
 - Páginas centrais traduzidas por frase inteira em en/es/fr/de/it (Ao vivo, Conectados, Módulos, Refletores, Ranking, MTR, diálogo RadioID, selo Helix); acaba com textos mistos como “Waiting for a próxima transmissão” e “All os países”. Builder passa a traduzir `data-label` (legendas da tabela no celular).

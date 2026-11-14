@@ -1,5 +1,8 @@
 # Decisões técnicas canônicas
 
+## DEC-2026-11-14-022 — Rejeitar leituras parciais do XML operacional
+Foi observado diretamente em PROD que o arquivo do XLXD fica incompleto durante a regravação (0..118 NODE na mesma atualização). O parser por expressão regular aceitava o prefixo e publicava uma queda falsa de conectados. UI-016 exige validar o fechamento das seções linked nodes/heard users antes de interpretar qualquer NODE. Leitura limitada a quatro tentativas, com no máximo 75 ms de espera; esgotamento lança erro para o status preservar seu cache anterior, sem substituir uma ausência transitória por lista vazia. Uma lista completa realmente vazia continua válida. Mesmo snapshot por requisição para conexões e identidade D-STAR. Não alterar XLXD, protocolos, transcoder, áudio ou polling do navegador. TEST-058 cobre prefixos, recuperação, lista vazia e limite de espera. A observação não prova retroativamente que todo travamento relatado veio desta corrida.
+
 ## DEC-2026-09-21-001 — Produção saudável é baseline, não laboratório
 O estado de produção relatado como perfeito em 2026-09-21 deve ser preservado. Pesquisa de fórum, versão nova ou refatoração não justificam alteração direta.
 

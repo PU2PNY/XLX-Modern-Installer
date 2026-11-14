@@ -300,3 +300,12 @@ OPERATOR reiterou que os testes restantes são **exclusivamente na produção XL
 - Evidência `SW`: TEST-056 e TEST-057 PASS localmente; `tests/run-all.sh` sem novas falhas (as duas falhas locais restantes — `rsync` e `sqlite3` ausentes no ambiente de análise — ocorrem igualmente no `main`).
 - Pendente: CI no PR, validação visual ENV/PROD em navegador real (desktop e celular) em cada idioma, medição de CPU durante TX com o selo Helix.
 
+
+## Painel — snapshot XML completo (2026-11-14)
+- Base canônica main `ee9f6670bc41d3d024793e758f72cccc29855c9c`, VERSION1.4.6; branch `fix/panel-complete-snapshot-20261114`.
+- PROD somente leitura reproduziu 124 amostras de regravação em 22s: 121 incompletas, contagens de 0 a 118 NODE. Isso é amostragem orientada a eventos de escrita, não taxa de falha por requisição HTTP. Parser antigo aceitava prefixos; relato OPERATOR: painel parado e poucas estações durante YSF. Não comprova que todo travamento teve essa causa.
+- UI-016 / DEC-022: envelope linked nodes/heard users e contagem de aberturas/fechamentos; mesmo snapshot para NODE/STATION. Quatro leituras no máximo, 75ms totais de espera programada; scheduling não oferece deadline hard real-time. Em falha, status conserva o cache anterior. Lista completa vazia aceita. Sem polling adicional nem alteração do núcleo/áudio/Nginx.
+- ENV WartyWallaby: PHP lint, test-xml-snapshot.py, dedupe, identidade, governança e core i18n PASS. Seis cenários significativos do teste novo PASS. Suíte completa/CI não executados como parte deste registro.
+- PROD: patch cirúrgico em common.php ativo, mantendo divergências locais de identidade. Arquivo anterior SHA256 cc82d9a64c40f24874a3ddb0140d5316f2b6b64a53858980346b5c6b4f9c91ac; candidato 1b522a7a7fe53bc13ccaeb6e09192878cfc7c67215cad71e789021ccf21eb1c7. Backup privado PANEL_XML_SNAPSHOT_20261114_194857, cópia de restauração hash-exata, rollback.py independente. Não foi executado rollback real em PROD.
+- Pós-deploy PROD: prefixo incompleto real 3.851bytes/13 NODE rejeitado. Doze respostas HTTP200 com connected_count=101 e 101 linhas; /ao-vivo, /conectados e snapshot Live HTTP200. XLXD1298, xuvd31974 e LiveCore1306 mantidos, sem restart. Sem alegar correção de áudio/RF ou de todos os possíveis travamentos do navegador.
+- Evidência sanitizada: docs/evidence/panel-xml-snapshot-20261114.json.

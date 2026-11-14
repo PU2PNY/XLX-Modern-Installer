@@ -40,6 +40,7 @@ Fornecer um instalador público, reproduzível e seguro para refletor XLXD em De
 - **UI-015** — Recursos exclusivos do XLX026 não aparecem em instalações genéricas: locução de conectados usa o nome do refletor configurado e o idioma do painel; o selo Helix só aparece quando o monitor Helix opcional existe.
 
 ### DATA / APRS / CERTIFICATES
+- **UI-016** — Conectados e identidade derivados do XML somente usam snapshot completo, incluindo seções fechadas linked nodes/heard users. Regravação parcial ou fonte indisponível não podem publicar uma lista vazia/parcial como sucesso. Usar repetição estritamente limitada e o fallback de status existente; lista completa vazia é legítima. Uma requisição usa o mesmo snapshot para NODE e STATION.
 - **DATA-001** — Correções locais de callsign devem sobreviver a refresh do diretório upstream.
 - **APRS-001** — APRS/D-PRS nativo deve preservar hash-only de senha e rotação/revogação no reset.
 - **APRS-002** — Dados sensíveis de recuperação não devem ser gravados em payloads de auditoria.

@@ -102,9 +102,44 @@ function country_for_call(string $call): array {
 function user_lookup(string $call): array { static $db=null,$cache=[]; $call=norm_call($call); if(isset($cache[$call]))return $cache[$call]; $r=['name'=>'Não informado','location'=>'Não informada']; $p=cfg()['users_db']; if(class_exists('SQLite3')&&is_readable($p)){try{$db??=new SQLite3($p,SQLITE3_OPEN_READONLY);$s=$db->prepare('SELECT name, city_state FROM users WHERE callsign=:c LIMIT 1');$s->bindValue(':c',$call,SQLITE3_TEXT);$x=$s->execute();if($row=$x->fetchArray(SQLITE3_ASSOC)){$r['name']=trim((string)($row['name']??''))?:'Não informado';$r['location']=trim((string)($row['city_state']??''))?:'Não informada';}}catch(Throwable $e){}}return $cache[$call]=$r; }
 function tail_file(string $p,int $bytes=4194304): string { if(!is_readable($p))return ''; $f=@fopen($p,'rb'); if(!$f)return ''; fseek($f,0,SEEK_END);$n=ftell($f);$s=max(0,$n-$bytes);fseek($f,$s);$d=stream_get_contents($f)?:'';fclose($f);if($s>0&&($q=strpos($d,"\n"))!==false)$d=substr($d,$q+1);return $d; }
 function parse_any_time(string $line): int { if(preg_match('/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})([+\-]\d{4})?/',$line,$m)){ $t=strtotime($m[1].($m[2]??''));if($t!==false)return $t;} if(preg_match('/^(\d{1,2})\s+(\w+),\s+(\d{2}:\d{2}:\d{2})/',$line,$m)){ $d=DateTime::createFromFormat('j M Y H:i:s',$m[1].' '.$m[2].' '.date('Y').' '.$m[3]);if($d){$t=$d->getTimestamp();if($t>time()+86400){$d->modify('-1 year');$t=$d->getTimestamp();}return $t;}}return time(); }
+/* XLX_XML_COMPLETE_SNAPSHOT_V1 — XLXD rewrites this file in place. */
+function xlx_xml_snapshot_complete(string $raw): bool {
+    // XLXD's historical format has spaces in section names and multiple roots;
+    // a normal XML parser cannot validate it. Check the exact section envelope.
+    if (!preg_match('/<([^<>\r\n]+)linked nodes>(.*?)<\/\1linked nodes>/s', $raw, $nodes, PREG_OFFSET_CAPTURE)) {
+        return false;
+    }
+    $prefix = preg_quote($nodes[1][0], '/');
+    if (!preg_match('/<' . $prefix . 'heard users>(.*?)<\/' . $prefix . 'heard users>\s*\z/s', $raw, $users, PREG_OFFSET_CAPTURE)) {
+        return false;
+    }
+    if ($users[0][1] < $nodes[0][1] + strlen($nodes[0][0])) return false;
+    foreach ([[$nodes[2][0], 'NODE'], [$users[1][0], 'STATION']] as [$section, $tag]) {
+        $opened = substr_count($section, '<' . $tag . '>');
+        $closed = substr_count($section, '</' . $tag . '>');
+        if ($opened !== $closed) return false;
+    }
+    return true;
+}
+
+function xlx_read_complete_xml(string $path): string {
+    static $snapshots = [];
+    if (isset($snapshots[$path])) return $snapshots[$path];
+    for ($attempt = 0; $attempt < 4; ++$attempt) {
+        $raw = @file_get_contents($path);
+        if (is_string($raw) && xlx_xml_snapshot_complete($raw)) {
+            return $snapshots[$path] = $raw;
+        }
+        if ($attempt < 3) usleep(25000);
+    }
+    // status.php already handles exceptions by returning its last valid cache.
+    // Do not cache a transient partial read as a successful empty station list.
+    throw new RuntimeException('xlxd_xml_snapshot_unavailable');
+}
+
 function node_blocks(string $raw): array { preg_match_all('/<NODE>(.*?)<\/NODE>/si',$raw,$m); return $m[1]??[]; }
 function tag_value(string $block,string $tag): string { return preg_match('/<'.preg_quote($tag,'/').'>\s*(.*?)\s*<\/'.preg_quote($tag,'/').'>/si',$block,$m)?html_entity_decode(trim(strip_tags($m[1])),ENT_QUOTES|ENT_XML1,'UTF-8'):''; }
-function parse_xml_connections(): array { $p=cfg()['xml_path'];if(!is_readable($p))return []; $raw=@file_get_contents($p);if($raw===false)return []; $out=[];foreach(node_blocks($raw) as $b){$callRaw=tag_value($b,'Callsign');[$call,$suffix]=split_call_suffix($callRaw);if(!$call)continue;$protocol=protocol_label(tag_value($b,'Protocol'));$rawModule=trim(tag_value($b,'LinkedModule'));$module=$rawModule!==''?strtoupper(substr($rawModule,0,1)):'?';if($module==='?'&&$protocol==='DMR')$module='C';$ct=strtotime(tag_value($b,'ConnectTime'))?:0;$lt=strtotime(tag_value($b,'LastHeardTime'))?:0;$u=user_lookup($call);$country=country_for_call($call);$out[]=['callsign'=>$call,'suffix'=>$suffix,'name'=>$u['name'],'location'=>$u['location'],'country'=>$country,'module'=>$module,'protocol'=>$protocol,'connected_at'=>$ct,'last_activity'=>$lt,'qrz'=>qrz_url($call),'via'=>tag_value($b,'Via'),'peer'=>tag_value($b,'Peer'),'ip'=>tag_value($b,'IP')];}usort($out,fn($a,$b)=>$b['connected_at']<=>$a['connected_at']);return $out; }
+function parse_xml_connections(): array { $raw=xlx_read_complete_xml(cfg()['xml_path']); $out=[];foreach(node_blocks($raw) as $b){$callRaw=tag_value($b,'Callsign');[$call,$suffix]=split_call_suffix($callRaw);if(!$call)continue;$protocol=protocol_label(tag_value($b,'Protocol'));$rawModule=trim(tag_value($b,'LinkedModule'));$module=$rawModule!==''?strtoupper(substr($rawModule,0,1)):'?';if($module==='?'&&$protocol==='DMR')$module='C';$ct=strtotime(tag_value($b,'ConnectTime'))?:0;$lt=strtotime(tag_value($b,'LastHeardTime'))?:0;$u=user_lookup($call);$country=country_for_call($call);$out[]=['callsign'=>$call,'suffix'=>$suffix,'name'=>$u['name'],'location'=>$u['location'],'country'=>$country,'module'=>$module,'protocol'=>$protocol,'connected_at'=>$ct,'last_activity'=>$lt,'qrz'=>qrz_url($call),'via'=>tag_value($b,'Via'),'peer'=>tag_value($b,'Peer'),'ip'=>tag_value($b,'IP')];}usort($out,fn($a,$b)=>$b['connected_at']<=>$a['connected_at']);return $out; }
 function xlxd_self_addresses(): array {
     /*
      * O instalador autoritativo grava o endereço do XLXD no ExecStart.
@@ -639,11 +674,7 @@ function match_tx_connection(
 function xlxmodern_dstar_station_index(): array {
     $path=cfg()['xml_path'];
 
-    if(!is_readable($path)) return [];
-
-    $raw=@file_get_contents($path);
-
-    if($raw===false || $raw==='') return [];
+    $raw=xlx_read_complete_xml($path);
 
     preg_match_all(
         '/<STATION>(.*?)<\/STATION>/si',
