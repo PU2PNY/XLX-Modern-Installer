@@ -12,8 +12,9 @@
 
 - Exibe todas as transmissões ativas em cards independentes; grid quebra em linhas com largura mínima de 560 px e uma coluna em telas móveis.
 - Dimensiona fotos QRZ pelo número real de colunas, sem reduzir o operador apenas porque existem mais transmissões.
-- MTR atende até cinco cards, com no máximo três consultas simultâneas e rotação justa; TX/RX e Live Core permanecem independentes.
-- UI-017 / DEC-2026-11-16-023 / TEST-059. CI e fixture visual WartyWallaby 1–5 PASS; promoção PROD registrada separadamente.
+- MTR atende até cinco cards; concorrência do cliente respeita o limite real do backend de cada instalação. Na PROD XLX026 atual: dois slots globais, cliente limitado a dois simultâneos e lotes a cada 10 s; backend não alterado.
+- PR #105 merged em `main` como `b2b3e098`; CI do head PR #105 e fixture WartyWallaby 1–5 PASS.
+- Patch UI-only promovido em PROD após backup/rollback hash-exato; PHP/Node checks e origin HTTPS 200 PASS. Pós-deploy o monitor estava em STANDBY (0 TX), portanto validação visual de cards reais simultâneos permanece pendente. Sem alteração de XLXD, protocolos, áudio ou serviços.
 
 ## Unreleased — mbelib upstream audit; no production codec change (2026-11-03)
 
