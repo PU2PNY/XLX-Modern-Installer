@@ -20,8 +20,13 @@ function xlxmodernSyncQrzPhotoSizes(root=document){
  const grid=document.getElementById('moduleGrid');
  if(!grid)return;
  const cards=[...grid.querySelectorAll('.tx-card.live.tx-v30')];
- const count=Math.max(1,Math.min(3,cards.length||1));
  const desktop=window.innerWidth>=721;
+ const gridWidth=grid.getBoundingClientRect().width;
+ const firstCardWidth=cards[0]?.getBoundingClientRect().width||gridWidth;
+ const gap=Number.parseFloat(window.getComputedStyle(grid).columnGap)||10;
+ const count=desktop&&gridWidth>0&&firstCardWidth>0
+  ?Math.max(1,Math.min(3,Math.floor((gridWidth+gap)/(firstCardWidth+gap))))
+  :1;
  const px=desktop?({1:120,2:96,3:80}[count]):72;
 
  grid.querySelectorAll('.tx-v30-person').forEach(person=>{
@@ -991,7 +996,7 @@ function render(d){lastData=d;$('#syncState').textContent='Ao vivo';updateTitle(
   */
  if(lastLiveVisualSignature===null){
   $('#moduleGrid').innerHTML=active.length
-   ?active.slice(0,3).map(txCard).join('')
+   ?active.map(txCard).join('')
    :standbyCard(standModule,newest);
   setTimeout(()=>xlxmodernEnableRepeaterButtons($('#moduleGrid')),0);
  }
@@ -1927,12 +1932,12 @@ function renderLiveTxRxOnly(live){
  ){
   if(active.length){
    moduleGrid.innerHTML=active
-    .slice(0,3)
+    
     .map(txCard)
     .join('');
 
    window.XLXMODERNMTR?.sync(
-    active.slice(0,3)
+    active
    );
   }else{
    const newest=[...(lastData.history||[])]

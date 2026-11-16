@@ -1,0 +1,46 @@
+/* XLX026 — responsive multi-transmission TX grid.
+ * Cards keep a readable minimum width and wrap by row.
+ * No radio/protocol/audio behavior is changed by this stylesheet.
+ */
+html body[data-page="ao-vivo"] #moduleGrid.module-grid.widget-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 560px), 1fr)) !important;
+    grid-auto-flow: row !important;
+    grid-auto-columns: auto !important;
+    grid-auto-rows: auto !important;
+    align-items: stretch !important;
+    width: 100% !important;
+    max-width: 1720px !important;
+    min-width: 0 !important;
+    margin: 0 auto !important;
+    gap: 10px !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+}
+
+html body[data-page="ao-vivo"] #moduleGrid > * {
+    grid-column: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+}
+
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30 {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+@media (max-width: 720px) {
+    html body[data-page="ao-vivo"] #moduleGrid.module-grid.widget-grid {
+        grid-template-columns: minmax(0, 1fr) !important;
+        grid-auto-flow: row !important;
+        grid-auto-columns: auto !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        gap: 6px !important;
+    }
+}

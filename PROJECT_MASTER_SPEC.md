@@ -174,3 +174,7 @@ Uma mudança só é aceita se:
 - **MBELIB-002** — Fixar proveniência/compromissos da biblioteca de referência, distinguir ISC de licenças de derivados OP25 e de eventuais direitos de patente. Não afirmar identidade bit-a-bit entre upstream e símbolos já embutidos sem confronto de fontes/build.
 - **MBELIB-003** — Qualquer alteração futura de vocoder/decoder só avança mediante corpus comparável, correção mensurável, teste de áudio RF, backup com restore, regressão e rollback; preservar o xuvd restaurado após a rejeição OPERATOR do SoftAMBE.
 
+
+
+### LIVE MULTI-TX DISPLAY (2026-11-16)
+- **UI-017** — O monitor Ao Vivo deve exibir todas as transmissões ativas recebidas pela API, incluindo pelo menos cinco simultâneas, sem limitar os cards a três nem comprimi-los em uma única linha. O grid deve quebrar em linhas responsivas com largura mínima legível por card; cada card mantém identidade, gateway, protocolo, tempo, MTR e indicador de áudio isolados. Em celular, usar uma coluna. O MTR pode atender até cinco cards, respeitando o limite global de três medições simultâneas e escalonamento justo; a atualização visual TX/RX de baixa latência permanece independente do ciclo MTR. Não alterar XLXD, protocolos, áudio, polling do Live Core ou identidade de streams.
