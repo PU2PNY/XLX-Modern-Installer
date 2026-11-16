@@ -21,7 +21,7 @@ Atualizado em: 2026-11-16
 - PROD antes → depois (SHA-256): `index.php` b192aa3e… → b1579690…; `assets/app.js` 00855987… → ddbf2dc1…; `assets/mtr.js` b5687a60… → 1cac9777…; novo CSS `assets/ao-vivo-multi-tx-layout-v1.css` e41666e8….
 - PROD: PHP lint, Node check dos dois JS e origin HTTPS da página/CSS HTTP 200 PASS. Browser 1920×824 confirmou stylesheet, `grid-auto-flow: row` e Live Core carregados; endpoint no momento da validação mostrou `active_count=0`/STANDBY. Assim, a implantação foi validada, mas overlap de cards reais pós-deploy permanece pendente até haver 2+ TX simultâneas.
 - MTR: `api/mtr.php` local tem cache TTL 15s e dois slots globais efetivos (o comentário interno diz três, mas o código cria slots 1–2); o cliente PROD foi limitado a 2 simultâneos, lotes a cada 10s e até cinco widgets. Backend MTR não foi alterado.
-- Nenhum serviço foi reiniciado; XLXD, xuvd, protocolos e áudio não foram alterados.
+- Nenhum serviço foi reiniciado; XLXD, xuvd, protocolos e áudio não foram alterados. PIDs de XLXD e xuvd permaneceram idênticos no pós-check; backup e rollback foram verificados por SHA-256.
 
 ## Estado funcional documentado
 Evidência `DOC`:
