@@ -1,0 +1,106 @@
+/* XLX026 Live Motion Polish V1 — UI-018.
+ * Optional visual layer only; include after ao-vivo-multi-tx-layout-v1.css.
+ * Preserve existing animation names, timing, TX/RX, MTR, TOT-180 and layout.
+ * No selectors change positioning, dimensions, display, animation clocks or data.
+ */
+
+body[data-page="ao-vivo"] {
+    --xlx-polish-red: 255, 49, 92;
+    --xlx-polish-green: 46, 235, 169;
+    --xlx-polish-cyan: 38, 211, 246;
+    --xlx-polish-yellow: 255, 214, 0;
+}
+
+/* ON AIR: better definition at rest, same existing sweep + pulse cadence. */
+/* Explicitly exclude all four urgency classes: TOT remains untouched. */
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live.tx-v30:not(.tx-tot-warning-yellow):not(.tx-tot-warning-red):not(.tx-tot-warning):not(.tx-tot-expired) {
+    box-shadow:
+        inset 0 0 0 1px rgba(var(--xlx-polish-red), .14),
+        0 0 0 1px rgba(var(--xlx-polish-red), .30),
+        0 8px 26px rgba(0, 0, 0, .20),
+        0 0 18px rgba(var(--xlx-polish-red), .14),
+        0 0 36px rgba(var(--xlx-polish-red), .075) !important;
+    transition: box-shadow .2s ease, border-color .2s ease;
+}
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live .on-air {
+    text-shadow: 0 0 9px rgba(var(--xlx-polish-red), .38);
+}
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.live .on-air i {
+    box-shadow:
+        0 0 4px rgba(var(--xlx-polish-red), .90),
+        0 0 11px rgba(var(--xlx-polish-red), .42);
+}
+
+/* Keep photo pulse at exactly its original 1.35s: only refine light layers. */
+@keyframes xlx026QrzNeonPulseRed {
+    0%, 100% {
+        border-color: #ff315c;
+        box-shadow:
+            0 0 0 1px rgba(var(--xlx-polish-red), .32),
+            0 0 7px rgba(var(--xlx-polish-red), .66),
+            0 0 17px rgba(var(--xlx-polish-red), .23);
+    }
+    50% {
+        border-color: #ff98ad;
+        box-shadow:
+            0 0 0 2px rgba(var(--xlx-polish-red), .45),
+            0 0 13px rgba(var(--xlx-polish-red), .98),
+            0 0 29px rgba(var(--xlx-polish-red), .36);
+    }
+}
+
+/* Standby: existing radar sweep, blips and breath are not redefined. */
+html body[data-page="ao-vivo"] #moduleGrid .tx-card.standby.compact-tx.standby-v30 {
+    box-shadow:
+        inset 0 0 0 1px rgba(var(--xlx-polish-green), .05),
+        0 9px 27px rgba(0, 0, 0, .20),
+        0 0 24px rgba(var(--xlx-polish-green), .085) !important;
+}
+html body[data-page="ao-vivo"] #moduleGrid .standby-v30-radar {
+    box-shadow:
+        inset 0 0 9px rgba(var(--xlx-polish-green), .17),
+        0 0 0 1px rgba(var(--xlx-polish-green), .11),
+        0 0 15px rgba(var(--xlx-polish-green), .17) !important;
+}
+
+/* MTR: signal quality is still real data; never paint unknown as good. */
+html body[data-page="ao-vivo"] .mtr-mini.mtr-good {
+    box-shadow:
+        inset 0 0 0 1px rgba(41, 209, 125, .05),
+        0 0 12px rgba(41, 209, 125, .105);
+}
+html body[data-page="ao-vivo"] .mtr-mini.mtr-warning {
+    box-shadow:
+        inset 0 0 0 1px rgba(242, 201, 76, .05),
+        0 0 12px rgba(242, 201, 76, .105);
+}
+html body[data-page="ao-vivo"] .mtr-mini.mtr-bad {
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 78, 96, .07),
+        0 0 12px rgba(255, 78, 96, .12);
+}
+html body[data-page="ao-vivo"] .mtr-mini.mtr-unknown {
+    box-shadow: none;
+}
+html body[data-page="ao-vivo"] .mtr-route:not([hidden]) {
+    text-shadow: 0 0 6px currentColor;
+}
+
+/* The original TOT keyframes, color schedule (20s/10s) and broad neon
+ * remain untouched. This layer deliberately does not override their
+ * animation, border, outline, shadow or transition.
+ * Also preserve offline, IA/Helix, status and header animations unchanged.
+ */
+
+/* User explicitly opts into less motion: preserve a static red TX photo cue.
+ * Critical TOT stays bright, with its original visual/text warning logic.
+ */
+@media (prefers-reduced-motion: reduce) {
+    html body[data-page="ao-vivo"] #moduleGrid .operator-visual.qrz-photo-active img.is-qrz-photo {
+        animation: none !important;
+        border-color: #ff5579 !important;
+        box-shadow:
+            0 0 0 2px rgba(var(--xlx-polish-red), .55),
+            0 0 18px rgba(var(--xlx-polish-red), .35) !important;
+    }
+}
