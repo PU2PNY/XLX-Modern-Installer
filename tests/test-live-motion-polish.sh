@@ -21,6 +21,7 @@ for forbidden in ['grid-template','grid-auto','position:','display:','width:','h
 assert 'body[data-page="ao-vivo"]' in css
 assert 'prefers-reduced-motion' in css
 assert 'animation: none !important' in css
-assert '1.35s' in css
+assert 'animation-duration:' not in css
+assert '1.35s' not in css
 print('TEST-060 PASS: opt-in visual layer, TOT exclusions, no layout or network changes')
 PY
