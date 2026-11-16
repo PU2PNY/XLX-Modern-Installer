@@ -1,3 +1,9 @@
+## Unreleased — motion polish do Ao Vivo com alertas preservados (2026-11-16)
+
+- CSS isolado `ao-vivo-motion-polish-v1.css`, carregado após multi-TX; refina brilho de TX, foto QRZ, radar standby e MTR sem alterar geometria, sinal de rede, animação TOT de 180s, IA, Helix ou lógica Live.
+- Preferência de movimento reduzido substitui apenas o pulso decorativo da foto por sinal vermelho estático. A cor, duração e intensidade da borda TOT permanecem como antes.
+- UI-018 / TEST-060 / DEC-2026-11-16-024. PR de teste: sem publicação PROD.
+
 ## Unreleased — painel: idiomas completos, gateway desconhecido e laço do Helix (2026-11-09)
 
 - Páginas centrais traduzidas por frase inteira em en/es/fr/de/it (Ao vivo, Conectados, Módulos, Refletores, Ranking, MTR, diálogo RadioID, selo Helix); acaba com textos mistos como “Waiting for a próxima transmissão” e “All os países”. Builder passa a traduzir `data-label` (legendas da tabela no celular).
