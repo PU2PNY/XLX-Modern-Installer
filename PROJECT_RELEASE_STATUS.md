@@ -1,5 +1,11 @@
 # PROJECT_RELEASE_STATUS — fotografia atual
 
+## Candidato UI-018 — refinamento visual de animações (2026-11-16)
+- Branch `feature/xlx026-live-motion-polish-v1-20261116`; `VERSION` 1.4.6; baseline `main` em `cc7b17e7625fc02c41de170c7549f4efb5cda071`.
+- Adição apenas CSS no Ao Vivo: tratamento de sombra TX ativo, anel QRZ, radar standby e qualidade MTR; sem alteração da pulsação/tempo TOT, dos demais estados/alertas, de JS, HTML estrutural ou serviços. Include no `dashboard/index.php` apenas em branch ainda não mesclada.
+- Produção: **nenhuma implantação**. Backup de oito arquivos com SHA-256 checado localmente em `/opt/xlx026-backups/MOTION_POLISH_BASELINE_20261116_204540Z` (PROD backup, não teste de restore). Aguardando testes SW/ENV e aprovação visual antes de promover.
+
+
 Atualizado em: 2026-10-02
 
 ## Repositório
