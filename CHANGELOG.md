@@ -8,6 +8,13 @@
 - Selo Helix: corrige laço do MutationObserver (reescrita incondicional do subtree observado consumia CPU durante TX), oculta o selo onde o monitor Helix não existe, pausa com a aba oculta e consulta a cada 5 min quando não instalado.
 - UI-013..015, PERF-004, TEST-056/057; novo `tests/test-dashboard-core-i18n.sh` em `run-all.sh`. Sem mudança em XLXD, protocolos, áudio, systemd ou Nginx.
 
+## Unreleased — layout responsivo para múltiplas TX no Ao Vivo (2026-11-16)
+
+- Exibe todas as transmissões ativas em cards independentes; grid quebra em linhas com largura mínima de 560 px e uma coluna em telas móveis.
+- Dimensiona fotos QRZ pelo número real de colunas, sem reduzir o operador apenas porque existem mais transmissões.
+- MTR atende até cinco cards, com no máximo três consultas simultâneas e rotação justa; TX/RX e Live Core permanecem independentes.
+- UI-017 / DEC-2026-11-16-023 / TEST-059. CI e fixture visual WartyWallaby 1–5 PASS; promoção PROD registrada separadamente.
+
 ## Unreleased — mbelib upstream audit; no production codec change (2026-11-03)
 
 - Compared szechyjs/mbelib 1.3.0 (2019, ISC + patent notice) with XLX026's already embedded mbelib/OP25-compatible codec functions.
