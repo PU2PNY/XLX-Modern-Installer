@@ -93,7 +93,15 @@
       "served_mtr_supports_five": true,
       "served_mtr_client_concurrency_two": true,
       "served_mtr_round_robin": true,
-      "served_css_row_flow": true
+      "served_css_row_flow": true,
+      "rollback_restore_test_scratch": {
+        "result": "PASS",
+        "method": "executed the same rollback.py with ROOT redirected to a temporary scratch directory",
+        "original_sha256_restored": true,
+        "candidate_css_removed": true,
+        "production_files_touched": false,
+        "services_restarted": false
+      }
     },
     "mtr": {
       "backend_cache_ttl_seconds": 15,
