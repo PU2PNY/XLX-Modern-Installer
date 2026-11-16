@@ -1,6 +1,6 @@
 # PROJECT_RELEASE_STATUS — fotografia atual
 
-Atualizado em: 2026-10-02
+Atualizado em: 2026-11-16
 
 ## Repositório
 - Repositório: `PU2PNY/XLX-Modern-Installer`
@@ -14,11 +14,14 @@ Atualizado em: 2026-10-02
 - Estado: permanece divergência confirmada entre a versão declarada no branch e a última GitHub Release publicada.
 
 ## Atualização corrente — multi-TX no Ao Vivo (2026-11-16)
-- Branch `fix/live-multi-tx-layout-20261116`, PR #105; base `ee9f6670bc41d3d024793e758f72cccc29855c9c`, VERSION 1.4.6.
-- Requisitos/decisão/teste: UI-017, DEC-2026-11-16-023 e TEST-059.
-- SW/CI: XLX Modern Installer CI #830 PASS; Debian 12 runtime gate #433 PASS; Production parity regression #216 PASS; Stream identity regression #469 PASS.
-- ENV WartyWallaby: fixture visual sintética 1–5 cards PASS; desktop 1920×824: cinco cards, duas colunas de 589 px, três linhas, zero interseções e sem overflow horizontal; mobile 390×844: uma coluna, zero interseções e sem overflow.
-- PROD: ainda não promovido nesta atualização. Leitura somente confirmou drift local em `index.php`, `assets/app.js` e `assets/mtr.js`; a promoção requer patch cirúrgico e backup/rollback hash-exato, sem substituição integral desses arquivos.
+- PR #105 merged por squash em `main` como `b2b3e098129228295f3279edf9b081f07b11916b`; VERSION permanece 1.4.6. UI-017 / DEC-2026-11-16-023 / TEST-059.
+- CI no head da PR `f07152eb`: XLX Modern Installer CI #831 PASS; Debian 12 runtime gate #434 PASS; Production parity #217 PASS; Stream identity #470 PASS. Não houve execução Actions separada no SHA squash; não reclassificar o CI do head como CI do squash.
+- ENV WartyWallaby: fixture visual sintética 1–5 cards PASS; desktop 1920×824: cinco cards em duas colunas de 589 px, três linhas, zero interseções e sem overflow; mobile 390×844: uma coluna, zero interseções e sem overflow. Fixture removida após o teste.
+- PROD 2026-11-16: patch UI-only aplicado cirurgicamente em `/var/www/html/xlxd`; backup hash-exato em `/opt/xlx026-backups/LIVE_MULTI_TX_20261116_040522Z`; rollback em `/opt/xlx026-backups/LIVE_MULTI_TX_20261116_040522Z/rollback.py`. Nenhuma substituição integral dos arquivos locais.
+- PROD antes → depois (SHA-256): `index.php` b192aa3e… → b1579690…; `assets/app.js` 00855987… → ddbf2dc1…; `assets/mtr.js` b5687a60… → 1cac9777…; novo CSS `assets/ao-vivo-multi-tx-layout-v1.css` e41666e8….
+- PROD: PHP lint, Node check dos dois JS e origin HTTPS da página/CSS HTTP 200 PASS. Browser 1920×824 confirmou stylesheet, `grid-auto-flow: row` e Live Core carregados; endpoint no momento da validação mostrou `active_count=0`/STANDBY. Assim, a implantação foi validada, mas overlap de cards reais pós-deploy permanece pendente até haver 2+ TX simultâneas.
+- MTR: `api/mtr.php` local tem cache TTL 15s e dois slots globais efetivos (o comentário interno diz três, mas o código cria slots 1–2); o cliente PROD foi limitado a 2 simultâneos, lotes a cada 10s e até cinco widgets. Backend MTR não foi alterado.
+- Nenhum serviço foi reiniciado; XLXD, xuvd, protocolos e áudio não foram alterados.
 
 ## Estado funcional documentado
 Evidência `DOC`:
