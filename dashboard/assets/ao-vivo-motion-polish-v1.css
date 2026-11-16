@@ -31,7 +31,8 @@ html body[data-page="ao-vivo"] #moduleGrid .tx-card.live .on-air i {
         0 0 11px rgba(var(--xlx-polish-red), .42);
 }
 
-/* Keep photo pulse at exactly its original 1.35s: only refine light layers. */
+/* Preserve the existing photo animation duration (1.15s observed in PROD CSS).
+ * Only its named keyframe light/shadow states are refined here. */
 @keyframes xlx026QrzNeonPulseRed {
     0%, 100% {
         border-color: #ff315c;
