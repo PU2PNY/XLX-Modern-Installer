@@ -1,11 +1,13 @@
 'use strict';
 
 (() => {
-    const INTERVAL = 3000;
-    const MAX_WIDGETS = 3;
+    const INTERVAL = 10000;
+    const MAX_WIDGETS = 5;
+    const MAX_CONCURRENT_WIDGETS = 3;
 
     let updateTimer = null;
     let widgets = [];
+    let nextWidgetIndex = 0;
 
     const escapeHtml = value =>
         String(value ?? '')
@@ -832,13 +834,51 @@
     }
 
     function refreshAll() {
-        if (document.hidden) {
+        if (
+            document.hidden
+            || widgets.length === 0
+        ) {
             return;
         }
 
-        widgets.forEach(
-            updateWidget
-        );
+        const length = widgets.length;
+        const start = nextWidgetIndex % length;
+        const selected = [];
+
+        for (
+            let offset = 0;
+            offset < length
+            && selected.length < MAX_CONCURRENT_WIDGETS;
+            offset++
+        ) {
+            const index = (start + offset) % length;
+            const item = widgets[index];
+            const widget = item?.widget;
+
+            if (
+                !widget
+                || !widget.isConnected
+                || widget.dataset.loading === '1'
+            ) {
+                continue;
+            }
+
+            selected.push({
+                item,
+                index,
+            });
+        }
+
+        if (selected.length === 0) {
+            return;
+        }
+
+        nextWidgetIndex =
+            (selected[selected.length - 1].index + 1) % length;
+
+        selected.forEach(({ item }) => {
+            void updateWidget(item);
+        });
     }
 
     function stop() {
@@ -851,6 +891,7 @@
         }
 
         widgets = [];
+        nextWidgetIndex = 0;
     }
 
     function sync(activeModules) {
