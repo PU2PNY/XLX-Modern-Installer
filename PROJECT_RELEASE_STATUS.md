@@ -13,6 +13,13 @@ Atualizado em: 2026-10-02
 - Última GitHub Release observada: **v1.2.14** (2026-09-10)
 - Estado: permanece divergência confirmada entre a versão declarada no branch e a última GitHub Release publicada.
 
+## Atualização corrente — multi-TX no Ao Vivo (2026-11-16)
+- Branch `fix/live-multi-tx-layout-20261116`, PR #105; base `ee9f6670bc41d3d024793e758f72cccc29855c9c`, VERSION 1.4.6.
+- Requisitos/decisão/teste: UI-017, DEC-2026-11-16-023 e TEST-059.
+- SW/CI: XLX Modern Installer CI #830 PASS; Debian 12 runtime gate #433 PASS; Production parity regression #216 PASS; Stream identity regression #469 PASS.
+- ENV WartyWallaby: fixture visual sintética 1–5 cards PASS; desktop 1920×824: cinco cards, duas colunas de 589 px, três linhas, zero interseções e sem overflow horizontal; mobile 390×844: uma coluna, zero interseções e sem overflow.
+- PROD: ainda não promovido nesta atualização. Leitura somente confirmou drift local em `index.php`, `assets/app.js` e `assets/mtr.js`; a promoção requer patch cirúrgico e backup/rollback hash-exato, sem substituição integral desses arquivos.
+
 ## Estado funcional documentado
 Evidência `DOC`:
 - instalação Debian 12 x86_64;
