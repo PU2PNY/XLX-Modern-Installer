@@ -1,0 +1,110 @@
+{
+  "date_utc": "2026-11-16T04:05:22Z",
+  "project": "XLX026",
+  "repository": "PU2PNY/XLX-Modern-Installer",
+  "version": "1.4.6",
+  "main_commit": "b2b3e098129228295f3279edf9b081f07b11916b",
+  "pull_request": 105,
+  "pull_request_head_ci": {
+    "head_sha": "f07152eb1d23adc0a88c21826fce65beb6ec750f",
+    "workflows": {
+      "XLX Modern Installer CI": {
+        "run": 831,
+        "result": "success"
+      },
+      "Debian 12 runtime gate": {
+        "run": 434,
+        "result": "success"
+      },
+      "Production parity regression": {
+        "run": 217,
+        "result": "success"
+      },
+      "Stream identity regression": {
+        "run": 470,
+        "result": "success"
+      }
+    },
+    "note": "CI evidence belongs to the final PR head; no separate Actions run was observed for the squash commit."
+  },
+  "env_visual": {
+    "host_alias": "WartyWallaby",
+    "synthetic_fixture": true,
+    "counts_tested": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "desktop": {
+      "viewport": "1920x824",
+      "five_cards": {
+        "columns": 2,
+        "card_width_px": 589,
+        "rows": 3,
+        "overlap_pairs": 0,
+        "horizontal_overflow": false
+      }
+    },
+    "mobile": {
+      "viewport": "390x844",
+      "columns": 1,
+      "overlap_pairs": 0,
+      "horizontal_overflow": false
+    },
+    "fixture_removed_after_test": true
+  },
+  "production": {
+    "scope": "UI-only surgical patch",
+    "webroot": "/var/www/html/xlxd",
+    "backup_dir": "/opt/xlx026-backups/LIVE_MULTI_TX_20261116_040522Z",
+    "rollback_script": "/opt/xlx026-backups/LIVE_MULTI_TX_20261116_040522Z/rollback.py",
+    "before_sha256": {
+      "index.php": "b192aa3e668cd5119f9e94559cc68e6b276c0db8ed44706a81a9e54ff07d2551",
+      "assets/app.js": "0085598705f199050980f2f762e8dec3702a472b4901c6fd67113ac088d5be0a",
+      "assets/mtr.js": "b5687a60c6c70349522abf7f3055c56244c15394db3459c2af445526963cafdd"
+    },
+    "after_sha256": {
+      "index.php": "b1579690a58e2070be49e4adb873995ee164efb2c99017eae2ebcd26b1412bec",
+      "assets/app.js": "ddbf2dc187b7839cda066230c90a2aef8ee7fd599b57e10273bfa25157ca5315",
+      "assets/mtr.js": "1cac97776b99aed664304f89b29ea9e6c941868d9ef65519b80aa4f86a554947",
+      "assets/ao-vivo-multi-tx-layout-v1.css": "e41666e81c84acbdebf24deb299324259fe7ab3cd3fc1f8984697141ad55fd88"
+    },
+    "checks": {
+      "php_l_index": "PASS",
+      "node_check_app_js": "PASS",
+      "node_check_mtr_js": "PASS",
+      "origin_page_http": 200,
+      "stylesheet_http": 200,
+      "browser_viewport": "1920x824",
+      "stylesheet_loaded": true,
+      "grid_auto_flow": "row",
+      "live_core_client_loaded": true,
+      "active_count_post_deploy": 0,
+      "post_deploy_real_tx_visual_check": "not observed; monitor was in STANDBY"
+    },
+    "mtr": {
+      "backend_cache_ttl_seconds": 15,
+      "backend_effective_global_slots": 2,
+      "backend_changed": false,
+      "client_max_concurrent": 2,
+      "batch_interval_seconds": 10,
+      "max_widgets": 5
+    },
+    "services_restarted": [],
+    "xlxd_or_xuvd_changed": false,
+    "protocol_audio_changed": false
+  },
+  "pre_deploy_public_observation": {
+    "real_tx_count": 2,
+    "modules": [
+      "D",
+      "E"
+    ],
+    "card_width_px": 602,
+    "gap_px": 10,
+    "overlap_area_px2": 0,
+    "note": "Pre-deploy observation only; not a post-deploy real-TX visual result."
+  }
+}
