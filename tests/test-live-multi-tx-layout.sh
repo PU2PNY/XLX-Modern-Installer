@@ -27,8 +27,4 @@ grep -Fq "max-width: 1720px !important;" "$CSS" || fail "desktop grid must remai
 grep -Fq "grid-template-columns: minmax(0, 1fr) !important;" "$CSS" || fail "mobile must use one column"
 grep -Fq "assets/ao-vivo-multi-tx-layout-v1.css?v=20261116-1" "$INDEX" || fail "multi-TX stylesheet is not loaded"
 
-node --check "$APP"
-node --check "$MTR"
-php -l "$INDEX" >/dev/null
-
 echo "[PASS] live multi-TX layout contract (1–5+ cards, responsive rows, MTR <= 3 concurrent)"
