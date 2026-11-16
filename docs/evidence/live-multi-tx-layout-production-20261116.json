@@ -82,7 +82,11 @@
       "grid_auto_flow": "row",
       "live_core_client_loaded": true,
       "active_count_post_deploy": 0,
-      "post_deploy_real_tx_visual_check": "not observed; monitor was in STANDBY"
+      "post_deploy_real_tx_visual_check": "not observed; monitor was in STANDBY",
+      "backup_integrity_verified": true,
+      "rollback_script_mode": "0700",
+      "process_pids_unchanged": true,
+      "standby_horizontal_overflow": false
     },
     "mtr": {
       "backend_cache_ttl_seconds": 15,
