@@ -86,7 +86,14 @@
       "backup_integrity_verified": true,
       "rollback_script_mode": "0700",
       "process_pids_unchanged": true,
-      "standby_horizontal_overflow": false
+      "standby_horizontal_overflow": false,
+      "served_app_js_url": "https://xlx026.net/assets/app.js?v=6afa8102-1c3ca",
+      "served_mtr_js_url": "https://xlx026.net/assets/mtr.js?v=6afa8102-6d94",
+      "served_app_has_all_active_render": true,
+      "served_mtr_supports_five": true,
+      "served_mtr_client_concurrency_two": true,
+      "served_mtr_round_robin": true,
+      "served_css_row_flow": true
     },
     "mtr": {
       "backend_cache_ttl_seconds": 15,
