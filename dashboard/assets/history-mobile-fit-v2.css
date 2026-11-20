@@ -239,7 +239,7 @@
 
     html body[data-page='ao-vivo']
     table.home-history
-    tbody tr td:nth-child(8){
+    tbody tr td:nth-child(9){
 
         grid-column:1 / -1 !important;
     }

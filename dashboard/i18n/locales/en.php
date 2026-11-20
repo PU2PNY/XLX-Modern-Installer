@@ -84,6 +84,7 @@ return [
     'table.city' => 'City',
     'table.tx_time' => 'TX time',
     'table.tx_duration' => 'TX duration',
+    'table.radio_suffix' => 'Suffix',
     'table.connected_at' => 'Connected at',
     'table.connected_time' => 'Connected time',
     'table.last_activity' => 'Last activity',

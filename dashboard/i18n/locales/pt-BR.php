@@ -85,6 +85,7 @@ return [
     'table.city' => 'Cidade',
     'table.tx_time' => 'Horário TX',
     'table.tx_duration' => 'Tempo de TX',
+    'table.radio_suffix' => 'Sufixo',
     'table.connected_at' => 'Conectado às',
     'table.connected_time' => 'Tempo conectado',
     'table.last_activity' => 'Última atividade',
