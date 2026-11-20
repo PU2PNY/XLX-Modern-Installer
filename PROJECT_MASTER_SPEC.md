@@ -45,6 +45,7 @@ Fornecer um instalador público, reproduzível e seguro para refletor XLXD em De
 - **APRS-002** — Dados sensíveis de recuperação não devem ser gravados em payloads de auditoria.
 - **CERT-001** — Certificados devem usar emissão persistida, HMAC versionado e verificação em tempo constante.
 - **CERT-002** — Segredo HMAC deve permanecer fora do webroot.
+- **CERT-003** — A prévia, o PDF e o PNG devem usar o modelo A4 horizontal com moldura clássica e apresentar operador, campanha, dados de participação, data de emissão, identificação institucional, ID e QR de autenticação.
 
 ### ADMIN / SECURITY
 - **ADMIN-001** — Administração privada não deve expor terminal SSH/Linux nem terminal XLXD arbitrário.

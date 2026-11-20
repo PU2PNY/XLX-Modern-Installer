@@ -397,6 +397,12 @@ return [
     'native.567' => 'VALID',
     'native.568' => 'We have not yet found a transmission from ',
     'native.569' => 'Send a D-PRS beacon on module B or an APRS message to {{APRS_SERVICE_CALLSIGN}} and try again within 15 minutes.',
+    'native.570' => 'ISSUE DATE',
+    'native.571' => 'DIGITAL VERIFICATION',
+    'native.572' => 'TX TIME',
+    'native.573' => '{{REFLECTOR_NAME}} Team',
+    'native.574' => 'Reflector Management and Operations',
+    'native.575' => 'Participation recorded in the digital amateur radio community.',
 
     // Native final English cleanup
     'native.700' => 'Not for every function. GPS is especially useful for mobile stations because it automatically provides the current position. APRS can also be used for messages and fixed stations can work with a configured position.',

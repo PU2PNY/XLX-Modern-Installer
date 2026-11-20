@@ -13,6 +13,12 @@ Atualizado em: 2026-10-02
 - Última GitHub Release observada: **v1.2.14** (2026-09-10)
 - Estado: permanece divergência confirmada entre a versão declarada no branch e a última GitHub Release publicada.
 
+## Atualização — modelo clássico do certificado (2026-11-20)
+
+- Base `cc7b17e7625fc02c41de170c7549f4efb5cda071`, VERSION 1.4.6. CERT-003, DEC-2026-11-20-024 e TEST-060.
+- SW: prévia, emissão e revalidação exercitadas com registros sintéticos comuns e especiais. Canvas 3508×2480, PDF A4 horizontal e leitura do QR dos seis PNGs verificados.
+- Variante do XLX026 preserva a rota de validação `/certificado`. O instalador usa a rota universal existente.
+
 ## Atualização corrente — multi-TX no Ao Vivo (2026-11-16)
 - Branch `fix/live-multi-tx-layout-20261116`, PR #105; base `ee9f6670bc41d3d024793e758f72cccc29855c9c`, VERSION 1.4.6.
 - Requisitos/decisão/teste: UI-017, DEC-2026-11-16-023 e TEST-059.
