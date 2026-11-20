@@ -351,5 +351,5 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}' . page_url($page);
 <script src="assets/header-brasil-neon-fixed-v2.js?v=1"></script>
 <script src="assets/xlxmodern-accessibility.js?v=1" defer></script>
 <?php if ($page === 'digital-lab'): ?><script src="assets/digital-lab.js?v=native"></script><script src="assets/digital-lab-operator.js?v=native"></script><?php endif; ?>
-<?php if ($page === 'certificado'): ?><script src="assets/vendor/qrcode.min.js"></script><script src="assets/certificado.js?v=native"></script><?php endif; ?>
+<?php if ($page === 'certificado'): ?><script src="assets/vendor/qrcode.min.js"></script><script src="assets/certificado.js?v=20261120-classico"></script><?php endif; ?>
 </body></html>

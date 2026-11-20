@@ -1,3 +1,8 @@
+## Unreleased — modelo clássico do certificado (2026-11-20)
+
+- Nova moldura azul-marinho e dourada com foco no operador, aplicada à prévia, ao PDF e ao PNG. O certificado exibe período da campanha, estatísticas de participação, data, emissor institucional, ID e QR de validação. CERT-003 / TEST-060.
+- Catálogos do instalador incluem os novos rótulos. A revisão de cache evita servir o modelo anterior por meio do HTML atualizado.
+
 ## Unreleased — painel: idiomas completos, gateway desconhecido e laço do Helix (2026-11-09)
 
 - Páginas centrais traduzidas por frase inteira em en/es/fr/de/it (Ao vivo, Conectados, Módulos, Refletores, Ranking, MTR, diálogo RadioID, selo Helix); acaba com textos mistos como “Waiting for a próxima transmissão” e “All os países”. Builder passa a traduzir `data-label` (legendas da tabela no celular).

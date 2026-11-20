@@ -398,6 +398,12 @@ return [
     'native.567' => 'VÁLIDO',
     'native.568' => 'Ainda não encontramos transmissão de ',
     'native.569' => 'Faça um beacon D-PRS no módulo B ou envie uma mensagem APRS para {{APRS_SERVICE_CALLSIGN}} e tente novamente em até 15 minutos.',
+    'native.570' => 'DATA DE EMISSÃO',
+    'native.571' => 'VALIDAÇÃO DIGITAL',
+    'native.572' => 'TEMPO TX',
+    'native.573' => 'Equipe {{REFLECTOR_NAME}}',
+    'native.574' => 'Gestão e Operação do Refletor',
+    'native.575' => 'Participação registrada na comunidade de radioamadorismo digital.',
 
     // Native final English cleanup
     'native.700' => 'Não para todas as funções. GPS é especialmente útil para estações móveis porque fornece a posição atual automaticamente. Também é possível usar APRS para mensagens e, em estações fixas, trabalhar com uma posição configurada.',
