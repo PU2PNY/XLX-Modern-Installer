@@ -339,7 +339,7 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}' . page_url($page);
     </div>
 </div>
 <!-- /XLXMODERN INSTALL APP V33 -->
-<script src="assets/install-app.js?v=20261120-suffix-column"></script><script src="assets/ham-weather-widget.js?v=5" defer></script>
+<script src="assets/install-app.js?v=33"></script><script src="assets/ham-weather-widget.js?v=5" defer></script>
 <!-- XLXMODERN_MOBILE_MENU_V4_JS -->
 <script src="assets/mobile-menu-v4.js?v=20260807_022733"></script>
 
