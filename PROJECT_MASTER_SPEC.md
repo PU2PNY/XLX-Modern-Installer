@@ -178,3 +178,6 @@ Uma mudança só é aceita se:
 
 ### LIVE MULTI-TX DISPLAY (2026-11-16)
 - **UI-017** — O monitor Ao Vivo deve exibir todas as transmissões ativas recebidas pela API, incluindo pelo menos cinco simultâneas, sem limitar os cards a três nem comprimi-los em uma única linha. O grid deve quebrar em linhas responsivas com largura mínima legível por card; cada card mantém identidade, gateway, protocolo, tempo, MTR e indicador de áudio isolados. Em celular, usar uma coluna. O MTR pode atender até cinco cards, respeitando o limite global de três medições simultâneas e escalonamento justo; a atualização visual TX/RX de baixa latência permanece independente do ciclo MTR. Não alterar XLXD, protocolos, áudio, polling do Live Core ou identidade de streams.
+
+### HISTÓRICO AO VIVO — SUFIXO
+- **UI-018** — A tabela das últimas 24h pode exibir o sufixo de rádio de até quatro caracteres informado pela estação e confirmado na janela da TX. Cada linha, inclusive as anteriores do submenu, mostra seu próprio sufixo. A ausência de evidência deixa o campo vazio. O botão existente, entre o número e a bandeira, usa + para abrir e − para fechar, mantendo os estados acessíveis e a ordem das demais colunas.

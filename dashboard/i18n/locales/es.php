@@ -69,6 +69,7 @@ return [
     'table.city' => 'Ciudad',
     'table.tx_time' => 'Hora TX',
     'table.tx_duration' => 'Duración TX',
+    'table.radio_suffix' => 'Sufijo',
 
     'history.eyebrow' => 'ACTIVIDAD RECIENTE',
     'history.title' => 'Actividad de las últimas 24 horas',

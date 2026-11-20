@@ -1,3 +1,8 @@
+## Unreleased — sufixo de rádio no Ao Vivo (2026-11-20)
+
+- Adiciona ao histórico de TX o sufixo explícito de rádio, quando confirmado para aquela transmissão.
+- Usa + para abrir e − para fechar as atividades anteriores de cada indicativo no controle já existente.
+
 ## Unreleased — painel: idiomas completos, gateway desconhecido e laço do Helix (2026-11-09)
 
 - Páginas centrais traduzidas por frase inteira em en/es/fr/de/it (Ao vivo, Conectados, Módulos, Refletores, Ranking, MTR, diálogo RadioID, selo Helix); acaba com textos mistos como “Waiting for a próxima transmissão” e “All os países”. Builder passa a traduzir `data-label` (legendas da tabela no celular).

@@ -307,3 +307,10 @@ OPERATOR reiterou que os testes restantes são **exclusivamente na produção XL
 - Evidência `SW`: TEST-056 e TEST-057 PASS localmente; `tests/run-all.sh` sem novas falhas (as duas falhas locais restantes — `rsync` e `sqlite3` ausentes no ambiente de análise — ocorrem igualmente no `main`).
 - Pendente: CI no PR, validação visual ENV/PROD em navegador real (desktop e celular) em cada idioma, medição de CPU durante TX com o selo Helix.
 
+## 2026-11-20 — Sufixo de rádio na atividade Ao Vivo
+
+- Base main `cc7b17e7625fc02c41de170c7549f4efb5cda071` (VERSION 1.4.6).
+- SW no servidor, em diretório temporário: sintaxe PHP/JS e fixture isolada passaram. A comparação de 594 registros em comum com a implementação em serviço teve zero diferenças nos campos existentes da TX.
+- PROD: /ao-vivo, JS versionado, status 24 h e Live API responderam 200 após a publicação. Na primeira amostra, a API confirmou valores como ID51, D75A e 2820. PID de XLXD preservado.
+- PROD: patch localizado em index.php, assets/app.js e api/common.php sobre os arquivos em serviço. Retorno pelo backup com manifesto SHA-256 em `/opt/xlx026-backups/HISTORY_RADIO_SUFFIX_20261120_110951`; restaurar apenas os três arquivos pelo caminho relativo, preservando metadados. As cópias foram comparadas por hash com os três originais.
+- PROD visual no Chrome: o submenu expandiu por teclado com − e recolheu com +; a tabela teve 12 colunas. Encaixe confirmado entre 320 e 1534 px de viewport; em larguras móveis, o rótulo Sufixo aparece nas linhas preenchidas.

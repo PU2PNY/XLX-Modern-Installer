@@ -712,6 +712,7 @@ function xlxmodern_dstar_station_index(): array {
 
         $out[$key][]=[
             'callsign'=>$stationCall,
+            'radio_suffix'=>strtoupper(trim((string)($stationParts[1]??''))),
             'gateway'=>$gatewayCall,
             'gateway_suffix'=>strtoupper(
                 trim($gatewaySuffix)
@@ -1182,6 +1183,19 @@ function active_and_history(array $connections, ?int $historyLimit = null, ?int 
                             $station
                         );
                     }
+                }
+
+                // LastHeardTime must fall inside this transmission. The identity
+                // matcher can otherwise accept nearby stations for gateway display.
+                $radioSuffix=(string)($station['radio_suffix']??'');
+                $heardAt=(int)($station['heard_at']??0);
+                if(
+                    $heardAt>0
+                    && $heardAt>=(int)$tx['started_at']
+                    && $heardAt<=$ts
+                    && preg_match('/^[A-Z0-9][A-Z0-9+_ -]{0,3}$/D',$radioSuffix)
+                ){
+                    $tx['radio_suffix']=$radioSuffix;
                 }
 
                 $history[]=$tx;
