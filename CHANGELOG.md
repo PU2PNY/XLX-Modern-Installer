@@ -1,6 +1,6 @@
 ## Unreleased — sufixo de rádio no Ao Vivo (2026-11-20)
 
-- Adiciona ao histórico de TX o sufixo explícito de rádio, quando confirmado para aquela transmissão.
+- Mostra no histórico de TX o sufixo explícito de rádio, quando confirmado para aquela transmissão, na coluna imediatamente anterior a Gateway / Repetidora.
 - Usa + para abrir e − para fechar as atividades anteriores de cada indicativo no controle já existente.
 
 ## Unreleased — painel: idiomas completos, gateway desconhecido e laço do Helix (2026-11-09)

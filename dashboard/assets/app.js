@@ -324,8 +324,8 @@ function ensureHistoryDropdownStyles(){
   html body[data-page='ao-vivo'] table.home-history .history-suffix-cell{text-align:center!important;white-space:nowrap!important}
   @media(min-width:821px){
    html body[data-page='ao-vivo'] table.home-history tr > :nth-child(5){width:12.5%!important}
-   html body[data-page='ao-vivo'] table.home-history tr > :nth-child(6){width:11.5%!important}
-   html body[data-page='ao-vivo'] table.home-history tr > :nth-child(7){width:12%!important}
+   html body[data-page='ao-vivo'] table.home-history tr > :nth-child(7){width:11.5%!important}
+   html body[data-page='ao-vivo'] table.home-history tr > :nth-child(8){width:12%!important}
    html body[data-page='ao-vivo'] table.home-history tr > .history-suffix-cell{width:5.5%!important}
   }
   @media(max-width:820px){
@@ -657,6 +657,8 @@ function historyRowMarkup(
 
   <td class="history-name-cell" data-missing="${!x.name||/^N[aã]o informado$/i.test(String(x.name))?'1':'0'}">${esc(x.name||'Não informado')}</td>
 
+  <td class="history-suffix-cell" data-label="Sufixo">${esc(x.radio_suffix||'')}</td>
+
   <td class="history-hotspot-cell">
    ${hotspotRepeaterMarkup(x)}
   </td>
@@ -672,8 +674,6 @@ function historyRowMarkup(
   <td class="history-tx-time" data-label="Horário TX" title="${esc(fmtTime(x.started_at))}">${x.started_at?(longPeriod?new Date(Number(x.started_at)*1000).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):new Date(Number(x.started_at)*1000).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})):'—'}</td><td class="history-duration-cell">
    <span class="history-duration-value">${duration(x.duration)}</span>
   </td>
-
-  <td class="history-suffix-cell" data-label="Sufixo">${esc(x.radio_suffix||'')}</td>
 
  </tr>`;
 }

@@ -120,7 +120,7 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}' . page_url($page);
 <?php if ($page === 'ao-vivo'): ?><link rel="stylesheet" href="assets/ao-vivo-core-bundle-v1.css?v=20260907"><?php endif; ?>
 
 <?php if ($page === 'ao-vivo'): ?><link rel="stylesheet" href="assets/ao-vivo-final-bundle-v1.css?v=20260907"><link rel="stylesheet" href="assets/qrz-tx-photo-v1.css?v=20260907"><?php endif; ?>
-<link rel="stylesheet" href="assets/atividade-24h-conectados-v1.css?v=3">
+<link rel="stylesheet" href="assets/atividade-24h-conectados-v1.css?v=20261120-suffix-column">
 <?php if ($page === 'modulos'): ?><link rel="stylesheet" href="assets/module-capabilities-v1.css?v=20260907"><?php endif; ?>
 <?php if ($page === 'digital-lab'): ?><link rel="stylesheet" href="assets/digital-lab.css?v=native"><link rel="stylesheet" href="assets/digital-lab-operator.css?v=native"><?php endif; ?>
 <?php if ($page === 'certificado'): ?><link rel="stylesheet" href="assets/certificado.css?v=native"><?php endif; ?>
@@ -134,10 +134,10 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}' . page_url($page);
 <link rel="stylesheet" href="assets/ao-vivo-clean-v1.css?v=20260807_024051">
 
 <!-- XLXMODERN_HISTORY_SOUND_MENU_V1 CSS -->
-<link rel="stylesheet" href="assets/history-sound-menu-v1.css?v=20260828_readable">
+<link rel="stylesheet" href="assets/history-sound-menu-v1.css?v=20261120-suffix-column">
 
 <!-- XLXMODERN_HISTORY_MOBILE_FIT_V2 -->
-<link rel="stylesheet" href="assets/history-mobile-fit-v2.css?v=20260807_031008">
+<link rel="stylesheet" href="assets/history-mobile-fit-v2.css?v=20261120-suffix-column">
 
 <!-- XLXMODERN_TABLE_ROW_HOVER_V1 -->
 <link rel="stylesheet" href="assets/table-row-hover-v1.css?v=20260807_031841">
@@ -205,7 +205,7 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}' . page_url($page);
   <aside class="live-widget"><div class="widget-heading"><div><p class="eyebrow">MONITOR AO VIVO</p><h2>Transmissões</h2></div><span id="widgetCount">Standby</span></div><div class="live-summary-bar" aria-label="Resumo do monitor ao vivo"><span class="live-summary-item live-summary-connected"><b id="headerConnected">0</b><small>conectados</small></span><span class="live-summary-item live-summary-active"><b id="headerActive">0</b><small>TX ativa</small></span></div><div id="moduleGrid" class="module-grid widget-grid"></div></aside>
   <div class="dashboard-main panel compact-panel">
    <div class="section-title panel-title"><div><p class="eyebrow">ÚLTIMAS ATIVIDADES</p><h2>Atividade das últimas 24 horas</h2></div><span class="table-note">Todos os indicativos</span></div>
-   <div class="table-wrap"><table class="home-history"><thead><tr><th>Nº</th><th>País</th><th>Status</th><th>Indicativo</th><th>Nome</th><th>Gateway / Repetidora</th><th>Cidade</th><th>Protocolo</th><th>Módulo</th><th>Horário TX</th><th>Tempo de TX</th><th class="history-suffix-cell" scope="col">Sufixo</th></tr></thead><tbody id="historyRows"></tbody></table></div>
+   <div class="table-wrap"><table class="home-history"><thead><tr><th>Nº</th><th>País</th><th>Status</th><th>Indicativo</th><th>Nome</th><th class="history-suffix-cell" scope="col">Sufixo</th><th>Gateway / Repetidora</th><th>Cidade</th><th>Protocolo</th><th>Módulo</th><th>Horário TX</th><th>Tempo de TX</th></tr></thead><tbody id="historyRows"></tbody></table></div>
   </div>
  </section>
 <!-- XLXMODERN HAM WEATHER WIDGET V1 -->
@@ -267,7 +267,7 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}' . page_url($page);
 <?php else: ?>
 <footer><div><a class="brand footer-brand" href="<?=page_url('ao-vivo')?>"><img class="brand-logo" src="assets/logo-{{REFLECTOR_NAME}}.svg" alt="Logotipo {{REFLECTOR_NAME}}"><span><b>{{REFLECTOR_NAME}}</b></span></a><p> para a comunidade radioamadora.</p></div><div class="footer-links"><a href="<?=page_url('ao-vivo')?>">Ao vivo</a><a href="<?=page_url('conectados')?>">Conectados</a><a href="<?=page_url('ranking')?>">Ranking</a></div><small>{{REFLECTOR_NAME}} • D-STAR {{REFLECTOR_NAME}}-D • DMR: TG 6 (voz), A=4001, B=4002, C=4003… • C4FM/YSF {{YSF_ID}}</small></footer>
 <?php endif; ?>
-<div id="toastStack" class="toast-stack"></div><script src="assets/mtr.js?v=5"></script><script src="assets/app.js?v=20260907-production-parity"></script>
+<div id="toastStack" class="toast-stack"></div><script src="assets/mtr.js?v=5"></script><script src="assets/app.js?v=20261120-suffix-column"></script>
 <?php if ($page === 'ao-vivo'): ?>
 <script src="assets/ao-vivo-authorized-sync-v1.js?v=1"></script>
 <script src="assets/ao-vivo-tx-embed-v5.js?v=1" defer></script>
@@ -339,7 +339,7 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}' . page_url($page);
     </div>
 </div>
 <!-- /XLXMODERN INSTALL APP V33 -->
-<script src="assets/install-app.js?v=33"></script><script src="assets/ham-weather-widget.js?v=5" defer></script>
+<script src="assets/install-app.js?v=20261120-suffix-column"></script><script src="assets/ham-weather-widget.js?v=5" defer></script>
 <!-- XLXMODERN_MOBILE_MENU_V4_JS -->
 <script src="assets/mobile-menu-v4.js?v=20260807_022733"></script>
 
