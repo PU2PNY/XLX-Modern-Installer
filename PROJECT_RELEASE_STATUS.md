@@ -18,6 +18,11 @@ Atualizado em: 2026-10-02
 - Base `cc7b17e7625fc02c41de170c7549f4efb5cda071`, VERSION 1.4.6. CERT-003, DEC-2026-11-20-024 e TEST-060.
 - SW: prévia, emissão e revalidação exercitadas com registros sintéticos comuns e especiais. Canvas 3508×2480, PDF A4 horizontal e leitura do QR dos seis PNGs verificados.
 - Variante do XLX026 preserva a rota de validação `/certificado`. O instalador usa a rota universal existente.
+- ENV WartyWallaby: lint PHP/JS, teste HMAC e catálogos nativos em en/es/fr/de/it passaram para o commit `1150fdd31050761bf2b3f1a2d353fcb516bedaed`.
+- PROD XLX026: publicação do JS e revisão da sua referência em `index.php` em 2026-11-20. Página pública, campanha, hash do ativo e validação de um certificado já emitido confirmados. Exportações foram exercitadas nos cenários sintéticos.
+- Rollback: cópia raiz do JavaScript e do índice em `/opt/xlx026-backups/certificado-classico-20261120T101538Z`. A primeira tentativa foi revertida com hashes verificados por causa da atualização assíncrona da origem. Uma nova publicação verificou a referência atualizada após aguardar a revalidação.
+- Rastreio: PR #110.
+
 
 ## Atualização corrente — multi-TX no Ao Vivo (2026-11-16)
 - Branch `fix/live-multi-tx-layout-20261116`, PR #105; base `ee9f6670bc41d3d024793e758f72cccc29855c9c`, VERSION 1.4.6.
