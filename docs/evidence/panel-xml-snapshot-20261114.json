@@ -1,0 +1,58 @@
+{
+  "date": "2026-11-14",
+  "base_commit": "ee9f6670bc41d3d024793e758f72cccc29855c9c",
+  "requirement": "UI-016",
+  "test": "TEST-058",
+  "observed_before": {
+    "level": "PROD",
+    "event_driven_samples": 124,
+    "incomplete_samples": 121,
+    "node_range": [
+      0,
+      118
+    ],
+    "sampling_seconds": 22,
+    "not_request_failure_rate": true
+  },
+  "validation": {
+    "level": "ENV",
+    "host": "WartyWallaby",
+    "checks": [
+      "PHP lint",
+      "interrupted prefixes",
+      "last valid status preservation",
+      "concurrent write recovery",
+      "genuine empty list",
+      "same-request consistency",
+      "bounded retry exhaustion",
+      "connected dedupe",
+      "stream identity",
+      "project governance",
+      "core i18n"
+    ],
+    "result": "PASS",
+    "full_suite": false
+  },
+  "production": {
+    "level": "PROD",
+    "changed_surface": "dashboard/api/common.php, same helper and two targeted reader changes",
+    "rejected_partial_snapshot": {
+      "bytes": 3851,
+      "nodes": 13
+    },
+    "http_samples": 12,
+    "connected_count": 101,
+    "connection_rows": 101,
+    "http_status": 200,
+    "pids_unchanged": true,
+    "radio_audio_changes": false,
+    "restore_fixture": "hash exact",
+    "real_production_rollback_executed": false
+  },
+  "limits": [
+    "Does not prove all past browser freezes had this cause.",
+    "No acoustic or RF claim.",
+    "No long soak claim.",
+    "No CI claim."
+  ]
+}

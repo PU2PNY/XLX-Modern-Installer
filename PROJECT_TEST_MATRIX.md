@@ -5,8 +5,10 @@ Níveis de evidência: DOC / SW / ENV / HW / PROD / OPERATOR.
 
 > Regra: existência de teste no repositório não significa que o teste passou no commit atual.
 
+
 | ID | Requisito | Verificação | Evidência atual | Status |
 |---|---|---|---|---|
+| TEST-058 | UI-016 / UI-005 / PERF-001 | Snapshot completo e fallback durante regravação | 2026-11-14: WartyWallaby PHP8.2, teste de todos os prefixos interrompidos, lista vazia legítima, retry concorrente, memoização e timeout PASS; dedupe/identidade/i18n/governança PASS. PROD: leitura incompleta de 3.851 bytes/13 NODE rejeitada; 12 HTTP200 com 101 conexões/101 linhas; PIDs preservados. Restore apenas fixture por hash, não rollback real. | PASS (SW/ENV e PROD específico); travamentos de navegador/soak prolongado não comprovados |
 | TEST-001 | INSTALL-001 | Instalação Debian 12 / runtime gate | workflow `Debian 12 runtime gate` concluiu com sucesso em `4cb8dc37c35e29f107a77090dc9bec287e863bea`; não substitui VPS descartável completa | PARCIAL (SW/CI) |
 | TEST-002 | UI-002 | Live mantém início/fim e multi-TX sem travar | `Production parity regression` concluiu com sucesso em `4cb8dc37c35e29f107a77090dc9bec287e863bea`; sem nova medição PROD | PARCIAL (SW/CI) |
 | TEST-003 | UI-005/006 | Identidade de stream/callsign/TA sem colisão | `Stream identity regression` concluiu com sucesso em `4cb8dc37c35e29f107a77090dc9bec287e863bea` | PASS (SW/CI) |
