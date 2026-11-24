@@ -186,6 +186,7 @@ try {
 
         $modules[$letter] = [
             'module' => $letter,
+            'label' => (string)($meta['label'] ?? ('DV ' . $letter)),
             'name' => $meta['name'],
             'configured_protocol' => $meta['protocol'],
             'access' => $meta['access'],

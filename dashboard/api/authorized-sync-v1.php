@@ -436,7 +436,7 @@ function active_and_history_sync(array $connections, ?int $historyLimit = null, 
             $s=strtoupper(trim($m[2]??''));
             $mod=strtoupper(trim($m[4]??'?'));
             $lab=protocol_label($m[3]);
-            if(($mod===''||$mod==='?')&&$lab==='DMR') $mod='C';
+            if(($mod===''||$mod==='?')&&protocol_key($m[3])==='DMR') $mod='C';
             $recent[$call.'|'.$s.'|'.$mod]=$lab;
             $recent[$call.'||'.$mod]=$lab;
             $recent[$call.'|'.$s.'|*']=$lab;
