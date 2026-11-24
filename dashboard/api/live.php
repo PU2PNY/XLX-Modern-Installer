@@ -824,7 +824,7 @@ foreach ($active as $vuModule => $vuTx) {
     }
 
     $vuSlug = str_replace('.', '_', $vuIp);
-    $vuProtocol = strtoupper(trim((string)($vuTx['protocol'] ?? '')));
+    $vuProtocol = strtoupper(protocol_key((string)($vuTx['protocol'] ?? '')));
     $vuFiles = [];
 
     $isDmr = strpos($vuProtocol, 'DMR') !== false;

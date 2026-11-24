@@ -6,7 +6,48 @@ function json_out(array $data,int $status=200): never { http_response_code($stat
 function norm_call(string $v): string { $v=strtoupper(trim($v)); $v=preg_replace('/[^A-Z0-9\/\- ]/','',$v)??''; return trim(explode(' ',preg_replace('/\s+/',' ',$v)??$v)[0]); }
 function split_call_suffix(string $v): array { $v=trim(preg_replace('/\s+/',' ',$v)??$v); $p=explode(' ',$v); return [norm_call($p[0]??''),strtoupper(trim($p[1]??''))]; }
 function qrz_url(string $c): string { return 'https://www.qrz.com/db/'.rawurlencode(norm_call($c)); }
-function protocol_label(string $p): string { $k=strtoupper(preg_replace('/[^A-Z0-9+]/','',trim($p))??''); $m=['DMR'=>'DMR','DMRM'=>'DMR','DMRMMDVM'=>'DMR','DMRPLUS'=>'DMR','YSF'=>'C4FM/YSF','C4FMYSF'=>'C4FM/YSF','DCS'=>'D-STAR/DCS','DE'=>'D-STAR/DExtra','DEXTRA'=>'D-STAR/DExtra','DPLUS'=>'D-STAR/DPlus','XLX'=>'XLX Interlink','G3'=>'Icom G3','IMRS'=>'IMRS']; return $m[$k]??($k?:'Não identificado'); }
+/*
+ * Protocol identity vs. display.
+ *  - protocol_key():   canonical internal value (DMR, C4FM/YSF, D-STAR/DCS ...).
+ *                      ALL logic must compare against this value, never a label.
+ *                      Accepts raw xlxd tokens, canonical values and already
+ *                      customised labels.
+ *  - protocol_label(): display text; reads radio.protocol_labels (exposed by
+ *                      cfg()['protocol_labels']) and falls back to the key.
+ */
+function protocol_token(string $p): string { return strtoupper(preg_replace('/[^A-Za-z0-9+]/','',trim($p))??''); }
+function protocol_canonical_map(): array { return ['DMR'=>'DMR','DMRM'=>'DMR','DMRMMDVM'=>'DMR','DMRPLUS'=>'DMR','YSF'=>'C4FM/YSF','C4FMYSF'=>'C4FM/YSF','DCS'=>'D-STAR/DCS','DE'=>'D-STAR/DExtra','DEXTRA'=>'D-STAR/DExtra','DPLUS'=>'D-STAR/DPlus','DSTAR'=>'D-STAR','XLX'=>'XLX Interlink','G3'=>'Icom G3','IMRS'=>'IMRS']; }
+function protocol_label_overrides(): array {
+    static $o=null;
+    if($o!==null) return $o;
+    $o=[];
+    try { $raw=cfg()['protocol_labels']??[]; } catch(Throwable $e){ $raw=[]; }
+    if(!is_array($raw)) return $o;
+    foreach($raw as $key=>$label){
+        if(!is_string($key)||!is_string($label)) continue;
+        $label=trim(preg_replace('/[\x00-\x1F\x7F]+/u',' ',$label)??'');
+        if($label==='') continue;
+        $o[$key]=mb_substr($label,0,40);
+    }
+    return $o;
+}
+function protocol_key(string $p): string {
+    static $lookup=null;
+    if($lookup===null){
+        $lookup=[];
+        foreach(protocol_label_overrides() as $canonical=>$label){ $lookup[protocol_token($label)]=$canonical; }
+        foreach(protocol_canonical_map() as $canonical){ $lookup[protocol_token($canonical)]=$canonical; }
+    }
+    // Legacy tokenisation (kept bit-for-bit): lowercase letters are dropped.
+    $legacy=strtoupper(preg_replace('/[^A-Z0-9+]/','',trim($p))??'');
+    $map=protocol_canonical_map();
+    if(isset($map[$legacy])) return $map[$legacy];
+    // Already-canonical values and customised labels (e.g. "D-STAR/DExtra").
+    $lenient=protocol_token($p);
+    if(isset($lookup[$lenient])) return $lookup[$lenient];
+    return $legacy?:'Não identificado';
+}
+function protocol_label(string $p): string { $key=protocol_key($p); return protocol_label_overrides()[$key]??$key; }
 function flag_for_country_code(string $code): string {
     $code=strtoupper(trim($code));
     if(!preg_match('/^[A-Z]{2}$/',$code)) return '🌐';
@@ -168,7 +209,7 @@ function public_connections(
             $connections,
             static function (array $connection) use ($selfIndex): bool {
                 $protocol = strtoupper(
-                    trim((string)($connection['protocol'] ?? ''))
+                    protocol_key((string)($connection['protocol'] ?? ''))
                 );
                 $ip = trim((string)($connection['ip'] ?? ''));
                 $via = trim((string)($connection['via'] ?? ''));
@@ -1098,7 +1139,7 @@ function active_and_history(array $connections, ?int $historyLimit = null, ?int 
             $s=strtoupper(trim($m[2]??''));
             $mod=strtoupper(trim($m[4]??'?'));
             $lab=protocol_label($m[3]);
-            if(($mod===''||$mod==='?')&&$lab==='DMR') $mod='C';
+            if(($mod===''||$mod==='?')&&protocol_key($m[3])==='DMR') $mod='C';
             $recent[$call.'|'.$s.'|'.$mod]=$lab;
             $recent[$call.'||'.$mod]=$lab;
             $recent[$call.'|'.$s.'|*']=$lab;

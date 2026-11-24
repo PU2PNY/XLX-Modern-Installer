@@ -1,3 +1,10 @@
+## Unreleased — réplica genérica: layout, rótulos editáveis e remoção de vazamentos XLX026 (2026-11-24)
+
+- A) Novo `dashboard/assets/header-layout-v5.css` (último CSS no `index.php`): menu em 1 linha ≥1180px, grade 821–1179px, cartões de Módulos e Conectados no celular, rótulos ≥10px, rodapé com quebra, MENU 44px, `prefers-reduced-motion`. Portado da produção só com regras genéricas; seletores adaptados ao HTML do instalador (tabela de módulos com 11 colunas, `.module-reference`).
+- B) `radio.module_labels` (padrão `DV A`…`DV Z`) e `radio.protocol_labels` em `site.example.php`; `config.php` expõe `label` por módulo; `protocol_key()` (canônico, usado na lógica) separado de `protocol_label()` (exibição). Regra do módulo C/DMR e filtros usam letra e chave crua. Filtro de módulo em Conectados passa a ser populado (valor = letra, texto = rótulo).
+- C) Removidos vazamentos XLX026: TG DMR fixo (cabeçalho, rodapé, `config.php`, `app.js`) derivado da configuração; rodapé corrigido com o nome do refletor; link Anatel só com país BR; Suporte/Notícias(ANATEL/LABRE) fora de `safari9-test.html`; `suporte`/`noticias` fora do builder i18n; comentários residuais removidos.
+- UI-018..020 / TEST-060. Sem mudança em XLXD, protocolos, áudio, systemd ou Nginx. Sem deploy em produção.
+
 ## Unreleased — painel: idiomas completos, gateway desconhecido e laço do Helix (2026-11-09)
 
 - Páginas centrais traduzidas por frase inteira em en/es/fr/de/it (Ao vivo, Conectados, Módulos, Refletores, Ranking, MTR, diálogo RadioID, selo Helix); acaba com textos mistos como “Waiting for a próxima transmissão” e “All os países”. Builder passa a traduzir `data-label` (legendas da tabela no celular).

@@ -25,6 +25,8 @@ echo "[dashboard core i18n]"
 bash "$ROOT/tests/test-dashboard-core-i18n.sh" || failures=$((failures+1))
 echo "[live multi-TX layout]"
 bash "$ROOT/tests/test-live-multi-tx-layout.sh" || failures=$((failures+1))
+echo "[generic replica labels/layout]"
+bash "$ROOT/tests/test-generic-replica-labels.sh" || failures=$((failures+1))
 echo "[admin i18n]"
 bash "$ROOT/tests/test-admin-i18n.sh" || failures=$((failures+1))
 echo "[admin slug contract]"

@@ -1150,11 +1150,6 @@ Painel leve e compativel para navegadores antigos
     </a>
     <!-- /{{REFLECTOR_NAME}}_A11Y_LEGACY_V5E -->
 
-    <a class="legacy-menu-item"
-       href="#legacySupport">
-      Suporte
-    </a>
-
   </div>
 
   <div class="legacy-menu-hint">
@@ -1276,115 +1271,6 @@ Painel leve e compativel para navegadores antigos
 </div>
 
 
-<div class="card legacy-extra-section"
-     id="legacyNews">
-
-    <strong>Notícias</strong>
-
-    <div
-        id="legacyNewsState"
-        class="legacy-news-state"
-    >
-        carregando notícias...
-    </div>
-
-    <div class="legacy-news-source">
-
-        <h3>ANATEL</h3>
-
-        <div id="legacyNewsAnatel">
-            aguardando...
-        </div>
-
-    </div>
-
-    <div class="legacy-news-source">
-
-        <h3>LABRE</h3>
-
-        <div id="legacyNewsLabre">
-            aguardando...
-        </div>
-
-    </div>
-
-    <p class="legacy-note">
-        Notícias oficiais atualizadas automaticamente.
-    </p>
-
-</div>
-
-
-<div class="card legacy-extra-section"
-     id="legacySupport">
-
-    <strong>Suporte {{REFLECTOR_NAME}}</strong>
-
-    <div class="legacy-support-item">
-        <b>DMR</b>
-        <span>
-            {{REFLECTOR_NAME}}-C · TG 6 no rádio ·
-            TG 4003 nos aplicativos.
-        </span>
-    </div>
-
-    <div class="legacy-support-item">
-        <b>D-STAR</b>
-        <span>
-            Operação principal no módulo D ·
-            {{REFLECTOR_NAME}}-D / XRF026-D.
-        </span>
-    </div>
-
-    <div class="legacy-support-item">
-        <b>C4FM / YSF</b>
-        <span>
-            Refletor YSF{{YSF_ID}} · módulo C.
-        </span>
-    </div>
-
-    <div class="legacy-support-item">
-        <b>Teste / Echo</b>
-        <span>
-            Módulo E para testes de áudio.
-        </span>
-    </div>
-
-    <div class="legacy-support-links">
-
-        <a
-            href="https://wpsd.radio/"
-            target="_blank"
-            rel="noopener noreferrer"
-        >
-            WPSD
-        </a>
-
-        <a
-            href="https://manual.wpsd.radio/"
-            target="_blank"
-            rel="noopener noreferrer"
-        >
-            Manual WPSD
-        </a>
-
-        <a
-            href="https://pi-star.de/"
-            target="_blank"
-            rel="noopener noreferrer"
-        >
-            Pi-Star
-        </a>
-
-    </div>
-
-    <p class="legacy-note">
-        Esta é a versão leve do suporte para
-        navegadores antigos.
-    </p>
-
-</div>
-
 <!-- /{{REFLECTOR_NAME}}_LEGACY_COMPLETO_V1 -->
 
 <!-- Diagnóstico técnico mantido oculto no legado. -->
@@ -1400,7 +1286,6 @@ Painel leve e compativel para navegadores antigos
 
     var statusTimer = null;
     var liveTimer = null;
-    var legacyNewsTimer = null;
     var lastStatusData = null;
     var legacyLiveVisualSignature = "";
     var legacyHistoryGroups = [];

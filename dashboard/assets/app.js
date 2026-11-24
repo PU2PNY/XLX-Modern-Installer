@@ -166,7 +166,7 @@ function txCard(m){
  return `<article class="tx-card live compact-tx tx-v30">
   <div class="tx-top">
    <div>
-    <span class="module-badge">MÓDULO ${esc(m.module)} • ${esc(tx.protocol)}</span>
+    <span class="module-badge">MÓDULO ${esc(xlxModuleLabel(m.module))} • ${esc(tx.protocol)}</span>
     <h3>Transmitindo agora</h3>
    </div>
    <span class="on-air"><i></i> NO AR</span>
@@ -303,7 +303,7 @@ function standbyCard(m,newest){
  </article>`
 }
 
-function toast(c){let el=document.createElement('div');el.className='toast';el.innerHTML=`<div class="toast-icon">${flag(c)}</div><div><strong>${esc(c.callsign)} — ${esc(c.name)}</strong><span>Conectou por ${esc(c.protocol)} • módulo ${esc(c.module)}</span></div>`;$('#toastStack')?.append(el);setTimeout(()=>el.classList.add('out'),7500);setTimeout(()=>el.remove(),8500)}
+function toast(c){let el=document.createElement('div');el.className='toast';el.innerHTML=`<div class="toast-icon">${flag(c)}</div><div><strong>${esc(c.callsign)} — ${esc(c.name)}</strong><span>Conectou por ${esc(c.protocol)} • módulo ${esc(xlxModuleLabel(c.module))}</span></div>`;$('#toastStack')?.append(el);setTimeout(()=>el.classList.add('out'),7500);setTimeout(()=>el.remove(),8500)}
 function updateTitle(d){const active=Object.values(d.modules).filter(m=>m.transmission).map(m=>m.transmission.callsign);document.title=active.length?`(${d.connected_count}) ${active.join(' + ')} TX — ${reflectorName}`:`(${d.connected_count}) ${reflectorName}`;}
 function historyCallKey(x){return String(x?.callsign||'').trim().toUpperCase()}
 function historyRowId(callKey,index){const safe=Array.from(callKey).map(ch=>/[A-Z0-9_-]/.test(ch)?ch:'x'+ch.charCodeAt(0).toString(16)+'x').join('');return `history-${safe}-${index}`}
@@ -655,7 +655,7 @@ function historyRowMarkup(
    <span class="protocol">${esc(x.protocol)}</span>
   </td>
 
-  <td>${esc(x.module)}</td>
+  <td>${esc(xlxModuleLabel(x.module))}</td>
 
   <td class="history-tx-time" data-label="Horário TX" title="${esc(fmtTime(x.started_at))}">${x.started_at?(longPeriod?new Date(Number(x.started_at)*1000).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):new Date(Number(x.started_at)*1000).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})):'—'}</td><td class="history-duration-cell">
    <span class="history-duration-value">${duration(x.duration)}</span>
@@ -824,12 +824,14 @@ function xlxmodernIsUnknownLabel(value){
 const xlxReflectorNumber='{{REFLECTOR_NUMBER}}';
 const xlxReflectorShort='{{REFLECTOR_SHORT_NUMBER}}';
 const xlxYsfId='{{YSF_ID}}';
+/* Display-only module label. The raw letter stays the key for filters/logic. */
+function xlxModuleLabel(letter){const l=String(letter==null?'':letter).trim().toUpperCase();if(!/^[A-Z]$/.test(l))return String(letter==null?'':letter);const m=lastData&&lastData.modules&&lastData.modules[l];return (m&&m.label)||('DV '+l);}
 function xlxModulePhonetic(letter){const i=String(letter||'').toUpperCase().charCodeAt(0)-65;return xlxNatoModules[i]||String(letter||'');}
-function moduleInfo(m){const defs={A:['Envio de imagens D-STAR','Módulo A • imagens digitais',`${xlxReflectorName}-A`],B:['APRS / D-PRS','Dados digitais',`${xlxReflectorName}-B`],C:['C4FM/YSF e DMR',`YSF ${xlxYsfId} • DMR TG 4003`,`${xlxReflectorName}-C`],D:['D-STAR',`${xlxReflectorName}-D / XRF${xlxReflectorNumber}-D`,`${xlxReflectorName}-D`],E:['D-STAR Echo','Teste de áudio',`${xlxReflectorName}-E`]};return defs[m.module]||[m.configured_protocol,m.access,`${xlxReflectorName}-${m.module}`]}
-function renderModules(d){$('#moduleOverview').innerHTML=Object.values(d.modules).map(m=>{const i=moduleInfo(m);return `<article class="module-mini ${m.transmission?'active':''}"><div class="module-mini-top"><span class="module-letter">${esc(m.module)}</span><span class="module-count">${m.connected_count} conectado${m.connected_count===1?'':'s'}</span></div><strong>${esc(i[0])}</strong><small>${esc(i[1])}</small><div class="module-id">${esc(i[2])}</div><div class="module-state">${m.transmission?'<i class="red"></i> Transmitindo agora':'<i></i> Aguardando transmissão'}</div></article>`}).join('');
+function moduleInfo(m){const defs={A:['Envio de imagens D-STAR',`${xlxModuleLabel('A')} • imagens digitais`,`${xlxReflectorName}-A`],B:['APRS / D-PRS','Dados digitais',`${xlxReflectorName}-B`],C:['C4FM/YSF e DMR',`YSF ${xlxYsfId} • DMR TG ${4000+3}`,`${xlxReflectorName}-C`],D:['D-STAR',`${xlxReflectorName}-D / XRF${xlxReflectorNumber}-D`,`${xlxReflectorName}-D`],E:['D-STAR Echo','Teste de áudio',`${xlxReflectorName}-E`]};return defs[m.module]||[m.configured_protocol,m.access,`${xlxReflectorName}-${m.module}`]}
+function renderModules(d){$('#moduleOverview').innerHTML=Object.values(d.modules).map(m=>{const i=moduleInfo(m);return `<article class="module-mini ${m.transmission?'active':''}"><div class="module-mini-top"><span class="module-letter" data-module="${esc(m.module)}">${esc(xlxModuleLabel(m.module))}</span><span class="module-count">${m.connected_count} conectado${m.connected_count===1?'':'s'}</span></div><strong>${esc(i[0])}</strong><small>${esc(i[1])}</small><div class="module-id">${esc(i[2])}</div><div class="module-state">${m.transmission?'<i class="red"></i> Transmitindo agora':'<i></i> Aguardando transmissão'}</div></article>`}).join('');
  const functions={A:'Imagens D-STAR',B:'APRS / D-PRS',C:'C4FM/YSF/DMR',D:'D-STAR',E:'Echo / teste'};
  const dtmfBase=/^[0-9]+$/.test(xlxReflectorShort)?xlxReflectorShort:'';
- const rows=Object.values(d.modules).map((m,idx)=>{const n=idx+1,letter=m.module;const refDtmf=dtmfBase?`*${dtmfBase}${letter}`:'—';const xrfDtmf=dtmfBase?`B${dtmfBase}${letter}`:'—';const dcsDtmf=dtmfBase?`D${dtmfBase}${letter}`:'—';return `<tr><td><b>${esc(letter)}</b></td><td><strong>${esc(xlxModulePhonetic(letter))}</strong><br><span>${esc(functions[letter]||m.configured_protocol)}</span></td><td>${m.connected_count}</td><td>REF${esc(xlxReflectorNumber)}${letter}L</td><td>${refDtmf}</td><td>XRF${esc(xlxReflectorNumber)}${letter}L</td><td>${xrfDtmf}</td><td>DCS${esc(xlxReflectorNumber)}${letter}L</td><td>${dcsDtmf}</td><td>${4000+n}</td><td>${9+n}</td></tr>`}).join('');$('#moduleReferenceRows').innerHTML=rows; }
+ const rows=Object.values(d.modules).map((m,idx)=>{const n=idx+1,letter=m.module;const refDtmf=dtmfBase?`*${dtmfBase}${letter}`:'—';const xrfDtmf=dtmfBase?`B${dtmfBase}${letter}`:'—';const dcsDtmf=dtmfBase?`D${dtmfBase}${letter}`:'—';return `<tr><td><b>${esc(xlxModuleLabel(letter))}</b></td><td><strong>${esc(xlxModulePhonetic(letter))}</strong><br><span>${esc(functions[letter]||m.configured_protocol)}</span></td><td>${m.connected_count}</td><td>REF${esc(xlxReflectorNumber)}${letter}L</td><td>${refDtmf}</td><td>XRF${esc(xlxReflectorNumber)}${letter}L</td><td>${xrfDtmf}</td><td>DCS${esc(xlxReflectorNumber)}${letter}L</td><td>${dcsDtmf}</td><td>${4000+n}</td><td>${9+n}</td></tr>`}).join('');$('#moduleReferenceRows').innerHTML=rows; }
 /* XLXMODERN_CONECTADOS_UNIFICADO_V1 */
 function filterConnectedRows(d,query='',moduleFilter='',protocolFilter=''){
  const q=String(query||'').trim().toLowerCase();
@@ -837,7 +839,7 @@ function filterConnectedRows(d,query='',moduleFilter='',protocolFilter=''){
  const protocolValue=String(protocolFilter||'').trim().toLowerCase();
 
  return (d.connections||[]).filter(c=>{
-  const queryMatch=!q||[c.callsign,c.name,c.location,c.protocol,c.module]
+  const queryMatch=!q||[c.callsign,c.name,c.location,c.protocol,c.module,xlxModuleLabel(c.module)]
    .some(v=>String(v||'').toLowerCase().includes(q));
   const moduleMatch=!moduleValue||
    String(c.module||'').trim().toUpperCase()===moduleValue;
@@ -850,7 +852,7 @@ function filterConnectedRows(d,query='',moduleFilter='',protocolFilter=''){
 function connectedRows(d,query='',moduleFilter='',protocolFilter=''){
  const rows=filterConnectedRows(d,query,moduleFilter,protocolFilter);
  return rows.length
-  ?rows.map((c,i)=>`<tr><td>${i+1}</td><td>${flag(c)}</td><td><span class="connected-call-wrap"><a target="_blank" href="${esc(c.qrz)}">${esc(c.callsign)}${c.suffix?' '+esc(c.suffix):''}</a>${xlxmodernAprsSatelliteMarkup(c.callsign)}${xlxmodernDmrTalkerAliasMarkup(c.callsign)}</span></td><td>${esc(c.name)}</td><td>${esc(c.location)}</td><td><span class="protocol">${esc(c.protocol)}</span></td><td>${esc(c.module)}</td><td>${fmtTime(c.connected_at)}</td><td data-start="${c.connected_at}">${elapsed(c.connected_at)}</td><td>${fmtTime(c.last_activity)}</td></tr>`).join('')
+  ?rows.map((c,i)=>`<tr><td>${i+1}</td><td>${flag(c)}</td><td><span class="connected-call-wrap"><a target="_blank" href="${esc(c.qrz)}">${esc(c.callsign)}${c.suffix?' '+esc(c.suffix):''}</a>${xlxmodernAprsSatelliteMarkup(c.callsign)}${xlxmodernDmrTalkerAliasMarkup(c.callsign)}</span></td><td>${esc(c.name)}</td><td>${esc(c.location)}</td><td><span class="protocol">${esc(c.protocol)}</span></td><td>${esc(xlxModuleLabel(c.module))}</td><td>${fmtTime(c.connected_at)}</td><td data-start="${c.connected_at}">${elapsed(c.connected_at)}</td><td>${fmtTime(c.last_activity)}</td></tr>`).join('')
   :`<tr><td colspan="10">Nenhuma estação corresponde aos filtros.</td></tr>`;
 }
 
@@ -892,7 +894,22 @@ function renderConnectedTable(d){
  xlxmodernEnableRepeaterButtons(document);
 }
 
+function syncConnectedModuleFilter(d){
+ const select=$('#connectedModuleFilter');
+ if(!select)return;
+ const current=select.value;
+ const letters=Object.keys(d.modules||{}).sort();
+ const signature=letters.map(l=>l+':'+xlxModuleLabel(l)).join('|');
+ if(select.dataset.signature===signature)return;
+ /* value = raw letter (used by the filter); text = display label */
+ select.innerHTML='<option value="">Todos</option>'+
+  letters.map(l=>`<option value="${esc(l)}">${esc(xlxModuleLabel(l))}</option>`).join('');
+ if(current)select.value=current;
+ select.dataset.signature=signature;
+}
+
 function renderConnected(d){
+ syncConnectedModuleFilter(d);
  syncConnectedProtocolFilter(d);
  renderConnectedTable(d);
 }
@@ -1201,7 +1218,7 @@ function xlxmodernVoiceLang(){
 
 /*
  * Speaks the configured reflector name instead of a fixed callsign:
- * XLX026 -> "XLX 0 26" (a pt-BR voice reads it as zero, twenty-six).
+ * XLX999 -> "XLX 9 99" (a pt-BR voice reads the digits one group at a time).
  */
 function xlxmodernSpokenReflectorName(){
  const m=/^([A-Za-z]+)(\d+)$/.exec(String(xlxReflectorName||'').trim());

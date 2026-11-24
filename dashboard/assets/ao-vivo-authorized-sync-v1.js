@@ -47,7 +47,7 @@
       <td class="history-hotspot-cell">${hotspotRepeaterMarkup(x)}</td>
       <td>${esc(x.location || 'Não informada')}</td>
       <td><span class="protocol">${esc(x.protocol)}</span></td>
-      <td>${esc(x.module)}</td>
+      <td>${esc(typeof xlxModuleLabel === 'function' ? xlxModuleLabel(x.module) : x.module)}</td>
       <td class="history-duration-cell"><span class="history-duration-value">${duration(x.duration)}</span></td>
     </tr>`;
   };

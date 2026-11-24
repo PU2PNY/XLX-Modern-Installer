@@ -43,8 +43,6 @@ $routeSlugs = [
     'conectados',
     'ranking',
     'refletores',
-    'noticias',
-    'suporte',
     'certificado',
     'digital-lab',
 ];
