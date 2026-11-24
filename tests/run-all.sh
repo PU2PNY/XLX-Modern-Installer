@@ -23,6 +23,8 @@ echo "[dashboard i18n]"
 bash "$ROOT/tests/test-dashboard-i18n.sh" || failures=$((failures+1))
 echo "[dashboard core i18n]"
 bash "$ROOT/tests/test-dashboard-core-i18n.sh" || failures=$((failures+1))
+echo "[dashboard long-text i18n]"
+bash "$ROOT/tests/test-dashboard-long-texts-i18n.sh" || failures=$((failures+1))
 echo "[live multi-TX layout]"
 bash "$ROOT/tests/test-live-multi-tx-layout.sh" || failures=$((failures+1))
 echo "[generic replica labels/layout]"

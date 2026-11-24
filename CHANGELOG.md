@@ -1,3 +1,11 @@
+## Unreleased — painel: textos longos APRS/D-PRS e certificado traduzidos por frase inteira (2026-11-24)
+
+- A) `digital-lab-native.php`: guia APRS completo (O que é APRS, beacon, IGate, APRS-IS, tabela de SSID, FAQ, regras de boa convivência), seção "Aprenda sem complicação", cadastro/recuperação de senha, mapa da estação e fluxo do módulo B traduzidos por frase inteira em en/es/fr/de/it (chaves `dlab.NNN`). Parágrafos de várias linhas foram unidos em uma linha no HTML (sem mudança visual) para casarem com a chave do catálogo.
+- B) `assets/certificado.js`: mensagens de erro, rótulos desenhados no canvas, nomes dos meses e frases comemorativas traduzidos (chaves `certjs.NNN`). Datas e "Emitido em … (BRT)" passam por `ofMonth()`/`issuedAtLabel()` com modelos `DE {month}` e `Emitido em {date} (BRT)`, permitindo reordenar a frase por idioma.
+- C) Correção: "indicativo" estava traduzido como "código de área"/"Vorwahl"/"prefisso"/"indicatif régional"/"Code" em frases existentes; agora callsign/indicativo/indicatif/Rufzeichen/nominativo. Removidos caracteres de largura zero em `es.php` e "Your account is active." sem tradução em `fr.php`.
+- D) `index.php` verificado: títulos SEO, `<html lang>` e cabeçalhos `<th>` já saem traduzidos em todos os idiomas; nada a acrescentar.
+- UI-021 / TEST-061: novo `tests/test-dashboard-long-texts-i18n.sh` em `run-all.sh`. Rótulos de módulo/protocolo (DV A…, DMR, D-STAR, C4FM/YSF) não foram tocados (configuração, PR #113). Sem mudança em XLXD, protocolos, áudio, systemd ou Nginx. Sem deploy em produção.
+
 ## Unreleased — réplica genérica: layout, rótulos editáveis e remoção de vazamentos XLX026 (2026-11-24)
 
 - A) Novo `dashboard/assets/header-layout-v5.css` (último CSS no `index.php`): menu em 1 linha ≥1180px, grade 821–1179px, cartões de Módulos e Conectados no celular, rótulos ≥10px, rodapé com quebra, MENU 44px, `prefers-reduced-motion`. Portado da produção só com regras genéricas; seletores adaptados ao HTML do instalador (tabela de módulos com 11 colunas, `.module-reference`).

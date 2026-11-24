@@ -324,6 +324,18 @@
         throw new Error('QR Code não pôde ser renderizado.');
     }
 
+    /*
+     * Rótulos montados por modelo para que o idioma do painel possa
+     * reordenar a frase (tradução por frase inteira em i18n/build.php).
+     */
+    function ofMonth(month) {
+        return 'DE {month}'.replace('{month}', month);
+    }
+
+    function issuedAtLabel(date) {
+        return 'Emitido em {date} (BRT)'.replace('{date}', date);
+    }
+
     function clearDateParts(label) {
         const m = String(label || '').match(
             /(\d{2})\/(\d{2})\/(\d{4})/
@@ -358,7 +370,7 @@
             day: m[1],
             month: months[Number(m[2])],
             year: m[3],
-            long: `${m[1]} DE ${months[Number(m[2])]}`
+            long: `${m[1]} ${ofMonth(months[Number(m[2])])}`
         };
     }
 
@@ -1077,7 +1089,7 @@
 
         centeredText(
             ctx,
-            `DE ${date.month}`,
+            ofMonth(date.month),
             x + bw / 2,
             dy + 185,
             16,
@@ -1321,7 +1333,7 @@
 
         centeredText(
             ctx,
-            `DE ${date.month}`,
+            ofMonth(date.month),
             x + bw / 2,
             dy + 185,
             16,
@@ -2053,7 +2065,7 @@
 
         centeredText(
             ctx,
-            `Emitido em ${issueDate(cert.issued_at_iso)} (BRT)`,
+            issuedAtLabel(issueDate(cert.issued_at_iso)),
             x + w / 2,
             y + 174,
             10,
@@ -2449,12 +2461,12 @@
 
             centeredText(
                 ctx,
-                `${date[1]} DE ${shortMonth}`,
+                `${date[1]} ${ofMonth(shortMonth)}`,
                 leftX + w / 2,
                 y + 235,
                 fitText(
                     ctx,
-                    `${date[1]} DE ${shortMonth}`,
+                    `${date[1]} ${ofMonth(shortMonth)}`,
                     w - 30,
                     9,
                     7,
