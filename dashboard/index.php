@@ -168,6 +168,7 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}' . page_url($page);
 <link rel="stylesheet" href="assets/ao-vivo-gif-anchor-v12.css?v=1">
 <link rel="stylesheet" href="assets/ao-vivo-multi-tx-layout-v1.css?v=20261116-1">
 <?php endif; ?>
+<link rel="stylesheet" href="assets/header-layout-v5.css?v=20261124-1">
 </head>
 <body data-page="<?=htmlspecialchars($page, ENT_QUOTES, 'UTF-8')?>" data-reflector="{{REFLECTOR_NAME}}">
 <main>
