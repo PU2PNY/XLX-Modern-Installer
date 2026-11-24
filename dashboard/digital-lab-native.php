@@ -3,6 +3,16 @@
  * {{REFLECTOR_NAME}} Digital Lab v1.1 — conteúdo nativo para inclusão no index.php.
  * Sem consultas externas no PHP. Todos os dados vêm da API local read-only.
  */
+// Link da Anatel é específico do Brasil: só aparece quando o país configurado é BR.
+$dlabSite = (isset($site) && is_array($site))
+    ? $site
+    : (is_file(__DIR__ . '/config/site.php') ? (array)(require __DIR__ . '/config/site.php') : []);
+$dlabCountry = trim((string)($dlabSite['reflector']['country'] ?? ''));
+if (function_exists('iconv')) {
+    $dlabCountry = (string)(@iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $dlabCountry) ?: $dlabCountry);
+}
+$dlabCountry = strtolower(preg_replace('/[^A-Za-z]/', '', $dlabCountry) ?? '');
+$dlabIsBrazil = in_array($dlabCountry, ['br', 'bra', 'brazil', 'brasil'], true);
 ?>
 <section class="dlab-page" id="digitalLab" aria-labelledby="dlabTitle">
   <header class="dlab-hero panel">
@@ -942,7 +952,9 @@
       <a href="https://www.arrl.org/aprs-mode" target="_blank" rel="noopener noreferrer">ARRL — APRS Mode</a>
       <a href="https://www.labre.org.br/labre-ce-inaugura-digipeater-aprs-em-fortaleza/" target="_blank" rel="noopener noreferrer">LABRE — APRS no Brasil</a>
       <a href="https://www.icomamerica.com/explore/d-star/" target="_blank" rel="noopener noreferrer">Icom — D-STAR e GPS</a>
+      <?php if ($dlabIsBrazil): ?>
       <a href="https://www.gov.br/anatel/pt-br/regulado/outorga/radioamador-e-radio-cidadao/radioamador" target="_blank" rel="noopener noreferrer">Anatel — Serviço Radioamador</a>
+      <?php endif; ?>
     </div>
   </section>
 

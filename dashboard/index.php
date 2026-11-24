@@ -6,6 +6,13 @@ $authorizedPage = in_array($page, ['ao-vivo','modulos','conectados','ranking'], 
 $site = is_file(__DIR__ . '/config/site.php') ? require __DIR__ . '/config/site.php' : [];
 $moduleCount = max(1, min(26, (int)($site['radio']['module_count'] ?? 5)));
 $moduleRange = 'A–' . chr(64 + $moduleCount);
+// DMR talkgroup per module follows the XLXD convention (4001 = module A ...);
+// the base is configurable (radio.dmr_module_tg_base). Never hardcode it.
+$dmrModuleBase = (int)($site['radio']['dmr_module_tg_base'] ?? 4000);
+if ($dmrModuleBase < 0) $dmrModuleBase = 4000;
+$dmrModuleHint = [];
+for ($i = 0; $i < min(3, $moduleCount); $i++) $dmrModuleHint[] = chr(65 + $i) . '=' . ($dmrModuleBase + $i + 1);
+$dmrModuleHintText = implode(', ', $dmrModuleHint) . ($moduleCount > 3 ? '…' : '');
 function nav_class(string $p, string $current): string { return $p === $current ? ' class="active"' : ''; }
 function page_url(string $p): string {
   if ($p === 'digital-lab') return '/aprs-dprs';
@@ -183,7 +190,7 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}' . page_url($page);
 
    <div class="access-strip access-strip-compact" aria-label="Acessos do servidor">
     <span><b>D-STAR</b> {{REFLECTOR_NAME}}-D</span>
-    <span><b>DMR</b> TG 6 (voz) • módulo A=4001, B=4002, C=4003…</span>
+    <span><b>DMR</b> TG {{DMR_TG}} (voz) • módulo <?=htmlspecialchars($dmrModuleHintText, ENT_QUOTES, 'UTF-8')?></span>
     <span><b>C4FM/YSF</b> {{REFLECTOR_NAME}} • YSF{{YSF_ID}}</span>
    </div>
   </div>
@@ -266,7 +273,7 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}' . page_url($page);
  <small class="footer-final-line"><strong>XLX Modern v{{XLX_MODERN_VERSION}}</strong><span class="footer-separator">•</span><span>Desenvolvido por <a href="https://paginacertadigital.com.br/" target="_blank" rel="noopener noreferrer">paginacertadigital.com.br</a></span></small>
 </footer>
 <?php else: ?>
-<footer><div><a class="brand footer-brand" href="<?=page_url('ao-vivo')?>"><img class="brand-logo" src="assets/logo-{{REFLECTOR_NAME}}.svg" alt="Logotipo {{REFLECTOR_NAME}}"><span><b>{{REFLECTOR_NAME}}</b></span></a><p> para a comunidade radioamadora.</p></div><div class="footer-links"><a href="<?=page_url('ao-vivo')?>">Ao vivo</a><a href="<?=page_url('conectados')?>">Conectados</a><a href="<?=page_url('ranking')?>">Ranking</a></div><small>{{REFLECTOR_NAME}} • D-STAR {{REFLECTOR_NAME}}-D • DMR: TG 6 (voz), A=4001, B=4002, C=4003… • C4FM/YSF {{YSF_ID}}</small></footer>
+<footer><div><a class="brand footer-brand" href="<?=page_url('ao-vivo')?>"><img class="brand-logo" src="assets/logo-{{REFLECTOR_NAME}}.svg" alt="Logotipo {{REFLECTOR_NAME}}"><span><b>{{REFLECTOR_NAME}}</b></span></a><p><span class="footer-reflector-name">{{REFLECTOR_NAME}}</span> para a comunidade radioamadora.</p></div><div class="footer-links"><a href="<?=page_url('ao-vivo')?>">Ao vivo</a><a href="<?=page_url('conectados')?>">Conectados</a><a href="<?=page_url('ranking')?>">Ranking</a></div><small>{{REFLECTOR_NAME}} • D-STAR {{REFLECTOR_NAME}}-D • DMR: TG {{DMR_TG}} (voz), <?=htmlspecialchars($dmrModuleHintText, ENT_QUOTES, 'UTF-8')?> • C4FM/YSF {{YSF_ID}}</small></footer>
 <?php endif; ?>
 <div id="toastStack" class="toast-stack"></div><script src="assets/mtr.js?v=5"></script><script src="assets/app.js?v=20260907-production-parity"></script>
 <?php if ($page === 'ao-vivo'): ?>
