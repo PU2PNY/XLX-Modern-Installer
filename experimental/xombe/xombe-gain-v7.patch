@@ -1,25 +1,15 @@
 diff --git a/include/xombe.h b/include/xombe.h
-index 9ec39b1..7bca801 100644
+index 9a3c511..7bca801 100644
 --- a/include/xombe.h
 +++ b/include/xombe.h
-@@ -353,6 +353,7 @@ static inline xombe_xc *xombe_xc_init_shared(void *mem, enum xombe_codec from, v
- XOMBE_API int xombe_xc_frame(xombe_xc *x, const uint8_t in[XOMBE_FRAME_BYTES], unsigned flags,
-                              uint8_t out[XOMBE_FRAME_BYTES]);
- XOMBE_API void xombe_xc_decision_get(const xombe_xc *x, xombe_xc_decision *out);
+@@ -357,1 +357,2 @@
+ XOMBE_API void xombe_xc_set_dstar_to_dmr_gain(xombe_xc *x, float gain_log2);
 +XOMBE_API void xombe_xc_set_dmr_to_dstar_gain(xombe_xc *x, float gain_log2);
- #endif
- 
- #ifdef __cplusplus
- }
- #endif
 diff --git a/src/dstar/xc.c b/src/dstar/xc.c
 index 10b487d..f36aab1 100644
 --- a/src/dstar/xc.c
 +++ b/src/dstar/xc.c
-@@ -86,3 +86,11 @@ void xombe_xc_set_dstar_to_dmr_gain(xombe_xc *x, float gain_log2)
-     if (x && x->from == XOMBE_DSTAR)
-         x->u.r.output_gain_log2 = gain_log2;
- }
+@@ -88,0 +89,7 @@
 +
 +/* Optional per-stream DMR -> D-STAR gain. Zero preserves upstream behavior. */
 +void xombe_xc_set_dmr_to_dstar_gain(xombe_xc *x, float gain_log2)
@@ -31,23 +21,13 @@ diff --git a/src/dstar/xc_state.h b/src/dstar/xc_state.h
 index e6feece..f6feece 100644
 --- a/src/dstar/xc_state.h
 +++ b/src/dstar/xc_state.h
-@@ -22,6 +22,7 @@ typedef struct {
-     uint8_t last[XOMBE_DS_FRAME_BYTES];
-     int have_last_b, last_b[9]; /* fields of last, if it was a voice frame */
+@@ -21,1 +21,2 @@
      int out;                  /* enum xombe_xc_out of the last frame */
-+    float output_gain_log2;   /* opt-in DMR -> D-STAR gain */
-     struct xombe_xc_trace *trace; /* trace.h */
-     xombe_cq_ws *ws;          /* quantizer workspace, own or shared, nothing in it lives between frames */
- } xombe_xc_fwd;
++    float output_gain_log2; /* opt-in DMR -> D-STAR gain */
 diff --git a/src/dstar/xcode.c b/src/dstar/xcode.c
 index 51a3a3a..8b93e3a 100644
 --- a/src/dstar/xcode.c
 +++ b/src/dstar/xcode.c
-@@ -114,7 +114,7 @@ static void requant(xombe_xc_fwd *x, float f0, const float *a, int L, int b1, in
-         h = h < 1.0f ? 1.0f : h > (float)L ? (float)L : h;
-         i = (int)h;
-         fr = h - (float)i;
+@@ -96,1 +96,1 @@
 -        tgt[l] = (1.0f - fr) * a[i] + fr * a[i < L ? i + 1 : L];
 +        tgt[l] = (1.0f - fr) * a[i] + fr * a[i < L ? i + 1 : L] + x->output_gain_log2;
-     }
-     xombe__cq_amp_weights(tgt, Ld, XOMBE_CQ_QWEIGHT, XOMBE_CQ_WEIGHT_FLOOR, w);

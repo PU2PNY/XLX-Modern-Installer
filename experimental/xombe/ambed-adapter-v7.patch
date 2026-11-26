@@ -1,6 +1,6 @@
 --- a/ambed/cstream.cpp
 +++ b/ambed/cstream.cpp
-@@ -122,6 +122,8 @@
+@@ -125,2 +125,4 @@
                      xombe_xc_set_dstar_to_dmr_gain(m_Xombe, -0.5f);
 +                else if (m_uiCodecIn == CODEC_AMBE2PLUS && m_uiCodecOut == CODEC_AMBEPLUS)
 +                    xombe_xc_set_dmr_to_dstar_gain(m_Xombe, 1.329912f);
