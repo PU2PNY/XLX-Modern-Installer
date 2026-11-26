@@ -310,3 +310,6 @@ OPERATOR reiterou que os testes restantes são **exclusivamente na produção XL
 
 ## 2026-11-26 — Xombe v3 (canary)
 O estado de 2026-11-03 é histórico. PROD: xombe via AMBED ativo com override volátil; XLXD preservado. SoftAMBE unit disabled/active, unified enabled/inactive: reboot não garante mesmo backend. Evidências, receita e limites em `experimental/xombe/README.md`, Issue #115, TEST-061. Sem promoção de release; instalação integral e aceite RF v3 pendentes.
+
+## Xombe V4 — 2026-11-26
+Operador autorizou adoção. V3 foi retirado após falha de direção do ganho e 8/88 testes; V2 foi temporariamente restaurado. V4 corrigido: ganho por stream apenas D-STAR→AMBE+2; 88/88 CTest PASS, 100 frames UDP isolados PASS. PROD: V4 ativo e habilitado no boot; XLXD não reiniciado; backup privado. Escuta RF V4 pendente. Receita e rollback em `experimental/xombe/README.md`.

@@ -105,3 +105,6 @@ A migração SoftAMBE foi revertida após rejeição do áudio pelo operador. Ex
 
 ## Xombe (2026-11-26)
 A recuperação específica do canary v3 e a evidência parcial de restore do AMBED estão em `experimental/xombe/README.md`. Não confundir com restauração integral da VPS. Estado anterior de xuvd ativo é histórico.
+
+## Xombe V4 — rollback
+V2 permanece disponível. Para rollback do V4, aguardar ausência de TX, restaurar o drop-in de V2 no backup privado, daemon-reload, reiniciar somente AMBED e verificar PID/hash/ping. Para retornar ao legado xuvd, usar ROLLBACK.sh --check e --apply conforme o README. Não publicar backups privados.

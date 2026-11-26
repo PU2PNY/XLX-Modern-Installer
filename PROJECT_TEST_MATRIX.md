@@ -112,3 +112,5 @@ Código e13f4e1: CI3/3 PASS; ENV build/lifecycle/protocol classes/TOT/restore/We
 | TEST-060 | UI-018 / UI-019 / UI-020 | CSS genérico v5 carregado por último; rótulos de módulo/protocolo só de exibição com lógica em letra/chave canônica; ausência de vazamentos XLX026 | SW 2026-11-24: `tests/test-generic-replica-labels.sh` incluído em `run-all.sh` + `tests/regression-stream-identity.php`; `php -l`/`node --check` nos arquivos alterados. ENV/PROD/HW não validados (revisão humana pendente). |
 
 | TEST-061 | XOMBE-001/002 | Build, UDP, ganho, rollback | SW/ENV: 88 testes upstream sem patch; 800 frames adapter; v3 100 frames isolados, sem clipping sintético; restore original 40 frames isolados. PROD ping PASS; OPERATOR D-STAR bom antes de v3; HW v3 e instalação integral pendentes. | PARCIAL |
+
+| TEST-061 | XOMBE-001/002 | Build reproduzível, CTest, UDP, runtime | SW 2026-11-26: AMBED V4 build PASS; xombe CTest 88/88 PASS (ganho opt-in desligado por padrão). ENV WartyWallaby: 100 frames UDP isolados PASS. PROD: V4 ativo, ping PASS, XLXD PID 1298 preservado; HW auditivo V4 pendente. | PASS SW/ENV/PROD runtime; PARCIAL HW |

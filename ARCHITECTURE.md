@@ -138,3 +138,6 @@ The preceding SoftAMBE production paragraph is historical, not the current runti
 
 ## 2026-11-26 — Canary Xombe
 A rota observada atualmente é XLXD → AMBED com xombe direto experimental; substitui a descrição histórica de xuvd ativo para este host durante o canary. A arquitetura padrão do instalador continua inalterada. Consulte `experimental/xombe/README.md`.
+
+## Xombe V4 — runtime atual
+`xlx-softambe.service` executa AMBED com adaptador xombe V4 via drop-in persistente; `xlx-unified-voice.service` disabled para evitar conflito. Não inferir qualidade RF de ping/frames UDP. XLXD, dashboard e web stack não foram modificados. V3 não usar.

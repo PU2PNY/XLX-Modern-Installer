@@ -185,3 +185,9 @@ Uma mudança só é aceita se:
 ### XOMBE experimental
 - **XOMBE-001** — Build pinado e reproduzível, opt-in por stream, sem alteração do core; padrão legado preservado.
 - **XOMBE-002** — Ganho direcional v3 e rollback hash-verificado; não promover sem teste de hardware e instalação limpa.
+
+### XOMBE-001 — Transcodificação direta opt-in e isolada por stream
+Build fixado e reproduzível; caminho direto somente para AMBE+ / AMBE+2; XLXD core não alterado; caminho legado permanece fallback. O ganho por stream é opt-in e zero por padrão na biblioteca.
+
+### XOMBE-002 — Ganho direcional D-STAR → DMR/YSF
+Configurar -0.5 log2 apenas quando D-STAR é codec de entrada e AMBE+2 é codec de saída. O sentido DMR/YSF → D-STAR não recebe ganho. A validação RF continua necessária.

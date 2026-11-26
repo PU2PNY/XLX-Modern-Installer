@@ -150,3 +150,6 @@ O operador rejeitou o áudio D-STAR⇄DMR do SoftAMBE; \`ROLLBACK.sh --apply\` r
 
 ## Canary Xombe (2026-11-26)
 Consultar `experimental/xombe/README.md` antes de operar. Override volátil; não reiniciar supondo persistência. Não trocar transcoder durante streams ativos. Não alterar enablement sem plano de boot/rollback.
+
+## Xombe V4 — operação
+O backend direto está aprovado pelo operador e ativo. Ver `experimental/xombe/README.md`. Não reiniciar AMBED durante streams; mudança de versão exige backup e validação. O serviço mantém nome legado `xlx-softambe.service`; o binário ativo é Xombe V4. XLXD não precisa reiniciar.

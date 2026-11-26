@@ -110,3 +110,6 @@ O layout anterior usa `grid-auto-flow: column`, o que mantém todos os cards em 
 
 ## DEC-2026-11-26-024 — Xombe direto experimental
 Autorizar canary reversível conforme Issue #115, sem substituir o instalador padrão. Ganho v3: +3 dB nominal destino D-STAR; destino AMBE+2 upstream. Preservar XLXD, painel e caminhos DN/VW. Aceite RF v3, licenças/patentes e instalação limpa ainda pendentes.
+
+## DEC-2026-11-26-025 — Xombe V4 aprovado pelo operador, validação HW pendente
+O operador autorizou adoção do Xombe V4. V3 foi rejeitado tecnicamente por ganho no sentido errado e 8/88 testes de referência falharam; V2 foi usado como retorno temporário. V4 configura ganho -0.5 log2 apenas no caminho D-STAR→AMBE+2 por stream, com default upstream zero; DMR/YSF→D-STAR permanece sem ganho. SW 88/88 PASS; ENV 100 frames UDP PASS; PROD V4 ativo e XLXD preservado; HW auditivo pós-V4 pendente. Não marcar release integral do instalador nem HW PASS.
