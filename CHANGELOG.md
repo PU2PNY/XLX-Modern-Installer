@@ -396,3 +396,7 @@ Three additional controlled multi-TX repeats retained 40/40 frames per stream wi
 
 ## 2026-11-26 — Xombe V4
 V4 aprovado pelo operador e ativo no XLX026. Ganho por stream apenas D-STAR→DMR/YSF; default da biblioteca zero; sentido inverso inalterado. V3 foi retirado por falha direcional/testes. CTest 88/88, ENV UDP 100 frames, PROD ping PASS. HW auditivo pós-V4 pendente. Receita em `experimental/xombe/`.
+
+
+## Xombe V7 — ganho controlado DMR/YSF → D-STAR (2026-11-26)
+V7 aumenta o ganho total para +8 dB na saída D-STAR para entrada AMBE+2. O pedido de duplicar novamente o nível (+6 dB extra) foi testado e rejeitado por clipping (1029/32000 amostras). +3 dB extra também clipou 9/32000. +2 dB extra passou a amostra sintética de 200 quadros sem clipping. V6 permanece disponível para rollback. A escuta RF do operador é necessária para validar qualidade real.

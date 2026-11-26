@@ -113,3 +113,4 @@ Autorizar canary reversível conforme Issue #115, sem substituir o instalador pa
 
 ## DEC-2026-11-26-025 — Xombe V4 aprovado pelo operador, validação HW pendente
 O operador autorizou adoção do Xombe V4. V3 foi rejeitado tecnicamente por ganho no sentido errado e 8/88 testes de referência falharam; V2 foi usado como retorno temporário. V4 configura ganho -0.5 log2 apenas no caminho D-STAR→AMBE+2 por stream, com default upstream zero; DMR/YSF→D-STAR permanece sem ganho. SW 88/88 PASS; ENV 100 frames UDP PASS; PROD V4 ativo e XLXD preservado; HW auditivo pós-V4 pendente. Não marcar release integral do instalador nem HW PASS.
+undefined

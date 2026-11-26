@@ -141,3 +141,7 @@ A rota observada atualmente é XLXD → AMBED com xombe direto experimental; sub
 
 ## Xombe V4 — runtime atual
 `xlx-softambe.service` executa AMBED com adaptador xombe V4 via drop-in persistente; `xlx-unified-voice.service` disabled para evitar conflito. Não inferir qualidade RF de ping/frames UDP. XLXD, dashboard e web stack não foram modificados. V3 não usar.
+
+
+## Xombe V7 — runtime
+O serviço `xlx-softambe.service` usa `/opt/xlx-softambe/bin/ambed-xombe-gain-v7-plus2db-20261126` via drop-in `90-xombe-approved.conf`. O ganho por stream é +8 dB total somente quando AMBE+2 entra e AMBE sai (DMR/YSF → D-STAR). D-STAR → DMR/YSF permanece no ajuste V4. XLXD, painel e banco não foram reiniciados ou alterados nesta mudança. Não presumir validação de áudio RF a partir dos testes sintéticos.
