@@ -1,13 +1,23 @@
 diff --git a/include/xombe.h b/include/xombe.h
+index 9a3c511..03523ce 100644
 --- a/include/xombe.h
 +++ b/include/xombe.h
-@@ -357,1 +357,2 @@
+@@ -355,6 +355,7 @@ XOMBE_API int xombe_xc_frame(xombe_xc *x, const uint8_t in[XOMBE_FRAME_BYTES], u
+ XOMBE_API void xombe_xc_decision_get(const xombe_xc *x, xombe_xc_decision *out);
+ /* Optional per-stream D-STAR -> AMBE+2 gain in log2 amplitude; 0 keeps upstream default. */
  XOMBE_API void xombe_xc_set_dstar_to_dmr_gain(xombe_xc *x, float gain_log2);
 +XOMBE_API void xombe_xc_set_dmr_to_dstar_gain(xombe_xc *x, float gain_log2);
+ #endif
+ 
+ #ifdef __cplusplus
 diff --git a/src/dstar/xc.c b/src/dstar/xc.c
+index 10b487d..235173a 100644
 --- a/src/dstar/xc.c
 +++ b/src/dstar/xc.c
-@@ -88,0 +89,7 @@
+@@ -86,3 +86,10 @@ void xombe_xc_set_dstar_to_dmr_gain(xombe_xc *x, float gain_log2)
+     if (x && x->from == XOMBE_DSTAR)
+         x->u.r.output_gain_log2 = gain_log2;
+ }
 +
 +/* Optional per-stream DMR -> D-STAR gain. Zero preserves upstream behavior. */
 +void xombe_xc_set_dmr_to_dstar_gain(xombe_xc *x, float gain_log2)
@@ -16,14 +26,25 @@ diff --git a/src/dstar/xc.c b/src/dstar/xc.c
 +        x->u.f.output_gain_log2 = gain_log2;
 +}
 diff --git a/src/dstar/xc_state.h b/src/dstar/xc_state.h
+index e6feece..1538503 100644
 --- a/src/dstar/xc_state.h
 +++ b/src/dstar/xc_state.h
-@@ -21,1 +21,2 @@
+@@ -19,6 +19,7 @@ typedef struct {
+     uint8_t last[XOMBE_DS_FRAME_BYTES];
+     int have_last_b, last_b[9]; /* fields of last, if it was a voice frame */
      int out;                  /* enum xombe_xc_out of the last frame */
 +    float output_gain_log2; /* opt-in DMR -> D-STAR gain */
+     struct xombe_xc_trace *trace; /* trace.h */
+     xombe_cq_ws *ws;          /* quantizer workspace, own or shared, nothing in it lives between frames */
+ } xombe_xc_fwd;
 diff --git a/src/dstar/xcode.c b/src/dstar/xcode.c
+index cfd76c6..a9f2d07 100644
 --- a/src/dstar/xcode.c
 +++ b/src/dstar/xcode.c
-@@ -96,1 +96,1 @@
+@@ -93,7 +93,7 @@ static void requant(xombe_xc_fwd *x, float f0, const float *a, int L, int b1, in
+         h = h < 1.0f ? 1.0f : h > (float)L ? (float)L : h;
+         i = (int)h;
+         fr = h - (float)i;
 -        tgt[l] = (1.0f - fr) * a[i] + fr * a[i < L ? i + 1 : L];
 +        tgt[l] = (1.0f - fr) * a[i] + fr * a[i < L ? i + 1 : L] + x->output_gain_log2;
+     }

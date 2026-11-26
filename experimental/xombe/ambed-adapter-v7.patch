@@ -1,8 +1,12 @@
 diff --git a/ambed/cstream.cpp b/ambed/cstream.cpp
+index 54387ef..400e63d 100644
 --- a/ambed/cstream.cpp
 +++ b/ambed/cstream.cpp
-@@ -125,2 +125,4 @@
+@@ -123,6 +123,8 @@ bool CStream::Init(uint16 uiPort)
+                 }
+                 if (m_uiCodecIn == CODEC_AMBEPLUS && m_uiCodecOut == CODEC_AMBE2PLUS)
                      xombe_xc_set_dstar_to_dmr_gain(m_Xombe, -0.5f);
 +                else if (m_uiCodecIn == CODEC_AMBE2PLUS && m_uiCodecOut == CODEC_AMBEPLUS)
 +                    xombe_xc_set_dmr_to_dstar_gain(m_Xombe, 1.329912f);
                  std::cout << "XOMBE direct stream " << m_uiId << std::endl;
+             }
