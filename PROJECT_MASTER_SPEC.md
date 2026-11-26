@@ -191,3 +191,7 @@ Build fixado e reproduzível; caminho direto somente para AMBE+ / AMBE+2; XLXD c
 
 ### XOMBE-002 — Ganho direcional D-STAR → DMR/YSF
 Configurar -0.5 log2 apenas quando D-STAR é codec de entrada e AMBE+2 é codec de saída. O sentido DMR/YSF → D-STAR não recebe ganho. A validação RF continua necessária.
+
+
+## XOMBE-003 — Ganho direcional DMR/YSF → D-STAR com limite validado
+A integração AMBED/Xombe pode aplicar ganho por stream exclusivamente no caminho AMBE+2 → AMBE (DMR/YSF → D-STAR). A configuração V7 fixa +8 dB totais em relação ao padrão do Xombe, preservando o ganho D-STAR → DMR/YSF e o default da biblioteca. Não usar +12 dB: o teste de referência apresentou clipping. A mudança deve permanecer opt-in, com binário anterior, drop-in e rollback preservados. A confirmação auditiva em RF é obrigatória antes de considerar o nível final aprovado.

@@ -108,3 +108,7 @@ A recuperação específica do canary v3 e a evidência parcial de restore do AM
 
 ## Xombe V4 — rollback
 V2 permanece disponível. Para rollback do V4, aguardar ausência de TX, restaurar o drop-in de V2 no backup privado, daemon-reload, reiniciar somente AMBED e verificar PID/hash/ping. Para retornar ao legado xuvd, usar ROLLBACK.sh --check e --apply conforme o README. Não publicar backups privados.
+
+
+## DEC-2026-11-26-026 — Limitar aumento DMR/YSF → D-STAR a +2 dB adicionais
+O operador solicitou dobrar o nível atual. A implementação de +6 dB adicionais elevou o RMS, mas causou clipping em 1029/32000 amostras de referência; +3 dB adicionais clipou 9/32000. +2 dB adicionais passou 200 quadros sintéticos sem clipping, com pico 32680/32768. Adotar V7 (+8 dB total) como teste em produção com V6 disponível para rollback. O operador ainda deve confirmar o áudio no rádio; HW não aprovado até essa escuta.

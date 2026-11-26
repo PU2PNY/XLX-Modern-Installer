@@ -114,3 +114,5 @@ Código e13f4e1: CI3/3 PASS; ENV build/lifecycle/protocol classes/TOT/restore/We
 | TEST-061 | XOMBE-001/002 | Build, UDP, ganho, rollback | SW/ENV: 88 testes upstream sem patch; 800 frames adapter; v3 100 frames isolados, sem clipping sintético; restore original 40 frames isolados. PROD ping PASS; OPERATOR D-STAR bom antes de v3; HW v3 e instalação integral pendentes. | PARCIAL |
 
 | TEST-061 | XOMBE-001/002 | Build reproduzível, CTest, UDP, runtime | SW 2026-11-26: AMBED V4 build PASS; xombe CTest 88/88 PASS (ganho opt-in desligado por padrão). ENV WartyWallaby: 100 frames UDP isolados PASS. PROD: V4 ativo, ping PASS, XLXD PID 1298 preservado; HW auditivo V4 pendente. | PASS SW/ENV/PROD runtime; PARCIAL HW |
+
+| TEST-063 | XOMBE-003 | Build, CTest, AMBED UDP e amplitude DMR→D-STAR | SW: build PASS; CTest 88/88 PASS. ENV: 200 quadros sintéticos, V6 -13,32 dBFS; V7 -11,19 dBFS, pico 32680/32768, 0 clipping. +3 dB extra: 9/32000 clipped; +6 dB extra: 1029/32000 clipped. PROD: V7 ativo, ping PASS, XLXD PID preservado. HW auditivo pendente. | PASS SW/ENV/PROD runtime; PARCIAL HW |

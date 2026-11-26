@@ -313,3 +313,7 @@ O estado de 2026-11-03 é histórico. PROD: xombe via AMBED ativo com override v
 
 ## Xombe V4 — 2026-11-26
 Operador autorizou adoção. V3 foi retirado após falha de direção do ganho e 8/88 testes; V2 foi temporariamente restaurado. V4 corrigido: ganho por stream apenas D-STAR→AMBE+2; 88/88 CTest PASS, 100 frames UDP isolados PASS. PROD: V4 ativo e habilitado no boot; XLXD não reiniciado; backup privado. Escuta RF V4 pendente. Receita e rollback em `experimental/xombe/README.md`.
+
+
+## 2026-11-26 — Xombe V7 (ganho controlado)
+V7 está ativo no XLX026 com +2 dB adicionais sobre V6, total +8 dB na direção DMR/YSF → D-STAR. Binário SHA-256 `b9ec001732046694349558c8fe999d2d1154b6be7c6375251e65d87bf05f140a`. SW: build AMBED PASS; CTest 88/88 PASS (ganho default zero na suíte). ENV: 200 quadros AMBE+2 sintéticos, RMS -11,19 dBFS, pico 32680/32768, zero amostras clipadas. Comparação: V6 -13,32 dBFS; V7 +2 dB adicional -11,19 dBFS; +3 dB adicional clipou 9/32000 amostras; +6 dB adicional clipou 1029/32000. PROD: V7 ativo PID 1201360, serviço enabled, XLXD PID 1298 preservado, UDP ping PASS; backup V6 em `xombe-v7-prechange`. HW: teste auditivo após V7 pendente; medição sintética não é validação RF. Não marcar versão final de áudio até confirmação do operador.

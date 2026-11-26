@@ -15,10 +15,14 @@ git -C "$out/xlxd" apply --check --whitespace=nowarn "$patch"
 git -C "$out/xlxd" apply --whitespace=nowarn "$patch"
 git -C "$out/xlxd" apply --check --whitespace=nowarn "$here/ambed-adapter-v4.patch"
 git -C "$out/xlxd" apply --whitespace=nowarn "$here/ambed-adapter-v4.patch"
+git -C "$out/xlxd" apply --check --whitespace=nowarn "$here/ambed-adapter-v7.patch"
+git -C "$out/xlxd" apply --whitespace=nowarn "$here/ambed-adapter-v7.patch"
 git clone --quiet https://github.com/x0rro/xombe.git "$out/src"
 git -C "$out/src" checkout --quiet --detach 2f0a8e744645b51c1749a39c8a4ee581fef1f20a
 git -C "$out/src" apply --check "$here/xombe-gain-v4.patch"
 git -C "$out/src" apply "$here/xombe-gain-v4.patch"
+git -C "$out/src" apply --check "$here/xombe-gain-v7.patch"
+git -C "$out/src" apply "$here/xombe-gain-v7.patch"
 cmake -S "$out/src" -B "$out/build-release" -DCMAKE_BUILD_TYPE=Release -DXOMBE_WERROR=ON
 cmake --build "$out/build-release" -j2
 ctest --test-dir "$out/build-release" --output-on-failure

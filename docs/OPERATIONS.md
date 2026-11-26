@@ -153,3 +153,7 @@ Consultar `experimental/xombe/README.md` antes de operar. Override volátil; nã
 
 ## Xombe V4 — operação
 O backend direto está aprovado pelo operador e ativo. Ver `experimental/xombe/README.md`. Não reiniciar AMBED durante streams; mudança de versão exige backup e validação. O serviço mantém nome legado `xlx-softambe.service`; o binário ativo é Xombe V4. XLXD não precisa reiniciar.
+
+
+## Xombe V7 — operação e reversão
+Antes de trocar AMBED, confirme que não há streams ativos nas portas 10101–10126. Backup privado: `/opt/xlx026-backups/CODEC_AUDIT_BASELINE_20261126_094909Z/xombe-v7-prechange`. V6 permanece em `/opt/xlx-softambe/bin/ambed-xombe-gain-v6-20261126`, SHA-256 `bdd50354eab01005f3724089abab55fa226725836e1e66e44f8087db0339f64b`. Para rollback, restaurar o conteúdo de `prior-approved.conf` e apontar ExecStart para V6, daemon-reload e reiniciar somente AMBED; verificar ping e manter XLXD sem reinício. O ganho dobrado (+6 dB extra) não deve ser usado: clipping comprovado em teste.
