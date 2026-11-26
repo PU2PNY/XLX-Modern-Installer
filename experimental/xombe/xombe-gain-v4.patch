@@ -1,0 +1,55 @@
+diff --git a/include/xombe.h b/include/xombe.h
+index 9ec39b1..9a3c511 100644
+--- a/include/xombe.h
++++ b/include/xombe.h
+@@ -353,6 +353,8 @@ static inline xombe_xc *xombe_xc_init_shared(void *mem, enum xombe_codec from, v
+ XOMBE_API int xombe_xc_frame(xombe_xc *x, const uint8_t in[XOMBE_FRAME_BYTES], unsigned flags,
+                              uint8_t out[XOMBE_FRAME_BYTES]);
+ XOMBE_API void xombe_xc_decision_get(const xombe_xc *x, xombe_xc_decision *out);
++/* Optional per-stream D-STAR -> AMBE+2 gain in log2 amplitude; 0 keeps upstream default. */
++XOMBE_API void xombe_xc_set_dstar_to_dmr_gain(xombe_xc *x, float gain_log2);
+ #endif
+ 
+ #ifdef __cplusplus
+ }
+ #endif
+diff --git a/src/dstar/xc.c b/src/dstar/xc.c
+index 7dbb239..10b487d 100644
+--- a/src/dstar/xc.c
++++ b/src/dstar/xc.c
+@@ -79,3 +79,10 @@ void xombe_xc_decision_get(const xombe_xc *x, xombe_xc_decision *out)
+         out->out = (enum xombe_xc_out)x->u.f.out;
+     }
+ }
++
++/* Optional per-stream D-STAR -> AMBE+2 gain. Zero is the upstream default. */
++void xombe_xc_set_dstar_to_dmr_gain(xombe_xc *x, float gain_log2)
++{
++    if (x && x->from == XOMBE_DSTAR)
++        x->u.r.output_gain_log2 = gain_log2;
++}
+diff --git a/src/dstar/xc_state.h b/src/dstar/xc_state.h
+index 7a96f3a..e6feece 100644
+--- a/src/dstar/xc_state.h
++++ b/src/dstar/xc_state.h
+@@ -32,6 +32,7 @@ typedef struct {
+     xombe_fec fec;
+     xombe_pred pi;            /* DMR decoder's prediction memory */
+     int prev_b1;              /* previous D-STAR voice frame's b1, -1 after any other frame but a repeat */
++    float output_gain_log2;   /* opt-in D-STAR -> AMBE+2 gain; zero preserves upstream behavior */
+     int have_last, last_db[9]; /* fields of the last good D-STAR voice frame */
+     int have_tone, tone_id, tone_ad;
+     int out;
+diff --git a/src/dstar/xrev.c b/src/dstar/xrev.c
+index d9fa6b5..e4e03fe 100644
+--- a/src/dstar/xrev.c
++++ b/src/dstar/xrev.c
+@@ -69,7 +69,7 @@ static void requant(xombe_xc_rev *x, float f0, const float *a, int L, int b0, in
+         h = h < 1.0f ? 1.0f : h > (float)L ? (float)L : h;
+         i = (int)h;
+         fr = h - (float)i;
+-        tgt[l] = (1.0f - fr) * a[i] + fr * a[i < L ? i + 1 : L];
++        tgt[l] = (1.0f - fr) * a[i] + fr * a[i < L ? i + 1 : L] + x->output_gain_log2;
+     }
+     xombe__cq_amp_weights(tgt, L2, XOMBE_CQ_QWEIGHT, XOMBE_CQ_WEIGHT_FLOOR, w);
+     xombe__cq_search_ambe2(x->ws, &x->pi, tgt, L2, w, XOMBE_CQ_N_PAIRS, XOMBE_CQ_N_GAIN, &res, NULL, NULL);

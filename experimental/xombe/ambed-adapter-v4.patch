@@ -1,0 +1,72 @@
+--- a/ambed/cstream.cpp
++++ b/ambed/cstream.cpp
+@@ -24,6 +24,7 @@
+ 
+ #include "main.h"
+ #include <string.h>
++#include <cstdlib>
+ #include "ctimepoint.h"
+ #include "cambeserver.h"
+ #include "cvocodecs.h"
+@@ -107,6 +108,24 @@
+         
+         if ( ok )
+         {
++            // Explicit opt-in, one independent state per stream.
++            const char *mode = std::getenv("AMBED_XOMBE_DIRECT");
++            if (mode && ::strcmp(mode, "1") == 0 &&
++                ((m_uiCodecIn == CODEC_AMBEPLUS && m_uiCodecOut == CODEC_AMBE2PLUS) ||
++                 (m_uiCodecIn == CODEC_AMBE2PLUS && m_uiCodecOut == CODEC_AMBEPLUS))) {
++                m_Xombe = xombe_xc_init(&m_XombeMemory,
++                    m_uiCodecIn == CODEC_AMBEPLUS ? XOMBE_DSTAR : XOMBE_DMR);
++                if (!m_Xombe) {
++                    m_VocodecChannel->Close();
++                    m_VocodecChannel = nullptr;
++                    m_Socket.Close();
++                    return false;
++                }
++                if (m_uiCodecIn == CODEC_AMBEPLUS && m_uiCodecOut == CODEC_AMBE2PLUS)
++                    xombe_xc_set_dstar_to_dmr_gain(m_Xombe, -0.5f);
++                std::cout << "XOMBE direct stream " << m_uiId << std::endl;
++            }
++
+             // store port
+             m_uiPort = uiPort;
+             
+@@ -190,6 +209,17 @@
+             m_LastActivity.Now();
+             m_iTotalPackets++;
+             
++            if (m_Xombe) {
++                uint8 converted[AMBE_FRAME_SIZE];
++                if (xombe_xc_frame(m_Xombe, Ambe, 0, converted) == 1) {
++                    EncodeDvFramePacket(&Buffer, uiPid, converted);
++                    m_Socket.Send(Buffer, m_Ip, m_uiPort);
++                } else {
++                    ++m_iLostPackets;
++                }
++                return;
++            }
++
+             // post packet to VocoderChannel
+             packet = new CAmbePacket(uiPid, m_uiCodecIn, Ambe);
+             queue = m_VocodecChannel->GetPacketQueueIn();
+--- a/ambed/cstream.h
++++ b/ambed/cstream.h
+@@ -28,6 +28,7 @@
+ #include "cudpsocket.h"
+ #include "ccallsign.h"
+ #include "cvocodecchannel.h"
++#include "xombe.h"
+ 
+ ////////////////////////////////////////////////////////////////////////////////////////
+ // class
+@@ -75,6 +76,8 @@
+     uint8           m_uiCodecIn;
+     uint8           m_uiCodecOut;
+     CVocodecChannel *m_VocodecChannel;
++    xombe_xc_mem m_XombeMemory;
++    xombe_xc *m_Xombe = nullptr;
+     
+     // client details
+     CCallsign       m_Callsign;

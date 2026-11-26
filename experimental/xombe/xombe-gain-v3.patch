@@ -1,0 +1,13 @@
+diff --git a/src/dstar/xcode.c b/src/dstar/xcode.c
+index cfd76c6..b74d0a6 100644
+--- a/src/dstar/xcode.c
++++ b/src/dstar/xcode.c
+@@ -93,7 +93,7 @@ static void requant(xombe_xc_fwd *x, float f0, const float *a, int L, int b1, in
+         h = h < 1.0f ? 1.0f : h > (float)L ? (float)L : h;
+         i = (int)h;
+         fr = h - (float)i;
+-        tgt[l] = (1.0f - fr) * a[i] + fr * a[i < L ? i + 1 : L];
++        tgt[l] = (1.0f - fr) * a[i] + fr * a[i < L ? i + 1 : L] + 0.5f;
+     }
+     xombe__cq_amp_weights(tgt, Ld, XOMBE_CQ_QWEIGHT, XOMBE_CQ_WEIGHT_FLOOR, w);
+     xombe__ds_mirror_predict(&x->mirror, Ld, pt);

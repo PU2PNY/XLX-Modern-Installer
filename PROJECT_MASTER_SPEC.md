@@ -181,3 +181,13 @@ Uma mudança só é aceita se:
 - **UI-018** — Layout responsivo genérico (`dashboard/assets/header-layout-v5.css`, carregado por último): menu em 1 linha ≥1180px, grade em 821–1179px, cartões de Módulos/Conectados no celular, rótulos ≥10px, rodapé com quebra, botão MENU de 44px e `prefers-reduced-motion`. Seletores restritos ao HTML real do instalador; nenhuma regra exclusiva do XLX026 (bolha WhatsApp, consulta Anatel, título Brasil).
 - **UI-019** — Rótulos de módulo e protocolo são apenas de exibição e editáveis (`radio.module_labels`, padrão `DV <letra>`; `radio.protocol_labels`). A letra do módulo e o valor canônico do protocolo (`protocol_key()`) permanecem como chave de filtros e lógica, incluindo a regra do módulo C compartilhado (`mod==='?'` + DMR → `C`).
 - **UI-020** — O instalador genérico não contém vazamentos do XLX026: TG DMR por módulo derivado da configuração (`radio.dmr_module_tg_base`, padrão 4000), link da Anatel somente quando o país configurado é Brasil, sem rotas `suporte`/`noticias` no builder i18n e sem menu/seções de Suporte ou ANATEL em `safari9-test.html`.
+
+### XOMBE experimental
+- **XOMBE-001** — Build pinado e reproduzível, opt-in por stream, sem alteração do core; padrão legado preservado.
+- **XOMBE-002** — Ganho direcional v3 e rollback hash-verificado; não promover sem teste de hardware e instalação limpa.
+
+### XOMBE-001 — Transcodificação direta opt-in e isolada por stream
+Build fixado e reproduzível; caminho direto somente para AMBE+ / AMBE+2; XLXD core não alterado; caminho legado permanece fallback. O ganho por stream é opt-in e zero por padrão na biblioteca.
+
+### XOMBE-002 — Ganho direcional D-STAR → DMR/YSF
+Configurar -0.5 log2 apenas quando D-STAR é codec de entrada e AMBE+2 é codec de saída. O sentido DMR/YSF → D-STAR não recebe ganho. A validação RF continua necessária.
