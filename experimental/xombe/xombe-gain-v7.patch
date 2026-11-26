@@ -1,15 +1,19 @@
-diff --git a/include/xombe.h b/include/xombe.h
-index 9a3c511..7bca801 100644
 --- a/include/xombe.h
 +++ b/include/xombe.h
-@@ -357,1 +357,2 @@
+@@ -355,6 +355,7 @@
+ XOMBE_API void xombe_xc_decision_get(const xombe_xc *x, xombe_xc_decision *out);
+ /* Optional per-stream D-STAR -> AMBE+2 gain in log2 amplitude; 0 keeps upstream default. */
  XOMBE_API void xombe_xc_set_dstar_to_dmr_gain(xombe_xc *x, float gain_log2);
 +XOMBE_API void xombe_xc_set_dmr_to_dstar_gain(xombe_xc *x, float gain_log2);
-diff --git a/src/dstar/xc.c b/src/dstar/xc.c
-index 10b487d..f36aab1 100644
+ #endif
+ 
+ #ifdef __cplusplus
 --- a/src/dstar/xc.c
 +++ b/src/dstar/xc.c
-@@ -88,0 +89,7 @@
+@@ -86,3 +86,10 @@
+     if (x && x->from == XOMBE_DSTAR)
+         x->u.r.output_gain_log2 = gain_log2;
+ }
 +
 +/* Optional per-stream DMR -> D-STAR gain. Zero preserves upstream behavior. */
 +void xombe_xc_set_dmr_to_dstar_gain(xombe_xc *x, float gain_log2)
@@ -17,17 +21,24 @@ index 10b487d..f36aab1 100644
 +    if (x && x->from == XOMBE_DMR)
 +        x->u.f.output_gain_log2 = gain_log2;
 +}
-diff --git a/src/dstar/xc_state.h b/src/dstar/xc_state.h
-index e6feece..f6feece 100644
 --- a/src/dstar/xc_state.h
 +++ b/src/dstar/xc_state.h
-@@ -21,1 +21,2 @@
+@@ -19,6 +19,7 @@
+     uint8_t last[XOMBE_DS_FRAME_BYTES];
+     int have_last_b, last_b[9]; /* fields of last, if it was a voice frame */
      int out;                  /* enum xombe_xc_out of the last frame */
 +    float output_gain_log2; /* opt-in DMR -> D-STAR gain */
-diff --git a/src/dstar/xcode.c b/src/dstar/xcode.c
-index 51a3a3a..8b93e3a 100644
+     struct xombe_xc_trace *trace; /* trace.h */
+     xombe_cq_ws *ws;          /* quantizer workspace, own or shared, nothing in it lives between frames */
+ } xombe_xc_fwd;
 --- a/src/dstar/xcode.c
 +++ b/src/dstar/xcode.c
-@@ -96,1 +96,1 @@
+@@ -93,7 +93,7 @@
+         h = h < 1.0f ? 1.0f : h > (float)L ? (float)L : h;
+         i = (int)h;
+         fr = h - (float)i;
 -        tgt[l] = (1.0f - fr) * a[i] + fr * a[i < L ? i + 1 : L];
 +        tgt[l] = (1.0f - fr) * a[i] + fr * a[i < L ? i + 1 : L] + x->output_gain_log2;
+     }
+     xombe__cq_amp_weights(tgt, Ld, XOMBE_CQ_QWEIGHT, XOMBE_CQ_WEIGHT_FLOOR, w);
+     xombe__ds_mirror_predict(&x->mirror, Ld, pt);
