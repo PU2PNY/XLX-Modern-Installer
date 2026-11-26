@@ -147,3 +147,6 @@ A pedido do operador, todos os testes novos ocorrem no XLX026 PROD. Preferir lei
 ### Estado atual após insatisfação do áudio SoftAMBE — 2026-11-03
 O operador rejeitou o áudio D-STAR⇄DMR do SoftAMBE; \`ROLLBACK.sh --apply\` restaurou xuvd e Helix shadow com preservação do núcleo XLXD, sem mexer em Nginx/PHP/Live/TOT. Manter \`xlx-unified-voice\` enabled/active no reboot, \`xlx-softambe\` disabled/inactive e não coexecutar transcoders na UDP 10100. O SoftAMBE continua arquivado na VPS para auditoria, não ativo. Não classificar como aprovado o áudio SoftAMBE; o relato negativo OPERATOR é evidência suficiente para não reintroduzir este backend. Pós-rollback: xuvd processou 201 frames com 0 failures em log, mas a qualidade auditiva restaurada ainda requer escuta.
 
+
+## Canary Xombe (2026-11-26)
+Consultar `experimental/xombe/README.md` antes de operar. Override volátil; não reiniciar supondo persistência. Não trocar transcoder durante streams ativos. Não alterar enablement sem plano de boot/rollback.

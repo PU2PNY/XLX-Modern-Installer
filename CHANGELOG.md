@@ -390,3 +390,6 @@ Three additional controlled multi-TX repeats retained 40/40 frames per stream wi
 - Replace the decorative segmented bar with an inline SVG AI/document reader and visible scanning beam.
 - Remove a static !important transform that overrode animation keyframes. Animate only monitoring/analyzing states; respect reduced motion and preserve status text/accessibility.
 - Keep animation in CSS with no extra requests, JavaScript timers, dependencies or radio-path changes. Provide an exact-contract integration patch and asset rollback.
+
+## Unreleased — Xombe experimental (2026-11-26)
+- Adiciona patches do adaptador AMBED e ganho v3, receita de build isolado, evidência e rollback. Sem modificar core, painel ou instalação padrão. TEST-061 / Issue #115; RF v3 pendente.

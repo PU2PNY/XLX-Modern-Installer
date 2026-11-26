@@ -135,3 +135,6 @@ DMR ⇄ YSF DN passa por reempacotamento AMBE+2 próprio do XLXD; não é iguali
 
 ## Current runtime after SoftAMBE rollback (2026-11-03)
 The preceding SoftAMBE production paragraph is historical, not the current runtime. The operator rejected D-STAR-to-DMR and DMR-to-D-STAR audio quality on SoftAMBE and invoked the pre-agreed rollback. Current audio route: original XLXD core -> xuvd software transcoder (UDP loopback 10100), with Helix shadow observing only. SoftAMBE is installed but inactive/disabled. xuvd is active/enabled across reboots, with the original binary hash unchanged; the XLXD PID and binary hash were preserved. Backup integrity and operational restore were verified. Evidence: experimental/softambe/PRODUCTION-20261103.md, Issue #92, and TEST-054.
+
+## 2026-11-26 — Canary Xombe
+A rota observada atualmente é XLXD → AMBED com xombe direto experimental; substitui a descrição histórica de xuvd ativo para este host durante o canary. A arquitetura padrão do instalador continua inalterada. Consulte `experimental/xombe/README.md`.

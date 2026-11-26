@@ -1,0 +1,11 @@
+# Xombe experimental recovery — 2026-11-26
+
+Issue #115. This is a reproducible source recipe, not a stable release or automatic installer option. Run build.sh with a new output directory in an unprivileged Debian 12 lab (git, CMake, make, C/C++ compiler, Python 3). It builds only AMBED. Upstream xombe MIT license and patent warning apply; PP5PK/XLXD GPL obligations remain. No binary or production configuration distributed. The recipe must be independently rebuilt/tested before promotion.
+
+Opt-in AMBED_XOMBE_DIRECT=1 selects direct D-STAR/AMBE+2 parameter transcoding, one state per CStream; other paths remain legacy. DMR/YSF DN direct path and YSF VW not modified. The v3 patch raises DMR/YSF-to-D-STAR amplitude target by 0.5 log2 (~3 dB); D-STAR-to-AMBE+2 uses upstream gain (1.5 dB above v2). No gain applied by the bypassed PCM settings.
+
+Evidence: upstream unmodified 88/88 CTest PASS; original adapter four interleaved streams, 800 UDP frames matched CLI. V3 build PASS; synthetic RMS D-STAR destination 5059 unchanged, AMBE+2 destination 2958 to 3520, no clipped samples. V3 isolated production-host test 100 UDP frames PASS. Operator reported D-STAR receive perfect before v3; v3 RF review pending. Live canary activated with original XLXD PID unchanged and AMBED ping PASS; binary SHA256 815c0a81c86047718c5f5df8779a62fa90395c230c85796bcc474dc1ec8e580b. Not a full installer, RF or disaster recovery PASS.
+
+The live canary uses a volatile systemd override; do not reboot assuming it persists. Existing SoftAMBE disabled / unified enabled boot configuration was left unchanged. Rollback to v2: restore pre-v3 override from private backup, daemon-reload and restart only transcoder with no active streams, verify executable and ping. Rollback to original SoftAMBE: remove only canary override, daemon-reload, restart only transcoder, verify original SHA and ping. Original backup extracted binary passed 40 UDP frames in isolation, not a complete VPS restore. Keep backup private. Do not publish station traffic or credentials.
+
+Before making an installer default: validate full clean Debian install, license/patent review, RF all directions, multi-TX/EOT, reboot and rollback, control UI and generic dashboard/i18n regression. No changes to XLXD core or dashboard are required for the codec adapter itself.

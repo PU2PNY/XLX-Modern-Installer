@@ -102,3 +102,6 @@ O script valida a integridade do tar, para/desabilita o novo transcoder, restaur
 ### Rollback SoftAMBE efetivado — 2026-11-03 (estado mais recente)
 A migração SoftAMBE foi revertida após rejeição do áudio pelo operador. Execução real em PROD: \`/opt/xlx026-backups/SOFTAMBE_PRE_SWITCH_20261103_191457Z/ROLLBACK.sh --check\` e \`--apply\`, com SHA/TAR PASS e recuperação de xuvd+Helix shadow, XLXD sem restart. O script original deixa xuvd iniciado mas disabled; a operação habilitou \`xlx-unified-voice.service\` no boot para preservar áudio após reboot. Estado observado: \`xlx-softambe.service\` inactive/disabled, \`xlx-unified-voice.service\` active/enabled, \`helix-voice-shadow.service\` active/enabled e \`xlxd.service\` active/enabled; xuvd UDP 127.0.0.1:10100. Não reexecutar o rollback indiscriminadamente nem reativar o SoftAMBE sem novo plano. Manter backup root-only e não publicá-lo no GitHub.
 
+
+## Xombe (2026-11-26)
+A recuperação específica do canary v3 e a evidência parcial de restore do AMBED estão em `experimental/xombe/README.md`. Não confundir com restauração integral da VPS. Estado anterior de xuvd ativo é histórico.
