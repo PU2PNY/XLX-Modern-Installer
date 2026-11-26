@@ -51,3 +51,22 @@
              // post packet to VocoderChannel
              packet = new CAmbePacket(uiPid, m_uiCodecIn, Ambe);
              queue = m_VocodecChannel->GetPacketQueueIn();
+--- a/ambed/cstream.h
++++ b/ambed/cstream.h
+@@ -28,6 +28,7 @@
+ #include "cudpsocket.h"
+ #include "ccallsign.h"
+ #include "cvocodecchannel.h"
++#include "xombe.h"
+ 
+ ////////////////////////////////////////////////////////////////////////////////////////
+ // class
+@@ -75,6 +76,8 @@
+     uint8           m_uiCodecIn;
+     uint8           m_uiCodecOut;
+     CVocodecChannel *m_VocodecChannel;
++    xombe_xc_mem m_XombeMemory;
++    xombe_xc *m_Xombe = nullptr;
+     
+     // client details
+     CCallsign       m_Callsign;
