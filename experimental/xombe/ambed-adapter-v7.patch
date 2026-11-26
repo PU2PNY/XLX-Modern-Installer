@@ -1,3 +1,4 @@
+diff --git a/ambed/cstream.cpp b/ambed/cstream.cpp
 --- a/ambed/cstream.cpp
 +++ b/ambed/cstream.cpp
 @@ -123,6 +123,8 @@

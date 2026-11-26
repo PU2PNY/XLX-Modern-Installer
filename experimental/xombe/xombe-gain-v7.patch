@@ -1,3 +1,4 @@
+diff --git a/include/xombe.h b/include/xombe.h
 --- a/include/xombe.h
 +++ b/include/xombe.h
 @@ -355,6 +355,7 @@
@@ -8,6 +9,7 @@
  #endif
  
  #ifdef __cplusplus
+diff --git a/src/dstar/xc.c b/src/dstar/xc.c
 --- a/src/dstar/xc.c
 +++ b/src/dstar/xc.c
 @@ -86,3 +86,10 @@
@@ -21,6 +23,7 @@
 +    if (x && x->from == XOMBE_DMR)
 +        x->u.f.output_gain_log2 = gain_log2;
 +}
+diff --git a/src/dstar/xc_state.h b/src/dstar/xc_state.h
 --- a/src/dstar/xc_state.h
 +++ b/src/dstar/xc_state.h
 @@ -19,6 +19,7 @@
@@ -31,6 +34,7 @@
      struct xombe_xc_trace *trace; /* trace.h */
      xombe_cq_ws *ws;          /* quantizer workspace, own or shared, nothing in it lives between frames */
  } xombe_xc_fwd;
+diff --git a/src/dstar/xcode.c b/src/dstar/xcode.c
 --- a/src/dstar/xcode.c
 +++ b/src/dstar/xcode.c
 @@ -93,7 +93,7 @@
