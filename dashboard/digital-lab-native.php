@@ -117,23 +117,13 @@ $dlabIsBrazil = in_array($dlabCountry, ['br', 'bra', 'brazil', 'brasil'], true);
     </div>
 
     <p class="dlab-message-intro">
-        <strong>Como usar:</strong>
-        o serviço APRS do {{REFLECTOR_NAME}} é <strong>{{APRS_SERVICE_CALLSIGN}}</strong>.
-        Quando estiver logado com uma conta ativa, clicar em um comando abaixo
-        coloca o texto diretamente no campo <strong>Mensagem</strong>.
-        Para testar os comandos do próprio serviço usando um rádio ou aplicativo APRS,
-        envie a mensagem para <strong>{{APRS_SERVICE_CALLSIGN}}</strong>.
+        <strong>Como usar:</strong> o serviço APRS do {{REFLECTOR_NAME}} é <strong>{{APRS_SERVICE_CALLSIGN}}</strong>. Quando estiver logado com uma conta ativa, clicar em um comando abaixo coloca o texto diretamente no campo <strong>Mensagem</strong>. Para testar os comandos do próprio serviço usando um rádio ou aplicativo APRS, envie a mensagem para <strong>{{APRS_SERVICE_CALLSIGN}}</strong>.
       </p>
 
       <div class="dlab-ssid-note">
         <strong>Por que {{APRS_SERVICE_CALLSIGN}}?</strong>
         <span>
-          <b>{{SYSOP_CALLSIGN}}</b> é o indicativo e <b>-10</b> é o SSID dedicado
-          ao serviço APRS do {{REFLECTOR_NAME}}.
-          O painel se conecta ao APRS-IS como <b>{{APRS_SERVICE_CALLSIGN}}</b>,
-          recebe mensagens destinadas a esse endereço e envia suas respostas
-          usando esse mesmo identificador.
-          <b>Use -10, não -110.</b>
+          <b>{{SYSOP_CALLSIGN}}</b> é o indicativo e <b>-10</b> é o SSID dedicado ao serviço APRS do {{REFLECTOR_NAME}}. O painel se conecta ao APRS-IS como <b>{{APRS_SERVICE_CALLSIGN}}</b>, recebe mensagens destinadas a esse endereço e envia suas respostas usando esse mesmo identificador. <b>Use -10, não -110.</b>
         </span>
       </div>
 
@@ -226,25 +216,11 @@ $dlabIsBrazil = in_array($dlabCountry, ['br', 'bra', 'brazil', 'brasil'], true);
           <summary>Criar meu acesso</summary>
 
           <div class="dlab-register-body">
-            <p>
-              Para criar sua conta, informe seu indicativo e
-              <strong>dia e mês reais do aniversário</strong>.
-              Não pedimos o ano.
-            </p>
+            <p>Para criar sua conta, informe seu indicativo e <strong>dia e mês reais do aniversário</strong>. Não pedimos o ano.</p>
 
-            <p>
-              O dia e o mês serão usados para
-              <strong>auxiliar na recuperação da sua senha</strong>
-              caso você a perca e também poderão ser usados
-              futuramente para recursos de aniversário no {{REFLECTOR_NAME}}.
-            </p>
+            <p>O dia e o mês serão usados para <strong>auxiliar na recuperação da sua senha</strong> caso você a perca e também poderão ser usados futuramente para recursos de aniversário no {{REFLECTOR_NAME}}.</p>
 
-            <p>
-              Antes do cadastro, faça um beacon D-PRS pelo módulo B
-              ou envie uma mensagem APRS para
-              <strong>{{APRS_SERVICE_CALLSIGN}}</strong>.
-              A atividade precisa ter ocorrido nos últimos 15 minutos.
-            </p>
+            <p>Antes do cadastro, faça um beacon D-PRS pelo módulo B ou envie uma mensagem APRS para <strong>{{APRS_SERVICE_CALLSIGN}}</strong>. A atividade precisa ter ocorrido nos últimos 15 minutos.</p>
 
             <form id="dlabRegisterForm"
                   class="dlab-account-form"
@@ -294,9 +270,7 @@ $dlabIsBrazil = in_array($dlabCountry, ['br', 'bra', 'brazil', 'brasil'], true);
                        type="checkbox"
                        required>
                 <span>
-                  Confirmo que o dia e o mês informados são reais
-                  e autorizo o uso para recuperação de acesso e
-                  recursos de aniversário.
+                  Confirmo que o dia e o mês informados são reais e autorizo o uso para recuperação de acesso e recursos de aniversário.
                 </span>
               </label>
 
@@ -313,10 +287,7 @@ $dlabIsBrazil = in_array($dlabCountry, ['br', 'bra', 'brazil', 'brasil'], true);
         </details>
 
         <p class="dlab-recovery-note">
-          <strong>Esqueceu a senha?</strong>
-          Informe ao administrador ou colaborador autorizado
-          seu indicativo e o dia/mês real do aniversário.
-          Será gerada uma nova senha; a antiga não é recuperada.
+          <strong>Esqueceu a senha?</strong> Informe ao administrador ou colaborador autorizado seu indicativo e o dia/mês real do aniversário. Será gerada uma nova senha; a antiga não é recuperada.
         </p>
 
       </div>
@@ -397,8 +368,7 @@ $dlabIsBrazil = in_array($dlabCountry, ['br', 'bra', 'brazil', 'brasil'], true);
         <div id="dlabBirthWarning"
              class="dlab-birth-warning"
              hidden>
-          Complete seu dia e mês reais de aniversário
-          para habilitar a recuperação da sua conta.
+          Complete seu dia e mês reais de aniversário para habilitar a recuperação da sua conta.
           <button id="dlabSetBirthBtn"
                   type="button">
             Completar agora
@@ -408,10 +378,7 @@ $dlabIsBrazil = in_array($dlabCountry, ['br', 'bra', 'brazil', 'brasil'], true);
         <div id="dlabUserNotice"
              class="dlab-user-notice"
              hidden>
-          Sua conta está ativa.
-          O envio de mensagens APRS pelo painel está habilitado.
-          As funções administrativas continuam restritas
-          às contas autorizadas.
+          Sua conta está ativa. O envio de mensagens APRS pelo painel está habilitado. As funções administrativas continuam restritas às contas autorizadas.
         </div>
 
         <form id="dlabMessageForm"
@@ -530,10 +497,7 @@ $dlabIsBrazil = in_array($dlabCountry, ['br', 'bra', 'brazil', 'brasil'], true);
     </div>
 
     <p class="dlab-faq-intro">
-      Este guia explica o básico em linguagem simples. APRS não é apenas
-      “mostrar um ponto no mapa”: ele também permite compartilhar informações
-      curtas e úteis em tempo real, trocar mensagens por indicativo e integrar
-      estações de rádio à rede APRS-IS.
+      Este guia explica o básico em linguagem simples. APRS não é apenas “mostrar um ponto no mapa”: ele também permite compartilhar informações curtas e úteis em tempo real, trocar mensagens por indicativo e integrar estações de rádio à rede APRS-IS.
     </p>
 
     <div class="dlab-faq-grid">

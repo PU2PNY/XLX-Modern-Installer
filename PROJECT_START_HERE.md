@@ -5,8 +5,8 @@ Este é o ponto inicial obrigatório para qualquer IA, desenvolvedor ou mantened
 ## Projeto
 - Repositório principal: `PU2PNY/XLX-Modern-Installer`
 - Repositório do dashboard standalone: `PU2PNY/XLX-Modern-Dashboard`
-- Branch padrão confirmada em 2026-09-28: `main`
-- Commit confirmado em `main` em 2026-09-28: `4cb8dc37c35e29f107a77090dc9bec287e863bea` (PR #57 — correção do botão de informações de Gateway / Repeater nas 24h)
+- Branch padrão: `main`
+- Baseline Git verificado antes da sincronização de 2026-11-27: `22d4fcd5cac9159cb39dbcff3a434a9166833869`. Confirme o head atual antes de trabalhar.
 - Versão declarada em `VERSION` e README: `1.4.6`
 - XLX026 é a referência de produção e demonstração, mas credenciais/dados privados não pertencem ao repositório.
 

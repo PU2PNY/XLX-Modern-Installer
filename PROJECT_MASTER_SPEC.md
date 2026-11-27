@@ -191,3 +191,10 @@ Build fixado e reproduzível; caminho direto somente para AMBE+ / AMBE+2; XLXD c
 
 ### XOMBE-002 — Ganho direcional D-STAR → DMR/YSF
 Configurar -0.5 log2 apenas quando D-STAR é codec de entrada e AMBE+2 é codec de saída. O sentido DMR/YSF → D-STAR não recebe ganho. A validação RF continua necessária.
+
+## Sincronização de referência XLX026 — 2026-11-27
+
+- **CORE-006** — Fixar a revisão do XLXD da instalação padrão e oferecer receita limpa separada para o core de referência com TOT180, TX Turn Guard e YSF VW. Reinstalação só do painel preserva o XLXD em uso.
+- **UI-021** — O histórico de 24 h mostra Sufixo entre Indicativo e Nome, apenas com valor explícito da estação correlacionada dentro da TX. O botão de expansão usa +/− e mantém seu estado acessível. Leituras parciais do XML preservam o último estado íntegro.
+- **DATA-002** — Certificado mantém a validação existente ao trocar o layout. A consulta Anatel usa uma base local opcional, fora do webroot, e oferece a fonte oficial quando indisponível.
+- **XOMBE-003** — O perfil de recuperação V9 é explícito, isolado, reproduzível e sem instalação de serviço. O perfil V4 continua padrão do script experimental.

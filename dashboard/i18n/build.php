@@ -38,6 +38,7 @@ $excludedParts = [
 ];
 
 $routeSlugs = [
+    'consulta-indicativo',
     'ao-vivo',
     'modulos',
     'conectados',
@@ -46,14 +47,22 @@ $routeSlugs = [
     'certificado',
     'digital-lab',
 ];
-$routeProtection = [];
-$routeRestore = [];
-foreach ($routeSlugs as $routeIndex => $routeSlug) {
-    $sentinel = '__XLX_ROUTE_' . $routeIndex . '__';
-    $routeProtection["'{$routeSlug}'"] = "'{$sentinel}'";
-    $routeProtection['"' . $routeSlug . '"'] = '"' . $sentinel . '"';
-    $routeRestore[$sentinel] = $routeSlug;
-}
+$protectLiterals = static function (array $values, string $prefix): array {
+    $encode = [];
+    $decode = [];
+    foreach ($values as $index => $value) {
+        $sentinel = $prefix . $index . '__';
+        $encode["'{$value}'"] = "'{$sentinel}'";
+        $encode['"' . $value . '"'] = '"' . $sentinel . '"';
+        $decode[$sentinel] = $value;
+    }
+    return [$encode, $decode];
+};
+[$routeProtection, $routeRestore] = $protectLiterals($routeSlugs, '__XLX_ROUTE_');
+[$registryProtection, $registryRestore] = $protectLiterals(
+    ['Classe A', 'Classe B', 'Classe C', 'Fixa', 'Móvel', 'Repetidora', 'Terrena', 'Ativa', 'Vencida'],
+    '__XLX_ROUTE_REGISTRY_'
+);
 
 $protectTechnical = static function (string $text, array &$restore): string {
     $n = 0;
@@ -181,7 +190,8 @@ foreach ($iterator as $fileInfo) {
     $before = $contents;
     $countForFile = 0;
 
-    $contents = strtr($contents, $routeProtection);
+    $isRegistry = in_array(basename($path), ['callsign-registry.php', 'consulta-indicativo-view.php'], true);
+    $contents = strtr($contents, $isRegistry ? $routeProtection + $registryProtection : $routeProtection);
 
     $technicalRestore = [];
     $contents = $protectTechnical($contents, $technicalRestore);
@@ -237,7 +247,7 @@ foreach ($iterator as $fileInfo) {
         $dateLocaleCount += $dateLocaleCount3 + $dateLocaleCount4;
     }
 
-    $contents = strtr($contents, $routeRestore);
+    $contents = strtr($contents, $isRegistry ? $routeRestore + $registryRestore : $routeRestore);
     if (preg_match('/__XLX_ROUTE_[A-Z0-9_]+__/', $contents, $routeLeak)) {
         fwrite(STDERR, "ERROR: unresolved protected route {$routeLeak[0]} in {$path}\n");
         exit(7);

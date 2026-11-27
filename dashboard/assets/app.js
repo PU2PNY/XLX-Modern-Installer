@@ -314,13 +314,25 @@ function ensureHistoryDropdownStyles(){
  style.textContent=`
   body[data-page='ao-vivo'] .history-status-wrap{display:inline-flex;align-items:center;justify-content:center;gap:3px;flex-wrap:nowrap;white-space:nowrap;width:100%}
   body[data-page='ao-vivo'] .history-status-wrap .state-pill{display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 auto!important;min-width:38px!important;max-width:none!important;padding:3px 5px!important;font-size:8px!important;line-height:1!important;white-space:nowrap!important;word-break:normal!important;overflow-wrap:normal!important}
-  body[data-page='ao-vivo'] .history-toggle{display:inline-grid;place-items:center;flex:0 0 17px;width:17px;min-width:17px;height:17px;padding:0;border:1px solid #285164;border-radius:999px;background:#071923;color:#00d8ff;font:inherit;font-size:7px;font-weight:900;line-height:1;cursor:pointer;transition:border-color .16s ease,box-shadow .16s ease,transform .16s ease}
+  body[data-page='ao-vivo'] .history-toggle{display:inline-grid;place-items:center;flex:0 0 17px;width:17px;min-width:17px;height:17px;padding:0;border:1px solid #285164;border-radius:999px;background:#071923;color:#00d8ff;font:inherit;font-size:12px!important;font-weight:900;line-height:1;cursor:pointer;transition:border-color .16s ease,box-shadow .16s ease}
   body[data-page='ao-vivo'] .history-toggle-spacer{display:inline-block;flex:0 0 17px;width:17px;min-width:17px;height:17px;visibility:hidden;pointer-events:none}
   body[data-page='ao-vivo'] .history-row-country{display:inline-flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap}
   body[data-page='ao-vivo'] .history-row-number{display:inline-grid;place-items:center;flex:0 0 17px;width:17px;height:17px;border:1px solid #285164;border-radius:999px;background:#071923;color:#8ddff2;font-size:8px;font-weight:900;line-height:1}
   body[data-page='ao-vivo'] .history-previous-row .history-row-number{opacity:.35}
   body[data-page='ao-vivo'] .history-toggle:hover,body[data-page='ao-vivo'] .history-toggle:focus-visible,body[data-page='ao-vivo'] .history-toggle[aria-expanded='true']{border-color:#00d8ff;box-shadow:0 0 12px rgba(0,216,255,.22);outline:none}
-  body[data-page='ao-vivo'] .history-toggle[aria-expanded='true']{transform:rotate(180deg)}
+  body[data-page='ao-vivo'] .history-toggle[aria-expanded='true']{transform:none}
+  html body[data-page='ao-vivo'] table.home-history .history-suffix-cell{text-align:center!important;white-space:nowrap!important}
+  @media(min-width:821px){
+   html body[data-page='ao-vivo'] table.home-history tr > :nth-child(6){width:12.5%!important}
+   html body[data-page='ao-vivo'] table.home-history tr > :nth-child(7){width:11.5%!important}
+   html body[data-page='ao-vivo'] table.home-history tr > :nth-child(8){width:12%!important}
+   html body[data-page='ao-vivo'] table.home-history tr > .history-suffix-cell{width:5.5%!important}
+  }
+  @media(max-width:820px){
+   html body[data-page='ao-vivo'] table.home-history tbody tr > td.history-suffix-cell{grid-column:1 / -1!important;order:12!important;text-align:left!important}
+   html body[data-page='ao-vivo'] table.home-history tbody tr > td.history-suffix-cell::before{content:attr(data-label)!important}
+   html body[data-page='ao-vivo'] table.home-history tbody tr > td.history-suffix-cell:empty{display:none!important}
+  }
   body[data-page='ao-vivo'] .history-previous-row>td{background:rgba(0,216,255,.035)!important;color:#b9d5df!important}
   body[data-page='ao-vivo'] .history-previous-row>td:first-child{box-shadow:inset 3px 0 0 rgba(0,216,255,.32)}
   body[data-page='ao-vivo'] .history-primary-row.is-expanded>td{background:rgba(0,216,255,.055)}
@@ -608,7 +620,7 @@ function historyToggleMarkup(x,callKey,previousIds){
   ? 'Fechar atividades anteriores'
   : 'Abrir atividades anteriores';
 
- return `<button type="button" class="history-toggle" data-history-toggle="${esc(callKey)}" aria-expanded="${expanded?'true':'false'}" ${expanded?`aria-controls="${esc(previousIds.join(' '))}"`:""} aria-label="${label} de ${esc(x.callsign)}" title="${label}"><span aria-hidden="true">▼</span></button>`;
+ return `<button type="button" class="history-toggle" data-history-toggle="${esc(callKey)}" aria-expanded="${expanded?'true':'false'}" ${expanded?`aria-controls="${esc(previousIds.join(' '))}"`:""} aria-label="${label} de ${esc(x.callsign)}" title="${label}"><span aria-hidden="true">${expanded?'−':'+'}</span></button>`;
 }
 
 /* XLXMODERN_HORARIO_TX_24H_V1 */
@@ -642,6 +654,8 @@ function historyRowMarkup(
   <td class="history-callsign-cell">
    <a target="_blank" href="${esc(x.qrz)}">${esc(x.callsign)}</a>${xlxmodernAprsSatelliteMarkup(x.callsign)}${xlxmodernDmrTalkerAliasMarkup(x.callsign)}
   </td>
+
+  <td class="history-suffix-cell" data-label="Sufixo">${esc(x.radio_suffix||'')}</td>
 
   <td class="history-name-cell" data-missing="${!x.name||/^N[aã]o informado$/i.test(String(x.name))?'1':'0'}">${esc(x.name||'Não informado')}</td>
 
@@ -677,7 +691,7 @@ function historyMarkup(d){
   );
 
  if(!rows.length){
-  return `<tr><td colspan="10">Nenhuma transmissão registrada nas últimas 24 horas.</td></tr>`;
+  return `<tr><td colspan="12">Nenhuma transmissão registrada nas últimas 24 horas.</td></tr>`;
  }
 
  const groups=new Map();
@@ -752,11 +766,11 @@ function xlxmodernHistoryCoverageText(data){
 function historyLongToggleMarkup(x,days){
  const count=Number(x&&x.tx_count||0),call=historyCallKey(x);
  if(count<=1||!call)return '';
- return `<button type="button" class="history-toggle" data-history-long-toggle="${esc(call)}" data-history-days="${days}" aria-expanded="false" aria-label="Abrir ${count} transmissões de ${esc(x.callsign)}" title="${count} transmissões no período"><span aria-hidden="true">▼</span></button>`;
+ return `<button type="button" class="history-toggle" data-history-long-toggle="${esc(call)}" data-history-days="${days}" aria-expanded="false" aria-label="Abrir ${count} transmissões de ${esc(x.callsign)}" title="${count} transmissões no período"><span aria-hidden="true">+</span></button>`;
 }
 function historyLongMarkup(data){
  const days=Number(data&&data.days||xlxmodernHistoryPeriodDays||7),rows=Array.isArray(data&&data.groups)?data.groups:[];
- if(!rows.length)return `<tr><td colspan="11">Nenhuma transmissão registrada na base dos últimos ${days} dias.</td></tr>`;
+ if(!rows.length)return `<tr><td colspan="12">Nenhuma transmissão registrada na base dos últimos ${days} dias.</td></tr>`;
  return rows.map((x,i)=>{
   const y={...x,duration:Number(x.total_duration||x.duration||0)};
   const attrs=`class="history-primary-row history-long-primary" data-history-long-call="${esc(historyCallKey(x))}"`;
@@ -767,7 +781,7 @@ async function xlxmodernLoadLongHistory(days){
  const seq=++xlxmodernHistoryLongRequest,rows=$('#historyRows'),title=$('#historyPeriodTitle'),note=$('#historyCoverageNote');
  if(title)title.textContent=xlxmodernHistoryPeriodText(days);
  if(note)note.textContent='Carregando histórico…';
- if(rows)rows.innerHTML='<tr class="history-long-loading"><td colspan="11">Carregando histórico…</td></tr>';
+ if(rows)rows.innerHTML='<tr class="history-long-loading"><td colspan="12">Carregando histórico…</td></tr>';
  try{
   const r=await fetch(`/api/history-long.php?days=${days}&ts=${Date.now()}`,{cache:'no-store'}),d=await r.json();
   if(seq!==xlxmodernHistoryLongRequest)return;
@@ -776,7 +790,7 @@ async function xlxmodernLoadLongHistory(days){
   if(note)note.textContent=xlxmodernHistoryCoverageText(d);
   setTimeout(()=>xlxmodernEnableRepeaterButtons(document),0);
  }catch(_e){
-  if(rows)rows.innerHTML='<tr><td colspan="11">Não foi possível carregar o histórico longo.</td></tr>';
+  if(rows)rows.innerHTML='<tr><td colspan="12">Não foi possível carregar o histórico longo.</td></tr>';
   if(note)note.textContent='Histórico indisponível';
  }
 }
@@ -787,7 +801,7 @@ async function toggleLongHistory(button){
  const existing=[...document.querySelectorAll('#historyRows tr[data-history-long-parent]')].filter(r=>r.dataset.historyLongParent===call);
  if(existing.length){
   existing.forEach(r=>r.style.setProperty('display',expanded?'none':'table-row','important'));
-  button.setAttribute('aria-expanded',expanded?'false':'true'); main.classList.toggle('is-expanded',!expanded); return;
+  button.setAttribute('aria-expanded',expanded?'false':'true'); button.firstElementChild.textContent=expanded?'+':'−'; main.classList.toggle('is-expanded',!expanded); return;
  }
  button.disabled=true;
  try{
@@ -799,7 +813,7 @@ async function toggleLongHistory(button){
    main.insertAdjacentHTML('afterend',html);
    setTimeout(()=>xlxmodernEnableRepeaterButtons(document),0);
   }
-  button.setAttribute('aria-expanded','true'); main.classList.add('is-expanded');
+  button.setAttribute('aria-expanded','true'); button.firstElementChild.textContent='−'; main.classList.add('is-expanded');
  }catch(_e){button.title='Falha ao carregar transmissões anteriores';}
  finally{button.disabled=false;}
 }
@@ -1047,6 +1061,9 @@ function xlxmodernMergeRecentHistory(current,recent,generatedAt,connections){
  [...(Array.isArray(recent)?recent:[]),...(Array.isArray(current)?current:[])].forEach(x=>{
   const key=xlxmodernHistoryItemKey(x);
   if(key&&!merged.has(key))merged.set(key,x);
+  else if(key&&x.radio_suffix&&!merged.get(key).radio_suffix){
+   merged.set(key,{...merged.get(key),radio_suffix:x.radio_suffix});
+  }
  });
  const rows=[...merged.values()]
   .filter(x=>Number(x&&x.started_at||0)>=cutoff);

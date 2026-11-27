@@ -313,3 +313,10 @@ O estado de 2026-11-03 é histórico. PROD: xombe via AMBED ativo com override v
 
 ## Xombe V4 — 2026-11-26
 Operador autorizou adoção. V3 foi retirado após falha de direção do ganho e 8/88 testes; V2 foi temporariamente restaurado. V4 corrigido: ganho por stream apenas D-STAR→AMBE+2; 88/88 CTest PASS, 100 frames UDP isolados PASS. PROD: V4 ativo e habilitado no boot; XLXD não reiniciado; backup privado. Escuta RF V4 pendente. Receita e rollback em `experimental/xombe/README.md`.
+
+## Sincronização do XLX026 — 2026-11-27
+
+- OPERATOR: Dario confirmou funcionamento do XLX026 com aprovações de usuários. PROD por inspeção somente leitura: XLXD ativo, hash `3991b040573ff7522af69148c97f768d0b468b716212bf7b8e047fca1c6cc410`. Xombe V9 ativo e habilitado no boot, hash `f59ddbbc4d9e9851d01fd6ea79c2d082780702fd2f0f7a70e1065da3614f5f24`; serviço de voz alternativo inativo e desabilitado.
+- ENV: recompilação limpa de XLXD (perfil XLX026) e Xombe V9 no WartyWallaby reproduziu os dois hashes do runtime PROD. Teste C++ do TX Turn Guard e 88 testes CTest do Xombe passaram. A árvore de trabalho `/usr/src/xlxd` em PROD é divergente. A proveniência do core ativo segue a receita TOT180/Turn Guard/VW já registrada.
+- DOC: instalador permanece na versão declarada 1.4.6; última tag publicada observada `v1.2.14`. Candidato à atualização do GitHub. Nenhuma implantação em produção faz parte desta rodada.
+- Recuperação do Ao Vivo: código e dependências fixadas do Live Core V2 e código do Live Hub preservados em `runtime/`. Os dois componentes exigem rotas e arquivos auxiliares da instância para o teste integral.

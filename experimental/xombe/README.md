@@ -44,3 +44,12 @@ O script verifica hashes, aplica patches, executa CMake/CTest (88 testes) e comp
 - Para rollback imediato após cessar streams: trocar ExecStart para binário V2, daemon-reload e reiniciar somente AMBED; V2 permanece em `/opt/xlx-softambe/bin/ambed-xombe-gain-v2-20261126`. Para retornar ao caminho xuvd legado, usar o script validado `/opt/xlx026-backups/SOFTAMBE_PRE_SWITCH_20261103_191457Z/ROLLBACK.sh` somente após `--check` e janela sem TX.
 - Não atualizar XLXD core nem alterar painel por causa deste codec. Integração do instalador público ainda é um trabalho separado; esta PR publica receita reproduzível e evidência, não uma release completa do instalador.
 
+## Recuperação do Xombe V9 do XLX026
+
+A inspeção de 2026-11-27 correlacionou o executável ativo com o build de laboratório `f59ddbbc4d9e9851d01fd6ea79c2d082780702fd2f0f7a70e1065da3614f5f24`. Para reconstruir, selecione explicitamente o perfil da instância:
+
+```bash
+bash build.sh /tmp/xombe-v9-recovery xlx026-v9
+```
+
+O perfil aplica o ganho direcional observado nas fontes do binário ativo (`-0.5` e `4.984032904` em log2 de amplitude). Esses valores pertencem à recuperação desse perfil. Use V4 em uma avaliação genérica. A compilação roda CTest e só produz arquivos locais. A qualidade auditiva em rádios reais deve ser avaliada separadamente.

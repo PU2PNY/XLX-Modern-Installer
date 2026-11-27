@@ -23,6 +23,8 @@ echo "[dashboard i18n]"
 bash "$ROOT/tests/test-dashboard-i18n.sh" || failures=$((failures+1))
 echo "[dashboard core i18n]"
 bash "$ROOT/tests/test-dashboard-core-i18n.sh" || failures=$((failures+1))
+echo "[dashboard long-text i18n]"
+bash "$ROOT/tests/test-dashboard-long-texts-i18n.sh" || failures=$((failures+1))
 echo "[live multi-TX layout]"
 bash "$ROOT/tests/test-live-multi-tx-layout.sh" || failures=$((failures+1))
 echo "[generic replica labels/layout]"
@@ -53,6 +55,8 @@ echo "[current panel runtime parity]"
 bash "$ROOT/tests/test-current-panel-runtime-parity.sh" || failures=$((failures+1))
 echo "[connected station dedupe]"
 bash "$ROOT/tests/test-connected-dedupe.sh" || failures=$((failures+1))
+echo "[complete XML snapshots]"
+python3 "$ROOT/tests/test-xml-snapshot.py" || failures=$((failures+1))
 echo "[ranking rollover]"
 bash "$ROOT/tests/test-ranking-rollover.sh" || failures=$((failures+1))
 echo "[transmission analyzer]"
