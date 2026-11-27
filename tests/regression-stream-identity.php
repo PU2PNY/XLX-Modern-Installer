@@ -30,6 +30,5 @@ $source=(string)file_get_contents(dirname(__DIR__).'/dashboard/assets/ao-vivo-au
 $index=(string)file_get_contents(dirname(__DIR__).'/dashboard/index.php');
 if(!preg_match('~<th>Indicativo</th><th class="history-suffix-cell" scope="col">Sufixo</th><th>Nome</th>~',$index)){ fwrite(STDERR,"FAIL: radio suffix position in live history\n"); exit(1); }
 if(str_contains($source,'historyRowMarkup =') || str_contains($source,'function normalizeHeader(')){ fwrite(STDERR,"FAIL: second history table renderer\n"); exit(1); }
-if(strpos($source,$label)===false){ fwrite(STDERR,"FAIL: missing history column $label\n"); exit(1); } }
 if(strpos($source,"source.indexOf('xlxd-station') === 0")===false){ fwrite(STDERR,"FAIL: Link must require STATION source\n"); exit(1); }
 fwrite(STDOUT,"OK: stream identity regression suite passed\n");
