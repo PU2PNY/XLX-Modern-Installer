@@ -27,6 +27,8 @@ expect_same(xlxmodern_history_state(['online'=>false,'callsign'=>'ABC123','gatew
 $station=['callsign'=>'PS7JAP','gateway'=>'PY4RWC','gateway_suffix'=>'B','network_callsign'=>'PY4RWC','identity_source'=>'xlxd-station-stream'];
 expect_same(xlxmodern_enforce_safe_origin($station,$other),$station,'STATION identity is preserved');
 $source=(string)file_get_contents(dirname(__DIR__).'/dashboard/assets/ao-vivo-authorized-sync-v1.js');
-foreach(['Nº','País','Status','Indicativo','Nome','Hotspot / Repetidora','Cidade','Protocolo','Módulo','Tempo de transmissão'] as $label){ if(strpos($source,$label)===false){ fwrite(STDERR,"FAIL: missing history column $label\n"); exit(1); } }
+$index=(string)file_get_contents(dirname(__DIR__).'/dashboard/index.php');
+if(!preg_match('~<th>Indicativo</th><th class="history-suffix-cell" scope="col">Sufixo</th><th>Nome</th>~',$index)){ fwrite(STDERR,"FAIL: radio suffix position in live history\n"); exit(1); }
+if(str_contains($source,'historyRowMarkup =') || str_contains($source,'function normalizeHeader(')){ fwrite(STDERR,"FAIL: second history table renderer\n"); exit(1); }
 if(strpos($source,"source.indexOf('xlxd-station') === 0")===false){ fwrite(STDERR,"FAIL: Link must require STATION source\n"); exit(1); }
 fwrite(STDOUT,"OK: stream identity regression suite passed\n");

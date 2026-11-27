@@ -108,3 +108,9 @@ A recuperação específica do canary v3 e a evidência parcial de restore do AM
 
 ## Xombe V4 — rollback
 V2 permanece disponível. Para rollback do V4, aguardar ausência de TX, restaurar o drop-in de V2 no backup privado, daemon-reload, reiniciar somente AMBED e verificar PID/hash/ping. Para retornar ao legado xuvd, usar ROLLBACK.sh --check e --apply conforme o README. Não publicar backups privados.
+
+## Referência verificada em 2026-11-27
+
+Use `bash scripts/build-xlxd-recovery.sh NOVO_CHECKOUT` como usuário sem privilégios em Debian 12 para compilar o core de referência. A receita aplica o patch combinado TOT180/Turn Guard e o patch VW sobre a revisão PP5PK documentada. Para uma instalação equivalente, mantenha um backup privado dos parâmetros de compilação da instância, configurações persistentes, dados locais e unidades de serviço. O build com parâmetros genéricos terá hash diferente do binário da instância. Selecione o segundo argumento `xlx026` para reproduzir os parâmetros de compilação documentados da instância. Em Debian 12 no WartyWallaby esse perfil reproduziu o SHA-256 do executável ativo, `3991b040573ff7522af69148c97f768d0b468b716212bf7b8e047fca1c6cc410`.
+
+Para o transcodificador, veja o perfil `xlx026-v9` em [experimental/xombe/README.md](../experimental/xombe/README.md). Verifique o hash antes de considerar um binário para recuperação. Os dois builds independem da instalação e do restart de serviços. Para uma restauração completa, valide CallingHome, administração, Live e fluxos de rádio em VPS isolada antes de voltar ao tráfego público.

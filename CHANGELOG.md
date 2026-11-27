@@ -1,3 +1,9 @@
+## Unreleased — sincronização do XLX026 (2026-11-27)
+
+- Atividade de 24 h com coluna Sufixo entre Indicativo e Nome, botões +/− e proteção contra XML parcialmente reescrito pelo XLXD.
+- Certificado clássico, traduções ampliadas e consulta Anatel com importação local opcional.
+- Revisão XLXD fixada no instalador, receita do core de referência, perfil isolado Xombe V9 e fontes de recuperação do Live Core V2 e do Live Hub.
+
 ## Unreleased — réplica genérica: layout, rótulos editáveis e remoção de vazamentos XLX026 (2026-11-24)
 
 - A) Novo `dashboard/assets/header-layout-v5.css` (último CSS no `index.php`): menu em 1 linha ≥1180px, grade 821–1179px, cartões de Módulos e Conectados no celular, rótulos ≥10px, rodapé com quebra, MENU 44px, `prefers-reduced-motion`. Portado da produção só com regras genéricas; seletores adaptados ao HTML do instalador (tabela de módulos com 11 colunas, `.module-reference`).

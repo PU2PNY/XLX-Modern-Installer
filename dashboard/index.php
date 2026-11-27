@@ -1,6 +1,6 @@
 <?php
 $page = $_GET['page'] ?? 'ao-vivo';
-$allowed = ['ao-vivo','modulos','conectados','ranking','refletores','digital-lab','certificado'];
+$allowed = ['ao-vivo','modulos','conectados','ranking','refletores','digital-lab','certificado','consulta-indicativo'];
 if (!in_array($page, $allowed, true)) $page = 'ao-vivo';
 $authorizedPage = in_array($page, ['ao-vivo','modulos','conectados','ranking'], true);
 $site = is_file(__DIR__ . '/config/site.php') ? require __DIR__ . '/config/site.php' : [];
@@ -15,6 +15,7 @@ for ($i = 0; $i < min(3, $moduleCount); $i++) $dmrModuleHint[] = chr(65 + $i) . 
 $dmrModuleHintText = implode(', ', $dmrModuleHint) . ($moduleCount > 3 ? '…' : '');
 function nav_class(string $p, string $current): string { return $p === $current ? ' class="active"' : ''; }
 function page_url(string $p): string {
+  if ($p === 'consulta-indicativo') return '/consulta-indicativo.php';
   if ($p === 'digital-lab') return '/aprs-dprs';
   return '/' . rawurlencode($p);
 }
@@ -26,6 +27,7 @@ function render_nav(string $page): string {
     'digital-lab' => 'APRS / D-PRS',
     'certificado' => 'Certificado',
     'ranking' => 'Ranking',
+    'consulta-indicativo' => 'Consulta de indicativo',
     'refletores' => 'Lista de refletores XLX',
   ];
   $html = '';
@@ -36,6 +38,7 @@ function render_nav(string $page): string {
   return $html;
 }
 $seo = [
+ 'consulta-indicativo'=>['title'=>'Consulta de indicativo','description'=>'Consulte os indicativos e as estações de radioamador no painel oficial da Anatel.'],
  'ao-vivo'=>['title'=>'{{REFLECTOR_NAME}} — Painel ao vivo D-STAR, DMR e C4FM','description'=>'Acompanhe ao vivo transmissões, estações conectadas e módulos do refletor multiprotocolo {{REFLECTOR_NAME}}.'],
  'modulos'=>['title'=>'Módulos ' . $moduleRange . ' — {{REFLECTOR_NAME}}','description'=>'Consulte funções, protocolos e identificações de acesso dos módulos habilitados do refletor {{REFLECTOR_NAME}}.'],
  'conectados'=>['title'=>'Estações conectadas — {{REFLECTOR_NAME}}','description'=>'Veja em tempo real as estações conectadas ao {{REFLECTOR_NAME}}, com indicativo, protocolo, módulo e tempo de conexão.'],
@@ -127,7 +130,7 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}' . page_url($page);
 <?php if ($page === 'ao-vivo'): ?><link rel="stylesheet" href="assets/ao-vivo-core-bundle-v1.css?v=20260907"><?php endif; ?>
 
 <?php if ($page === 'ao-vivo'): ?><link rel="stylesheet" href="assets/ao-vivo-final-bundle-v1.css?v=20260907"><link rel="stylesheet" href="assets/qrz-tx-photo-v1.css?v=20260907"><?php endif; ?>
-<link rel="stylesheet" href="assets/atividade-24h-conectados-v1.css?v=3">
+<link rel="stylesheet" href="assets/atividade-24h-conectados-v1.css?v=20261127-history">
 <?php if ($page === 'modulos'): ?><link rel="stylesheet" href="assets/module-capabilities-v1.css?v=20260907"><?php endif; ?>
 <?php if ($page === 'digital-lab'): ?><link rel="stylesheet" href="assets/digital-lab.css?v=native"><link rel="stylesheet" href="assets/digital-lab-operator.css?v=native"><?php endif; ?>
 <?php if ($page === 'certificado'): ?><link rel="stylesheet" href="assets/certificado.css?v=native"><?php endif; ?>
@@ -141,10 +144,10 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}' . page_url($page);
 <link rel="stylesheet" href="assets/ao-vivo-clean-v1.css?v=20260807_024051">
 
 <!-- XLXMODERN_HISTORY_SOUND_MENU_V1 CSS -->
-<link rel="stylesheet" href="assets/history-sound-menu-v1.css?v=20260828_readable">
+<link rel="stylesheet" href="assets/history-sound-menu-v1.css?v=20261127-history">
 
 <!-- XLXMODERN_HISTORY_MOBILE_FIT_V2 -->
-<link rel="stylesheet" href="assets/history-mobile-fit-v2.css?v=20260807_031008">
+<link rel="stylesheet" href="assets/history-mobile-fit-v2.css?v=20261127-history">
 
 <!-- XLXMODERN_TABLE_ROW_HOVER_V1 -->
 <link rel="stylesheet" href="assets/table-row-hover-v1.css?v=20260807_031841">
@@ -175,6 +178,7 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}' . page_url($page);
 <link rel="stylesheet" href="assets/ao-vivo-gif-anchor-v12.css?v=1">
 <link rel="stylesheet" href="assets/ao-vivo-multi-tx-layout-v1.css?v=20261116-1">
 <?php endif; ?>
+<?php if ($page === 'consulta-indicativo'): ?><link rel="stylesheet" href="assets/consulta-indicativo.css?v=20261021"><?php endif; ?>
 <link rel="stylesheet" href="assets/header-layout-v5.css?v=20261124-1">
 </head>
 <body data-page="<?=htmlspecialchars($page, ENT_QUOTES, 'UTF-8')?>" data-reflector="{{REFLECTOR_NAME}}">
@@ -213,7 +217,7 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}' . page_url($page);
   <aside class="live-widget"><div class="widget-heading"><div><p class="eyebrow">MONITOR AO VIVO</p><h2>Transmissões</h2></div><span id="widgetCount">Standby</span></div><div class="live-summary-bar" aria-label="Resumo do monitor ao vivo"><span class="live-summary-item live-summary-connected"><b id="headerConnected">0</b><small>conectados</small></span><span class="live-summary-item live-summary-active"><b id="headerActive">0</b><small>TX ativa</small></span></div><div id="moduleGrid" class="module-grid widget-grid"></div></aside>
   <div class="dashboard-main panel compact-panel">
    <div class="section-title panel-title"><div><p class="eyebrow">ÚLTIMAS ATIVIDADES</p><h2>Atividade das últimas 24 horas</h2></div><span class="table-note">Todos os indicativos</span></div>
-   <div class="table-wrap"><table class="home-history"><thead><tr><th>Nº</th><th>País</th><th>Status</th><th>Indicativo</th><th>Nome</th><th>Gateway / Repetidora</th><th>Cidade</th><th>Protocolo</th><th>Módulo</th><th>Horário TX</th><th>Tempo de TX</th></tr></thead><tbody id="historyRows"></tbody></table></div>
+   <div class="table-wrap"><table class="home-history"><thead><tr><th>Nº</th><th>País</th><th>Status</th><th>Indicativo</th><th class="history-suffix-cell" scope="col">Sufixo</th><th>Nome</th><th>Gateway / Repetidora</th><th>Cidade</th><th>Protocolo</th><th>Módulo</th><th>Horário TX</th><th>Tempo de TX</th></tr></thead><tbody id="historyRows"></tbody></table></div>
   </div>
  </section>
 <!-- XLXMODERN HAM WEATHER WIDGET V1 -->
@@ -221,6 +225,8 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}' . page_url($page);
   <div class="hamwx-skeleton">Carregando clima e propagação...</div>
  </section>
 <!-- /XLXMODERN HAM WEATHER WIDGET V1 -->
+<?php elseif ($page === 'consulta-indicativo'): ?>
+ <?php require __DIR__.'/consulta-indicativo-view.php'; ?>
 <?php elseif ($page === 'modulos'): ?>
  <section class="page-heading connected-modules-heading">
   <p class="eyebrow">ESTRUTURA DO REFLETOR</p>
@@ -275,9 +281,9 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}' . page_url($page);
 <?php else: ?>
 <footer><div><a class="brand footer-brand" href="<?=page_url('ao-vivo')?>"><img class="brand-logo" src="assets/logo-{{REFLECTOR_NAME}}.svg" alt="Logotipo {{REFLECTOR_NAME}}"><span><b>{{REFLECTOR_NAME}}</b></span></a><p><span class="footer-reflector-name">{{REFLECTOR_NAME}}</span> para a comunidade radioamadora.</p></div><div class="footer-links"><a href="<?=page_url('ao-vivo')?>">Ao vivo</a><a href="<?=page_url('conectados')?>">Conectados</a><a href="<?=page_url('ranking')?>">Ranking</a></div><small>{{REFLECTOR_NAME}} • D-STAR {{REFLECTOR_NAME}}-D • DMR: TG {{DMR_TG}} (voz), <?=htmlspecialchars($dmrModuleHintText, ENT_QUOTES, 'UTF-8')?> • C4FM/YSF {{YSF_ID}}</small></footer>
 <?php endif; ?>
-<div id="toastStack" class="toast-stack"></div><script src="assets/mtr.js?v=5"></script><script src="assets/app.js?v=20260907-production-parity"></script>
+<div id="toastStack" class="toast-stack"></div><script src="assets/mtr.js?v=5"></script><script src="assets/app.js?v=20261127-history"></script>
 <?php if ($page === 'ao-vivo'): ?>
-<script src="assets/ao-vivo-authorized-sync-v1.js?v=1"></script>
+<script src="assets/ao-vivo-authorized-sync-v1.js?v=2"></script>
 <script src="assets/ao-vivo-tx-embed-v5.js?v=1" defer></script>
 <script src="assets/helix-shadow-monitor-v1.js?v=1" defer></script>
 <?php endif; ?>
@@ -359,5 +365,5 @@ $canonical = 'https://{{REFLECTOR_DOMAIN}}' . page_url($page);
 <script src="assets/header-brasil-neon-fixed-v2.js?v=1"></script>
 <script src="assets/xlxmodern-accessibility.js?v=1" defer></script>
 <?php if ($page === 'digital-lab'): ?><script src="assets/digital-lab.js?v=native"></script><script src="assets/digital-lab-operator.js?v=native"></script><?php endif; ?>
-<?php if ($page === 'certificado'): ?><script src="assets/vendor/qrcode.min.js"></script><script src="assets/certificado.js?v=native"></script><?php endif; ?>
+<?php if ($page === 'certificado'): ?><script src="assets/vendor/qrcode.min.js"></script><script src="assets/certificado.js?v=20261127-classico"></script><?php endif; ?>
 </body></html>

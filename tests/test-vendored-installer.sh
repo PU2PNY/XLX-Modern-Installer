@@ -10,6 +10,14 @@ expected="$(sed -n 's/^readonly EXPECTED_INSTALLER_SHA256="\([^"]*\)"/\1/p' "$RO
 actual="$(sha256sum "$source" | awk '{print $1}')"
 [[ "$expected" == "$actual" ]] || { echo "[FAIL] vendored installer checksum mismatch" >&2; exit 1; }
 bash -n "$source"
+grep -Eq '^readonly XLXD_INSTALL_COMMIT="[0-9a-f]{40}"$' "$source" || {
+  echo "[FAIL] fresh install must specify a full XLXD commit" >&2
+  exit 1
+}
+grep -Fq 'git -C xlxd checkout --detach "$XLXD_INSTALL_COMMIT"' "$source" || {
+  echo "[FAIL] fresh install does not check out the reviewed XLXD commit" >&2
+  exit 1
+}
 grep -Fq 'if [[ -t 1 && "${TERM:-dumb}" != "dumb" ]]; then' "$source" || { echo "[FAIL] vendored installer still requires an interactive TERM" >&2; exit 1; }
 if grep -qx 'clear' "$source"; then echo "[FAIL] unguarded clear remains in vendored installer" >&2; exit 1; fi
 bash -n "$ROOT/vendor/pp5pk-installer/templates/uninstaller.sh"

@@ -179,61 +179,61 @@ table.home-history
     }
 
     /* Nome */
-    html body[data-page="ao-vivo"] table.home-history th:nth-child(5),
-    html body[data-page="ao-vivo"] table.home-history td:nth-child(5){
+    html body[data-page="ao-vivo"] table.home-history th:nth-child(6),
+    html body[data-page="ao-vivo"] table.home-history td:nth-child(6){
         width:14.5% !important;
     }
 
     /* Hotspot / Repetidora */
-    html body[data-page="ao-vivo"] table.home-history th:nth-child(6),
-    html body[data-page="ao-vivo"] table.home-history td:nth-child(6){
+    html body[data-page="ao-vivo"] table.home-history th:nth-child(7),
+    html body[data-page="ao-vivo"] table.home-history td:nth-child(7){
         width:13% !important;
     }
 
     /* Cidade */
-    html body[data-page="ao-vivo"] table.home-history th:nth-child(7),
-    html body[data-page="ao-vivo"] table.home-history td:nth-child(7){
+    html body[data-page="ao-vivo"] table.home-history th:nth-child(8),
+    html body[data-page="ao-vivo"] table.home-history td:nth-child(8){
         width:14% !important;
     }
 
     /* Protocolo */
-    html body[data-page="ao-vivo"] table.home-history th:nth-child(8),
-    html body[data-page="ao-vivo"] table.home-history td:nth-child(8){
+    html body[data-page="ao-vivo"] table.home-history th:nth-child(9),
+    html body[data-page="ao-vivo"] table.home-history td:nth-child(9){
         width:10% !important;
     }
 
     /* Módulo */
-    html body[data-page="ao-vivo"] table.home-history th:nth-child(9),
-    html body[data-page="ao-vivo"] table.home-history td:nth-child(9){
+    html body[data-page="ao-vivo"] table.home-history th:nth-child(10),
+    html body[data-page="ao-vivo"] table.home-history td:nth-child(10){
         width:5.5% !important;
         text-align:center !important;
     }
 
     /* Horário TX */
-    html body[data-page="ao-vivo"] table.home-history th:nth-child(10),
-    html body[data-page="ao-vivo"] table.home-history td:nth-child(10){
+    html body[data-page="ao-vivo"] table.home-history th:nth-child(11),
+    html body[data-page="ao-vivo"] table.home-history td:nth-child(11){
         width:8% !important;
     }
 
     /* Tempo de TX */
-    html body[data-page="ao-vivo"] table.home-history th:nth-child(11),
-    html body[data-page="ao-vivo"] table.home-history td:nth-child(11){
+    html body[data-page="ao-vivo"] table.home-history th:nth-child(12),
+    html body[data-page="ao-vivo"] table.home-history td:nth-child(12){
         width:10.5% !important;
     }
 
-    html body[data-page="ao-vivo"] table.home-history th:nth-child(10),
-    html body[data-page="ao-vivo"] table.home-history td:nth-child(10),
     html body[data-page="ao-vivo"] table.home-history th:nth-child(11),
-    html body[data-page="ao-vivo"] table.home-history td:nth-child(11){
+    html body[data-page="ao-vivo"] table.home-history td:nth-child(11),
+    html body[data-page="ao-vivo"] table.home-history th:nth-child(12),
+    html body[data-page="ao-vivo"] table.home-history td:nth-child(12){
         white-space:nowrap !important;
         text-align:center !important;
         font-variant-numeric:tabular-nums;
     }
 
     html body[data-page="ao-vivo"] table.home-history td:nth-child(4),
-    html body[data-page="ao-vivo"] table.home-history td:nth-child(5),
     html body[data-page="ao-vivo"] table.home-history td:nth-child(6),
-    html body[data-page="ao-vivo"] table.home-history td:nth-child(7){
+    html body[data-page="ao-vivo"] table.home-history td:nth-child(7),
+    html body[data-page="ao-vivo"] table.home-history td:nth-child(8){
         overflow:hidden;
         text-overflow:ellipsis;
         white-space:nowrap;
@@ -420,12 +420,12 @@ body[data-page="ao-vivo"] .gateway-different .gateway-value{
 
 /* XLX Modern — tabela 24h: as 11 colunas são obrigatórias em todos os idiomas. */
 @media (min-width:821px){
-  html body[data-page="ao-vivo"] table.home-history thead th:nth-child(9),
   html body[data-page="ao-vivo"] table.home-history thead th:nth-child(10),
   html body[data-page="ao-vivo"] table.home-history thead th:nth-child(11),
-  html body[data-page="ao-vivo"] table.home-history tbody td:nth-child(9),
+  html body[data-page="ao-vivo"] table.home-history thead th:nth-child(12),
   html body[data-page="ao-vivo"] table.home-history tbody td:nth-child(10),
-  html body[data-page="ao-vivo"] table.home-history tbody td:nth-child(11){
+  html body[data-page="ao-vivo"] table.home-history tbody td:nth-child(11),
+  html body[data-page="ao-vivo"] table.home-history tbody td:nth-child(12){
     display:table-cell !important;
     visibility:visible !important;
     opacity:1 !important;

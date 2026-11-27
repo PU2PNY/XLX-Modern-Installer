@@ -71,13 +71,13 @@ body[data-page='ao-vivo'] .home-history th:nth-child(1),body[data-page='ao-vivo'
 body[data-page='ao-vivo'] .home-history th:nth-child(2),body[data-page='ao-vivo'] .home-history td:nth-child(2){width:4.5% !important;text-align:center!important;}
 body[data-page='ao-vivo'] .home-history th:nth-child(3),body[data-page='ao-vivo'] .home-history td:nth-child(3){width:7% !important;text-align:center!important;}
 body[data-page='ao-vivo'] .home-history th:nth-child(4),body[data-page='ao-vivo'] .home-history td:nth-child(4){width:8% !important;}
-body[data-page='ao-vivo'] .home-history th:nth-child(5),body[data-page='ao-vivo'] .home-history td:nth-child(5){width:14.5% !important;}
-body[data-page='ao-vivo'] .home-history th:nth-child(6),body[data-page='ao-vivo'] .home-history td:nth-child(6){width:13% !important;}
-body[data-page='ao-vivo'] .home-history th:nth-child(7),body[data-page='ao-vivo'] .home-history td:nth-child(7){width:14% !important;}
-body[data-page='ao-vivo'] .home-history th:nth-child(8),body[data-page='ao-vivo'] .home-history td:nth-child(8){width:10% !important;}
-body[data-page='ao-vivo'] .home-history th:nth-child(9),body[data-page='ao-vivo'] .home-history td:nth-child(9){width:5.5% !important;text-align:center!important;}
-body[data-page='ao-vivo'] .home-history th:nth-child(10),body[data-page='ao-vivo'] .home-history td:nth-child(10){width:8% !important;text-align:center!important;white-space:nowrap!important;}
-body[data-page='ao-vivo'] .home-history th:nth-child(11),body[data-page='ao-vivo'] .home-history td:nth-child(11){width:10.5% !important;text-align:center!important;white-space:nowrap!important;}
+body[data-page='ao-vivo'] .home-history th:nth-child(6),body[data-page='ao-vivo'] .home-history td:nth-child(6){width:14.5% !important;}
+body[data-page='ao-vivo'] .home-history th:nth-child(7),body[data-page='ao-vivo'] .home-history td:nth-child(7){width:13% !important;}
+body[data-page='ao-vivo'] .home-history th:nth-child(8),body[data-page='ao-vivo'] .home-history td:nth-child(8){width:14% !important;}
+body[data-page='ao-vivo'] .home-history th:nth-child(9),body[data-page='ao-vivo'] .home-history td:nth-child(9){width:10% !important;}
+body[data-page='ao-vivo'] .home-history th:nth-child(10),body[data-page='ao-vivo'] .home-history td:nth-child(10){width:5.5% !important;text-align:center!important;}
+body[data-page='ao-vivo'] .home-history th:nth-child(11),body[data-page='ao-vivo'] .home-history td:nth-child(11){width:8% !important;text-align:center!important;white-space:nowrap!important;}
+body[data-page='ao-vivo'] .home-history th:nth-child(12),body[data-page='ao-vivo'] .home-history td:nth-child(12){width:10.5% !important;text-align:center!important;white-space:nowrap!important;}
 
 /*
  * Cabeçalho compacto o suficiente para caber,
@@ -114,11 +114,6 @@ body[data-page='ao-vivo']
 .home-history td:nth-child(2),
 
 body[data-page='ao-vivo']
-.home-history th:nth-child(5),
-body[data-page='ao-vivo']
-.home-history td:nth-child(5),
-
-body[data-page='ao-vivo']
 .home-history th:nth-child(6),
 body[data-page='ao-vivo']
 .home-history td:nth-child(6),
@@ -131,7 +126,12 @@ body[data-page='ao-vivo']
 body[data-page='ao-vivo']
 .home-history th:nth-child(8),
 body[data-page='ao-vivo']
-.home-history td:nth-child(8){
+.home-history td:nth-child(8),
+
+body[data-page='ao-vivo']
+.home-history th:nth-child(9),
+body[data-page='ao-vivo']
+.home-history td:nth-child(9){
     text-align:center !important;
 }
 
@@ -291,7 +291,7 @@ body[data-page='ao-vivo']
      * Status também ganha largura completa.
      */
     html body[data-page='ao-vivo']
-    .home-history td:nth-child(8){
+    .home-history td:nth-child(9){
 
         grid-column:1 / -1 !important;
     }
@@ -339,22 +339,22 @@ body[data-page='ao-vivo']
     }
 
     html body[data-page='ao-vivo']
-    .home-history td:nth-child(5)::before{
+    .home-history td:nth-child(6)::before{
         content:"Protocolo";
     }
 
     html body[data-page='ao-vivo']
-    .home-history td:nth-child(6)::before{
+    .home-history td:nth-child(7)::before{
         content:"Módulo";
     }
 
     html body[data-page='ao-vivo']
-    .home-history td:nth-child(7)::before{
+    .home-history td:nth-child(8)::before{
         content:"Duração";
     }
 
     html body[data-page='ao-vivo']
-    .home-history td:nth-child(8)::before{
+    .home-history td:nth-child(9)::before{
         content:"Status";
     }
 

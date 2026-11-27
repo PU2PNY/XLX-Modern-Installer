@@ -313,7 +313,7 @@ index 77725e9..593560e 100644
      // constructor
      CYsfProtocol();
      
-@@ -84,6 +89,9 @@ public:
+@@ -84,5 +89,8 @@ public:
      void Task(void);
      
  protected:

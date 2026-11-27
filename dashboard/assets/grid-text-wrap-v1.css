@@ -53,9 +53,9 @@ body[data-page="conectados"] table.connected-table td:nth-child(3) {
 /* ATIVIDADE 24H
  * 4 Indicativo | 5 Nome | 6 Hotspot/Repetidora | 7 Cidade
  */
-body[data-page="ao-vivo"] table.home-history td:nth-child(5),
 body[data-page="ao-vivo"] table.home-history td:nth-child(6),
 body[data-page="ao-vivo"] table.home-history td:nth-child(7),
+body[data-page="ao-vivo"] table.home-history td:nth-child(8),
 body[data-page="ao-vivo"] table.home-history .gateway-display,
 body[data-page="ao-vivo"] table.home-history .gateway-value {
     white-space: normal !important;
@@ -67,9 +67,9 @@ body[data-page="ao-vivo"] table.home-history .gateway-value {
     max-width: 100% !important;
 }
 
-body[data-page="ao-vivo"] table.home-history td:nth-child(5),
 body[data-page="ao-vivo"] table.home-history td:nth-child(6),
-body[data-page="ao-vivo"] table.home-history td:nth-child(7) {
+body[data-page="ao-vivo"] table.home-history td:nth-child(7),
+body[data-page="ao-vivo"] table.home-history td:nth-child(8) {
     max-height: 3.15em !important;
 }
 
@@ -136,16 +136,16 @@ body[data-page="ao-vivo"] #moduleGrid .tx-card.live .tx-hotspot-repeater .gatewa
         width: 18% !important;
     }
 
-    body[data-page="ao-vivo"] table.home-history th:nth-child(5),
-    body[data-page="ao-vivo"] table.home-history td:nth-child(5) {
-        width: 14% !important;
-    }
     body[data-page="ao-vivo"] table.home-history th:nth-child(6),
     body[data-page="ao-vivo"] table.home-history td:nth-child(6) {
         width: 14% !important;
     }
     body[data-page="ao-vivo"] table.home-history th:nth-child(7),
     body[data-page="ao-vivo"] table.home-history td:nth-child(7) {
+        width: 14% !important;
+    }
+    body[data-page="ao-vivo"] table.home-history th:nth-child(8),
+    body[data-page="ao-vivo"] table.home-history td:nth-child(8) {
         width: 13% !important;
     }
 }
@@ -159,9 +159,9 @@ body[data-page="ao-vivo"] #moduleGrid .tx-card.live .tx-hotspot-repeater .gatewa
 
     body[data-page="conectados"] table.connected-table td:nth-child(4),
     body[data-page="conectados"] table.connected-table td:nth-child(5),
-    body[data-page="ao-vivo"] table.home-history td:nth-child(5),
     body[data-page="ao-vivo"] table.home-history td:nth-child(6),
-    body[data-page="ao-vivo"] table.home-history td:nth-child(7) {
+    body[data-page="ao-vivo"] table.home-history td:nth-child(7),
+    body[data-page="ao-vivo"] table.home-history td:nth-child(8) {
         white-space: normal !important;
         overflow-wrap: anywhere !important;
         word-break: normal !important;
@@ -315,10 +315,10 @@ body[data-page="conectados"] table.connected-table td:nth-child(3){
 @media (min-width:821px){
   body[data-page="ao-vivo"] table.home-history th:nth-child(4),
   body[data-page="ao-vivo"] table.home-history td:nth-child(4){width:10% !important;}
-  body[data-page="ao-vivo"] table.home-history th:nth-child(5),
-  body[data-page="ao-vivo"] table.home-history td:nth-child(5){width:13% !important;}
   body[data-page="ao-vivo"] table.home-history th:nth-child(6),
   body[data-page="ao-vivo"] table.home-history td:nth-child(6){width:13% !important;}
+  body[data-page="ao-vivo"] table.home-history th:nth-child(7),
+  body[data-page="ao-vivo"] table.home-history td:nth-child(7){width:13% !important;}
 }
 
 

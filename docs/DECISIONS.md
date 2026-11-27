@@ -113,3 +113,7 @@ Autorizar canary reversível conforme Issue #115, sem substituir o instalador pa
 
 ## DEC-2026-11-26-025 — Xombe V4 aprovado pelo operador, validação HW pendente
 O operador autorizou adoção do Xombe V4. V3 foi rejeitado tecnicamente por ganho no sentido errado e 8/88 testes de referência falharam; V2 foi usado como retorno temporário. V4 configura ganho -0.5 log2 apenas no caminho D-STAR→AMBE+2 por stream, com default upstream zero; DMR/YSF→D-STAR permanece sem ganho. SW 88/88 PASS; ENV 100 frames UDP PASS; PROD V4 ativo e XLXD preservado; HW auditivo pós-V4 pendente. Não marcar release integral do instalador nem HW PASS.
+
+## DEC-2026-11-27-026 — Fixar as fontes da instalação e preservar o estado de referência
+
+A instalação genérica fixa a revisão PP5PK que já era a ponta upstream observada em 2026-11-27. A recuperação reproduz a linhagem distinta do XLXD do XLX026 com TOT180, TX Turn Guard e YSF VW. Identidade do refletor, configurações de rádio, chaves, dados e caminhos privados são administrados na instância. Xombe V9 fica disponível para recompilação explícita e sem ativação automática. O histórico usa a fonte STATION já correlacionada, com sufixo entre indicativo e nome. Um único renderizador atende a tabela e as linhas expandidas. O painel público inclui o layout clássico do certificado e o código de consulta a uma base Anatel fornecida pelo operador. Ver CORE-006, UI-021, DATA-002 e XOMBE-003.
